@@ -149,7 +149,7 @@ in
         ]
         ++ lib.optionals (cfg.modelsPreset != null) [
           "--models-preset"
-          modelsPresetFile
+          (toString modelsPresetFile)
         ]
         ++ cfg.extraFlags;
         KeepAlive = true;
