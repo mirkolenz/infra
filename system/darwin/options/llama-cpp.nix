@@ -149,12 +149,13 @@ in
         ]
         ++ lib.optionals (cfg.modelsPreset != null) [
           "--models-preset"
-          "${modelsPresetFile}"
+          modelsPresetFile
         ]
         ++ cfg.extraFlags;
         KeepAlive = true;
         RunAtLoad = true;
-        ExitTimeOut = 5;
+        ExitTimeOut = 90;
+        ThrottleInterval = 300;
         UserName = "_llamacpp";
         GroupName = "_llamacpp";
         WorkingDirectory = cfg.home;

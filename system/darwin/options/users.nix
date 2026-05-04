@@ -1,8 +1,8 @@
 { lib, ... }:
 let
   systemUsers = {
-    _ollama = 551;
-    _llamacpp = 552;
+    _llamacpp = 551;
+    _ollama = 552;
   };
 in
 {
