@@ -70,7 +70,7 @@ let
     microsoft-word = 462054704;
     parallels = 1085114709;
     pdf-expert = 1055273043;
-    pdf-presenter = 6472296409;
+    # pdf-presenter = 6472296409;
     qr-factory = 1609285899;
     reeder = 6475002485;
     safari-1password = 1569813296;
