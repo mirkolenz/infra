@@ -22,14 +22,12 @@
         n-gpu-layers = "all";
         parallel = 2;
         sleep-idle-seconds = -1;
-        stop-timeout = 60;
         # keep-sorted end
       };
       # https://unsloth.ai/docs/models/qwen3.6
       "qwen3.6-35b-a3b" = {
         # keep-sorted start
         hf-repo = "unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_XL";
-        load-on-startup = true;
         min-p = 0.0;
         presence-penalty = 1.0;
         reasoning = "on";
@@ -43,10 +41,9 @@
       "qwen3.5-0.8b" = {
         # keep-sorted start
         hf-repo = "unsloth/Qwen3.5-0.8B-GGUF:UD-Q4_K_XL";
-        load-on-startup = true;
         min-p = 0.0;
         presence-penalty = 1.0;
-        reasoning = "on";
+        reasoning = "off";
         repeat-penalty = 1.0;
         temperature = 1.0;
         top-k = 20;
