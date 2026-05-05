@@ -9,5 +9,6 @@
       PAGER = "less";
     };
     defaultPackages = lib.mkForce [ ];
+    enableAllTerminfo = true;
   };
 }
