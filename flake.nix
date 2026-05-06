@@ -100,7 +100,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     mistral-vibe = {
-      url = "github:mistralai/mistral-vibe/v2.9.3";
+      url = "github:mistralai/mistral-vibe/v2.9.4";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         pyproject-nix.follows = "pyproject-nix";
