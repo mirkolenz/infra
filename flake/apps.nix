@@ -1,4 +1,9 @@
-{ lib, self, ... }:
+{
+  lib,
+  self,
+  inputs,
+  ...
+}:
 {
   perSystem =
     { pkgs, ... }:
@@ -14,6 +19,10 @@
         home-manager.program = pkgs.writeShellScriptBin "home-manager" /* bash */ ''
           exec ${lib.getExe pkgs.home-manager} --flake "${self.outPath}" "$@"
         '';
+        t2-updater.program = pkgs.writers.writePython3Bin "t2-updater" {
+          libraries = with pkgs.python3Packages; [ requests ];
+          doCheck = false;
+        } (lib.readFile "${inputs.nixos-hardware}/apple/t2/pkgs/linux-t2/update-patches.py");
       }
       // lib.optionalAttrs pkgs.stdenv.isLinux {
         disko.program = pkgs.writeShellScriptBin "disko" /* bash */ ''
