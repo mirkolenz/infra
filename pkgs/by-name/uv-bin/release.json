@@ -1,14 +1,14 @@
 {
-  "tag_name": "0.11.10",
+  "tag_name": "0.11.11",
   "assets": {
     "uv-aarch64-apple-darwin.tar.gz": {
-      "digest": "sha256:e93d6af7dfff7071edd16342ba9eeccfc28d8a7deaa5707efeecf63a63a74453"
+      "digest": "sha256:3a185bf8f46a7b7c8b910d111825907b1638d0ae503cb3c333ae205772354046"
     },
     "uv-aarch64-unknown-linux-gnu.tar.gz": {
-      "digest": "sha256:91d5f4583539640765662ef86edcf3bf4db07439b622c7bed50c961240162046"
+      "digest": "sha256:155fe4d3b3cb4bfce118ab4b1380f71515ae874d13d9858171b4f9c26e16684d"
     },
     "uv-x86_64-unknown-linux-gnu.tar.gz": {
-      "digest": "sha256:077e1a0777bcf516e02f4ef245e269c8d1baa780438e4c50e09c5c997f85538a"
+      "digest": "sha256:a767848254391855c96df271e9ca8b7f72dd172d310460447853d25d907b9ae0"
     }
   }
 }
