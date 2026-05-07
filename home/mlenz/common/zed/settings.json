@@ -76,6 +76,7 @@
   "base_keymap": "VSCode",
   "buffer_font_family": "JetBrainsMono Nerd Font",
   "buffer_font_size": 13,
+  "code_lens": "on",
   "collaboration_panel": {
     "default_width": 320
   },
@@ -89,6 +90,7 @@
     "provider": "copilot",
     "disabled_globs": ["*.env", "*secret*"],
     "mode": "eager",
+    "allow_data_collection": "no",
     "ollama": {
       "max_output_tokens": 16,
       "model": "qwen2.5-coder:7b"
@@ -234,6 +236,7 @@
     }
     // keep-sorted end
   },
+  "line_ending": "prefer_lf",
   "lsp": {
     // keep-sorted start block=yes
     "basedpyright": {
