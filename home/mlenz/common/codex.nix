@@ -22,6 +22,7 @@ lib.mkIf config.custom.features.withOptionals {
       check_for_update_on_startup = false;
       personality = "pragmatic";
       web_search = "live";
+      service_tier = "flex";
       default_permissions = "default";
       permissions.default = {
         filesystem = {
