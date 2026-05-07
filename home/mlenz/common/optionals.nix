@@ -56,6 +56,7 @@ lib.mkIf config.custom.features.withOptionals {
     mailpit
     copilot-cli-bin
     html2markdown
+    zapp
     # nix
     nixd
     nixf
