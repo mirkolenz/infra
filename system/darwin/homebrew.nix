@@ -177,8 +177,4 @@ in
     casks = caskApps ++ caskFonts;
     inherit masApps;
   };
-  # https://docs.brew.sh/Manpage#environment
-  environment.variables = {
-    HOMEBREW_USE_INTERNAL_API = "1";
-  };
 }
