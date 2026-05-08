@@ -7,16 +7,16 @@
 }:
 buildGoModule (finalAttrs: {
   pname = "html2markdown";
-  version = "2.5.0";
+  version = "2.5.1";
 
   src = fetchFromGitHub {
     owner = "JohannesKaufmann";
     repo = "html-to-markdown";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-xTfJNijtDlQ5oEZkl92KEyFg3U+Wl4nJcsT5puS7h4A=";
+    hash = "sha256-SFN1rXlJdkNu0xq6MzW3TGMo1HGfFtU/7kMfkEkKFEQ=";
   };
 
-  vendorHash = "sha256-ZU2sZZEmnVrrJb4SAAa4A4sYRtRxMgn5FaK9DByGQ2I=";
+  vendorHash = "sha256-JWusYN482+ei2kqiGYnAVfBGbdfThu8LHBX3JhMU6FE=";
 
   subPackages = [ "./cli/html2markdown" ];
 
