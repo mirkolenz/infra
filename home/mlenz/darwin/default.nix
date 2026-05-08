@@ -9,14 +9,11 @@
 
   home.packages = with pkgs; [
     mas
-    goneovim-bin
     restic-browser-bin
-    codexbar-bin
     undmg
     rcodesign
     container
     mole-mac
-    pyrefly-bin
     nvtopPackages.apple
     (writeShellApplication {
       name = "scansnap-reset";

@@ -82,6 +82,7 @@ lib.mkIf config.custom.features.withOptionals {
     pylyzer
     basedpyright
     zuban
+    pyrefly-bin
     # rust
     rustc
     cargo

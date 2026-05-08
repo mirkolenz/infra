@@ -1,8 +1,0 @@
-{
-  "tag_name": "v0.6.17",
-  "assets": {
-    "goneovim-v0.6.17-macos-arm64.tar.bz2": {
-      "digest": "sha256:baba9f98917a474d308127ba615b896700732a644bf880f0b8290a5cf2947425"
-    }
-  }
-}
