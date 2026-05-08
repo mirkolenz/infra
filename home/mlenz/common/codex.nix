@@ -52,8 +52,8 @@ lib.mkIf config.custom.features.withOptionals {
         web_search = { };
       };
       tui = {
-        alternate_screen = "never";
         notifications = true;
+        vim_mode_default = false;
       };
       shell_environment_policy = {
         set = {
@@ -68,7 +68,6 @@ lib.mkIf config.custom.features.withOptionals {
         fast_mode = false;
         goals = true;
         memories = false;
-        plugins = false;
         prevent_idle_sleep = true;
         terminal_resize_reflow = true;
       };
