@@ -66,6 +66,7 @@
     "ruby": true,
     "sql": true,
     "tombi": true,
+    "toml": true,
     "tsgo": true,
     "typst": true,
     "xml": true,
