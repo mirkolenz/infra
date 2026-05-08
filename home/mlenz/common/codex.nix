@@ -22,7 +22,6 @@ lib.mkIf config.custom.features.withOptionals {
       check_for_update_on_startup = false;
       personality = "pragmatic";
       web_search = "live";
-      service_tier = "flex";
       default_permissions = "default";
       permissions.default = {
         filesystem = {
@@ -64,8 +63,14 @@ lib.mkIf config.custom.features.withOptionals {
       # codex features list
       # https://github.com/openai/codex/blob/main/codex-rs/features/src/lib.rs
       features = {
-        js_repl = true;
+        apps = false;
+        external_migration = false;
+        fast_mode = false;
+        goals = true;
+        memories = false;
+        plugins = false;
         prevent_idle_sleep = true;
+        terminal_resize_reflow = true;
       };
     };
   };
