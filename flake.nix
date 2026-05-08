@@ -100,7 +100,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     mistral-vibe = {
-      url = "github:mistralai/mistral-vibe/v2.9.4";
+      url = "github:mistralai/mistral-vibe/v2.9.5";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         pyproject-nix.follows = "pyproject-nix";
@@ -109,7 +109,7 @@
       };
     };
     nixfmt-rs = {
-      url = "github:Mic92/nixfmt-rs/0.4.0";
+      url = "github:Mic92/nixfmt-rs/0.4.1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     plist-manager = {
