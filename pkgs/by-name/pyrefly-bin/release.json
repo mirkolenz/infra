@@ -4,6 +4,9 @@
     "pyrefly-macos-arm64.tar.gz": {
       "digest": "sha256:edf8485938657c01ac5d89158d556d275cda73078968f4b0b2661755bebf4c73"
     },
+    "pyrefly-linux-arm64.tar.gz": {
+      "digest": "sha256:c4473026afed37d759af98bdcfedaef76850930f1e0e1420baf5f7e78e39a408"
+    },
     "pyrefly-linux-x86_64.tar.gz": {
       "digest": "sha256:965957c434e37a368ed74460308f58245630a18ae828202978aa77c84be8d9b7"
     }
