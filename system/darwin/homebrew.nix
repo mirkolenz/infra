@@ -171,6 +171,9 @@ in
       autoUpdate = true;
       cleanup = "uninstall";
       upgrade = true;
+      extraEnv = {
+        HOMEBREW_NO_ENV_HINTS = "1";
+      };
     };
     taps = [ ];
     brews = [ ];
