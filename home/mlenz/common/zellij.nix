@@ -6,31 +6,81 @@
   ...
 }:
 let
-  layouts = {
-    default = ''
-      tab { pane; }
-    '';
-    codex = ''
-      tab name="💻 codex" {
-        pane command="codex" close_on_exit=true
+  zellijExe = lib.getExe config.programs.zellij.package;
+
+  plugins = {
+    zellij-tab-name = pkgs.fetchurl {
+      url = "https://github.com/Cynary/zellij-tab-name/releases/download/v0.4.2/zellij-tab-name.wasm";
+      hash = "sha256:4edf6bacc00a2fe77ac464c86975c7cc77f9cbfd494c36fdc2b81b226e29e0e6";
+    };
+    zellij-vertical-tabs = pkgs.fetchurl {
+      url = "https://github.com/cfal/zellij-vertical-tabs/releases/download/v0.1.0/zellij-vertical-tabs.wasm";
+      hash = "sha256:531091b56ab3bc0008bd14de19f71985e3ab8585110ee021ef8ee413556202a2";
+    };
+  };
+
+  layouts = [
+    {
+      title = "codex";
+      command = "codex";
+      icon = "💻";
+    }
+    {
+      title = "claude";
+      command = "claude";
+      icon = "💻";
+    }
+    {
+      title = "lazygit";
+      command = "lazygit";
+      icon = "🔍";
+      keybind = "Alt g";
+    }
+    {
+      title = "nvim";
+      command = "nvim";
+      icon = "📝";
+      keybind = "Alt v";
+    }
+  ];
+
+  # pane split_direction="vertical" {
+  #   pane size=18 borderless=true {
+  #     plugin location="file:${plugins.zellij-vertical-tabs}"
+  #   }
+  #   children
+  # }
+  defaultTabTemplate = ''
+    default_tab_template {
+      pane size=1 borderless=true {
+        plugin location="zellij:tab-bar"
       }
-    '';
-    claude = ''
-      tab name="💻 claude" {
-        pane command="claude" close_on_exit=true
+      children
+      pane size=1 borderless=true {
+        plugin location="zellij:status-bar"
       }
-    '';
-    lazygit = ''
-      tab name="🔍 lazygit" {
-        pane command="lazygit" close_on_exit=true
-      }
-    '';
-    nvim = ''
-      tab name="⌨️ nvim" {
-        pane command="nvim" close_on_exit=true
+    }
+  '';
+
+  mkLayoutFile = l: {
+    name = "zellij/layouts/${l.title}.kdl";
+    value.text = ''
+      layout {
+        ${defaultTabTemplate}
+        tab name="${l.icon} ${l.title}" {
+          pane command="${l.command}" close_on_exit=true
+        }
       }
     '';
   };
+
+  mkKeybind =
+    l:
+    lib.optionalString (l ? keybind) ''
+      bind "${l.keybind}" {
+        NewTab { name "${l.icon} ${l.title}"; layout "${l.title}"; };
+      }
+    '';
 in
 {
   programs.zellij = {
@@ -52,6 +102,9 @@ in
     # https://zellij.dev/documentation/keybindings-keys.html
     # https://github.com/zellij-org/zellij/blob/main/zellij-utils/assets/config/default.kdl
     extraConfig = ''
+      load_plugins {
+        "file:${plugins.zellij-tab-name}"
+      }
       keybinds {
         shared {
           unbind "Alt f"
@@ -61,8 +114,7 @@ in
           bind "Alt c" { Copy; }
           bind "Alt t" { NewTab; }
           bind "Alt w" { CloseTab; }
-          bind "Alt g" { NewTab { layout "lazygit"; }; }
-          bind "Alt v" { NewTab { layout "nvim"; }; }
+          ${lib.concatMapStrings mkKeybind layouts}
           bind "Alt Tab" { GoToNextTab; }
           bind "Alt Shift Tab" { GoToPreviousTab; }
         }
@@ -70,32 +122,21 @@ in
     '';
   };
   xdg.configFile = lib.mkMerge [
-    (lib.mapAttrs' (name: value: {
-      name = "zellij/layouts/${name}.kdl";
-      # zellij setup --dump-layout default
-      value.text = ''
+    (lib.listToAttrs (map mkLayoutFile layouts))
+    {
+      "zellij/layouts/default.kdl".text = ''
         layout {
-          default_tab_template {
-            pane size=1 borderless=true {
-              plugin location="zellij:tab-bar"
-            }
-            children
-            pane size=1 borderless=true {
-              plugin location="zellij:status-bar"
-            }
-          }
-          ${value}
+          ${defaultTabTemplate}
+          tab { pane; }
         }
       '';
-    }) layouts)
-    {
       "zellij/themes/flexoki.kdl".source = "${pkgs.flexoki}/share/zellij/flexoki.kdl";
     }
   ];
   home.shellAliases = {
-    zj = lib.getExe config.programs.zellij.package;
-    zja = "${lib.getExe config.programs.zellij.package} attach";
-    zjx = "${lib.getExe config.programs.zellij.package} attach --create main";
+    zj = zellijExe;
+    zja = "${zellijExe} attach";
+    zjx = "${zellijExe} attach --create main";
   };
   home.packages = [
     (pkgs.writeShellApplication {
@@ -103,7 +144,7 @@ in
       text = /* bash */ ''
         parent="$(basename "$(dirname "$PWD")")"
         current="$(basename "$PWD")"
-        exec ${lib.getExe config.programs.zellij.package} attach --create "$parent-$current"
+        exec ${zellijExe} attach --create "$parent-$current"
       '';
     })
     (pkgs.writeShellApplication {
@@ -116,8 +157,23 @@ in
   ];
   programs.fish.interactiveShellInit = ''
     if set -q ZELLIJ
-      function _zellij_set_tab_to_cwd --on-event fish_prompt --on-event fish_postexec --on-variable PWD
-        command zellij action rename-tab "📁 "(string replace -- $HOME '~' $PWD | path basename) &>/dev/null
+      function fish_title; end
+
+      # Use the zellij-tab-name plugin so renames target this pane's tab
+      # rather than whichever tab is currently focused.
+      function _zellij_rename_tab
+        set -l payload (${lib.getExe pkgs.jq} -nc \
+          --arg id "$ZELLIJ_PANE_ID" \
+          --arg name "$argv" \
+          '{pane_id: $id, name: $name}')
+        command zellij pipe --name change-tab-name -- "$payload" 2>/dev/null
+      end
+
+      function _zellij_set_tab_to_cwd \
+          --on-event fish_prompt \
+          --on-event fish_postexec \
+          --on-variable PWD
+        _zellij_rename_tab "📁 "(string replace -- $HOME '~' $PWD | path basename)
       end
 
       function _zellij_set_tab_to_cmd --on-event fish_preexec
@@ -125,7 +181,7 @@ in
         if test "$words[1]" = sudo
           set words $words[2..]
         end
-        command zellij action rename-tab "🚀 $words[1]" &>/dev/null
+        _zellij_rename_tab "🚀 $words[1]"
       end
     end
   '';
@@ -134,7 +190,7 @@ in
     enable = false;
     config = {
       ProgramArguments = [
-        (lib.getExe config.programs.zellij.package)
+        zellijExe
         "web"
         "--start"
         "--ip"
