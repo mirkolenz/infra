@@ -23,5 +23,6 @@ mkGitHubBinary {
   meta = {
     description = "Fast type checker and language server for Python";
     license = lib.licenses.mit;
+    hydraPlatforms = [ ];
   };
 }
