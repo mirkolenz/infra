@@ -52,7 +52,6 @@
       imports = [
         ../home/mlenz/common
         ../home/mlenz/darwin
-        # inputs.plist-manager.homeManagerModules.default
       ];
     };
     homeModules.base-standalone =
@@ -119,7 +118,6 @@
         self.modules.generic.system
         inputs.home-manager.darwinModules.default
         inputs.determinate.darwinModules.default
-        # inputs.plist-manager.darwinModules.default
         inputs.opnix.darwinModules.default
       ];
     };

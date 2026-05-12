@@ -9,9 +9,5 @@ in
   disko = fromInput "disko" "disko";
   disko-install = fromInput "disko" "disko-install";
   mistral-vibe = fromInput "mistral-vibe" "default";
-  nix-converter = fromInput "nix-converter" "default";
-  nix-sweep = fromInput "nix-sweep" "default";
-  nixfmt-rs = fromInput "nixfmt-rs" "default";
   opnix = fromInput "opnix" "default";
-  zjstatus = fromInput "zjstatus" "default";
 }

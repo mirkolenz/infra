@@ -79,20 +79,8 @@
       url = "github:mic92/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix-converter = {
-      url = "github:theobori/nix-converter/1.0.0";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     disko = {
       url = "github:nix-community/disko/v1.13.0";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    nix-sweep = {
-      url = "github:jzbor/nix-sweep/v0.8.0";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    zjstatus = {
-      url = "github:dj95/zjstatus/v0.23.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     opnix = {
@@ -107,14 +95,6 @@
         uv2nix.follows = "uv2nix";
         pyproject-build-systems.follows = "pyproject-build-systems";
       };
-    };
-    nixfmt-rs = {
-      url = "github:Mic92/nixfmt-rs/0.4.1";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    plist-manager = {
-      url = "github:sushydev/nix-plist-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
     cosmic-manager = {
       url = "github:heitoraugustoln/cosmic-manager";

@@ -17,6 +17,14 @@ let
       url = "https://github.com/cfal/zellij-vertical-tabs/releases/download/v0.1.0/zellij-vertical-tabs.wasm";
       hash = "sha256:531091b56ab3bc0008bd14de19f71985e3ab8585110ee021ef8ee413556202a2";
     };
+    zjstatus = pkgs.fetchurl {
+      url = "https://github.com/dj95/zjstatus/releases/download/v0.23.0/zjstatus.wasm";
+      hash = "sha256:e006901223524239db618021e4cc5d17f82dc4bfae5432895ba41f03f13861ff";
+    };
+    zjframes = pkgs.fetchurl {
+      url = "https://github.com/dj95/zjstatus/releases/download/v0.23.0/zjframes.wasm";
+      hash = "sha256:8d89e831bde195363faa5a810b04460a421006d37c9886ce9e255130fa93a085";
+    };
   };
 
   layouts = [
