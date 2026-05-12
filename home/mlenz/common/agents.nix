@@ -5,10 +5,13 @@
     instructions = /* markdown */ ''
       ## General
 
-      - Use conventional commit messages to describe changes so that semantic versioning can be applied.
-      - In plain text files, write exactly one sentence per line: txt, md, tex, typ, rst, ...
+      - Always find the most simple, elegant, robust, reliable, and efficient solution to a problem and try to minimize the amount of code.
+      - Always follow best practices and never introduce unnecessary complexity, hacky workarounds, or ugly shortcuts that may cause technical debt or maintenance issues in the future.
+      - Identify shared patterns and abstractions between different parts of the code and refactor them into reusable functions to increase consistency and reduce duplication.
+      - Always prefer breaking changes with clean interfaces over backwards compatibility layers or migration paths (unless explicitly asked otherwise).
+      - Only generate the minimum amount of test cases needed to cover the core functionality of the code, not exhaustive test suites.
       - Do not run formatters or linters automatically, only when explicitly needed.
-      - Favor simple and readable solutions over complex ones and optimize for maintainability.
+      - In plain text files, write exactly one sentence per line: txt, md, tex, typ, rst, ...
       - Don't add prefixes such as `uvx` or `npx` to commands in backticks in these instructions, use them verbatim.
       - Read-only git operations are allowed, but never use writing git operations such as `git commit` or `git push` and leave them to the user.
 
