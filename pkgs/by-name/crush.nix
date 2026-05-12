@@ -29,7 +29,8 @@ buildGoModule (finalAttrs: {
   ];
 
   nativeBuildInputs = [ installShellFiles ];
-  postInstall = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
+
+  postFixup = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
     installShellCompletion --cmd crush \
       --bash <($out/bin/crush completion bash) \
       --fish <($out/bin/crush completion fish) \

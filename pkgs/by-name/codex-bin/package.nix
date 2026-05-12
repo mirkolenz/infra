@@ -35,10 +35,7 @@ mkGitHubBinary {
     mv codex-${platforms.${system}} codex
   '';
 
-  # patchelf needs to run first, so we add a custom phase
-  postPhases = [ "finalPhase" ];
-
-  finalPhase = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
+  postFixup = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
     installShellCompletion --cmd codex \
       --bash <($out/bin/codex completion bash) \
       --fish <($out/bin/codex completion fish) \

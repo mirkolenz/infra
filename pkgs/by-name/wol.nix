@@ -31,7 +31,8 @@ buildGoModule (finalAttrs: {
   ];
 
   nativeBuildInputs = [ installShellFiles ];
-  postInstall = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
+
+  postFixup = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
     installShellCompletion --cmd wol \
       --bash <($out/bin/wol completion bash) \
       --fish <($out/bin/wol completion fish) \

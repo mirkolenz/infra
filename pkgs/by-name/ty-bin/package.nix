@@ -17,10 +17,7 @@ mkGitHubBinary {
 
   buildInputs = lib.optionals stdenv.hostPlatform.isElf [ stdenv.cc.cc ];
 
-  # patchelf needs to run first, so we add a custom phase
-  postPhases = [ "finalPhase" ];
-
-  finalPhase = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
+  postFixup = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
     installShellCompletion --cmd ty \
       --bash <($out/bin/ty generate-shell-completion bash) \
       --fish <($out/bin/ty generate-shell-completion fish) \

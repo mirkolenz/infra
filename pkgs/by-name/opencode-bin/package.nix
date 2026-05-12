@@ -36,11 +36,8 @@ mkGitHubBinary {
       --set OPENCODE_DISABLE_AUTOUPDATE 1
   '';
 
-  # patchelf needs to run first, so we add a custom phase
-  # postPhases = [ "finalPhase" ];
-
   # todo: only bash supported: https://github.com/anomalyco/opencode/issues/1515
-  # finalPhase = lib.optionalString (stdenvNoCC.buildPlatform.canExecute stdenvNoCC.hostPlatform) ''
+  # postFixup = lib.optionalString (stdenvNoCC.buildPlatform.canExecute stdenvNoCC.hostPlatform) ''
   #   installShellCompletion --cmd opencode \
   #     --bash <($out/bin/opencode completion)
   # '';
