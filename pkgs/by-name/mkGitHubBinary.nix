@@ -30,6 +30,9 @@ lib.extendMkDerivation {
       versionPrefix ? "",
       versionSuffix ? "",
       allowPrereleases ? false,
+      # Scheduled as a post-phase (runs after fixupPhase) so the binary is
+      # already patched by autoPatchelfHook when the snippet executes it.
+      installShellCompletionPhase ? "",
       # upstream
       pname ? repo,
       nativeBuildInputs ? [ ],
@@ -94,6 +97,10 @@ lib.extendMkDerivation {
 
         runHook postInstall
       '';
+
+      postPhases = lib.optionals (installShellCompletionPhase != "") [
+        "installShellCompletionPhase"
+      ];
 
       passthru = {
         updateScript = writeScript "github-binaries-${owner}-${repo}" ''

@@ -37,7 +37,7 @@ mkGitHubBinary {
   '';
 
   # todo: only bash supported: https://github.com/anomalyco/opencode/issues/1515
-  # postFixup = lib.optionalString (stdenvNoCC.buildPlatform.canExecute stdenvNoCC.hostPlatform) ''
+  # installShellCompletionPhase = lib.optionalString (stdenvNoCC.buildPlatform.canExecute stdenvNoCC.hostPlatform) ''
   #   installShellCompletion --cmd opencode \
   #     --bash <($out/bin/opencode completion)
   # '';

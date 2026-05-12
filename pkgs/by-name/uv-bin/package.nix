@@ -20,7 +20,7 @@ mkGitHubBinary {
 
   buildInputs = lib.optionals stdenv.hostPlatform.isElf [ stdenv.cc.cc ];
 
-  postFixup = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
+  installShellCompletionPhase = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
     installShellCompletion --cmd uv \
       --bash <($out/bin/uv generate-shell-completion bash) \
       --fish <($out/bin/uv generate-shell-completion fish) \
