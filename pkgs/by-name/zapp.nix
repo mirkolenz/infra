@@ -1,13 +1,16 @@
 {
   lib,
   rustPlatform,
+  pkg-config,
+  udev,
+  stdenv,
   fetchFromGitHub,
   versionCheckHook,
   nix-update-script,
 }:
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "zapp";
-  version = "1.0.0";
+  version = "1.0.1";
 
   src = fetchFromGitHub {
     owner = "zsa";
@@ -19,6 +22,14 @@ rustPlatform.buildRustPackage (finalAttrs: {
   cargoHash = "sha256-0jmYOfuAfmq8vJvWww6WHjt1J5nRbDDFNFi/vN5ANk8=";
 
   passthru.updateScript = nix-update-script { };
+
+  nativeBuildInputs = [
+    pkg-config
+  ];
+
+  buildInputs = lib.optionals stdenv.hostPlatform.isLinux [
+    udev
+  ];
 
   nativeInstallCheckInputs = [ versionCheckHook ];
   doInstallCheck = true;
