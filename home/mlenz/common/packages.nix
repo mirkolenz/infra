@@ -56,6 +56,7 @@
     duf
     # nix
     nixpkgs-review
+    nix-eval-jobs
     nix-output-monitor
     nix-fast-build
     fh
