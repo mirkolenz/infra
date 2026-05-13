@@ -16,10 +16,10 @@ rustPlatform.buildRustPackage (finalAttrs: {
     owner = "zsa";
     repo = "zapp";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-0gf1famCPfsShYyankk9/Y/aA8/XbCbOJVmdNl416jk=";
+    hash = "sha256-KhWL+SsN1z9qpxwHpaqRo3qAk7xAOHVkRAOa02Q2Myc=";
   };
 
-  cargoHash = "sha256-0jmYOfuAfmq8vJvWww6WHjt1J5nRbDDFNFi/vN5ANk8=";
+  cargoHash = "sha256-gDyNwHrMdNQdKdr9RGfwFAU8IaUlGrlJxV0WClQ25JM=";
 
   passthru.updateScript = nix-update-script { };
 
