@@ -10,6 +10,7 @@
       - Identify shared patterns and abstractions between different parts of the code and refactor them into reusable functions to increase consistency and reduce duplication.
       - Always prefer breaking changes with clean interfaces over backwards compatibility layers or migration paths (unless explicitly asked otherwise).
       - Only generate the minimum amount of test cases needed to cover the core functionality of the code, not exhaustive test suites.
+      - Only add important comments when generating code and keep it focused on non-trivial information or special cases one needs to document for future use.
       - Do not run formatters or linters automatically, only when explicitly needed.
       - In plain text files, write exactly one sentence per line: txt, md, tex, typ, rst, ...
       - Don't add prefixes such as `uvx` or `npx` to commands in backticks in these instructions, use them verbatim.
