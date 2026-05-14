@@ -49,7 +49,8 @@
 
       - Use flakes to manage Nix projects, not channels.
       - Use flake-parts to structure flake.nix files.
-      - Exec `nix flake prefetch nixpkgs --json | jq -r .storePath` to obtain the store path of the current nixpkgs source code.
+      - Exec `nix flake prefetch nixpkgs --json | jq -r .storePath` to obtain the store path of the latest nixpkgs from the system flake registry.
+      - Exec `nix eval --raw --impure --expr '(builtins.getFlake (toString ./.)).inputs.<name>.outPath'` to obtain the store path of an input from the current repo where `<name>` can be any input such as `nixpkgs`.
       - Never run plain find/grep commands in `/` or `/nix/store`.
 
       ## LaTeX
