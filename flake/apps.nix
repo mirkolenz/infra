@@ -9,12 +9,8 @@
     { pkgs, ... }:
     {
       apps = {
-        default.program = pkgs.writeShellScriptBin "builder" /* bash */ ''
-          exec ${lib.getExe pkgs.config-builder} --flake "${self.outPath}" "$@"
-        '';
-        updater.program = pkgs.writeShellScriptBin "updater" /* bash */ ''
-          ${lib.getExe pkgs.flake-updater} --commit --package caddy-custom
-          ${lib.getExe pkgs.pkgs-updater} --commit
+        default.program = pkgs.writeShellScriptBin "flakectl" /* bash */ ''
+          exec ${lib.getExe pkgs.flakectl} --flake "${self.outPath}" "$@"
         '';
         home-manager.program = pkgs.writeShellScriptBin "home-manager" /* bash */ ''
           exec ${lib.getExe pkgs.home-manager} --flake "${self.outPath}" "$@"
