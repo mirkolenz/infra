@@ -13,7 +13,7 @@
           exec ${lib.getExe pkgs.config-builder} --flake "${self.outPath}" "$@"
         '';
         updater.program = pkgs.writeShellScriptBin "updater" /* bash */ ''
-          ${lib.getExe pkgs.flake-updater} --commit
+          ${lib.getExe pkgs.flake-updater} --commit --package caddy-custom
           ${lib.getExe pkgs.pkgs-updater} --commit
         '';
         home-manager.program = pkgs.writeShellScriptBin "home-manager" /* bash */ ''
