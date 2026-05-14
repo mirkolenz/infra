@@ -51,7 +51,7 @@ lib.mkIf config.custom.features.withOptionals {
     pympress
     keep-sorted
     jsonfmt
-    caddy
+    # caddy # todo: broken as of 2026-05-14
     authelia
     mailpit
     copilot-cli-bin
