@@ -1,6 +1,7 @@
 import json
 import shlex
 import subprocess
+from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -20,7 +21,7 @@ def subprocess_stdout(cmd: list[str]) -> str:
         result.check_returncode()
     except subprocess.CalledProcessError as e:
         typer.echo(e.stderr, err=True)
-        exit(1)
+        raise typer.Exit(1) from e
 
     return result.stdout.strip()
 
@@ -53,18 +54,11 @@ def run(
         name = f"{user}@{node}" if is_home else node
 
     if is_home:
-        builder = home_builder
+        builder, flake_attribute = home_builder, "homeConfigurations"
     elif kernel == "darwin":
-        builder = darwin_builder
+        builder, flake_attribute = darwin_builder, "darwinConfigurations"
     else:
-        builder = linux_builder
-
-    if is_home:
-        flake_attribute = "homeConfigurations"
-    elif kernel == "darwin":
-        flake_attribute = "darwinConfigurations"
-    else:
-        flake_attribute = "nixosConfigurations"
+        builder, flake_attribute = linux_builder, "nixosConfigurations"
 
     is_impure: bool = json.loads(
         subprocess_stdout(
@@ -86,7 +80,7 @@ def run(
     cmd.extend(ctx.args)
 
     typer.echo(
-        shlex.join([cmd[0].split("/")[-1], *cmd[1:]]),
+        shlex.join([Path(cmd[0]).name, *cmd[1:]]),
         err=True,
     )
 

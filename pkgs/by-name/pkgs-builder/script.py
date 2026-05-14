@@ -2,6 +2,7 @@ import json
 import shlex
 import subprocess
 from collections.abc import Iterable
+from pathlib import Path
 from typing import Annotated, Any
 
 import typer
@@ -21,7 +22,7 @@ def subprocess_stdout(cmd: list[str]) -> str:
         result.check_returncode()
     except subprocess.CalledProcessError as e:
         typer.echo(e.stderr, err=True)
-        exit(1)
+        raise typer.Exit(1) from e
 
     return result.stdout.strip()
 
@@ -40,7 +41,7 @@ def nix_eval_attr(nix_exe: str, flake: str, attribute: str) -> dict[str, str]:
         )
     )
 
-    if not isinstance(entries, dict) and not all(
+    if not isinstance(entries, dict) or not all(
         isinstance(key, str)
         and isinstance(value, str)
         and value.startswith("/nix/store/")
@@ -130,7 +131,7 @@ def run(
     ]
 
     typer.echo(
-        shlex.join([cmd[0].split("/")[-1], *cmd[1:]]),
+        shlex.join([Path(cmd[0]).name, *cmd[1:]]),
         err=True,
     )
 

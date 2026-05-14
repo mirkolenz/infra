@@ -1,6 +1,7 @@
 import shlex
 import subprocess
 from enum import StrEnum
+from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -86,13 +87,7 @@ def run(
         cmd += cmd_arg("order", order.value)
 
     typer.echo(
-        shlex.join(
-            [
-                cmd[0].split("/")[-1],
-                cmd[1].split("/")[-1],
-                *cmd[2:],
-            ],
-        ),
+        shlex.join([Path(cmd[0]).name, Path(cmd[1]).name, *cmd[2:]]),
         err=True,
     )
 
