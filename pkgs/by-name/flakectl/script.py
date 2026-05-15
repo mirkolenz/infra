@@ -312,7 +312,12 @@ def update_flake(
     else:
         typer.echo("No changes needed", err=True)
 
-    nix_cmd = [cfg.nix_exe, *EXPERIMENTAL_FLAGS, "flake", "update" if update else "lock"]
+    nix_cmd = [
+        cfg.nix_exe,
+        *EXPERIMENTAL_FLAGS,
+        "flake",
+        "update" if update else "lock",
+    ]
     if commit:
         nix_cmd.append("--commit-lock-file")
     run_logged(nix_cmd)
@@ -408,7 +413,10 @@ def update_pkgs(
     if specs == 0 and cfg.update_path:
         path = cfg.update_path
 
-    cmd: list[str] = [cfg.nix_shell_exe, f"{cfg.nixpkgs}/maintainers/scripts/update.nix"]
+    cmd: list[str] = [
+        cfg.nix_shell_exe,
+        f"{cfg.nixpkgs}/maintainers/scripts/update.nix",
+    ]
     if maintainer is not None:
         cmd += _nix_arg("maintainer", maintainer)
     if package is not None:
