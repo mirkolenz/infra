@@ -102,8 +102,8 @@ def build_uncached(
     extra: Sequence[str] = (),
     *,
     check: bool = True,
-) -> None:
-    """Build any of `pkgs2path` not yet present in `cache`."""
+) -> list[str]:
+    """Build any of `pkgs2path` not yet present in `cache`; return their names."""
     if cache:
         info = nix_path_info(nix_exe, cache, pkgs2path.values())
         uncached = [name for name, path in pkgs2path.items() if info.get(path) is None]
@@ -112,7 +112,7 @@ def build_uncached(
 
     if not uncached:
         typer.echo(f"All {len(pkgs2path)} package(s) available from {cache}.", err=True)
-        return
+        return uncached
 
     typer.echo(
         f"Building {len(uncached)} uncached package(s): {', '.join(uncached)}.",
@@ -120,6 +120,7 @@ def build_uncached(
     )
     refs = [f'{flake}#"{name}"' for name in uncached]
     run_logged([nix_exe, *EXPERIMENTAL_FLAGS, "build", *refs, *extra], check=check)
+    return uncached
 
 
 app = typer.Typer(
@@ -326,15 +327,18 @@ def update_flake(
     if commit and flake_changed:
         run_logged([cfg.git_exe, "commit", "--amend", "--no-edit", str(flake_file)])
 
+    run_fix_hashes = True
     if path:
         pkgs2path = nix_eval_dict(cfg.nix_exe, f"{cfg.flake}#{path}")
         # Tolerate build failures — fix-hashes runs next and may resolve them.
-        build_uncached(cfg.nix_exe, cfg.flake, cache, pkgs2path, check=False)
+        uncached = build_uncached(cfg.nix_exe, cfg.flake, cache, pkgs2path, check=False)
+        run_fix_hashes = bool(uncached)
 
-    run_logged([cfg.nixd_exe, "fix", "hashes", "--auto-apply"])
+    if run_fix_hashes:
+        run_logged([cfg.nixd_exe, "fix", "hashes", "--auto-apply"])
 
-    if commit:
-        commit_pkgs(cfg.git_exe, "chore(pkgs): auto-fix hashes")
+        if commit:
+            commit_pkgs(cfg.git_exe, "chore(pkgs): auto-fix hashes")
 
 
 @app.command(
