@@ -6,12 +6,38 @@
 }:
 {
   perSystem =
-    { pkgs, ... }:
+    { pkgs, system, ... }:
+    let
+      mkFlags = lib.cli.toCommandLineShellGNU { };
+      mkApp =
+        {
+          package,
+          flags ? { },
+        }:
+        pkgs.writeShellScriptBin package.meta.mainProgram /* bash */ ''
+          exec ${lib.getExe package} ${mkFlags flags} "$@"
+        '';
+    in
     {
       apps = {
-        default.program = pkgs.writeShellScriptBin "flakectl" /* bash */ ''
-          exec ${lib.getExe pkgs.flakectl} --flake "${self.outPath}" "$@"
-        '';
+        default.program = mkApp {
+          package = pkgs.flakectl;
+          flags = {
+            flake = self.outPath;
+            cache = "https://mirkolenz.cachix.org";
+            impure-attr = "config.custom.impureRebuild";
+            build-path = "checks.${system}";
+            hash-path = "custom.hashedPackages";
+            update-path = "custom.flattenedPackages";
+            update-overlays = ''
+              let
+                flake = builtins.getFlake ("git+file://" + toString ./.);
+                overlay = import ./pkgs flake.overlayArgs;
+              in
+              [ overlay ]
+            '';
+          };
+        };
         home-manager.program = pkgs.writeShellScriptBin "home-manager" /* bash */ ''
           exec ${lib.getExe pkgs.home-manager} --flake "${self.outPath}" "$@"
         '';

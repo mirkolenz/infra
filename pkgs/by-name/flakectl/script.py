@@ -13,7 +13,6 @@ from typing import Annotated
 import typer
 
 EXPERIMENTAL_FLAGS = ["--extra-experimental-features", "nix-command flakes"]
-DEFAULT_CACHE = "https://mirkolenz.cachix.org"
 
 # Match github inputs whose ref contains a full semver (major.minor.patch),
 # allowing arbitrary prefix/suffix (e.g. v1.2.3, release-1.2.3-rc1).
@@ -23,7 +22,7 @@ GITHUB_SEMVER_REF = re.compile(
 
 
 @dataclass(frozen=True, slots=True)
-class Tools:
+class Config:
     flake: str
     nix_exe: str
     nix_shell_exe: str
@@ -34,6 +33,12 @@ class Tools:
     linux_builder: str
     home_builder: str
     nixpkgs: str
+    cache: str | None
+    impure_attr: str | None
+    update_overlays: str | None
+    build_path: str | None
+    hash_path: str | None
+    update_path: str | None
 
 
 def subprocess_stdout(cmd: list[str]) -> str:
@@ -92,15 +97,18 @@ def nix_path_info(nix_exe: str, cache: str, paths: Iterable[str]) -> dict[str, o
 def build_uncached(
     nix_exe: str,
     flake: str,
-    cache: str,
+    cache: str | None,
     pkgs2path: dict[str, str],
     extra: Sequence[str] = (),
     *,
     check: bool = True,
 ) -> None:
     """Build any of `pkgs2path` not yet present in `cache`."""
-    info = nix_path_info(nix_exe, cache, pkgs2path.values())
-    uncached = [name for name, path in pkgs2path.items() if info.get(path) is None]
+    if cache:
+        info = nix_path_info(nix_exe, cache, pkgs2path.values())
+        uncached = [name for name, path in pkgs2path.items() if info.get(path) is None]
+    else:
+        uncached = list(pkgs2path.keys())
 
     if not uncached:
         typer.echo(f"All {len(pkgs2path)} package(s) available from {cache}.", err=True)
@@ -134,8 +142,14 @@ def main(
     linux_builder: Annotated[str, typer.Option()] = "nixos-rebuild",
     home_builder: Annotated[str, typer.Option()] = "home-manager",
     flake: Annotated[str, typer.Option()] = ".",
+    cache: Annotated[str | None, typer.Option()] = None,
+    impure_attr: Annotated[str | None, typer.Option()] = None,
+    update_overlays: Annotated[str | None, typer.Option()] = None,
+    build_path: Annotated[str | None, typer.Option()] = None,
+    hash_path: Annotated[str | None, typer.Option()] = None,
+    update_path: Annotated[str | None, typer.Option()] = None,
 ):
-    ctx.obj = Tools(
+    ctx.obj = Config(
         flake=flake,
         nix_exe=nix_exe,
         nix_shell_exe=nix_shell_exe,
@@ -146,6 +160,12 @@ def main(
         linux_builder=linux_builder,
         home_builder=home_builder,
         nixpkgs=nixpkgs,
+        cache=cache,
+        impure_attr=impure_attr,
+        update_overlays=update_overlays,
+        build_path=build_path,
+        hash_path=hash_path,
+        update_path=update_path,
     )
     if ctx.invoked_subcommand is None:
         build_config(ctx)
@@ -168,7 +188,7 @@ def build_config(
     name: Annotated[str | None, typer.Option("--name", "-n")] = None,
 ):
     """Build and apply a darwin / nixos / home-manager configuration."""
-    t: Tools = ctx.obj
+    cfg: Config = ctx.obj
     uname = os.uname()
     node = uname.nodename.lower()
     kernel = uname.sysname.lower()
@@ -179,25 +199,27 @@ def build_config(
         name = f"{user}@{node}" if is_home else node
 
     if is_home:
-        builder, attr = t.home_builder, "homeConfigurations"
+        builder, attr = cfg.home_builder, "homeConfigurations"
     elif kernel == "darwin":
-        builder, attr = t.darwin_builder, "darwinConfigurations"
+        builder, attr = cfg.darwin_builder, "darwinConfigurations"
     else:
-        builder, attr = t.linux_builder, "nixosConfigurations"
+        builder, attr = cfg.linux_builder, "nixosConfigurations"
 
-    is_impure: bool = json.loads(
-        subprocess_stdout(
-            [
-                t.nix_exe,
-                *EXPERIMENTAL_FLAGS,
-                "eval",
-                "--json",
-                f'{t.flake}#{attr}."{name}".config.custom.impureRebuild',
-            ]
+    is_impure: bool = False
+    if cfg.impure_attr:
+        is_impure = json.loads(
+            subprocess_stdout(
+                [
+                    cfg.nix_exe,
+                    *EXPERIMENTAL_FLAGS,
+                    "eval",
+                    "--json",
+                    f'{cfg.flake}#{attr}."{name}".{cfg.impure_attr}',
+                ]
+            )
         )
-    )
 
-    cmd: list[str] = [builder, operation, "--flake", f"{t.flake}#{name}"]
+    cmd: list[str] = [builder, operation, "--flake", f"{cfg.flake}#{name}"]
     if is_impure:
         cmd.append("--impure")
     cmd.extend(ctx.args)
@@ -258,24 +280,26 @@ def update_flake(
             writable=True,
         ),
     ] = Path("flake.nix"),
-    attrset: Annotated[
-        str,
+    path: Annotated[
+        str | None,
         typer.Option(
-            "--attrset",
-            "-a",
-            help="Attrset of packages to build before fix-hashes.",
+            "--path",
+            "-p",
+            help="Attribute path of packages to build before fix-hashes.",
         ),
-    ] = "custom.hashedPackages",
-    cache: Annotated[str, typer.Option()] = DEFAULT_CACHE,
+    ] = None,
+    cache: Annotated[str | None, typer.Option()] = None,
     dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
     commit: Annotated[bool, typer.Option("--commit", "-c")] = False,
     update: Annotated[bool, typer.Option("--update", "-u")] = True,
 ):
     """Update flake.nix github inputs and lockfile; refresh pinned hashes."""
-    t: Tools = ctx.obj
+    cfg: Config = ctx.obj
+    path = path or cfg.hash_path
+    cache = cache or cfg.cache
     content = flake_file.read_text()
     new_content = GITHUB_SEMVER_REF.sub(
-        lambda m: replace_github_ref(t.gh_exe, m), content
+        lambda m: replace_github_ref(cfg.gh_exe, m), content
     )
 
     if dry_run:
@@ -288,23 +312,24 @@ def update_flake(
     else:
         typer.echo("No changes needed", err=True)
 
-    nix_cmd = [t.nix_exe, *EXPERIMENTAL_FLAGS, "flake", "update" if update else "lock"]
+    nix_cmd = [cfg.nix_exe, *EXPERIMENTAL_FLAGS, "flake", "update" if update else "lock"]
     if commit:
         nix_cmd.append("--commit-lock-file")
     run_logged(nix_cmd)
 
     # Amend into nix's lockfile commit to preserve its auto-generated message.
     if commit and flake_changed:
-        run_logged([t.git_exe, "commit", "--amend", "--no-edit", str(flake_file)])
+        run_logged([cfg.git_exe, "commit", "--amend", "--no-edit", str(flake_file)])
 
-    pkgs2path = nix_eval_dict(t.nix_exe, f"{t.flake}#{attrset}")
-    # Tolerate build failures — fix-hashes runs next and may resolve them.
-    build_uncached(t.nix_exe, t.flake, cache, pkgs2path, check=False)
+    if path:
+        pkgs2path = nix_eval_dict(cfg.nix_exe, f"{cfg.flake}#{path}")
+        # Tolerate build failures — fix-hashes runs next and may resolve them.
+        build_uncached(cfg.nix_exe, cfg.flake, cache, pkgs2path, check=False)
 
-    run_logged([t.nixd_exe, "fix", "hashes", "--auto-apply"])
+    run_logged([cfg.nixd_exe, "fix", "hashes", "--auto-apply"])
 
     if commit:
-        commit_pkgs(t.git_exe, "chore(pkgs): auto-fix hashes")
+        commit_pkgs(cfg.git_exe, "chore(pkgs): auto-fix hashes")
 
 
 @app.command(
@@ -313,21 +338,26 @@ def update_flake(
 )
 def build_pkgs(
     ctx: typer.Context,
-    attribute: Annotated[str, typer.Option()] = "ciTargets",
-    cache: Annotated[str, typer.Option()] = DEFAULT_CACHE,
+    path: Annotated[str | None, typer.Option("--path", "-p")] = None,
+    cache: Annotated[str | None, typer.Option()] = None,
     dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
 ):
-    """Build packages from a flake attribute that aren't in the cache yet."""
-    t: Tools = ctx.obj
+    """Build packages from a flake attribute path that aren't in the cache yet."""
+    cfg: Config = ctx.obj
+    path = path or cfg.build_path
+    cache = cache or cfg.cache
+    if not path:
+        typer.echo("Specify --path or set --build-path.", err=True)
+        raise typer.Exit(1)
     typer.echo("Discovering packages...", err=True)
-    pkgs2path = nix_eval_dict(t.nix_exe, f"{t.flake}#{attribute}")
+    pkgs2path = nix_eval_dict(cfg.nix_exe, f"{cfg.flake}#{path}")
 
     if not pkgs2path:
-        typer.echo(f"Found no packages in {t.flake}#{attribute}.", err=True)
+        typer.echo(f"Found no packages in {cfg.flake}#{path}.", err=True)
         raise typer.Exit(0)
 
     typer.echo(
-        f"Found {len(pkgs2path)} packages in {t.flake}#{attribute}: "
+        f"Found {len(pkgs2path)} packages in {cfg.flake}#{path}: "
         f"{', '.join(pkgs2path.keys())}.",
         err=True,
     )
@@ -335,7 +365,7 @@ def build_pkgs(
     if dry_run:
         return
 
-    build_uncached(t.nix_exe, t.flake, cache, pkgs2path, ctx.args)
+    build_uncached(cfg.nix_exe, cfg.flake, cache, pkgs2path, ctx.args)
 
 
 class Order(StrEnum):
@@ -356,8 +386,8 @@ def update_pkgs(
     ctx: typer.Context,
     maintainer: Annotated[str | None, typer.Option("--maintainer", "-m")] = None,
     package: Annotated[str | None, typer.Option("--package", "-p")] = None,
-    function: Annotated[str | None, typer.Option("--function", "-f")] = None,
-    attrset: Annotated[str | None, typer.Option("--attrset", "-a")] = None,
+    predicate: Annotated[str | None, typer.Option("--predicate")] = None,
+    path: Annotated[str | None, typer.Option("--path")] = None,
     max_workers: Annotated[int | None, typer.Option()] = None,
     keep_going: Annotated[bool, typer.Option()] = True,
     commit: Annotated[bool, typer.Option("--commit", "-c")] = False,
@@ -366,27 +396,27 @@ def update_pkgs(
     dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
 ):
     """Run nixpkgs maintainers/scripts/update.nix to refresh package sources."""
-    t: Tools = ctx.obj
-    specs = sum(x is not None for x in [maintainer, package, function, attrset])
+    cfg: Config = ctx.obj
+    specs = sum(x is not None for x in [maintainer, package, predicate, path])
 
     if specs > 1:
         typer.echo(
-            "Specify only one of maintainer / package / function / attrset.",
+            "Specify only one of maintainer / package / predicate / path.",
             err=True,
         )
         raise typer.Exit(1)
-    if specs == 0:
-        attrset = "custom.flattenedPackages"
+    if specs == 0 and cfg.update_path:
+        path = cfg.update_path
 
-    cmd: list[str] = [t.nix_shell_exe, f"{t.nixpkgs}/maintainers/scripts/update.nix"]
+    cmd: list[str] = [cfg.nix_shell_exe, f"{cfg.nixpkgs}/maintainers/scripts/update.nix"]
     if maintainer is not None:
         cmd += _nix_arg("maintainer", maintainer)
     if package is not None:
         cmd += _nix_arg("package", package)
-    if function is not None:
-        cmd += _nix_arg("predicate", function, raw=True)
-    if attrset is not None:
-        cmd += _nix_arg("path", attrset)
+    if predicate is not None:
+        cmd += _nix_arg("predicate", predicate, raw=True)
+    if path is not None:
+        cmd += _nix_arg("path", path)
     if max_workers is not None:
         cmd += _nix_arg("max-workers", str(max_workers))
     if keep_going:
@@ -402,14 +432,8 @@ def update_pkgs(
         err=True,
     )
 
-    overlays = """
-        let
-            flake = builtins.getFlake ("git+file://" + toString ./.);
-            overlay = import ./pkgs flake.overlayArgs;
-        in
-        [ overlay ]
-    """
-    cmd += _nix_arg("include-overlays", overlays, raw=True)
+    if cfg.update_overlays is not None:
+        cmd += _nix_arg("include-overlays", cfg.update_overlays, raw=True)
 
     if dry_run:
         typer.echo("Dry run, no changes written", err=True)
@@ -418,7 +442,7 @@ def update_pkgs(
     result = subprocess.run(cmd)
 
     if result.returncode == 0 and commit:
-        run_logged([t.git_exe, "commit", "-m", "chore(deps/pkgs): update", "./pkgs"])
+        run_logged([cfg.git_exe, "commit", "-m", "chore(deps/pkgs): update", "./pkgs"])
 
     raise typer.Exit(result.returncode)
 

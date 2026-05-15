@@ -37,9 +37,7 @@
       packages = lib.filterAttrs (_: isAvailable) (
         pkgs.custom.flattenedPackages // pkgs.custom.flakeInputs
       );
-      legacyPackages = pkgs // {
-        ciTargets = lib.mapAttrs (_: value: value.outPath) (config.checks);
-      };
+      legacyPackages = pkgs;
     };
   flake = {
     lib = lib';
