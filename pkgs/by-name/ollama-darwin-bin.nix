@@ -9,11 +9,11 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "ollama";
-  version = "0.23.4";
+  version = "0.24.0";
 
   src = fetchzip {
     url = "https://github.com/ollama/ollama/releases/download/v${finalAttrs.version}/ollama-darwin.tgz";
-    hash = "sha256-2Z3HsE3BL7fZAPPWxc02D/Mkguyz1GJnGI38YTS4EW0=";
+    hash = "sha256-qQYPfzoTaVTB0e500f9tFpQoU0OMwZn37rWncGnH9Xo=";
     stripRoot = false;
   };
 
