@@ -27,7 +27,7 @@ jobs:
             download-buffer-size = 1000000000
             log-lines = 200
             commit-lock-file-summary = chore(deps/nix): update
-      - run: nix run '.#flakectl' -- update-all --commit
+      - run: nix run . -- update-all --commit
         env:
           GH_TOKEN: ${{ github.token }}
       - name: remove unstaged changes
