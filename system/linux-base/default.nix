@@ -13,16 +13,6 @@
 
   services.printing.enable = false;
 
-  security = {
-    sudo = {
-      execWheelOnly = true;
-    };
-    sudo-rs = {
-      enable = true;
-      inherit (config.security.sudo) execWheelOnly wheelNeedsPassword;
-    };
-  };
-
   # todo: fails on raspi (mkswap-swapfile-start)
   # https://github.com/NixOS/nixpkgs/pull/470270
   systemd.enableStrictShellChecks = false;
@@ -38,7 +28,6 @@
     grub.configurationLimit = 10;
     systemd-boot.configurationLimit = 10;
   };
-  boot.initrd.systemd.enable = true;
   boot.binfmt.preferStaticEmulators = true;
 
   hardware.enableAllFirmware = true;

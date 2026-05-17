@@ -1,6 +1,7 @@
 {
   user,
   lib,
+  pkgs,
   ...
 }:
 {
@@ -26,4 +27,10 @@
       isNormalUser = true;
     };
   };
+
+  # Hide /nix/store directory listing from child accounts.
+  # Removes read (list) but keeps execute (traverse), so programs still work.
+  system.activationScripts.nixStoreAcl.text = ''
+    ${pkgs.acl}/bin/setfacl -m u:mila:--x -m u:levi:--x /nix/store
+  '';
 }
