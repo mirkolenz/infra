@@ -1,32 +1,47 @@
 {
-  name,
   lib,
+  config,
   ...
 }:
+let
+  inherit (lib)
+    types
+    mkOption
+    mkEnableOption
+    ;
+  rp = config.reverseProxy;
+in
 {
   options = {
-    enable = lib.mkEnableOption "this virtual host" // {
+    enable = mkEnableOption "this virtual host" // {
       default = true;
     };
-    name = lib.mkOption {
-      type = with lib.types; str;
-      default = name;
+    hostName = mkOption {
+      type = types.str;
+      description = "Primary FQDN for this virtual host.";
     };
-    extraNames = lib.mkOption {
-      type = with lib.types; listOf str;
+    serverAliases = mkOption {
+      type = with types; listOf str;
       default = [ ];
+      description = "Additional FQDNs that route to this vhost.";
     };
-    icon = lib.mkOption {
+    extraConfig = mkOption {
+      type = types.lines;
+      default = "";
+      description = "Caddyfile snippet inside the site block.";
+    };
+    icon = mkOption {
       default = { };
-      type = lib.types.submodule {
+      description = "Font Awesome icon used in the Homer dashboard card.";
+      type = types.submodule {
         options = {
-          name = lib.mkOption {
-            type = lib.types.str;
+          name = mkOption {
+            type = types.str;
             default = "globe";
             description = "Font Awesome icon name.";
           };
-          style = lib.mkOption {
-            type = lib.types.enum [
+          style = mkOption {
+            type = types.enum [
               "solid"
               "brands"
             ];
@@ -36,30 +51,67 @@
         };
       };
     };
-    reverseProxy = lib.mkOption {
+    reverseProxy = mkOption {
       default = { };
-      type = lib.types.submodule {
+      type = types.submodule {
         options = {
-          upstreams = lib.mkOption {
-            type = with lib.types; listOf str;
+          upstreams = mkOption {
+            type = with types; listOf str;
             default = [ ];
+            description = ''
+              Caddy reverse_proxy upstreams (e.g. ["127.0.0.1:8080"],
+              ["unix//run/foo.sock"], ["https://backend.internal:8443"]).
+              Multiple entries enable Caddy's built-in load balancing.
+              Defaults to ["127.0.0.1:<publishPort>"] when `publishPort`
+              is set, so quadlet containers don't have to repeat it; set
+              explicitly to point at one or more non-container services.
+            '';
           };
-          extraConfig = lib.mkOption {
-            type = lib.types.lines;
+          publishPort = mkOption {
+            type = with types; nullOr port;
+            default = null;
+            description = ''
+              Host-side loopback port. When set on a quadlet container's
+              virtualHost, the container publishes containerPort on
+              127.0.0.1:publishPort; also seeds the default for `upstreams`.
+            '';
+          };
+          containerPort = mkOption {
+            type = types.port;
+            default = 80;
+            description = "Port the upstream service listens on inside its container.";
+          };
+          extraConfig = mkOption {
+            type = types.lines;
             default = "";
             description = ''
-              Additional lines of configuration appended to the reverse proxy in the automatically generated `Caddyfile`.
+              Caddyfile snippet inside the generated `reverse_proxy` block,
+              e.g. for `transport http { ... }`, `header_up`, or load
+              balancing options. When non-empty the directive is emitted
+              in block form: `reverse_proxy <upstreams> { ... }`.
             '';
           };
         };
       };
     };
-    extraConfig = lib.mkOption {
-      type = lib.types.lines;
-      default = "";
-      description = ''
-        Additional lines of configuration appended to the virtual host in the automatically generated `Caddyfile`.
-      '';
-    };
+  };
+  config = {
+    reverseProxy.upstreams = lib.mkIf (rp.publishPort != null) (
+      lib.mkDefault [
+        "127.0.0.1:${toString rp.publishPort}"
+      ]
+    );
+    extraConfig = lib.mkIf (rp.upstreams != [ ]) (
+      lib.mkBefore (
+        if rp.extraConfig == "" then
+          "reverse_proxy ${toString rp.upstreams}"
+        else
+          ''
+            reverse_proxy ${toString rp.upstreams} {
+              ${rp.extraConfig}
+            }
+          ''
+      )
+    );
   };
 }

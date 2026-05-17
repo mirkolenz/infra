@@ -5,6 +5,10 @@
   ...
 }:
 let
+  inherit (lib)
+    types
+    mkOption
+    ;
   cfg = config.virtualisation.quadlet.shellWrapper;
 
   wrapper = pkgs.writeShellApplication {
@@ -47,9 +51,9 @@ let
 in
 {
   options.virtualisation.quadlet.shellWrapper = {
-    enable = lib.mkOption {
+    enable = mkOption {
       default = true;
-      type = with lib.types; bool;
+      type = with types; bool;
     };
   };
 
