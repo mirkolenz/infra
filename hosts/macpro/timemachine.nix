@@ -22,7 +22,7 @@
       global = {
         "server smb encrypt" = "required";
         "server string" = "homeserver";
-        "hosts allow" = "10.16.0.1/16 100.64.0.0/10 127.0.0.1 localhost";
+        "hosts allow" = "10.16.0.0/16 100.64.0.0/10 127.0.0.1 localhost";
         "hosts deny" = "0.0.0.0/0";
         "guest account" = "nobody";
         "map to guest" = "bad user";
@@ -56,7 +56,36 @@
     enable = true;
     openFirewall = true;
     nssmdns4 = true;
-    publish.enable = true;
-    publish.userServices = true;
+    publish = {
+      enable = true;
+      addresses = true;
+      domain = true;
+      workstation = true;
+      userServices = true;
+    };
+    # vfs_fruit does not announce the share over mDNS; Avahi must do it
+    # so macOS lists the host in Finder and Time Machine recognises it.
+    # https://wiki.nixos.org/wiki/Samba#Time_Machine
+    extraServiceFiles.timemachine = ''
+      <?xml version="1.0" standalone='no'?>
+      <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+      <service-group>
+        <name replace-wildcards="yes">%h</name>
+        <service>
+          <type>_smb._tcp</type>
+          <port>445</port>
+        </service>
+        <service>
+          <type>_device-info._tcp</type>
+          <port>0</port>
+          <txt-record>model=MacPro</txt-record>
+        </service>
+        <service>
+          <type>_adisk._tcp</type>
+          <txt-record>dk0=adVN=timemachine,adVF=0x82</txt-record>
+          <txt-record>sys=waMa=0,adVF=0x100</txt-record>
+        </service>
+      </service-group>
+    '';
   };
 }
