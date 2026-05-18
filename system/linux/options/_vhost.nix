@@ -85,17 +85,13 @@ in
     };
   };
   config = {
-    extraConfig = mkIf (config.reverseProxy.upstreams != [ ]) (
-      mkBefore (
-        if config.reverseProxy.extraConfig == "" then
-          "reverse_proxy ${toString config.reverseProxy.upstreams}"
-        else
-          ''
-            reverse_proxy ${toString config.reverseProxy.upstreams} {
-              ${config.reverseProxy.extraConfig}
-            }
-          ''
-      )
-    );
+    extraConfig = mkIf (config.reverseProxy.upstreams != [ ]) (mkBefore ''
+      reverse_proxy ${toString config.reverseProxy.upstreams} {
+        ${config.reverseProxy.extraConfig}
+      }
+      handle_errors {
+        respond "{err.status_code} {err.status_text}: {err.message}" {err.status_code}
+      }
+    '');
   };
 }
