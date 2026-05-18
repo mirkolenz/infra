@@ -102,14 +102,14 @@ in
     };
   };
   config = {
-    extraConfig = mkIf (config.reversrProxy.upstreams != [ ]) (
+    extraConfig = mkIf (config.reverseProxy.upstreams != [ ]) (
       mkBefore (
-        if config.reversrProxy.extraConfig == "" then
-          "reverse_proxy ${toString config.reversrProxy.upstreams}"
+        if config.reverseProxy.extraConfig == "" then
+          "reverse_proxy ${toString config.reverseProxy.upstreams}"
         else
           ''
-            reverse_proxy ${toString config.reversrProxy.upstreams} {
-              ${config.reversrProxy.extraConfig}
+            reverse_proxy ${toString config.reverseProxy.upstreams} {
+              ${config.reverseProxy.extraConfig}
             }
           ''
       )
