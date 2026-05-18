@@ -84,18 +84,21 @@ in
       );
     };
   };
-  config = {
-    extraConfig = mkIf (config.reverseProxy.upstreams != [ ]) (
+  config.extraConfig =
+    let
+      rp = config.reverseProxy;
+      upstreams = toString rp.upstreams;
+    in
+    mkIf (rp.upstreams != [ ]) (
       mkBefore (
-        if config.reverseProxy.extraConfig == "" then
-          "reverse_proxy ${toString config.reverseProxy.upstreams}"
+        if rp.extraConfig == "" then
+          "reverse_proxy ${upstreams}"
         else
           ''
-            reverse_proxy ${toString config.reverseProxy.upstreams} {
-              ${config.reverseProxy.extraConfig}
+            reverse_proxy ${upstreams} {
+              ${rp.extraConfig}
             }
           ''
       )
     );
-  };
 }
