@@ -7,10 +7,6 @@ let
     mkDefault
     mkBefore
     ;
-  iconStylePrefixes = {
-    solid = "fas";
-    brands = "fab";
-  };
 in
 {
   options = {
@@ -23,36 +19,23 @@ in
       icon = mkOption {
         default = { };
         description = "Font Awesome icon used in the Homer dashboard card.";
-        type = types.submodule (
-          { config, ... }:
-          {
-            options = {
-              name = mkOption {
-                type = types.str;
-                default = "globe";
-                description = "Font Awesome icon name.";
-              };
-              style = mkOption {
-                type = types.enum [
-                  "solid"
-                  "brands"
-                ];
-                default = "solid";
-                description = "Font Awesome icon style.";
-              };
-              prefix = mkOption {
-                type = types.enum [
-                  "fas"
-                  "fab"
-                ];
-                default = iconStylePrefixes.${config.style};
-                defaultText = lib.literalMD "Derived from `style`.";
-                readOnly = true;
-                description = "Font Awesome icon prefix, derived from `style`.";
-              };
+        type = types.submodule {
+          options = {
+            name = mkOption {
+              type = types.str;
+              default = "globe";
+              description = "Font Awesome icon name.";
             };
-          }
-        );
+            style = mkOption {
+              type = types.enum [
+                "fas"
+                "fab"
+              ];
+              default = "fas";
+              description = "Font Awesome icon style prefix.";
+            };
+          };
+        };
       };
     };
     reverseProxy = mkOption {
