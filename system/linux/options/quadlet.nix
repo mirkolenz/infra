@@ -16,18 +16,6 @@ let
     _: c: c.enable && c.virtualHost.enable && c.virtualHost.reverseProxy.publishPort != null
   ) config.virtualisation.quadlet.containers;
 
-  isWildcard = c: c.virtualHost.wildcardDomain != null;
-  dedicatedContainers = lib.filterAttrs (_: c: !isWildcard c) vhostContainers;
-  wildcardContainers = lib.filterAttrs (_: c: isWildcard c) vhostContainers;
-
-  mkWildcardEntry = c: {
-    inherit (c.virtualHost) serverAliases extraConfig dashboard;
-  };
-
-  wildcardDomains = lib.mapAttrs (_: pairs: {
-    virtualHosts = lib.listToAttrs (map (p: lib.nameValuePair p.name (mkWildcardEntry p.value)) pairs);
-  }) (lib.groupBy (p: p.value.virtualHost.wildcardDomain) (lib.attrsToList wildcardContainers));
-
   shellWrapper = pkgs.writeShellApplication {
     name = "quadletctl";
     text = ''
@@ -96,37 +84,19 @@ in
                   enable = mkEnableOption "this virtual host" // {
                     default = true;
                   };
-                  wildcardDomain = mkOption {
-                    type = with types; nullOr str;
-                    default = null;
-                    description = ''
-                      When non-null, route this container under
-                      `services.caddy.wildcardDomains.<wildcardDomain>.virtualHosts.<container>`
-                      and share the apex domain's wildcard certificate.
-                      The subdomain label is the container's attribute name.
-
-                      When null, the container gets a dedicated entry in
-                      `services.caddy.virtualHosts.<container>` with its
-                      own certificate (requires `hostName`).
-                    '';
-                  };
                   hostName = mkOption {
-                    type = with types; nullOr str;
-                    default = null;
-                    description = ''
-                      Primary FQDN for the dedicated site block. Mutually
-                      exclusive with `wildcardDomain`.
-                    '';
+                    type = types.str;
+                    description = "Primary FQDN for this virtual host.";
                   };
                   serverAliases = mkOption {
                     type = with types; listOf str;
                     default = [ ];
-                    description = "Additional FQDNs added to this vhost's `host` matcher.";
+                    description = "Additional FQDNs that route to this vhost.";
                   };
                   extraConfig = mkOption {
                     type = types.lines;
                     default = "";
-                    description = "Caddyfile snippet inside the site block (or `handle` block under a wildcard).";
+                    description = "Caddyfile snippet inside the site block.";
                   };
                 };
               };
@@ -147,24 +117,14 @@ in
   };
 
   config = {
-    assertions = lib.mapAttrsToList (name: c: {
-      assertion = (c.virtualHost.wildcardDomain != null) != (c.virtualHost.hostName != null);
-      message = "quadlet container '${name}' must set exactly one of virtualHost.{wildcardDomain,hostName}.";
+    services.caddy.virtualHosts = lib.mapAttrs (_: c: {
+      inherit (c.virtualHost)
+        hostName
+        serverAliases
+        extraConfig
+        dashboard
+        ;
     }) vhostContainers;
-
-    services.caddy.virtualHosts = lib.mapAttrs' (
-      name: c:
-      lib.nameValuePair name {
-        inherit (c.virtualHost)
-          hostName
-          serverAliases
-          extraConfig
-          dashboard
-          ;
-      }
-    ) dedicatedContainers;
-
-    services.caddy.wildcardDomains = wildcardDomains;
 
     environment.systemPackages = lib.optional config.virtualisation.quadlet.shellWrapper.enable shellWrapper;
   };
