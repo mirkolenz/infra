@@ -48,6 +48,8 @@
     enable = true;
     openFirewall = true;
     discovery = true;
+    # pin to LAN interface; listening on all interfaces overflows the netlink socket (ENOBUFS)
+    interface = "mv0";
   };
   # for mac network discovery
   services.avahi = {
