@@ -45,7 +45,7 @@ in
                 "fab"
               ];
               description = "Font Awesome icon style.";
-              readonly = true;
+              readOnly = true;
             };
           };
         };
