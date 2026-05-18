@@ -84,7 +84,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     opnix = {
-      url = "github:brizzbuzz/opnix/v0.9.0";
+      url = "github:brizzbuzz/opnix/v0.10.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     mistral-vibe = {
