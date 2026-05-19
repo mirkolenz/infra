@@ -11,6 +11,9 @@
     "${modulesPath}/virtualisation/lxc-container.nix"
   ];
 
+  # lxc imports installer/cd-dvd/channel.nix
+  system.installer.channel.enable = false;
+
   custom.nix.settings.trusted-users = [ user.login ];
 
   home-manager.users.${user.login} = {

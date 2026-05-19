@@ -32,4 +32,6 @@
       use-xdg-base-directories = true;
     };
   };
+
+  system.installer.channel.enable = false;
 }
