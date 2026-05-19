@@ -3,7 +3,7 @@
 {
   disko.devices.disk.main = {
     type = "disk";
-    device = "TODO";
+    device = "PATH";
     content = {
       type = "gpt";
       partitions = {

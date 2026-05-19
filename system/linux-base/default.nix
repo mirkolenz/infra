@@ -13,9 +13,7 @@
 
   services.printing.enable = false;
 
-  # todo: fails on raspi (mkswap-swapfile-start)
-  # https://github.com/NixOS/nixpkgs/pull/470270
-  systemd.enableStrictShellChecks = false;
+  systemd.enableStrictShellChecks = true;
 
   documentation = {
     nixos.enable = false;

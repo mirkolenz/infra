@@ -34,11 +34,9 @@
           "kvm"
           "nixos-test"
         ];
-        # todo: orbstack's host key will vary between devices
-        # currently, one needs to execute the following once:
+        # execute the following once:
         # sudo ssh -i ~/.orbstack/ssh/id_ed25519 nixos@orbstack-builder
-        # maybe the key could be set by executing something such as the following:
-        # ssh-keyscan -p 32222 -t ed25519 127.0.0.1 | awk '/^\[/{print $2" "$3; exit}' | base64 -w0
+        # alternatively, hard-code the key per host
         # publicHostKey = "";
       }
     ];
