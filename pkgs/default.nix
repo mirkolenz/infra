@@ -30,6 +30,7 @@ in
 lib.mergeAttrsList [
   (inputs.nix-darwin.overlays.default final prev)
   (import ./hotfixes.nix final prev)
+  (import ./overrides.nix final prev)
   (import ./self.nix args final prev)
   custom.flakeInputs
   custom.nestedPackages
