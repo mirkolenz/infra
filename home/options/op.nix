@@ -78,7 +78,7 @@ in
       includes = [
         "~/.ssh/1password/config"
       ];
-      matchBlocks."*".identityAgent = ''"${cfg.sshAgent.socket}"'';
+      settings."*".IdentityAgent = ''"${cfg.sshAgent.socket}"'';
     };
 
     xdg.configFile."1password/ssh/agent.toml" = lib.mkIf cfg.sshAgent.enable {

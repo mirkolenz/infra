@@ -11,39 +11,39 @@ lib.mkIf config.custom.features.withDisplay {
     includes = lib.mkIf pkgs.stdenv.isDarwin [
       "${config.home.homeDirectory}/.orbstack/ssh/config"
     ];
-    matchBlocks = {
+    settings = {
       "*" = {
         # default config from home manager module
-        forwardAgent = false;
-        compression = false;
-        serverAliveInterval = 0;
-        serverAliveCountMax = 3;
-        hashKnownHosts = false;
-        userKnownHostsFile = "~/.ssh/known_hosts";
+        ForwardAgent = false;
+        Compression = false;
+        ServerAliveInterval = 0;
+        ServerAliveCountMax = 3;
+        HashKnownHosts = false;
+        UserKnownHostsFile = "~/.ssh/known_hosts";
       };
       "gpu" = {
-        hostname = "gpu.wi2.uni-trier.de";
-        forwardAgent = true;
-        user = "lenz";
+        HostName = "gpu.wi2.uni-trier.de";
+        ForwardAgent = true;
+        User = "lenz";
       };
       "kitei" = {
-        hostname = "kitei-gpu.wi2.uni-trier.de";
-        user = "compute";
+        HostName = "kitei-gpu.wi2.uni-trier.de";
+        User = "compute";
       };
       "raise" = {
-        hostname = "raise.dfki.de";
-        forwardAgent = true;
-        user = "mlenz";
+        HostName = "raise.dfki.de";
+        ForwardAgent = true;
+        User = "mlenz";
       };
       "macpro homeserver" = {
-        hostname = "macpro.taildc4a8b.ts.net";
-        forwardAgent = true;
-        user = "mlenz";
+        HostName = "macpro.taildc4a8b.ts.net";
+        ForwardAgent = true;
+        User = "mlenz";
       };
       "raspi" = {
-        hostname = "raspi.taildc4a8b.ts.net";
-        forwardAgent = true;
-        user = "mlenz";
+        HostName = "raspi.taildc4a8b.ts.net";
+        ForwardAgent = true;
+        User = "mlenz";
       };
     };
   };
