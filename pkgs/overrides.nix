@@ -4,6 +4,7 @@ final: prev:
 // (prev.lib.genAttrs
   [
     "nixos-rebuild-ng"
+    "nixpkgs-review"
   ]
   (
     name:
