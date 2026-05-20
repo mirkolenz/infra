@@ -328,6 +328,8 @@
         useHunkModeInStagingView = true;
       };
       git = {
+        autoFetch = false;
+        autoRefresh = true;
         commit.autoWrapCommitMessage = false;
         parseEmoji = true;
         log = {
