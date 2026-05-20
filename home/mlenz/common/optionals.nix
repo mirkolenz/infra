@@ -59,13 +59,9 @@ lib.mkIf config.custom.features.withOptionals {
     zapp
     # nix
     nixd
-    nixf
-    nixt
     nixf-diagnose
     nixfmt-rs
-    alejandra
     nix-update
-    nvfetcher
     devenv
     nurl
     hydra-check

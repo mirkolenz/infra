@@ -3,6 +3,7 @@ final: prev:
 # packages depending on nix
 // (prev.lib.genAttrs
   [
+    "nix-update"
     "nixos-rebuild-ng"
     "nixpkgs-review"
   ]
