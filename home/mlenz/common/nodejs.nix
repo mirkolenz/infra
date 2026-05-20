@@ -26,5 +26,6 @@ lib.mkIf config.custom.features.withOptionals {
     oxlint
     tsgolint
     typescript-go
+    astro-language-server
   ];
 }

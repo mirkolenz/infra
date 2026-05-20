@@ -240,6 +240,11 @@
   "line_ending": "prefer_lf",
   "lsp": {
     // keep-sorted start block=yes
+    "astro-language-server": {
+      "binary": {
+        "path": "/etc/profiles/per-user/mlenz/bin/astro-ls"
+      }
+    },
     "basedpyright": {
       "settings": {
         "basedpyright": {
@@ -279,8 +284,7 @@
     },
     "nixd": {
       "binary": {
-        "path": "/etc/profiles/per-user/mlenz/bin/nixd",
-        "arguments": []
+        "path": "/etc/profiles/per-user/mlenz/bin/nixd"
       },
       "settings": {
         "formatting": {
