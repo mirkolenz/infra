@@ -84,11 +84,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     opnix = {
-      url = "github:brizzbuzz/opnix/v0.10.0";
+      url = "github:brizzbuzz/opnix/v0.10.1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     mistral-vibe = {
-      url = "github:mistralai/mistral-vibe/v2.9.6";
+      url = "github:mistralai/mistral-vibe/v2.10.0";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         pyproject-nix.follows = "pyproject-nix";
