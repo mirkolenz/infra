@@ -308,6 +308,15 @@
     enable = true;
     # https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md
     settings = {
+      customCommands = [
+        {
+          key = "T";
+          context = "global";
+          command = "git fetch --tags --force";
+          description = "Force-fetch remote tags";
+          loadingText = "Fetching tags";
+        }
+      ];
       gui = {
         expandedSidePanelWeight = 2;
         expandFocusedSidePanel = true;
