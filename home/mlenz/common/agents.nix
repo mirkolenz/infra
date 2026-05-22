@@ -12,7 +12,8 @@
       - Only generate the minimum amount of test cases needed to cover the core functionality of the code, not exhaustive test suites.
       - Only add important comments when generating code and keep it focused on non-trivial information or special cases one needs to document for future use.
       - Always pick modern solutions over legacy ones and don't care about compatibility to old hardware or software.
-      - Do not run formatters or linters automatically, only when explicitly needed.
+      - Always fix pre-existing errors and issues in the code and do not triage whether they were introduced by you.
+      - Do not run formatters or auto-fixing linters automatically, only when explicitly needed.
       - In plain text files, write exactly one sentence per line: txt, md, tex, typ, rst, ...
       - Don't add prefixes such as `uvx` or `npx` to commands in backticks in these instructions, use them verbatim.
       - Read-only git operations are allowed, but never use writing git operations such as `git commit` or `git push` and leave them to the user.
