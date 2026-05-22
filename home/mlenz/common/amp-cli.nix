@@ -1,14 +1,12 @@
 {
   config,
-  pkgs,
   lib,
   ...
 }:
 lib.mkIf config.custom.features.withOptionals {
   # https://ampcode.com/manual#configuration
   programs.amp-cli = {
-    enable = true;
-    package = pkgs.amp-cli-bin;
+    enable = false;
     settings.amp = {
       git.commit = {
         ampThread.enabled = true;
