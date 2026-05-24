@@ -3,6 +3,7 @@
   versionCheckHook,
   mkGitHubBinary,
   makeBinaryWrapper,
+  stdenv,
 }:
 mkGitHubBinary {
   owner = "badlogic";
@@ -17,6 +18,7 @@ mkGitHubBinary {
   versionPrefix = "v";
   binaries = [ ];
 
+  buildInputs = lib.optionals stdenv.hostPlatform.isElf [ stdenv.cc.cc ];
   nativeBuildInputs = [ makeBinaryWrapper ];
 
   # strip is not compatible with the bun runtime
@@ -34,7 +36,7 @@ mkGitHubBinary {
   doInstallCheck = true;
 
   meta = {
-    description = "A AI-powered coding assistant";
+    description = "AI-powered coding assistant";
     license = lib.licenses.mit;
   };
 }
