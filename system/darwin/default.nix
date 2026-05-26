@@ -18,10 +18,6 @@
     ghostty-bin.terminfo
   ];
 
-  programs = {
-    _1password.enable = true;
-  };
-
   environment.variables = {
     EDITOR = "zed";
     VISUAL = "zed";
