@@ -362,6 +362,12 @@
         "arguments": ["lsp"]
       }
     },
+    "tsgo": {
+      "binary": {
+        "path": "/etc/profiles/per-user/mlenz/bin/tsgo",
+        "arguments": ["--lsp", "--stdio"]
+      }
+    },
     "ty": {
       "binary": {
         "path": "/etc/profiles/per-user/mlenz/bin/ty",
