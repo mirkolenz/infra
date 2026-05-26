@@ -24,8 +24,6 @@
     autosuggestion.enable = true;
     enableCompletion = true;
     syntaxHighlighting.enable = true;
-    # todo: remove after stateVersion >= 26.05
-    dotDir = "${config.xdg.configHome}/zsh";
   };
   programs.bash = {
     enable = true;
