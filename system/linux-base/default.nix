@@ -40,5 +40,6 @@
 
   environment.systemPackages = with pkgs; [
     pciutils
+    ghostty.terminfo
   ];
 }

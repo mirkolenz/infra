@@ -15,6 +15,7 @@
     perl
     python3
     rsync
+    ghostty-bin.terminfo
   ];
 
   programs = {
