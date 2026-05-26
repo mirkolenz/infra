@@ -26,7 +26,7 @@ lib.mkIf config.custom.features.withOptionals {
       permissions.default = {
         filesystem = {
           ":minimal" = "read";
-          ":project_roots" = {
+          ":workspace_roots" = {
             "." = "write";
             ".git" = "read";
           };
