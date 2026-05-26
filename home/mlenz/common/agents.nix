@@ -36,6 +36,7 @@
       - Prefer `__post_init__` over `__init__` to customize dataclass initialization.
       - Always use types from `collections.abc` for annotating function parameters.
       - Prefer `pathlib` over `os` for file system operations.
+      - Always use the latest syntax/features of the Python version specified in pyproject.toml and never care about compatibility to older versions.
 
       ## Node.js
 
