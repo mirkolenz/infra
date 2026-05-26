@@ -123,8 +123,6 @@ in
           bind "Alt t" { NewTab; }
           bind "Alt w" { CloseTab; }
           ${lib.concatMapStrings mkKeybind layouts}
-          bind "Alt Tab" { GoToNextTab; }
-          bind "Alt Shift Tab" { GoToPreviousTab; }
         }
       }
     '';
