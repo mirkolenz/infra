@@ -10,11 +10,6 @@
     "${inputs.nixos-hardware}/raspberry-pi/4"
   ];
 
-  # todo: nixos-hardware migrated to custom kernels without binary caches
-  # workaround for https://github.com/NixOS/nixos-hardware/commit/c8f766fd11c8b0a9832b6ca1819de74fbfee3d73
-  # waiting on https://github.com/NixOS/nixos-hardware/issues/325
-  boot.kernelPackages = pkgs.linuxKernel.packages.linux_rpi4;
-
   custom.features.withAlwaysOn = true;
 
   hardware.raspberry-pi."4" = {
