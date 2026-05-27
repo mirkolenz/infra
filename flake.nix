@@ -87,6 +87,10 @@
       url = "github:brizzbuzz/opnix/v0.10.1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    herdr = {
+      url = "github:ogulcancelik/herdr/v0.6.2";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     mistral-vibe = {
       url = "github:mistralai/mistral-vibe/v2.11.0";
       inputs = {
