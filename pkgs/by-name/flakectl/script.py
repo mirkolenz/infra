@@ -454,7 +454,7 @@ def update_pkgs(
     result = subprocess.run(cmd)
 
     if result.returncode == 0 and commit:
-        run_logged([cfg.git_exe, "commit", "-m", "chore(deps/pkgs): update", "./pkgs"])
+        commit_pkgs(cfg.git_exe, "chore(deps/pkgs): update")
 
     raise typer.Exit(result.returncode)
 
