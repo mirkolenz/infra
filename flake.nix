@@ -88,11 +88,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     herdr = {
-      url = "github:ogulcancelik/herdr/v0.6.2";
+      url = "github:ogulcancelik/herdr/v0.6.4";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     mistral-vibe = {
-      url = "github:mistralai/mistral-vibe/v2.11.0";
+      url = "github:mistralai/mistral-vibe/v2.12.1";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         pyproject-nix.follows = "pyproject-nix";
