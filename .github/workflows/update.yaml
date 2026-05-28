@@ -16,7 +16,8 @@ jobs:
       - uses: actions/create-github-app-token@v3
         id: generate-token
         with:
-          client-id: ${{ secrets.APP_ID }}
+          # TODO: switch to `client-id` once actionlint's bundled action schema includes it
+          app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_KEY }}
       - uses: actions/checkout@v6
       - uses: fregante/setup-git-user@v2
