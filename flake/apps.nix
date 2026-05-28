@@ -9,7 +9,7 @@
     { pkgs, system, ... }:
     let
       mkFlags = lib.cli.toCommandLineShellGNU { };
-      mkApp =
+      mkProgram =
         {
           package,
           flags ? { },
@@ -20,7 +20,7 @@
     in
     {
       apps = {
-        default.program = mkApp {
+        default.program = mkProgram {
           package = pkgs.flakectl;
           flags = {
             flake = self.outPath;
