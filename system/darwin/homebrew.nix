@@ -12,6 +12,7 @@ let
     "chatgpt"
     "claude"
     "codex-app"
+    "cotabby"
     "daisydisk"
     "default-folder-x"
     "devonthink"
@@ -175,7 +176,9 @@ in
         HOMEBREW_NO_ENV_HINTS = "1";
       };
     };
-    taps = [ ];
+    taps = [
+      "fujacob/cotabby"
+    ];
     brews = [ ];
     casks = caskApps ++ caskFonts;
     inherit masApps;
