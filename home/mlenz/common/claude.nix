@@ -28,11 +28,13 @@ lib.mkIf config.custom.features.withOptionals {
         allowUnsandboxedCommands = true;
         enableWeakerNetworkIsolation = true;
         excludedCommands = [
-          "nix:*"
+          "git *"
+          "nix *"
         ];
         network = {
           allowUnixSockets = [
             "/nix/var/nix/daemon-socket/socket"
+            ".git/fsmonitor--daemon.ipc"
           ];
           allowedDomains = [
             "github.com"
