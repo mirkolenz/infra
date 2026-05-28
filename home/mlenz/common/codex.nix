@@ -36,6 +36,7 @@ lib.mkIf config.custom.features.withOptionals {
           "${config.home.homeDirectory}/.npm" = "write";
           "${config.home.homeDirectory}/Library/Caches" = "write";
           "${config.xdg.cacheHome}" = "write";
+          "${config.xdg.configHome}/git" = "read";
           "${config.xdg.configHome}/.wrangler/logs" = "write";
         };
         network = {
