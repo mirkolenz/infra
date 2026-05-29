@@ -19,7 +19,6 @@
     fd
     procs
     sd
-    tealdeer
     bandwhich
     delta
     fzf

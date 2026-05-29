@@ -16,6 +16,7 @@ lib.mkIf config.custom.features.withOptionals {
     gradle.enable = true;
     java.enable = true;
     mods.enable = true;
+    tealdeer.enable = true;
   };
   home.packages = with pkgs; [
     exiftool
