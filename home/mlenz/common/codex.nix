@@ -74,4 +74,13 @@ lib.mkIf config.custom.features.withOptionals {
       };
     };
   };
+  # Codex writes trust decisions back to config.toml, which fails on a read-only
+  # store symlink (https://github.com/openai/codex/issues/6646). Replace it with a
+  # writable copy of the generated config; trust resets on each activation.
+  home.file.".codex/config.toml".enable = lib.mkForce false;
+  home.activation.codexWritableConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] /* bash */ ''
+    run ${pkgs.coreutils}/bin/install -Dm600 $VERBOSE_ARG \
+      ${config.home.file.".codex/config.toml".source} \
+      ${config.home.homeDirectory}/.codex/config.toml
+  '';
 }
