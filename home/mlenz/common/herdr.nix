@@ -5,6 +5,7 @@
     package = pkgs.herdr-bin;
     # https://herdr.dev/docs/configuration/
     settings = {
+      onboarding = false;
       theme.name = "terrminal";
       ui = {
         toast.delivery = "terminal";
