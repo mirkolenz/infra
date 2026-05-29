@@ -48,7 +48,7 @@ let
       title = "nvim";
       command = "nvim";
       icon = "📝";
-      keybind = "Alt v";
+      keybind = "Alt e";
     }
   ];
 

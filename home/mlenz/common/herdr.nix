@@ -19,6 +19,11 @@
             type = "pane";
             command = "lazygit";
           }
+          {
+            key = "prefix+alt+e";
+            type = "pane";
+            command = "nvim";
+          }
         ];
       };
       ui = {
