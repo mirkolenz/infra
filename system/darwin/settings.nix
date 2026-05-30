@@ -56,7 +56,7 @@
         "/Applications/Obsidian.app"
         # "/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app"
         "/Applications/Orion RC.app"
-        "/Applications/Google Chrome.app"
+        "/Applications/Vivaldi.app"
         "/Applications/Firefox.app"
         "/Applications/1Password.app"
         "/Applications/ChatGPT.app"
