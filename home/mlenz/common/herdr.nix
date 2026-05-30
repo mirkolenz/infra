@@ -5,7 +5,7 @@
   ...
 }:
 let
-  herdr = lib.getExe config.programs.herdr.package;
+
   # Spawn a new herdr tab running a command, labelled after it (override with -n).
   # With no command, launch the default shell in a tab labelled "shell".
   htab = pkgs.writeShellApplication {
