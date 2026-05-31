@@ -40,6 +40,7 @@ let
         pane size="18%" name="Projects" {
           plugin location="file:${pkgs.zellijPlugins.project-sidebar.wasm}" {
             scan_dir "${projectRoot}"
+            session_layout "${config.xdg.configHome}/zellij/layouts/default.kdl"
             verbosity "minimal"
           }
         }
