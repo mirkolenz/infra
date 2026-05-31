@@ -2,7 +2,7 @@
 {
   programs.agents = {
     enable = true;
-    instructions = /* markdown */ ''
+    instructions.body = /* markdown */ ''
       ## General
 
       - Always find the most simple, elegant, robust, reliable, and efficient solution to a problem and try to minimize the amount of code.
@@ -66,5 +66,39 @@
 
       - Exec `typst compile` to make sure the document is free of errors and warnings after making changes.
     '';
+    skills.smpl = {
+      description = "Review the changed code for reuse, simplification, efficiency, and altitude cleanups, then apply the fixes. Quality only, it does not hunt for bugs. Use after writing or editing code, or when the user asks to simplify, clean up, or refactor a change.";
+      text = /* markdown */ ''
+        # Simplify changed code
+
+        Review only the code that has changed and apply quality refactors that preserve behavior exactly.
+        This skill improves quality; it does not look for or report bugs.
+
+        ## Scope
+
+        - Determine the changed code from the working tree: `git diff HEAD` plus untracked files, falling back to the diff against the default branch when the change spans commits.
+        - Only touch code within or directly supporting those changes; do not refactor unrelated parts of the codebase.
+
+        ## Perspectives
+
+        Spawn one dedicated subagent per perspective and run all four in parallel, each scoped to the changed code and reporting only findings for its own perspective:
+
+        - Reuse: replace duplicated logic with existing helpers, or extract a shared function when the same pattern repeats.
+        - Simplification: remove dead code, redundant branches, needless intermediates, and over-engineered abstractions.
+        - Efficiency: drop unnecessary work, allocations, and passes when the simpler form is also faster.
+        - Altitude: move logic to the right layer so each function operates at a single, consistent level of abstraction.
+
+        Each subagent returns its proposed edits; do not let any subagent touch unrelated code.
+
+        ## How to work
+
+        - Spawn the four perspective subagents first, then collect, deduplicate, and reconcile their proposals before editing.
+        - Apply the fixes directly; do not just list suggestions.
+        - Preserve the observable behavior and public interfaces unless the change is itself about them.
+        - Match the surrounding code's style, naming, and conventions.
+        - Do not run formatters or auto-fixing linters unless explicitly asked.
+        - After editing, briefly summarize what changed and why.
+      '';
+    };
   };
 }
