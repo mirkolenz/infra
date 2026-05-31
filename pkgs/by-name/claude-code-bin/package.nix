@@ -16,7 +16,7 @@
   manifestFile ? ./manifest.json,
 }:
 let
-  gcsBucket = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases";
+  baseUrl = "https://downloads.claude.ai/claude-code-releases";
   manifest = lib.importJSON manifestFile;
   platforms = {
     x86_64-linux = "linux-x64";
@@ -30,7 +30,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   version = manifest.version or "unstable";
 
   src = fetchurl {
-    url = "${gcsBucket}/${finalAttrs.version}/${platform}/claude";
+    url = "${baseUrl}/${finalAttrs.version}/${platform}/claude";
     sha256 = manifest.platforms.${platform}.checksum;
   };
 
@@ -92,9 +92,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     set -euo pipefail
 
     # https://claude.ai/install.sh
-    version="$(curl -fsSL "${gcsBucket}/${updateChannel}")"
+    version="$(curl -fsSL "${baseUrl}/${updateChannel}")"
     manifest="$(
-      curl -fsSL "${gcsBucket}/$version/manifest.json" \
+      curl -fsSL "${baseUrl}/$version/manifest.json" \
       | jq '{
         version,
         platforms: .platforms | with_entries(
