@@ -4,7 +4,6 @@ final: prev:
 })
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
   inherit (final.stable)
-    authelia
-    zathura
+    llama-cpp
     ;
 })

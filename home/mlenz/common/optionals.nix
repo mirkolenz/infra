@@ -52,7 +52,6 @@ lib.mkIf config.custom.features.withOptionals {
     keep-sorted
     jsonfmt
     caddy
-    authelia
     mailpit
     copilot-cli-bin
     html2markdown

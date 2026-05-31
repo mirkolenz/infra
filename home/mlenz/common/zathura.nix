@@ -6,7 +6,7 @@
 }:
 lib.mkIf config.custom.features.withOptionals {
   programs.zathura = {
-    enable = true;
+    enable = pkgs.stdenv.hostPlatform.isLinux;
     options = {
       synctex = true;
       synctex-editor-command = "texlab inverse-search -i %{input} -l %{line}";
