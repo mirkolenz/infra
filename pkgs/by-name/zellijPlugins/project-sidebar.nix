@@ -6,7 +6,7 @@
 }:
 mkZellijPlugin (_finalAttrs: {
   pname = "zellij-project-sidebar";
-  version = "0-unstable-2026-05-31";
+  version = "0-unstable-2026-03-15";
 
   src = fetchFromGitHub {
     owner = "AndrewBeniston";
