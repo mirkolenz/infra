@@ -21,9 +21,7 @@
   },
   {
     "context": "Workspace",
-    "bindings": {
-      "ctrl-/": "terminal_panel::ToggleFocus"
-    }
+    "bindings": {}
   },
   {
     "context": "Terminal",
