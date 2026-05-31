@@ -22,7 +22,8 @@ let
 
   custom = {
     flattenedPackages = topLevelDrvs // flattenedDrvs;
-    nestedPackages = recursiveDrvs // lib.mapAttrs (name: value: (prev.${name} or { }) // value) nestedDrvs;
+    nestedPackages =
+      recursiveDrvs // lib.mapAttrs (name: value: (prev.${name} or { }) // value) nestedDrvs;
     flakeInputs = import ./inputs.nix args final prev;
     hashedPackages = {
       inherit (final) caddy-custom;

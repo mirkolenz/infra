@@ -55,14 +55,15 @@ let
     skill:
     lib'.mkMarkdown {
       body = skill.text;
-      metadata =
-        { inherit (skill) name description; }
-        // lib.optionalAttrs (skill.license != null) { inherit (skill) license; }
-        // lib.optionalAttrs (skill.compatibility != null) { inherit (skill) compatibility; }
-        // lib.optionalAttrs (skill.allowedTools != [ ]) {
-          allowed-tools = lib.concatStringsSep " " skill.allowedTools;
-        }
-        // lib.optionalAttrs (skill.metadata != { }) { inherit (skill) metadata; };
+      metadata = {
+        inherit (skill) name description;
+      }
+      // lib.optionalAttrs (skill.license != null) { inherit (skill) license; }
+      // lib.optionalAttrs (skill.compatibility != null) { inherit (skill) compatibility; }
+      // lib.optionalAttrs (skill.allowedTools != [ ]) {
+        allowed-tools = lib.concatStringsSep " " skill.allowedTools;
+      }
+      // lib.optionalAttrs (skill.metadata != { }) { inherit (skill) metadata; };
     };
 
   mkSkillFiles =
