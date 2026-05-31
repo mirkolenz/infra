@@ -421,11 +421,7 @@
     },
     "option_as_meta": true,
     "default_width": 640,
-    "default_height": 320,
-    "env": {
-      // "LC_ALL": "en_US.UTF-8",
-      // "LANG": "en_US.UTF-8",
-    }
+    "default_height": 320
   },
   "theme": {
     "mode": "system",

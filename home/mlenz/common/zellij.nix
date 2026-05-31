@@ -8,85 +8,75 @@
 let
   zellijExe = lib.getExe config.programs.zellij.package;
 
-  plugins = {
-    zellij-tab-name = pkgs.fetchurl {
-      url = "https://github.com/Cynary/zellij-tab-name/releases/download/v0.4.2/zellij-tab-name.wasm";
-      hash = "sha256:4edf6bacc00a2fe77ac464c86975c7cc77f9cbfd494c36fdc2b81b226e29e0e6";
-    };
-    zellij-vertical-tabs = pkgs.fetchurl {
-      url = "https://github.com/cfal/zellij-vertical-tabs/releases/download/v0.1.0/zellij-vertical-tabs.wasm";
-      hash = "sha256:531091b56ab3bc0008bd14de19f71985e3ab8585110ee021ef8ee413556202a2";
-    };
-    zjstatus = pkgs.fetchurl {
-      url = "https://github.com/dj95/zjstatus/releases/download/v0.23.0/zjstatus.wasm";
-      hash = "sha256:e006901223524239db618021e4cc5d17f82dc4bfae5432895ba41f03f13861ff";
-    };
-    zjframes = pkgs.fetchurl {
-      url = "https://github.com/dj95/zjstatus/releases/download/v0.23.0/zjframes.wasm";
-      hash = "sha256:8d89e831bde195363faa5a810b04460a421006d37c9886ce9e255130fa93a085";
-    };
-  };
+  projectRoot = "${config.home.homeDirectory}/Developer";
 
   layouts = [
     {
       title = "codex";
       command = "codex";
-      icon = "💻";
     }
     {
       title = "claude";
       command = "claude";
-      icon = "💻";
     }
     {
       title = "lazygit";
       command = "lazygit";
-      icon = "🔍";
       keybind = "Alt g";
     }
     {
       title = "nvim";
       command = "nvim";
-      icon = "📝";
       keybind = "Alt e";
     }
   ];
 
-  # pane split_direction="vertical" {
-  #   pane size=18 borderless=true {
-  #     plugin location="file:${plugins.zellij-vertical-tabs}"
-  #   }
-  #   children
-  # }
   defaultTabTemplate = ''
     default_tab_template {
       pane size=1 borderless=true {
         plugin location="zellij:tab-bar"
       }
-      children
+      pane split_direction="vertical" {
+        pane size="18%" name="Projects" {
+          plugin location="file:${pkgs.zellijPlugins.project-sidebar.wasm}" {
+            scan_dir "${projectRoot}"
+            verbosity "minimal"
+          }
+        }
+        children
+      }
       pane size=1 borderless=true {
         plugin location="zellij:status-bar"
       }
     }
   '';
 
+  mkLayoutText = l: ''
+    layout {
+      ${defaultTabTemplate}
+      tab name="${l.title}" {
+        pane command="${l.command}" close_on_exit=true
+      }
+    }
+  '';
+
+  layoutFiles = lib.listToAttrs (
+    map (l: {
+      name = l.title;
+      value = pkgs.writeText "zellij-layout-${l.title}.kdl" (mkLayoutText l);
+    }) layouts
+  );
+
   mkLayoutFile = l: {
     name = "zellij/layouts/${l.title}.kdl";
-    value.text = ''
-      layout {
-        ${defaultTabTemplate}
-        tab name="${l.icon} ${l.title}" {
-          pane command="${l.command}" close_on_exit=true
-        }
-      }
-    '';
+    value.source = layoutFiles.${l.title};
   };
 
   mkKeybind =
     l:
     lib.optionalString (l ? keybind) ''
       bind "${l.keybind}" {
-        NewTab { name "${l.icon} ${l.title}"; layout "${l.title}"; };
+        NewTab { name "${l.title}"; layout "${layoutFiles.${l.title}}"; };
       }
     '';
 in
@@ -101,7 +91,7 @@ in
       default_mode = "normal";
       on_force_close = "detach";
       pane_frames = false;
-      session_serialization = false;
+      session_serialization = true;
       show_release_notes = false;
       show_startup_tips = false;
       theme = "gruvbox-dark";
@@ -110,8 +100,27 @@ in
     # https://zellij.dev/documentation/keybindings-keys.html
     # https://github.com/zellij-org/zellij/blob/main/zellij-utils/assets/config/default.kdl
     extraConfig = ''
-      load_plugins {
-        "file:${plugins.zellij-tab-name}"
+      plugins {
+        tab-bar location="zellij:tab-bar"
+        status-bar location="zellij:status-bar"
+        strider location="zellij:strider"
+        compact-bar location="zellij:compact-bar"
+        session-manager location="zellij:session-manager"
+        welcome-screen location="zellij:session-manager" {
+          welcome_screen true
+        }
+        filepicker location="zellij:strider" {
+          cwd "/"
+        }
+        plugin-manager location="zellij:plugin-manager"
+        choose-tree location="file:${pkgs.zellijPlugins.choose-tree.wasm}"
+        project-sidebar location="file:${pkgs.zellijPlugins.project-sidebar.wasm}"
+        sessionpicker location="file:${pkgs.zellijPlugins.choose-tree.wasm}"
+        sessionizer location="file:${pkgs.zellijPlugins.sessionizer.wasm}" {
+          cwd "/"
+          root_dirs "${projectRoot}"
+          session_layout "default"
+        }
       }
       keybinds {
         shared {
@@ -122,6 +131,27 @@ in
           bind "Alt c" { Copy; }
           bind "Alt t" { NewTab; }
           bind "Alt w" { CloseTab; }
+          bind "Alt s" {
+            LaunchOrFocusPlugin "choose-tree" {
+              floating true
+              move_to_focused_tab true
+              show_plugins false
+            }
+            SwitchToMode "Locked";
+          }
+          bind "Alt Shift s" {
+            LaunchOrFocusPlugin "session-manager" {
+              floating true
+              move_to_focused_tab true
+            }
+          }
+          bind "Alt p" {
+            LaunchOrFocusPlugin "sessionizer" {
+              floating true
+              move_to_focused_tab true
+            }
+            SwitchToMode "Locked";
+          }
           ${lib.concatMapStrings mkKeybind layouts}
         }
       }
@@ -143,54 +173,8 @@ in
     zj = zellijExe;
     zja = "${zellijExe} attach";
     zjx = "${zellijExe} attach --create main";
+    zjw = "${zellijExe} -l welcome";
   };
-  home.packages = [
-    (pkgs.writeShellApplication {
-      name = "zjpwd";
-      text = /* bash */ ''
-        parent="$(basename "$(dirname "$PWD")")"
-        current="$(basename "$PWD")"
-        exec ${zellijExe} attach --create "$parent-$current"
-      '';
-    })
-    (pkgs.writeShellApplication {
-      name = "zjz";
-      text = /* bash */ ''
-        cd "$(${lib.getExe config.programs.zoxide.package} query -- "$1")" || exit 1
-        exec zjpwd
-      '';
-    })
-  ];
-  programs.fish.interactiveShellInit = ''
-    if set -q ZELLIJ
-      function fish_title; end
-
-      # Use the zellij-tab-name plugin so renames target this pane's tab
-      # rather than whichever tab is currently focused.
-      function _zellij_rename_tab
-        set -l payload (${lib.getExe pkgs.jq} -nc \
-          --arg id "$ZELLIJ_PANE_ID" \
-          --arg name "$argv" \
-          '{pane_id: $id, name: $name}')
-        command zellij pipe --name change-tab-name -- "$payload" 2>/dev/null
-      end
-
-      function _zellij_set_tab_to_cwd \
-          --on-event fish_prompt \
-          --on-event fish_postexec \
-          --on-variable PWD
-        _zellij_rename_tab "📁 "(string replace -- $HOME '~' $PWD | path basename)
-      end
-
-      function _zellij_set_tab_to_cmd --on-event fish_preexec
-        set -l words (string split -n ' ' -- $argv[1])
-        if test "$words[1]" = sudo
-          set words $words[2..]
-        end
-        _zellij_rename_tab "🚀 $words[1]"
-      end
-    end
-  '';
   # Zellij web server
   launchd.agents.zellij-web = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
     enable = false;

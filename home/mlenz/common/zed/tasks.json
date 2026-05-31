@@ -1,19 +1,7 @@
 // https://zed.dev/docs/tasks
 [
   {
-    "label": "🔥 terminal",
-    "command": "zjpwd",
-    "hide": "on_success",
-    "reveal": "always",
-    "reveal_target": "center",
-    "show_command": false,
-    "show_summary": false,
-    "shell": {
-      "program": "sh"
-    }
-  },
-  {
-    "label": "🐏 herdr",
+    "label": "herdr",
     "command": "herdr",
     "hide": "on_success",
     "reveal": "always",

@@ -3,7 +3,10 @@ final: prev:
 let
   inherit (prev) lib;
 
-  nestedScopes = [ "vimPlugins" ];
+  nestedScopes = [
+    "vimPlugins"
+    "zellijPlugins"
+  ];
 
   recursiveDrvs = lib.packagesFromDirectoryRecursive {
     inherit (final) callPackage;
@@ -19,7 +22,7 @@ let
 
   custom = {
     flattenedPackages = topLevelDrvs // flattenedDrvs;
-    nestedPackages = recursiveDrvs // lib.mapAttrs (name: value: prev.${name} // value) nestedDrvs;
+    nestedPackages = recursiveDrvs // lib.mapAttrs (name: value: (prev.${name} or { }) // value) nestedDrvs;
     flakeInputs = import ./inputs.nix args final prev;
     hashedPackages = {
       inherit (final) caddy-custom;
