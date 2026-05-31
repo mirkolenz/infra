@@ -88,7 +88,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     herdr = {
-      url = "github:ogulcancelik/herdr/v0.6.5";
+      url = "github:ogulcancelik/herdr/v0.6.6";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     mistral-vibe = {
