@@ -53,6 +53,23 @@ rec {
     };
   mkVimKeymaps = opts: values: map (mkVimKeymap opts) values;
 
+  # Render markdown with optional JSON frontmatter (a valid subset of YAML).
+  mkMarkdown =
+    {
+      metadata ? { },
+      body ? "",
+    }:
+    if metadata == { } then
+      body
+    else
+      ''
+        ---
+        ${lib.strings.toJSON metadata}
+        ---
+
+        ${body}
+      '';
+
   mdFormat = lib.types.submodule (
     { config, ... }:
     {
@@ -78,10 +95,11 @@ rec {
             in
             valueType;
           default = { };
-          description = "Frontmatter for the markdown file, written as YAML.";
+          description = "Frontmatter for the markdown file, written as JSON (a valid subset of YAML).";
         };
         body = lib.mkOption {
           type = lib.types.lines;
+          default = "";
           description = "Markdown content for the file.";
         };
         text = lib.mkOption {
@@ -89,19 +107,7 @@ rec {
           readOnly = true;
         };
       };
-      config = {
-        text =
-          if config.metadata == { } then
-            config.body
-          else
-            ''
-              ---
-              ${lib.strings.toJSON config.metadata}
-              ---
-
-              ${config.body}
-            '';
-      };
+      config.text = mkMarkdown { inherit (config) metadata body; };
     }
   );
 
