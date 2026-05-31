@@ -5,7 +5,6 @@ final: prev:
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
   inherit (final.stable)
     authelia
-    rclone
     zathura
     ;
 })
