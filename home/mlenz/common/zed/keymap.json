@@ -1,7 +1,7 @@
 [
   {
     "bindings": {
-      "cmd-shift-g": ["task::Spawn", { "task_name": "lazygit" }],
+      "cmd-shift-g": ["task::Spawn", { "task_name": "git" }],
       "cmd-r": "workspace::Reload"
     }
   },

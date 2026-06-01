@@ -1,19 +1,7 @@
 // https://zed.dev/docs/tasks
 [
   {
-    "label": "herdr",
-    "command": "herdr",
-    "hide": "on_success",
-    "reveal": "always",
-    "reveal_target": "center",
-    "show_command": false,
-    "show_summary": false,
-    "shell": {
-      "program": "sh"
-    }
-  },
-  {
-    "label": "🔍 lazygit",
+    "label": "git",
     "command": "lazygit",
     "hide": "on_success",
     "reveal": "always",
@@ -25,7 +13,7 @@
     }
   },
   {
-    "label": "keep-sorted",
+    "label": "sort",
     "command": "keep-sorted",
     "args": ["$ZED_FILE"],
     "hide": "on_success",
@@ -50,7 +38,7 @@
     }
   },
   {
-    "label": "latexmk-build",
+    "label": "latex-build",
     "command": "latexmk",
     "args": ["-synctex=1", "-interaction=nonstopmode", "-recorder", "-pv"],
     "hide": "never",
@@ -63,7 +51,7 @@
     "tags": ["latex-build"]
   },
   {
-    "label": "latexmk-clean",
+    "label": "latex-clean",
     "command": "latexmk",
     "args": ["-C"],
     "hide": "never",
