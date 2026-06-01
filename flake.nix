@@ -16,10 +16,10 @@
 
   inputs = {
     # Nixpkgs
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    nixpkgs-linux-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-linux-stable.url = "github:nixos/nixpkgs/nixos-26.05";
-    nixpkgs-darwin-stable.url = "github:nixos/nixpkgs/nixpkgs-26.05-darwin";
+    nixpkgs.url = "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz";
+    nixpkgs-linux-unstable.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz";
+    nixpkgs-linux-stable.url = "https://channels.nixos.org/nixos-26.05/nixexprs.tar.xz";
+    nixpkgs-darwin-stable.url = "https://channels.nixos.org/nixpkgs-26.05-darwin/nixexprs.tar.xz";
 
     # Small helpers
     flake-parts = {

@@ -486,49 +486,40 @@
     "nixpkgs-darwin-stable": {
       "locked": {
         "lastModified": 1780251134,
-        "narHash": "sha256-qq5bv/PjeW4g+1Zj83vXEIz+tRXFtbPp4Y4jUvF+4ko=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
+        "narHash": "sha256-8+pdVGQAtg1Ql+wIszyFyu95LCry//DFX8Gy04Yp5KI=",
         "rev": "6d6863fd6e5c1c9347470e24746a259a23d57a58",
-        "type": "github"
+        "type": "tarball",
+        "url": "https://releases.nixos.org/nixpkgs/26.05-darwin/nixpkgs-darwin-26.05pre1005249.6d6863fd6e5c/nixexprs.tar.xz"
       },
       "original": {
-        "owner": "nixos",
-        "ref": "nixpkgs-26.05-darwin",
-        "repo": "nixpkgs",
-        "type": "github"
+        "type": "tarball",
+        "url": "https://channels.nixos.org/nixpkgs-26.05-darwin/nixexprs.tar.xz"
       }
     },
     "nixpkgs-linux-stable": {
       "locked": {
         "lastModified": 1780203844,
-        "narHash": "sha256-K5sT4jTpGs15ADhviMKNBH38REpPf5Q6mM1+N6cArVE=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
+        "narHash": "sha256-0LbzRbwKOIae/V/p/wDALlUWZ5ZF41vtH05PYdKhh5I=",
         "rev": "b51242d7d43689db2f3be91bd05d5b24fbb469c4",
-        "type": "github"
+        "type": "tarball",
+        "url": "https://releases.nixos.org/nixos/26.05/nixos-26.05.889.b51242d7d436/nixexprs.tar.xz"
       },
       "original": {
-        "owner": "nixos",
-        "ref": "nixos-26.05",
-        "repo": "nixpkgs",
-        "type": "github"
+        "type": "tarball",
+        "url": "https://channels.nixos.org/nixos-26.05/nixexprs.tar.xz"
       }
     },
     "nixpkgs-linux-unstable": {
       "locked": {
         "lastModified": 1779560665,
-        "narHash": "sha256-tpyBcxPpcQb8ukyNF7DoCwfSY3VPsxHoYwj00Cayv5o=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
+        "narHash": "sha256-NpH8iEQ5JHv/BtUuzTEXUMDxPLetCDzIv4OxL8H7Kps=",
         "rev": "64c08a7ca051951c8eae34e3e3cb1e202fe36786",
-        "type": "github"
+        "type": "tarball",
+        "url": "https://releases.nixos.org/nixos/unstable/nixos-26.05pre1004030.64c08a7ca051/nixexprs.tar.xz"
       },
       "original": {
-        "owner": "nixos",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
+        "type": "tarball",
+        "url": "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz"
       }
     },
     "nixpkgs-regression": {
@@ -577,17 +568,14 @@
     "nixpkgs_4": {
       "locked": {
         "lastModified": 1780246643,
-        "narHash": "sha256-4T1KWX7xWGQMs9hNZ24IOY3aYOi8D6+5WtkNRBSttB8=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
+        "narHash": "sha256-JZXtt4Ax1FiEArbgzhLRQ7xrNZQdHIrty5XSwOoXrm8=",
         "rev": "3109eaae18e09d0b8aef23dc2579e7d94b8d4b4e",
-        "type": "github"
+        "type": "tarball",
+        "url": "https://releases.nixos.org/nixpkgs/nixpkgs-26.11pre1008286.3109eaae18e0/nixexprs.tar.xz"
       },
       "original": {
-        "owner": "nixos",
-        "ref": "nixpkgs-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
+        "type": "tarball",
+        "url": "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz"
       }
     },
     "nixvim": {
