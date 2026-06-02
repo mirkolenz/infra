@@ -17,8 +17,6 @@
   };
 
   # https://wiki.nixos.org/wiki/Networking#Virtualization
-  # todo: https://github.com/NixOS/nixpkgs/issues/263359
-  # todo: https://github.com/NixOS/nixpkgs/issues/416031
   networking.firewall.interfaces."virbr*" = lib.mkIf config.virtualisation.libvirtd.enable {
     allowedTCPPorts = [ 53 ];
     allowedUDPPorts = [
@@ -26,7 +24,6 @@
       67 # dhcp
     ];
   };
-  networking.nat.internalInterfaces = lib.mkIf config.virtualisation.libvirtd.enable [ "virbr0" ];
 
   users.users.${user.login}.extraGroups = lib.mkIf config.virtualisation.libvirtd.enable [
     "libvirtd"

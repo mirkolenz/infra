@@ -43,6 +43,4 @@
     allowedTCPPorts = [ 53 ];
     allowedUDPPorts = [ 53 ];
   };
-  # todo: only applies to default bridge
-  # networking.nat.internalInterfaces = lib.mkIf config.virtualisation.podman.enable [ "podman0" ];
 }

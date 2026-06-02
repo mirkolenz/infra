@@ -7,6 +7,7 @@
     # this is not compatible with networkd
     useHostResolvConf = false;
     nftables.enable = true;
+    firewall.enable = lib.mkDefault true;
   };
 
   # Do not manage wifi interfaces with networkd by default
