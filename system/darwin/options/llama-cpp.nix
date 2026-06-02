@@ -88,7 +88,7 @@ in
 
       home = lib.mkOption {
         type = types.str;
-        default = "/var/lib/llama-cpp";
+        default = "/private/var/lib/llama-cpp";
         description = ''
           The home directory that the llama-cpp service is started in.
         '';
@@ -96,7 +96,7 @@ in
 
       cache = lib.mkOption {
         type = types.str;
-        default = "/var/cache/llama-cpp";
+        default = "/private/var/cache/llama-cpp";
         description = ''
           The cache directory used by llama-cpp (LLAMA_CACHE).
         '';
@@ -104,7 +104,7 @@ in
 
       log = lib.mkOption {
         type = types.str;
-        default = "/var/log/llama-cpp.log";
+        default = "/private/var/log/llama-cpp.log";
         description = ''
           The file that the llama-cpp service will write logs to.
         '';
