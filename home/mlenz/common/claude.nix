@@ -15,7 +15,7 @@ lib.mkIf config.custom.features.withOptionals {
     settings = {
       autoMemoryEnabled = false;
       cleanupPeriodDays = 30;
-      effortLevel = "high"; # xhigh
+      effortLevel = "xhigh";
       enableAllProjectMcpServers = true;
       forceLoginMethod = "claudeai";
       includeCoAuthoredBy = false;

@@ -13,8 +13,8 @@ lib.mkIf config.custom.features.withOptionals {
     settings = {
       model = "gpt-5.5";
       commit_attribution = "";
-      model_reasoning_effort = "high"; # xhigh
-      plan_mode_reasoning_effort = "high"; # xhigh
+      model_reasoning_effort = "xhigh";
+      plan_mode_reasoning_effort = "xhigh";
       approval_policy = "on-request";
       approvals_reviewer = "auto_review";
       file_opener = "none";
