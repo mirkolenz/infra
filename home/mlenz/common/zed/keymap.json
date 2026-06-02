@@ -8,8 +8,8 @@
   {
     "context": "Editor && extension == tex",
     "bindings": {
-      "cmd-alt-b": ["task::Spawn", { "task_name": "latexmk-build" }],
-      "cmd-alt-c": ["task::Spawn", { "task_name": "latexmk-clean" }]
+      "cmd-alt-b": ["task::Spawn", { "task_name": "latex-build" }],
+      "cmd-alt-c": ["task::Spawn", { "task_name": "latex-clean" }]
     }
   },
   {
@@ -31,7 +31,7 @@
     "context": "Editor",
     "bindings": {
       "cmd-shift-a": "editor::SortLinesCaseInsensitive",
-      "alt-shift-a": ["task::Spawn", { "task_name": "keep-sorted" }],
+      "alt-shift-a": ["task::Spawn", { "task_name": "sort" }],
       "tab": "editor::Tab"
     }
   },

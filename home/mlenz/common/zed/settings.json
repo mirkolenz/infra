@@ -1,16 +1,16 @@
 {
   // keep-sorted start block=yes
   "agent": {
-    "sidebar_side": "right",
+    "sidebar_side": "left",
     "flexible": true,
-    "dock": "right",
+    "dock": "left",
     "use_modifier_to_send": false,
     "play_sound_when_agent_done": "always",
     "default_model": {
       "provider": "copilot_chat",
       "model": "gpt-5.4"
     },
-    "default_width": 320,
+    "default_width": 640,
     "default_height": 320
   },
   "agent_servers": {
@@ -79,6 +79,7 @@
   "buffer_font_size": 13,
   "code_lens": "on",
   "collaboration_panel": {
+    "dock": "right",
     "default_width": 320
   },
   "colorize_brackets": true,
@@ -87,6 +88,9 @@
   },
   "cursor_blink": false,
   "cursor_shape": "bar",
+  "debugger": {
+    "dock": "bottom"
+  },
   "edit_predictions": {
     "provider": "copilot",
     "disabled_globs": ["*.env", "*secret*"],
@@ -121,7 +125,7 @@
     }
   },
   "git_panel": {
-    "dock": "left",
+    "dock": "right",
     "tree_view": true,
     "default_width": 320
   },
@@ -384,12 +388,12 @@
     "npm_path": "/etc/profiles/per-user/mlenz/bin/npm"
   },
   "outline_panel": {
-    "dock": "left",
+    "dock": "right",
     "default_width": 320
   },
   "preferred_line_length": 120,
   "project_panel": {
-    "dock": "left",
+    "dock": "right",
     "default_width": 320,
     "entry_spacing": "standard",
     "indent_size": 16,
@@ -420,6 +424,7 @@
       "show": "system"
     },
     "option_as_meta": true,
+    "dock": "bottom",
     "default_width": 640,
     "default_height": 320
   },
