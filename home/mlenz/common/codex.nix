@@ -56,6 +56,9 @@ lib.mkIf config.custom.features.withOptionals {
         notifications = true;
         vim_mode_default = false;
       };
+      notice = {
+        hide_rate_limit_model_nudge = true;
+      };
       shell_environment_policy = {
         set = {
           ASTRO_TELEMETRY_DISABLED = "1";
