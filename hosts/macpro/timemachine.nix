@@ -56,6 +56,8 @@
     enable = true;
     openFirewall = true;
     nssmdns4 = true;
+    # pin to LAN interface; advertising on all interfaces makes avahi self-conflict (macpro -> macpro-N)
+    allowInterfaces = [ "mv0" ];
     publish = {
       enable = true;
       addresses = true;
