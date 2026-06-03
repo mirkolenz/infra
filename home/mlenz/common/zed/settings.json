@@ -13,28 +13,6 @@
     "default_width": 640,
     "default_height": 320
   },
-  "agent_servers": {
-    // keep-sorted start block=yes
-    "claude-acp": {
-      "type": "registry"
-    },
-    "codex-acp": {
-      "type": "registry"
-    },
-    "gemini": {
-      "type": "registry"
-    },
-    "github-copilot-cli": {
-      "type": "registry"
-    },
-    "mistral-vibe": {
-      "type": "registry"
-    },
-    "opencode": {
-      "type": "registry"
-    }
-    // keep-sorted end
-  },
   // ls -l "$HOME/Library/Application Support/Zed/extensions/installed/"
   "auto_install_extensions": {
     // keep-sorted start
