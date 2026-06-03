@@ -3,6 +3,7 @@
   system.autoUpgrade = {
     flake = "github:mirkolenz/nixos";
     flags = lib.optional config.custom.impureRebuild "--impure";
+    upgrade = false;
     dates = "04:00";
     allowReboot = true;
     runGarbageCollection = true;
