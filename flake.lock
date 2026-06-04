@@ -322,6 +322,21 @@
         "type": "github"
       }
     },
+    "import-tree": {
+      "locked": {
+        "lastModified": 1778781969,
+        "narHash": "sha256-Jjuz5CmSkur8KvLDoGa+vylEp+RkQtv4mt/qcMznpH0=",
+        "owner": "denful",
+        "repo": "import-tree",
+        "rev": "d321337efd0f23a9eb14a42adb7b2c29313ab274",
+        "type": "github"
+      },
+      "original": {
+        "owner": "denful",
+        "repo": "import-tree",
+        "type": "github"
+      }
+    },
     "mistral-vibe": {
       "inputs": {
         "flake-utils": "flake-utils",
@@ -704,6 +719,7 @@
         "flocken": "flocken",
         "herdr": "herdr",
         "home-manager": "home-manager",
+        "import-tree": "import-tree",
         "mistral-vibe": "mistral-vibe",
         "nix-darwin": "nix-darwin",
         "nix-index-database": "nix-index-database",

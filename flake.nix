@@ -51,6 +51,7 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    import-tree.url = "github:denful/import-tree";
     mistral-vibe = {
       url = "github:mistralai/mistral-vibe/v2.13.0";
       inputs = {
