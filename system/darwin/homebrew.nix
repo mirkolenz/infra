@@ -170,7 +170,7 @@ in
     global.autoUpdate = true;
     onActivation = {
       autoUpdate = true;
-      cleanup = "uninstall";
+      # cleanup = "uninstall"; # todo: broken as of 2026-06-04
       upgrade = true;
       extraEnv = {
         HOMEBREW_NO_ENV_HINTS = "1";
