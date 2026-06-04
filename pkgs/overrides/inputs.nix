@@ -1,7 +1,7 @@
-{ inputs, ... }:
 final: prev:
 let
   inherit (prev.stdenv.hostPlatform) system;
+  inherit (final) inputs;
   fromInput = input: package: inputs.${input}.packages.${system}.${package} or final.empty;
 in
 {

@@ -36,7 +36,6 @@
       checks = lib.filterAttrs (_: isHydraTarget) config.packages;
       packages = lib.filterAttrs (_: isAvailable) (
         pkgs.custom.flattenedPackages
-        // pkgs.custom.flakeInputs
         // lib.optionalAttrs (system == "aarch64-linux") {
           raspi-kernel = self.nixosConfigurations.raspi.config.boot.kernelPackages.kernel;
         }

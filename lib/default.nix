@@ -111,25 +111,17 @@ rec {
     }
   );
 
+  # import every `final: prev: -> attrset` overlay fragment in `dir` and merge them at the top level
   importOverlays =
     dir: final: prev:
     let
       filterPath =
         name: type:
         !lib.hasPrefix "_" name && type == "regular" && lib.hasSuffix ".nix" name && name != "default.nix";
-      dirContents = builtins.readDir dir;
-      filteredContents = lib.filterAttrs filterPath dirContents;
-      filteredPaths = builtins.attrNames filteredContents;
-      importedOverlays = lib.listToAttrs (
-        map (name: {
-          name = lib.removeSuffix ".nix" name;
-          value = import (dir + "/${name}") final prev;
-        }) filteredPaths
-      );
-      importedDefaultOverlay =
-        if lib.pathExists (dir + "/default.nix") then import (dir + "/default.nix") final prev else { };
+      files = builtins.attrNames (lib.filterAttrs filterPath (builtins.readDir dir));
     in
-    importedDefaultOverlay // importedOverlays;
+    lib.mergeAttrsList (map (name: import (dir + "/${name}") final prev) files);
+
   # https://github.com/ncfavier/config/blob/bfc59fe3febc7a389105d05141215ca725bf7a9f/modules/nix.nix#L64-L68
   mkMutableSymlink =
     { config, value }:
