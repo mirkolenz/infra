@@ -15,12 +15,12 @@ in
 {
   nixpkgs = import inputs.nixpkgs nixpkgsArgs;
   stable = import (lib'.systemInput {
-    inherit os;
+    inherit inputs os;
     name = "nixpkgs";
     channel = "stable";
   }) nixpkgsArgs;
   unstable = import (lib'.systemInput {
-    inherit os;
+    inherit inputs os;
     name = "nixpkgs";
     channel = "unstable";
   }) nixpkgsArgs;

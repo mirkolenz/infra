@@ -1,0 +1,52 @@
+# Linux home-manager profile: base packages and the desktop applications.
+# Cosmic itself lives in modules/desktop/cosmic.nix (cross-class).
+{
+  flake.modules.homeManager.linux.imports = [
+    (
+      {
+        pkgs,
+        lib,
+        ...
+      }:
+      {
+        home.packages = with pkgs; [
+          angrr
+          cfspeedtest
+          # https://unix.stackexchange.com/a/617686
+          (writeShellApplication {
+            name = "getusers";
+            text = /* bash */ ''
+              ${lib.getExe' procps "ps"} -eo user,uid | ${lib.getExe gawk} 'NR>1 && $2 >= 1000 && ++seen[$2]==1{print $1}'
+            '';
+          })
+        ];
+      }
+    )
+
+    (
+      {
+        pkgs,
+        lib,
+        config,
+        ...
+      }:
+      lib.mkIf config.custom.features.withDisplay {
+        home.packages =
+          with pkgs;
+          [
+            anydesk
+            firefox
+            obsidian
+            teams-for-linux
+            vivaldi
+            zotero
+          ]
+          ++ lib.optionals (pkgs.stdenv.hostPlatform.isx86_64) [
+            google-chrome
+            zoom-us
+          ];
+        home.file.".face".source = ./mlenz.jpg;
+      }
+    )
+  ];
+}

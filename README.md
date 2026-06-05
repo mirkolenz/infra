@@ -8,6 +8,12 @@ This repo contains a custom wrapper to build NixOS/nix-darwin/home-manager:
 nix run github:mirkolenz/nixos -- --wrapper-help
 ```
 
+## Repository Structure
+
+This flake follows the **dendritic pattern**: every `.nix` file under `modules/` is auto-loaded by `import-tree` (see `flake.nix`) and contributes to a `flake.modules.<class>.<bucket>` declaration, so the directory a file lives in is purely organizational.
+Feature modules are grouped by the **config-path namespace** they write, mirroring the option tree (and the `options/` layout), so anything is found where it sits in the configuration.
+A module is one cohesive feature filed under one directory, the namespace of its primary subject, while keeping all of its config inline, so a feature like `ssh` or `nix` is configured end-to-end across home-manager and nixos/darwin in a single file.
+
 ## NixOS Computers
 
 ### Manual Terminal Setup

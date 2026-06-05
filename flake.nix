@@ -126,12 +126,5 @@
     # keep-sorted end
   };
 
-  outputs =
-    inputs:
-    inputs.flake-parts.lib.mkFlake {
-      inherit inputs;
-      specialArgs = {
-        lib' = import ./lib inputs;
-      };
-    } ./flake;
+  outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
 }
