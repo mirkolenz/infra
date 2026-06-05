@@ -3,6 +3,13 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 0 * * *"
+  # Refresh the lockfile after every merge to main. Using push (not
+  # pull_request_target) keeps this safe: it only ever runs already-merged,
+  # trusted commits on main and never exposes secrets to fork PR code. The
+  # update-deps PR below is auto-merged with GITHUB_TOKEN, and GITHUB_TOKEN
+  # merges do not trigger workflows, so this never loops on its own updates.
+  push:
+    branches: [main]
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -19,6 +26,11 @@ jobs:
           # TODO: switch to `client-id` once actionlint's bundled action schema includes it
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_KEY }}
+          # homeserver scope is needed for the dispatch step below
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            infra
+            homeserver
       - uses: actions/checkout@v6
       - uses: fregante/setup-git-user@v2
       - uses: DeterminateSystems/determinate-nix-action@v3
@@ -45,6 +57,12 @@ jobs:
         run: gh pr merge --auto --rebase ${{ steps.pr.outputs.pull-request-number }}
         if: steps.pr.outputs.pull-request-number != ''
         env:
-          # if using a personal access token, workflows are run twice
-          # first in the pr and then after merging
+          # GITHUB_TOKEN merges intentionally do not trigger the push trigger above,
+          # so this job never re-runs on its own update-deps merge.
           GH_TOKEN: ${{ github.token }}
+      # As the single source of truth, tell homeserver to refresh its infra pin
+      # whenever infra's main advances (renovate / manual merges trigger this run).
+      - name: notify homeserver
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: gh api repos/${{ github.repository_owner }}/homeserver/dispatches -f event_type=infra-updated
