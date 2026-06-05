@@ -5,7 +5,7 @@
 This repo contains a custom wrapper to build NixOS/nix-darwin/home-manager:
 
 ```shell
-nix run github:mirkolenz/nixos -- --wrapper-help
+nix run github:mirkolenz/infra -- --wrapper-help
 ```
 
 ## Repository Structure
@@ -68,14 +68,14 @@ The rest is identical to the disko-based setup after `nixos-generate-config`.
 # find device name and update this flake accordingly
 ls -l /dev/disk/by-id
 # format the disk
-nix run github:mirkolenz/nixos#disko -- MACHINE_NAME --mode destroy,format,mount
+nix run github:mirkolenz/infra#disko -- MACHINE_NAME --mode destroy,format,mount
 # generate hardware config and verify /mnt/etc/nixos/hardware-configuration.nix is in sync with the flake
 nixos-generate-config --no-filesystems --root /mnt
 # set up user passwords
 bash -c 'umask 022 && mkdir -p /mnt/etc/nixos/secrets'
 bash -c 'umask 077 && mkpasswd -m yescrypt > /mnt/etc/nixos/secrets/USER.passwd'
 # install the system
-nix run github:mirkolenz/nixos#nixos-install -- MACHINE_NAME
+nix run github:mirkolenz/infra#nixos-install -- MACHINE_NAME
 ```
 
 ### Troubleshooting
@@ -110,7 +110,7 @@ nix run github:mirkolenz/nixos#nixos-install -- MACHINE_NAME
 5. Enable Full Disk Access for terminal application
 
 ```shell
-sudo nix run github:mirkolenz/nixos
+sudo nix run github:mirkolenz/infra
 sudo reboot
 # Add ssh key to keychain
 ssh-add --apple-use-keychain ~/.ssh/id_ed25519
@@ -140,7 +140,7 @@ To extend the script with additional files, add an entry to the `entries` list i
 ```shell
 chsh -s /bin/zsh
 # if nix is not in PATH, use this: /nix/var/nix/profiles/default/bin/nix
-sudo nix run github:mirkolenz/nixos#darwin-uninstaller
+sudo nix run github:mirkolenz/infra#darwin-uninstaller
 sudo /nix/nix-installer uninstall
 ```
 
@@ -246,7 +246,7 @@ _Note:_ Reconnect via SSH after installing nix.
 ```shell
 ssh-copy-id -i "$HOME/.ssh/id_ed25519.pub" "USER@MACHINE_NAME"
 sudo /nix/var/nix/profiles/default/bin/nix upgrade-nix
-nix run github:mirkolenz/nixos
+nix run github:mirkolenz/infra
 sudo usermod -s $(which fish) "$USER"
 ```
 
@@ -268,11 +268,11 @@ If building for another architecture on NixOS:
 
 ```shell
 # for iso installer disc
-nix build github:mirkolenz/nixos#.legacyPackages.x86_64-linux.installer-default.iso-installer
+nix build github:mirkolenz/infra#.legacyPackages.x86_64-linux.installer-default.iso-installer
 # for raspberry pi sd card
-nix build github:mirkolenz/nixos#.legacyPackages.aarch64-linux.installer-raspi.sd-card
+nix build github:mirkolenz/infra#.legacyPackages.aarch64-linux.installer-raspi.sd-card
 # for apple t2
-nix build github:mirkolenz/nixos#.legacyPackages.x86_64-linux.installer-apple-t2.iso-installer
+nix build github:mirkolenz/infra#.legacyPackages.x86_64-linux.installer-apple-t2.iso-installer
 ```
 
 ### Update Raspberry Pi
@@ -291,7 +291,7 @@ sudo reboot
 # otherwise the optical drive is not found: https://discourse.nixos.org/t/makemkv-cant-find-my-usb-blu-ray-drive/23714
 sudo modprobe sg
 # if that does not work, try again with sudo
-nix run github:mirkolenz/nixos#makemkv
+nix run github:mirkolenz/infra#makemkv
 ```
 
 ### Investigate ID Mappings

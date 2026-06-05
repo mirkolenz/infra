@@ -56,7 +56,7 @@
       };
 
       system.autoUpgrade = {
-        flake = "github:mirkolenz/nixos";
+        flake = "github:mirkolenz/infra";
         flags = lib.optional config.custom.impureRebuild "--impure";
         upgrade = false;
         dates = "04:00";

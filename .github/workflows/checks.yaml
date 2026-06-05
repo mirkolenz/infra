@@ -7,7 +7,7 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-# keep job names in sync: https://github.com/mirkolenz/nixos/settings/rules/3352950
+# keep job names in sync: https://github.com/mirkolenz/infra/settings/rules/3352950
 jobs:
   check-systems:
     name: check-${{ matrix.system }}

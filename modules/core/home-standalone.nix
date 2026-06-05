@@ -23,7 +23,7 @@
 
       custom.autoUpgrade = {
         enable = true;
-        flake = "github:mirkolenz/nixos";
+        flake = "github:mirkolenz/infra";
         flags = lib.optional config.custom.impureRebuild "--impure";
       };
 
