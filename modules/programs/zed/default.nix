@@ -14,7 +14,7 @@
       # Zed rewrites these JSON files at runtime, which fails on read-only store
       # symlinks. Install writable copies instead; they reset on each rebuild.
       home.activation.zedFiles = lib'.mkMutableFiles {
-        hmLib = lib.hm;
+        inherit config;
         files =
           map
             (name: {

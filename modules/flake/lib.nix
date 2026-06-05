@@ -103,7 +103,7 @@
     # https://github.com/ncfavier/config/blob/bfc59fe3febc7a389105d05141215ca725bf7a9f/modules/nix.nix#L64-L68
     mkMutableSymlink =
       { config, value }:
-      config.hm.lib.file.mkOutOfStoreSymlink (
+      config.lib.file.mkOutOfStoreSymlink (
         config.custom.configPath + lib.removePrefix (toString ../..) (toString value)
       );
 
@@ -114,8 +114,8 @@
     # is always on the activation PATH. `hmLib` is `lib.hm` (for `dag.entryAfter`);
     # `files` is a list of { source; target; mode ? "600"; }.
     mkMutableFiles =
-      { hmLib, files }:
-      hmLib.dag.entryAfter [ "linkGeneration" ] (
+      { config, files }:
+      config.lib.dag.entryAfter [ "linkGeneration" ] (
         lib.concatMapStringsSep "\n" (
           {
             source,
@@ -129,13 +129,13 @@
     # Single-file variant of `mkMutableFiles`; takes one source/target directly.
     mkMutableFile =
       {
-        hmLib,
+        config,
         source,
         target,
         mode ? "600",
       }:
       mkMutableFiles {
-        inherit hmLib;
+        inherit config;
         files = [ { inherit source target mode; } ];
       };
 

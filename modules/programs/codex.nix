@@ -85,7 +85,7 @@
       # writable copy of the generated config; trust resets on each activation.
       home.file.".codex/config.toml".enable = lib.mkForce false;
       home.activation.codexFiles = lib'.mkMutableFile {
-        hmLib = lib.hm;
+        inherit config;
         source = config.home.file.".codex/config.toml".source;
         target = "${config.home.homeDirectory}/.codex/config.toml";
       };
