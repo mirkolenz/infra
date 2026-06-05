@@ -40,7 +40,6 @@ in
         };
         custom = {
           features = osConfig.custom.features or { };
-          impureRebuild = lib.mkIf (osConfig != { }) (lib.mkDefault osConfig.custom.impureRebuild);
         };
       };
     };

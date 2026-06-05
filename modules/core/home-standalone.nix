@@ -24,7 +24,6 @@
       custom.autoUpgrade = {
         enable = true;
         flake = "github:mirkolenz/infra";
-        flags = lib.optional config.custom.impureRebuild "--impure";
       };
 
       home.shellAliases = {

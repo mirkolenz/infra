@@ -57,7 +57,6 @@
 
       system.autoUpgrade = {
         flake = "github:mirkolenz/infra";
-        flags = lib.optional config.custom.impureRebuild "--impure";
         upgrade = false;
         dates = "04:00";
         allowReboot = true;

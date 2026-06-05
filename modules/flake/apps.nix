@@ -25,7 +25,6 @@
           flags = {
             flake = self.outPath;
             cache = "https://mirkolenz.cachix.org";
-            impure-attr = "config.custom.impureRebuild";
             build-path = "checks.${system}";
             hash-path = "custom.hashedPackages";
             update-path = "custom.flattenedPackages";

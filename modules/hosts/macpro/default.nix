@@ -1,6 +1,5 @@
 {
   inputs,
-  lib',
   config,
   ...
 }:
@@ -21,12 +20,10 @@ in
         "${inputs.nixos-hardware}/common/cpu/intel/cpu-only.nix"
         "${inputs.nixos-hardware}/common/gpu/amd"
         "${inputs.nixos-hardware}/common/pc/ssd"
-      ]
-      ++ lib'.optionalPath "/etc/nixos/default.nix";
+      ];
       nixpkgs.hostPlatform = "x86_64-linux";
 
       custom.features.withAlwaysOn = true;
-      custom.impureRebuild = true;
 
       boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
       boot.loader = {
