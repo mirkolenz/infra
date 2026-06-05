@@ -3,6 +3,7 @@
     {
       config,
       lib,
+      lib',
       pkgs,
       ...
     }:
@@ -83,10 +84,10 @@
       # store symlink (https://github.com/openai/codex/issues/6646). Replace it with a
       # writable copy of the generated config; trust resets on each activation.
       home.file.".codex/config.toml".enable = lib.mkForce false;
-      home.activation.codexWritableConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] /* bash */ ''
-        run ${pkgs.coreutils}/bin/install -Dm600 $VERBOSE_ARG \
-          ${config.home.file.".codex/config.toml".source} \
-          ${config.home.homeDirectory}/.codex/config.toml
-      '';
+      home.activation.codexFiles = lib'.mkMutableFile {
+        hmLib = lib.hm;
+        source = config.home.file.".codex/config.toml".source;
+        target = "${config.home.homeDirectory}/.codex/config.toml";
+      };
     };
 }
