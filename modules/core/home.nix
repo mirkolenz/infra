@@ -22,7 +22,7 @@ let
 in
 {
   flake.modules.homeManager.base =
-    { lib, ... }@args:
+    { ... }@args:
     let
       osConfig = args.osConfig or { };
     in
