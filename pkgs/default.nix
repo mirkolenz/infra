@@ -27,7 +27,7 @@ let
     # flat derivations exposed via flake.packages and built in CI
     flattenedPackages = lib.filterAttrs (_: lib.isDerivation) (byName // flattenedScopes // overrides);
     hashedPackages = {
-      inherit (final) caddy-custom;
+      caddy-custom = final.caddy-custom.src;
     };
   };
 in

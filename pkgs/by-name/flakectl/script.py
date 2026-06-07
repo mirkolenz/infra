@@ -286,10 +286,9 @@ def update_flake(
         typer.Option(
             "--path",
             "-p",
-            help="Attribute path of packages to build before fix-hashes.",
+            help="Attribute path of pinned packages to rebuild before fix-hashes.",
         ),
     ] = None,
-    cache: Annotated[str | None, typer.Option()] = None,
     dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
     commit: Annotated[bool, typer.Option("--commit", "-c")] = False,
     update: Annotated[bool, typer.Option("--update", "-u")] = True,
@@ -297,7 +296,6 @@ def update_flake(
     """Update flake.nix github inputs and lockfile; refresh pinned hashes."""
     cfg: Config = ctx.obj
     path = path or cfg.hash_path
-    cache = cache or cfg.cache
     content = flake_file.read_text()
     new_content = GITHUB_SEMVER_REF.sub(
         lambda m: replace_github_ref(cfg.gh_exe, m), content
@@ -327,18 +325,24 @@ def update_flake(
     if commit and flake_changed:
         run_logged([cfg.git_exe, "commit", "--amend", "--no-edit", str(flake_file)])
 
-    run_fix_hashes = True
     if path:
+        # Build the pinned FODs so any hash mismatch surfaces as a build event
+        # for `fix hashes`, which only rewrites what it observes, it never builds
+        # itself. `path` resolves to the FODs, not the wrapping packages: a
+        # package's output path is input-addressed and masks the FOD by its
+        # *pinned* hash, so it stays cached across source drift, whereas the FOD
+        # is never substitutable and so builds fresh here. The mismatch failure
+        # is expected, so tolerate it and let fix-hashes apply the correction.
         pkgs2path = nix_eval_dict(cfg.nix_exe, f"{cfg.flake}#{path}")
-        # Tolerate build failures — fix-hashes runs next and may resolve them.
-        uncached = build_uncached(cfg.nix_exe, cfg.flake, cache, pkgs2path, check=False)
-        run_fix_hashes = bool(uncached)
-
-    if run_fix_hashes:
+        refs = [f'{cfg.flake}#{path}."{name}"' for name in pkgs2path]
+        run_logged(
+            [cfg.nix_exe, *EXPERIMENTAL_FLAGS, "build", "--keep-going", *refs],
+            check=False,
+        )
         run_logged([cfg.nixd_exe, "fix", "hashes", "--auto-apply"])
 
         if commit:
-            commit_pkgs(cfg.git_exe, "chore(pkgs): auto-fix hashes")
+            commit_pkgs(cfg.git_exe, "chore(deps/pkgs): auto-fix hashes")
 
 
 @app.command(
