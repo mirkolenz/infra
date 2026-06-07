@@ -24,17 +24,17 @@ jobs:
           - system: aarch64-darwin
             runner: macos-26
     steps:
-      - uses: actions/checkout@v6
-      - uses: wimpysworld/nothing-but-nix@v10
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: wimpysworld/nothing-but-nix@687c797a730352432950c707ab493fcc951818d7 # v10
         if: runner.os == 'Linux'
-      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: DeterminateSystems/determinate-nix-action@4eea0b33e3d1f02ecfe37cf16e7204c424009606 # v3
         with:
           extra-conf: |
             accept-flake-config = true
             keep-going = true
             download-buffer-size = 1000000000
             log-lines = 200
-      - uses: cachix/cachix-action@v17
+      - uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: mirkolenz
           authToken: ${{ secrets.CACHIX_TOKEN }}
