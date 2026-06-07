@@ -325,6 +325,22 @@ def update_flake(
     if commit and flake_changed:
         run_logged([cfg.git_exe, "commit", "--amend", "--no-edit", str(flake_file)])
 
+    # Fail fast if the update broke evaluation: forcing the package set turns a
+    # broken input/override into one clear error here, instead of a cascade of
+    # opaque failures in the steps below and the checks on the resulting PR.
+    if cfg.update_path:
+        typer.echo("Verifying the updated flake still evaluates...", err=True)
+        subprocess_stdout(
+            [
+                cfg.nix_exe,
+                *EXPERIMENTAL_FLAGS,
+                "eval",
+                f"{cfg.flake}#{cfg.update_path}",
+                "--apply",
+                "builtins.attrNames",
+            ]
+        )
+
     if path:
         # Build the pinned FODs so any hash mismatch surfaces as a build event
         # for `fix hashes`, which only rewrites what it observes, it never builds
