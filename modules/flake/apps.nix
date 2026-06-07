@@ -7,35 +7,21 @@
 {
   perSystem =
     { pkgs, system, ... }:
-    let
-      mkFlags = lib.cli.toCommandLineShellGNU { };
-      mkProgram =
-        {
-          package,
-          flags ? { },
-        }:
-        pkgs.writeShellScriptBin package.meta.mainProgram /* bash */ ''
-          exec ${lib.getExe package} ${mkFlags flags} "$@"
-        '';
-    in
     {
       apps = {
-        default.program = mkProgram {
-          package = pkgs.flakectl;
-          flags = {
-            flake = self.outPath;
-            cache = "https://mirkolenz.cachix.org";
-            build-path = "checks.${system}";
-            hash-path = "custom.hashedPackages";
-            update-path = "custom.flattenedPackages";
-            update-overlays = ''
-              let
-                flake = builtins.getFlake ("git+file://" + toString ./.);
-                overlay = import ./pkgs flake.overlayArgs;
-              in
-              [ overlay ]
-            '';
-          };
+        default.program = pkgs.flakectl.withFlags {
+          flake = self.outPath;
+          cache = "https://mirkolenz.cachix.org";
+          build-path = "checks.${system}";
+          hash-path = "custom.hashedPackages";
+          update-path = "custom.flattenedPackages";
+          update-overlays = ''
+            let
+              flake = builtins.getFlake ("git+file://" + toString ./.);
+              overlay = import ./pkgs flake.overlayArgs;
+            in
+            [ overlay ]
+          '';
         };
         home-manager.program = pkgs.writeShellScriptBin "home-manager" /* bash */ ''
           exec ${lib.getExe pkgs.home-manager} --flake "${self.outPath}" "$@"
