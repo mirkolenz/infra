@@ -21,6 +21,7 @@
           - Read-only git operations are allowed, but never use writing git operations such as `git commit` or `git push` and leave them to the user.
           - Use dependency constraints with only the first significant version number, e.g. ^1 for 1.2.3 and ^0.1 for 0.1.2, relying on lockfiles for exact versions.
           - Don't use en-dashes, em-dashes, semicolons, or other special characters when generating text, instead use commas and periods to separate clauses and sentences.
+          - Exec `gh` to interact with GitHub, not `curl` or a built-in web fetch tool.
 
           ## Python
 
