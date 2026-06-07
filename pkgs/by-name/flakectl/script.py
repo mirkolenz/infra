@@ -354,7 +354,7 @@ def update_flake(
         run_logged([cfg.nixd_exe, "fix", "hashes", "--auto-apply"])
 
         if commit:
-            commit_pkgs(cfg.git_exe, "chore(pkgs): auto-fix hashes")
+            commit_pkgs(cfg.git_exe, "chore(deps/pkgs): hashing")
 
 
 @app.command(
