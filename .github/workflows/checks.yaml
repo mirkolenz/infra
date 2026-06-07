@@ -9,7 +9,32 @@ concurrency:
   cancel-in-progress: true
 # keep job names in sync: https://github.com/mirkolenz/infra/settings/rules/3352950
 jobs:
+  gate:
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+    steps:
+      - id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          run=true
+          if [[ "$EVENT" == push ]]; then
+            count=$(gh api "repos/$REPO/commits/$SHA/pulls" --jq length || echo 0)
+            if [[ "$count" -gt 0 ]]; then
+              run=false
+            fi
+          fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
   check-systems:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     name: check-${{ matrix.system }}
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -40,9 +65,9 @@ jobs:
           authToken: ${{ secrets.CACHIX_TOKEN }}
       - run: nix flake check --show-trace
   check-all:
-    needs: check-systems
+    needs: [gate, check-systems]
     runs-on: ubuntu-slim
-    if: always()
+    if: always() && needs.gate.outputs.run == 'true'
     steps:
       - name: Check matrix results
         run: |
