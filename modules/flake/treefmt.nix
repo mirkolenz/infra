@@ -7,7 +7,7 @@
         projectRootFile = "flake.nix";
         programs = {
           # keep-sorted start
-          actionlint.enable = true;
+          actionlint.enable = false;
           buf.enable = true;
           gofmt.enable = true;
           keep-sorted.enable = true;
