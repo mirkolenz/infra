@@ -272,6 +272,44 @@
           shift
           exec fontforge -c "Open(\"$source\"); Generate(\"$target\");" "$@"
         '';
+        gh-prs = /* bash */ ''
+          if [ "$#" -lt 1 ]; then
+            echo "Usage: $0 SELECT [GH_SEARCH_ARGS...]" >&2
+            echo "Example: $0 '.title == \"PR_TITLE\"'" >&2
+            exit 1
+          fi
+          filter="$1"
+          shift
+
+          prs="$(gh search prs --assignee @me --state open --limit 100 "$@" \
+            --json title,url,number,repository)"
+
+          matched="$(jq "[.[] | select($filter)]" <<<"$prs")"
+          urls="$(jq -r '.[].url' <<<"$matched")"
+
+          if [ -z "$urls" ]; then
+            echo "No matching pull requests found."
+            exit 0
+          fi
+
+          echo "The following pull requests will be merged:"
+          echo
+          jq -r '
+            ["REPOSITORY", "ID", "TITLE"],
+            (.[] | [.repository.nameWithOwner, "#\(.number)", .title])
+            | @tsv
+          ' <<<"$matched" | column -t -s $'\t'
+          echo
+
+          read -r -n 1 -p "Merge these pull requests? (y/n) " answer
+          echo
+          if [ "$answer" != "y" ]; then
+            echo "Aborted." >&2
+            exit 1
+          fi
+
+          xargs -I {} gh pr merge {} --squash --delete-branch --auto <<<"$urls"
+        '';
       };
     };
 }
