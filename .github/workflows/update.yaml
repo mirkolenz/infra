@@ -20,7 +20,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/create-github-app-token@v3
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         id: generate-token
         with:
           # TODO: switch to `client-id` once actionlint's bundled action schema includes it
@@ -31,9 +31,9 @@ jobs:
           repositories: |
             infra
             homeserver
-      - uses: actions/checkout@v6
-      - uses: fregante/setup-git-user@v2
-      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: fregante/setup-git-user@024bc0b8e177d7e77203b48dab6fb45666854b35 # v2
+      - uses: DeterminateSystems/determinate-nix-action@4eea0b33e3d1f02ecfe37cf16e7204c424009606 # v3
         with:
           extra-conf: |
             accept-flake-config = true
@@ -45,7 +45,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
       - name: remove unstaged changes
         run: git restore .
-      - uses: peter-evans/create-pull-request@v8
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
         id: pr
         with:
           token: ${{ steps.generate-token.outputs.token }}
