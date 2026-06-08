@@ -25,6 +25,18 @@
           sleep-idle-seconds = -1;
           # keep-sorted end
         };
+        # https://unsloth.ai/docs/models/gemma-4/qat
+        "gemma4-26b-a4b" = {
+          # keep-sorted start
+          hf-repo = "google/gemma-4-26B-A4B-it-qat-q4_0-gguf:Q4_0";
+          spec-draft-hf = "google/gemma-4-26B-A4B-it-assistant";
+          spec-draft-n-max = 4;
+          spec-type = "draft-mtp";
+          temperature = 1.0;
+          top-k = 20;
+          top-p = 0.95;
+          # keep-sorted end
+        };
         # https://unsloth.ai/docs/models/qwen3.6
         "qwen3.6-35b-a3b" = {
           # keep-sorted start
@@ -32,21 +44,6 @@
           min-p = 0.0;
           presence-penalty = 1.0;
           reasoning = "on";
-          repeat-penalty = 1.0;
-          spec-draft-n-max = 3;
-          spec-type = "draft-mtp";
-          temperature = 1.0;
-          top-k = 20;
-          top-p = 0.95;
-          # keep-sorted end
-        };
-        # https://unsloth.ai/docs/models/qwen3.5
-        "qwen3.5-0.8b" = {
-          # keep-sorted start
-          hf-repo = "unsloth/Qwen3.5-0.8B-MTP-GGUF:UD-Q4_K_XL";
-          min-p = 0.0;
-          presence-penalty = 1.0;
-          reasoning = "off";
           repeat-penalty = 1.0;
           spec-draft-n-max = 3;
           spec-type = "draft-mtp";
