@@ -36,10 +36,14 @@ mkGitHubBinary {
       --set OPENCODE_DISABLE_AUTOUPDATE 1
   '';
 
-  # installShellCompletionPhase = lib.optionalString (stdenvNoCC.buildPlatform.canExecute stdenvNoCC.hostPlatform) ''
-  #   installShellCompletion --cmd opencode \
-  #     --bash <($out/bin/opencode completion)
-  # '';
+  # opencode creates $TMPDIR/opencode on startup, which collides with the
+  # unpacked binary of the same name in the build dir (TMPDIR == NIX_BUILD_TOP),
+  # so give it an isolated TMPDIR to generate completions in.
+  installShellCompletionPhase = lib.optionalString (stdenvNoCC.buildPlatform.canExecute stdenvNoCC.hostPlatform) ''
+    TMPDIR=$(mktemp -d)
+    installShellCompletion --cmd opencode \
+      --bash <($out/bin/opencode completion)
+  '';
 
   nativeInstallCheckInputs = [
     versionCheckHook
