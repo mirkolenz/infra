@@ -36,7 +36,6 @@ mkGitHubBinary {
       --set OPENCODE_DISABLE_AUTOUPDATE 1
   '';
 
-  # todo: only bash supported: https://github.com/anomalyco/opencode/issues/1515
   # installShellCompletionPhase = lib.optionalString (stdenvNoCC.buildPlatform.canExecute stdenvNoCC.hostPlatform) ''
   #   installShellCompletion --cmd opencode \
   #     --bash <($out/bin/opencode completion)
