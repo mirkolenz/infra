@@ -7,7 +7,7 @@
       ...
     }:
     let
-      zellijExe = lib.getExe config.programs.zellij.package;
+      zellijExe = lib.getExe config.programs.zellij.finalPackage;
 
       projectRoot = "${config.home.homeDirectory}/Developer";
       # Repositories live at <owner>/<repo>, so .git sits 3 levels below the root;
@@ -29,7 +29,7 @@
       # Focus a named tab, recreating it (with its command) if it was closed.
       zjtab = pkgs.writeShellApplication {
         name = "zjtab";
-        runtimeInputs = [ config.programs.zellij.package ];
+        runtimeInputs = [ config.programs.zellij.finalPackage ];
         text = ''
           name="$1"
           shift
@@ -47,7 +47,7 @@
       zjide = pkgs.writeShellApplication {
         name = "zjide";
         runtimeInputs = with pkgs; [
-          config.programs.zellij.package
+          config.programs.zellij.finalPackage
           config.programs.zoxide.package
           coreutils
           fd
