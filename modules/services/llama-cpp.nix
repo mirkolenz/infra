@@ -1,14 +1,8 @@
 # Local LLM inference server (llama.cpp) on macOS.
 {
-  flake.modules.darwin.default = {
-    services.llama-cpp = {
-      enable = true;
-      port = 18000;
-      extraFlags = [
-        "--no-models-autoload"
-        "--models-max"
-        "10"
-      ];
+  flake.modules.darwin.default =
+    { pkgs, lib, ... }:
+    let
       # https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md
       modelsPreset = {
         "*" = rec {
@@ -53,6 +47,18 @@
           # keep-sorted end
         };
       };
+    in
+    {
+      services.llama-cpp = {
+        enable = true;
+        settings = {
+          # keep-sorted start
+          models-max = 10;
+          models-preset = pkgs.writeText "llama-models.ini" (lib.generators.toINI { } modelsPreset);
+          no-models-autoload = true;
+          port = 18000;
+          # keep-sorted end
+        };
+      };
     };
-  };
 }

@@ -7,83 +7,58 @@
 let
   cfg = config.services.llama-cpp;
   inherit (lib) types;
-
-  modelsPresetFile =
-    if cfg.modelsPreset != null then
-      pkgs.writeText "llama-models.ini" (lib.generators.toINI { } cfg.modelsPreset)
-    else
-      null;
 in
 {
   options = {
     services.llama-cpp = {
-      enable = lib.mkEnableOption "LLaMA C++ server";
+      enable = lib.mkEnableOption "llama.cpp HTTP server";
 
       package = lib.mkPackageOption pkgs "llama-cpp" { };
 
-      model = lib.mkOption {
-        type = types.nullOr types.path;
-        example = "/models/mistral-instruct-7b/ggml-model-q4_0.gguf";
-        description = "Model path.";
-        default = null;
-      };
-
-      modelsDir = lib.mkOption {
-        type = types.nullOr types.path;
-        example = "/models/";
-        description = "Models directory.";
-        default = null;
-      };
-
-      modelsPreset = lib.mkOption {
-        type = types.nullOr (types.attrsOf types.attrs);
-        default = null;
-        description = ''
-          Models preset configuration as a Nix attribute set.
-          This is converted to an INI file and passed to llama-server via --model-preset.
-          See llama-server documentation for available options.
-        '';
-        example = lib.literalExpression ''
-          {
-            "Qwen3-Coder-Next" = {
-              hf-repo = "unsloth/Qwen3-Coder-Next-GGUF";
-              hf-file = "Qwen3-Coder-Next-UD-Q4_K_XL.gguf";
-              alias = "unsloth/Qwen3-Coder-Next";
-              fit = "on";
-              seed = "3407";
-              temp = "1.0";
-              top-p = "0.95";
-              min-p = "0.01";
-              top-k = "40";
-              jinja = "on";
+      settings = lib.mkOption {
+        type = types.submodule {
+          freeformType = types.attrs;
+          options = {
+            host = lib.mkOption {
+              type = types.str;
+              default = "127.0.0.1";
+              example = "0.0.0.0";
+              description = ''
+                IP address on which the server should listen on.
+              '';
             };
-          }
+
+            port = lib.mkOption {
+              type = types.port;
+              default = 8080;
+              example = 1337;
+              description = ''
+                Port on which the server should listen on.
+              '';
+            };
+          };
+        };
+        default = { };
+        example = {
+          host = "0.0.0.0";
+          port = 1337;
+          model = "/mnt/llms/Foo3.6-27B-UD-Q4_K_XL.gguf";
+          ctx-size = 252144;
+          temp = 0.6;
+          top-k = 20;
+          top-p = 0.95;
+          batch-size = 512;
+          ubatch-size = 256;
+          spec-type = "draft-mtp";
+          spec-draft-n-max = 2;
+          flash-attn = "on";
+        };
+        description = ''
+          Command-line arguments for `llama-server`.
+
+          See <https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md>
+          for the full list of options.
         '';
-      };
-
-      extraFlags = lib.mkOption {
-        type = types.listOf types.str;
-        description = "Extra flags passed to llama-cpp-server.";
-        example = [
-          "-c"
-          "4096"
-          "-ngl"
-          "32"
-        ];
-        default = [ ];
-      };
-
-      host = lib.mkOption {
-        type = types.str;
-        default = "127.0.0.1";
-        example = "0.0.0.0";
-        description = "IP address the LLaMA C++ server listens on.";
-      };
-
-      port = lib.mkOption {
-        type = types.port;
-        default = 8080;
-        description = "Listen port for LLaMA C++ server.";
       };
 
       home = lib.mkOption {
@@ -134,24 +109,13 @@ in
       serviceConfig = {
         ProgramArguments = [
           (lib.getExe' cfg.package "llama-server")
-          "--host"
-          cfg.host
-          "--port"
-          (toString cfg.port)
         ]
-        ++ lib.optionals (cfg.model != null) [
-          "-m"
-          cfg.model
-        ]
-        ++ lib.optionals (cfg.modelsDir != null) [
-          "--models-dir"
-          cfg.modelsDir
-        ]
-        ++ lib.optionals (cfg.modelsPreset != null) [
-          "--models-preset"
-          (toString modelsPresetFile)
-        ]
-        ++ cfg.extraFlags;
+        ++ lib.cli.toCommandLine (optionName: {
+          option = if builtins.stringLength optionName > 1 then "--${optionName}" else "-${optionName}";
+          sep = null;
+          explicitBool = false;
+          formatArg = lib.generators.mkValueStringDefault { };
+        }) cfg.settings;
         KeepAlive = true;
         RunAtLoad = true;
         ExitTimeOut = 90;
