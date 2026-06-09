@@ -109,6 +109,7 @@
       };
       # https://code.claude.com/docs/en/model-config
       home.shellAliases = {
+        fable = "claude --model fable";
         opus = "claude --model opus";
         sonnet = "claude --model sonnet";
         haiku = "claude --model haiku";
