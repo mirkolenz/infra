@@ -29,9 +29,9 @@
         "gemma4-26b-a4b" = {
           # keep-sorted start
           hf-repo = "google/gemma-4-26B-A4B-it-qat-q4_0-gguf:Q4_0";
-          spec-draft-hf = "google/gemma-4-26B-A4B-it-assistant";
-          spec-draft-n-max = 4;
-          spec-type = "draft-mtp";
+          # spec-draft-hf = "google/gemma-4-26B-A4B-it-assistant";
+          # spec-draft-n-max = 4;
+          # spec-type = "draft-mtp";
           temperature = 1.0;
           top-k = 20;
           top-p = 0.95;
