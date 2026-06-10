@@ -10,6 +10,7 @@
       home.packages = with pkgs; [
         gibo
         git-ignore
+        git-filter-repo
         lazyjj
         diffedit3
       ];
