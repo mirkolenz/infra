@@ -10,7 +10,7 @@
           cache-ram = 0; # unified memory
           cache-type-k = "q8_0";
           cache-type-v = "q8_0";
-          ctx-size = 64 * 1024 * parallel;
+          ctx-size = 128 * 1024 * parallel;
           flash-attn = "on";
           mlock = true;
           mmap = false;
@@ -34,6 +34,18 @@
         "qwen3.6-35b-a3b" = {
           # keep-sorted start
           hf-repo = "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_XL";
+          min-p = 0.00;
+          reasoning = "on";
+          spec-draft-n-max = 4;
+          spec-type = "draft-mtp";
+          temperature = 1.0;
+          top-k = 20;
+          top-p = 0.95;
+          # keep-sorted end
+        };
+        "qwen3.6-27b" = {
+          # keep-sorted start
+          hf-repo = "unsloth/Qwen3.6-27b-MTP-GGUF:UD-Q4_K_XL";
           min-p = 0.00;
           reasoning = "on";
           spec-draft-n-max = 4;
