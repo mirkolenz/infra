@@ -16,20 +16,31 @@
             ${lib.getExe config.programs.macchina.package}
           end
         '';
+        # Fish lacks the `sudo ` alias trick, so re-expose every command alias
+        # (ll, la, ... set by the eza module) as a sudo-scoped abbreviation.
+        shellAbbrs = lib.mapAttrs (_: expansion: {
+          command = "sudo";
+          inherit expansion;
+        }) (lib.filterAttrs (name: _: name != "sudo") config.programs.bash.shellAliases);
       };
       xdg.configFile = {
         "fish/themes/flexoki-dark.theme".source = "${pkgs.flexoki}/share/fish/flexoki-dark.theme";
         "fish/themes/flexoki-light.theme".source = "${pkgs.flexoki}/share/fish/flexoki-light.theme";
       };
+      # A trailing space makes bash/zsh alias-expand the word after `sudo`, so
+      # aliases like ll or la keep working under sudo. mkDefault lets the
+      # standalone module override the command (e.g. the generic Linux PATH shim).
       programs.zsh = {
         enable = true;
         autosuggestion.enable = true;
         enableCompletion = true;
         syntaxHighlighting.enable = true;
+        shellAliases.sudo = lib.mkDefault "sudo ";
       };
       programs.bash = {
         enable = true;
         enableCompletion = true;
+        shellAliases.sudo = lib.mkDefault "sudo ";
       };
       # this is slow
       programs.man.generateCaches = false;

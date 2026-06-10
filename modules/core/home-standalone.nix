@@ -27,7 +27,9 @@
       };
 
       home.shellAliases = {
-        sudo = lib.mkIf config.targets.genericLinux.enable ''/usr/bin/sudo env "PATH=${sudoPath}"'';
+        # Trailing space keeps the bash/zsh alias-expansion-after-sudo trick
+        # (see modules/programs/shells.nix) working with the PATH shim.
+        sudo = lib.mkIf config.targets.genericLinux.enable ''/usr/bin/sudo env "PATH=${sudoPath}" '';
       };
     };
 }
