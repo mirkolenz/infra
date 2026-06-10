@@ -16,6 +16,10 @@ in
         default = true;
         description = "Whether to list this vhost as a card on the Homer dashboard.";
       };
+      name = mkOption {
+        type = types.str;
+        description = "Title shown on the Homer dashboard card.";
+      };
       icon = mkOption {
         default = { };
         description = "Font Awesome icon used in the Homer dashboard card.";
