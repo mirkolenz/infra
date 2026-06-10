@@ -22,10 +22,9 @@
         # https://unsloth.ai/docs/models/gemma-4/qat
         "gemma4-26b-a4b" = {
           # keep-sorted start
-          hf-repo = "google/gemma-4-26B-A4B-it-qat-q4_0-gguf:Q4_0";
-          # spec-draft-hf = "google/gemma-4-26B-A4B-it-assistant";
-          # spec-draft-n-max = 4;
-          # spec-type = "draft-mtp";
+          hf-repo = "unsloth/gemma-4-26B-A4B-it-qat-GGUF:UD-Q4_K_XL";
+          spec-draft-n-max = 4;
+          spec-type = "draft-mtp";
           temperature = 1.0;
           top-k = 20;
           top-p = 0.95;
@@ -35,11 +34,9 @@
         "qwen3.6-35b-a3b" = {
           # keep-sorted start
           hf-repo = "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_XL";
-          min-p = 0.0;
-          presence-penalty = 1.0;
+          min-p = 0.00;
           reasoning = "on";
-          repeat-penalty = 1.0;
-          spec-draft-n-max = 3;
+          spec-draft-n-max = 4;
           spec-type = "draft-mtp";
           temperature = 1.0;
           top-k = 20;
