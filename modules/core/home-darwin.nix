@@ -137,11 +137,11 @@
             # https://en.wikipedia.org/wiki/List_of_URI_schemes
             # https falls back to http on macOS, html/htm are also set by http
             schemes = {
-              ftp = "ForkLift";
+              ftp = "Cyberduck";
               # http = "/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app";
               http = "Vivaldi";
               mailto = "Mail";
-              sftp = "ForkLift";
+              sftp = "Cyberduck";
               ssh = "Ghostty";
               tel = "FaceTime";
               webcal = "Calendar";

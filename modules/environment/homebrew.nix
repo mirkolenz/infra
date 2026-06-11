@@ -13,7 +13,7 @@
         "chatgpt"
         "claude"
         "codex-app"
-        "cotabby"
+        "cyberduck"
         "daisydisk"
         "default-folder-x"
         "devonthink"
@@ -21,7 +21,6 @@
         "figma"
         "firefox"
         "fission"
-        "forklift"
         "fujitsu-scansnap-home"
         "ghostty"
         "google-chrome"
@@ -177,9 +176,7 @@
             HOMEBREW_NO_ENV_HINTS = "1";
           };
         };
-        taps = [
-          "fujacob/cotabby"
-        ];
+        taps = [ ];
         brews = [ ];
         casks = caskApps ++ caskFonts;
         inherit masApps;
