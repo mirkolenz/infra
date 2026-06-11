@@ -13,6 +13,7 @@
         git-filter-repo
         lazyjj
         diffedit3
+        glab
       ];
       programs.gh = {
         enable = true;
