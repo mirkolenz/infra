@@ -288,16 +288,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1780524194,
-        "narHash": "sha256-sscOgeInU+2AfVSRDdoSuQbWXkLh4y/Mol0qwquFdCs=",
+        "lastModified": 1781124707,
+        "narHash": "sha256-jguGh9RLet0jdEcMXCPWDLk8eo8Gsxn1+k8oGDOZP5c=",
         "owner": "ogulcancelik",
         "repo": "herdr",
-        "rev": "3abda6138e165f4b2b625fea65f971a65072bc66",
+        "rev": "a965b055bcc02c5db1f6cacaeb1a631513673674",
         "type": "github"
       },
       "original": {
         "owner": "ogulcancelik",
-        "ref": "v0.6.8",
+        "ref": "v0.6.9",
         "repo": "herdr",
         "type": "github"
       }
@@ -309,11 +309,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781064232,
-        "narHash": "sha256-+7cIaqM6ucKf5fDyMnkwehxG8tBdaU51TZOMtxacXmI=",
+        "lastModified": 1781129616,
+        "narHash": "sha256-Hl0Pz/QIKpePSU7SdK3BMe5VNmUhFvfWyg57GyawxzE=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "1ffdc28076a1809ee7c0cf08f06af18f31c480cd",
+        "rev": "7dbd305f8b81050f223f00bcfbc8a6b74e048806",
         "type": "github"
       },
       "original": {
@@ -455,11 +455,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1780765279,
-        "narHash": "sha256-md6QHmlIx40bQkun43M2eT8aav5GURGkXEMFwof6uZs=",
+        "lastModified": 1781098109,
+        "narHash": "sha256-XLMCx6WWMxNeM0SSLun6qVzpMQEGsXVPLU8a1ZNOUGU=",
         "owner": "nix-community",
         "repo": "nixos-wsl",
-        "rev": "3e6d8af994e2a2d31af7a91863d7c0d6e278d951",
+        "rev": "06873343409ec0200a48c85d0ef622c5dafc6aaa",
         "type": "github"
       },
       "original": {
@@ -500,11 +500,11 @@
     },
     "nixpkgs-darwin-stable": {
       "locked": {
-        "lastModified": 1780773863,
-        "narHash": "sha256-yxS9Yz9mb5Yx0eKasg/auSqEfDBijoMaELIkA7VsT7g=",
-        "rev": "20872773637de0b44f7ac04cde2098db1286e6d5",
+        "lastModified": 1781088061,
+        "narHash": "sha256-t9Ybs3vWEdpsC8NAl2D89LlSw9WWIv2DgyNSYChuZ4s=",
+        "rev": "2262daccaac76e0319dc0590c2ef711a3c79c5bd",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixpkgs/26.05-darwin/nixpkgs-darwin-26.05pre1005755.20872773637d/nixexprs.tar.xz"
+        "url": "https://releases.nixos.org/nixpkgs/26.05-darwin/nixpkgs-darwin-26.05pre1006096.2262daccaac7/nixexprs.tar.xz"
       },
       "original": {
         "type": "tarball",
