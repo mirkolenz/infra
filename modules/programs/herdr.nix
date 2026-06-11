@@ -7,22 +7,16 @@
       ...
     }:
     let
+      herdr = lib.getExe config.programs.herdr.package;
 
-      # Spawn a new herdr tab running a command, labelled after it (override with -n).
-      # With no command, launch the default shell in a tab labelled "shell".
+      # Open a new focused herdr tab and run the given command in it, labelling
+      # the tab after the command's program name. (herdr has no single-command
+      # equivalent, so we create the tab and run in its root pane in two steps.)
       htab = pkgs.writeShellApplication {
         name = "htab";
         text = ''
-          if [ "''${1:-}" = "-n" ]; then
-            name="$2"
-            shift 2
-          fi
-          if [ "$#" -lt 1 ]; then
-            set -- "${lib.getExe pkgs.fish}"
-            name="''${name:-shell}"
-          fi
-          pane_id="$(${lib.getExe config.programs.herdr.package} tab create --label "''${name:-$1}" --focus | ${lib.getExe pkgs.jq} -r '.result.root_pane.pane_id')"
-          exec ${lib.getExe config.programs.herdr.package} pane run "$pane_id" "$*"
+          pane_id="$(${herdr} tab create --label "$1" --focus | ${lib.getExe pkgs.jq} -r '.result.root_pane.pane_id')"
+          exec ${herdr} pane run "$pane_id" "$*"
         '';
       };
     in
@@ -41,27 +35,36 @@
           };
           keys = {
             prefix = "ctrl+b";
+            # tmux-style jump back to the previously focused pane (across tabs/workspaces).
+            last_pane = "prefix+;";
             # Reuse the htab command via a background shell to open the command in a new tab.
             command = [
               {
                 key = "prefix+alt+g";
                 type = "shell";
                 command = "htab lazygit";
+                description = "lazygit in a new tab";
               }
               {
                 key = "prefix+alt+e";
                 type = "shell";
                 command = "htab nvim";
+                description = "nvim in a new tab";
               }
               {
                 key = "prefix+alt+y";
                 type = "shell";
                 command = "htab yabai";
+                description = "yabai in a new tab";
               }
             ];
           };
           ui = {
-            toast.delivery = "terminal";
+            toast = {
+              delivery = "terminal";
+              herdr.position = "bottom-right";
+              clipboard.position = "bottom-right";
+            };
             sound.enabled = false;
             agent_panel_scope = "all";
             show_agent_labels_on_pane_borders = true;
