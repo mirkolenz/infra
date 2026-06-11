@@ -235,6 +235,15 @@
           cat "$TMPFILE"
           rm "$TMPFILE"
         '';
+        nix-flake-input = /* bash */ ''
+          if [ "$#" -lt 1 ]; then
+            echo "Usage: $0 INPUT_NAME [NIX_FLAKE_PREFETCH_ARGS...]" >&2
+            exit 1
+          fi
+          input="$1"
+          shift
+          nix flake prefetch --inputs-from . "$input" --json "$@" | jq -r .storePath
+        '';
         nixbuild-shell = /* bash */ ''
           exec rlwrap ssh eu.nixbuild.net shell
         '';
