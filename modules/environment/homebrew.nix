@@ -31,6 +31,7 @@
         "microsoft-teams"
         "obsidian"
         "omnigraffle"
+        "openwork"
         "orbstack"
         "orion"
         "presentation"
