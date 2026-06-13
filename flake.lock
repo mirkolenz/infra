@@ -309,11 +309,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781189114,
-        "narHash": "sha256-5inaamLgUMWy+MOBE9ChF9QAF1o/74LFuHkI0W/9rqc=",
+        "lastModified": 1781305496,
+        "narHash": "sha256-g8Vv4Qfc7n+lgov97REu3X6BeJtvYY0hlSUZR1GrGQQ=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "486595d2cf49cfcd649b58a284fa11ac0e34da22",
+        "rev": "c87a39aa979acc4848016d2220c6238390d84779",
         "type": "github"
       },
       "original": {
@@ -354,16 +354,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1780923581,
-        "narHash": "sha256-Mkz4COMQDQvMZ5rKOYLsIUWFcZfI/dUqpf8z/23YDrY=",
+        "lastModified": 1781262964,
+        "narHash": "sha256-UGi20sH/w5Yv6d89c8/1+ly3xssqnjhLug8Mvb62kK0=",
         "owner": "mistralai",
         "repo": "mistral-vibe",
-        "rev": "702d0f412eebc213dafb956a6e3d90e3a2a5d35a",
+        "rev": "cafb6d4147479c3ab50e0a0fc88de553a48df69b",
         "type": "github"
       },
       "original": {
         "owner": "mistralai",
-        "ref": "v2.14.1",
+        "ref": "v2.15.0",
         "repo": "mistral-vibe",
         "type": "github"
       }
@@ -502,11 +502,11 @@
     },
     "nixpkgs-darwin-stable": {
       "locked": {
-        "lastModified": 1781164446,
-        "narHash": "sha256-5OYMLMNt55b4n/TQ/8oIQ8aGTItD9MLF/FDwServfqI=",
-        "rev": "6c8827d7b5f3528a992b04194d5109b982f234c4",
+        "lastModified": 1781236690,
+        "narHash": "sha256-bZGXylORoOHjTO4IaC7E7lhM3rbdhGlIEUtdyrzF6UI=",
+        "rev": "b5e61da309336bdba24f964dce712a5ab8e0092e",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixpkgs/26.05-darwin/nixpkgs-darwin-26.05pre1006176.6c8827d7b5f3/nixexprs.tar.xz"
+        "url": "https://releases.nixos.org/nixpkgs/26.05-darwin/nixpkgs-darwin-26.05pre1006243.b5e61da30933/nixexprs.tar.xz"
       },
       "original": {
         "type": "tarball",
@@ -593,11 +593,11 @@
         "systems": "systems_3"
       },
       "locked": {
-        "lastModified": 1781287415,
-        "narHash": "sha256-e0KtxMotoMhWLw4xi90XvbajZFAv3jzIZqPQJ1F3Du8=",
+        "lastModified": 1781287460,
+        "narHash": "sha256-9hXtN4my7eBqHRVQ/t6FQZ4YqZ1KG6SsKSG4Hdtr+i0=",
         "owner": "nix-community",
         "repo": "nixvim",
-        "rev": "fec49e73762ed01f7e7440faf09028c2f767b252",
+        "rev": "f2029d9a26266eb67f46b0c79bd0a3713839a57a",
         "type": "github"
       },
       "original": {
