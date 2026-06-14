@@ -25,8 +25,6 @@
         "ghostty"
         "google-chrome"
         "handbrake-app"
-        "lm-studio"
-        "macwhisper"
         "microsoft-auto-update"
         "microsoft-teams"
         "obsidian"

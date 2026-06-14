@@ -14,21 +14,15 @@
         settings = {
           share = "disabled";
           autoupdate = false;
-          model = "lmstudio/zai-org/glm-4.7-flash";
+          model = "llama-cpp/zai-org/glm-4.7-flash";
           provider = {
-            lmstudio = {
+            llama-cpp = {
               npm = "@ai-sdk/openai-compatible";
-              name = "LM Studio";
-              options.baseURL = "http://127.0.0.1:1234/v1";
+              name = "llama.cpp";
+              options.baseURL = "http://127.0.0.1:18000/v1";
               models = {
-                "openai/gpt-oss-20b" = {
-                  name = "OpenAI GPT OSS";
-                };
-                "zai-org/glm-4.7-flash" = {
-                  name = "GLM 4.7 Flash";
-                };
-                "qwen/qwen3.5-35b-a3b" = {
-                  name = "Qwen 3.5 MoE";
+                "qwen/qwen3.6-35b-a3b" = {
+                  name = "Qwen 3.6 MoE";
                 };
               };
             };

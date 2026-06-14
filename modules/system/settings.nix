@@ -60,8 +60,6 @@
           "/Applications/1Password.app"
           "/Applications/ChatGPT.app"
           "/Applications/Claude.app"
-          "/Applications/LM Studio.app"
-          "/Applications/MacWhisper.app"
           "/System/Applications/Messages.app"
           "/Applications/WhatsApp.app"
           "/System/Applications/Mail.app"
