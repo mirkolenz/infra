@@ -12,6 +12,7 @@
       noice.enable = true;
       nvim-autopairs.enable = true;
       persistence.enable = true;
+      quicker.enable = true;
       web-devicons.enable = true;
     };
   };
