@@ -1,3 +1,4 @@
+import concurrent.futures
 import getpass
 import json
 import os
@@ -6,13 +7,23 @@ import shlex
 import subprocess
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from enum import StrEnum
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 
-EXPERIMENTAL_FLAGS = ["--extra-experimental-features", "nix-command flakes"]
+# Flags passed to every `nix` invocation.
+NIX_FLAGS = ["--extra-experimental-features", "nix-command flakes"]
+
+# Evaluating the working-tree `import ./. { }` entry point on a just-committed
+# rev (right after `flake update --commit-lock-file`) intermittently crashes
+# under lazy-trees (Determinate Nix) with "polling file descriptor: Invalid
+# argument", as nix accesses the fresh rev through a racy git accessor. Disable
+# lazy-trees for those evals only: it is free there (they are `--impure --expr`
+# projections, not flake refs that lazy-trees would speed up) and keeps
+# lazy-trees -- and its eval-cache reuse -- for every other, heavier call.
+# `meta.position` is unaffected; it comes from the plain `import ./pkgs` path.
+WORKING_TREE_FLAGS = [*NIX_FLAGS, "--option", "lazy-trees", "false"]
 
 # Match github inputs whose ref contains a full semver (major.minor.patch),
 # allowing arbitrary prefix/suffix (e.g. v1.2.3, release-1.2.3-rc1).
@@ -25,16 +36,15 @@ GITHUB_SEMVER_REF = re.compile(
 class Config:
     flake: str
     nix_exe: str
-    nix_shell_exe: str
     git_exe: str
     gh_exe: str
+    update_scripts_nix: str | None
     nixd_exe: str
     darwin_builder: str
     linux_builder: str
     home_builder: str
     cache: str | None
     impure_attr: str | None
-    update_overlays: str | None
     build_path: str | None
     hash_path: str | None
     update_path: str | None
@@ -51,16 +61,22 @@ def subprocess_stdout(cmd: list[str]) -> str:
 
 
 def run_logged(cmd: list[str], *, check: bool = True) -> int:
-    """Log `cmd` (executable shown by basename) then run it; return its returncode."""
-    typer.echo(shlex.join([Path(cmd[0]).name, *cmd[1:]]), err=True)
+    """Log `cmd` (basename argv0, leading NIX_FLAGS elided) then run it; return its returncode."""
+    head, *tail = cmd
+    if tail[: len(NIX_FLAGS)] == NIX_FLAGS:
+        tail = tail[len(NIX_FLAGS) :]
+    typer.echo(shlex.join([Path(head).name, *tail]), err=True)
     return subprocess.run(cmd, check=check).returncode
+
+
+def nix_eval_json(nix_exe: str, *args: str) -> Any:
+    """Evaluate a nix expression to JSON and parse it."""
+    return json.loads(subprocess_stdout([nix_exe, *NIX_FLAGS, "eval", "--json", *args]))
 
 
 def nix_eval_dict(nix_exe: str, *args: str) -> dict[str, str]:
     """Evaluate a nix expression and assert it returns `{name: store_path}`."""
-    entries = json.loads(
-        subprocess_stdout([nix_exe, *EXPERIMENTAL_FLAGS, "eval", "--json", *args])
-    )
+    entries = nix_eval_json(nix_exe, *args)
     if not isinstance(entries, dict) or not all(
         isinstance(k, str) and isinstance(v, str) and v.startswith("/nix/store/")
         for k, v in entries.items()
@@ -73,35 +89,12 @@ def nix_eval_dict(nix_exe: str, *args: str) -> dict[str, str]:
     return entries
 
 
-def resolve_nixpkgs(nix_exe: str) -> str:
-    """Resolve nixpkgs from the live flake in the working directory.
-
-    `update-pkgs` builds its overlays from `builtins.getFlake` on the working
-    tree, so the base nixpkgs that `maintainers/scripts/update.nix` imports must
-    come from the *same* lock. Pinning it at the wrapper's build time skews the
-    two whenever the lock changes mid-run (e.g. `update-all` bumps flake.lock,
-    then the still-old wrapper runs the package update), crashing the stdenv
-    bootstrap by mixing two nixpkgs.
-    """
-    return subprocess_stdout(
-        [
-            nix_exe,
-            *EXPERIMENTAL_FLAGS,
-            "eval",
-            "--raw",
-            "--impure",
-            "--expr",
-            '(builtins.getFlake ("git+file://" + toString ./.)).inputs.nixpkgs.outPath',
-        ]
-    )
-
-
 def nix_path_info(nix_exe: str, cache: str, paths: Iterable[str]) -> dict[str, object]:
     entries = json.loads(
         subprocess_stdout(
             [
                 nix_exe,
-                *EXPERIMENTAL_FLAGS,
+                *NIX_FLAGS,
                 "path-info",
                 "--json",
                 "--store",
@@ -141,7 +134,7 @@ def build_uncached(
         err=True,
     )
     refs = [f'{flake}#"{name}"' for name in uncached]
-    run_logged([nix_exe, *EXPERIMENTAL_FLAGS, "build", *refs, *extra], check=check)
+    run_logged([nix_exe, *NIX_FLAGS, "build", *refs, *extra], check=check)
     return uncached
 
 
@@ -156,9 +149,9 @@ app = typer.Typer(
 def main(
     ctx: typer.Context,
     nix_exe: Annotated[str, typer.Option()] = "nix",
-    nix_shell_exe: Annotated[str, typer.Option()] = "nix-shell",
     git_exe: Annotated[str, typer.Option()] = "git",
     gh_exe: Annotated[str, typer.Option()] = "gh",
+    update_scripts_nix: Annotated[str | None, typer.Option()] = None,
     nixd_exe: Annotated[str, typer.Option()] = "determinate-nixd",
     darwin_builder: Annotated[str, typer.Option()] = "darwin-rebuild",
     linux_builder: Annotated[str, typer.Option()] = "nixos-rebuild",
@@ -166,7 +159,6 @@ def main(
     flake: Annotated[str, typer.Option()] = ".",
     cache: Annotated[str | None, typer.Option()] = None,
     impure_attr: Annotated[str | None, typer.Option()] = None,
-    update_overlays: Annotated[str | None, typer.Option()] = None,
     build_path: Annotated[str | None, typer.Option()] = None,
     hash_path: Annotated[str | None, typer.Option()] = None,
     update_path: Annotated[str | None, typer.Option()] = None,
@@ -174,16 +166,15 @@ def main(
     ctx.obj = Config(
         flake=flake,
         nix_exe=nix_exe,
-        nix_shell_exe=nix_shell_exe,
         git_exe=git_exe,
         gh_exe=gh_exe,
+        update_scripts_nix=update_scripts_nix,
         nixd_exe=nixd_exe,
         darwin_builder=darwin_builder,
         linux_builder=linux_builder,
         home_builder=home_builder,
         cache=cache,
         impure_attr=impure_attr,
-        update_overlays=update_overlays,
         build_path=build_path,
         hash_path=hash_path,
         update_path=update_path,
@@ -226,18 +217,10 @@ def build_config(
     else:
         builder, attr = cfg.linux_builder, "nixosConfigurations"
 
-    is_impure: bool = False
+    is_impure = False
     if cfg.impure_attr:
-        is_impure = json.loads(
-            subprocess_stdout(
-                [
-                    cfg.nix_exe,
-                    *EXPERIMENTAL_FLAGS,
-                    "eval",
-                    "--json",
-                    f'{cfg.flake}#{attr}."{name}".{cfg.impure_attr}',
-                ]
-            )
+        is_impure = nix_eval_json(
+            cfg.nix_exe, f'{cfg.flake}#{attr}."{name}".{cfg.impure_attr}'
         )
 
     cmd: list[str] = [builder, operation, "--flake", f"{cfg.flake}#{name}"]
@@ -335,7 +318,7 @@ def update_flake(
 
     nix_cmd = [
         cfg.nix_exe,
-        *EXPERIMENTAL_FLAGS,
+        *NIX_FLAGS,
         "flake",
         "update" if update else "lock",
     ]
@@ -350,16 +333,15 @@ def update_flake(
     # Fail fast if the update broke evaluation: forcing the package set turns a
     # broken input/override into one clear error here, instead of a cascade of
     # opaque failures in the steps below and the checks on the resulting PR.
-    if cfg.update_path:
+    if cfg.update_path and cfg.update_scripts_nix:
         typer.echo("Verifying the updated flake still evaluates...", err=True)
         subprocess_stdout(
             [
                 cfg.nix_exe,
-                *EXPERIMENTAL_FLAGS,
+                *WORKING_TREE_FLAGS,
                 "eval",
-                f"{cfg.flake}#{cfg.update_path}",
-                "--apply",
-                "builtins.attrNames",
+                "--impure",
+                *update_scripts_args(cfg.update_scripts_nix, "names", cfg.update_path),
             ]
         )
 
@@ -413,89 +395,165 @@ def build_pkgs(
     build_uncached(cfg.nix_exe, cfg.flake, cache, pkgs2path, ctx.args)
 
 
-class Order(StrEnum):
-    TOPOLOGICAL = "topological"
-    REVERSE_TOPOLOGICAL = "reverse-topological"
+@dataclass(frozen=True, slots=True)
+class UpdateScript:
+    """A package's resolved `passthru.updateScript` (see update-scripts.nix)."""
+
+    attr_path: str
+    name: str
+    pname: str
+    old_version: str
+    command: list[str]
+
+    @property
+    def argv(self) -> list[str]:
+        """`env`-prefixed argv exposing the variables updaters expect (nix-update)."""
+        return [
+            "env",
+            f"UPDATE_NIX_NAME={self.name}",
+            f"UPDATE_NIX_PNAME={self.pname}",
+            f"UPDATE_NIX_OLD_VERSION={self.old_version}",
+            f"UPDATE_NIX_ATTR_PATH={self.attr_path}",
+            *self.command,
+        ]
+
+    def run(self) -> subprocess.CompletedProcess[str]:
+        """Run the updateScript, inheriting cwd (repo root) and PATH."""
+        return subprocess.run(self.argv, capture_output=True, text=True)
 
 
-def _nix_arg(key: str, value: str | bool, raw: bool = False) -> list[str]:
-    """Format a single `--arg`/`--argstr` pair for nix-shell."""
-    if isinstance(value, bool):
-        value = "true" if value else "false"
-    return ["--arg" if raw else "--argstr", key, value]
+def update_scripts_args(
+    update_scripts_nix: str, output: str, attr_path: str
+) -> list[str]:
+    """`nix` args selecting `<output>` from update-scripts.nix for the working tree."""
+    return [
+        "-f",
+        update_scripts_nix,
+        output,
+        "--argstr",
+        "root",
+        os.getcwd(),
+        "--argstr",
+        "path",
+        attr_path,
+    ]
 
 
-# https://github.com/NixOS/nixpkgs/blob/master/maintainers/scripts/update.nix#L183
+def discover_update_scripts(
+    nix_exe: str, update_scripts_nix: str, attr_path: str
+) -> dict[str, UpdateScript]:
+    """Build and parse the update-scripts manifest for the derivations under `attr_path`.
+
+    Building update-scripts.nix's `manifest` realizes every command (carried as
+    Nix string context), so the scripts exist before they run; it imports the
+    working tree by `root` so updateScripts edit package files in place.
+    """
+    out = subprocess_stdout(
+        [
+            nix_exe,
+            *WORKING_TREE_FLAGS,
+            "build",
+            "--impure",
+            *update_scripts_args(update_scripts_nix, "manifest", attr_path),
+            "--no-link",
+            "--print-out-paths",
+        ]
+    )
+    return {
+        key: UpdateScript(**fields)
+        for key, fields in json.loads(Path(out).read_text()).items()
+    }
+
+
+def eval_versions(
+    nix_exe: str, update_scripts_nix: str, attr_path: str
+) -> dict[str, str]:
+    """Current `{key: version}` for every updateScript package under `attr_path`.
+
+    Evaluates update-scripts.nix's `versions` output: a plain eval that forces
+    only each package's version, so unlike the manifest it realizes nothing.
+    """
+    out = subprocess_stdout(
+        [
+            nix_exe,
+            *WORKING_TREE_FLAGS,
+            "eval",
+            "--impure",
+            "--json",
+            *update_scripts_args(update_scripts_nix, "versions", attr_path),
+        ]
+    )
+    return json.loads(out)
+
+
 @app.command("update-pkgs")
 def update_pkgs(
     ctx: typer.Context,
-    maintainer: Annotated[str | None, typer.Option("--maintainer", "-m")] = None,
     package: Annotated[str | None, typer.Option("--package", "-p")] = None,
-    predicate: Annotated[str | None, typer.Option("--predicate")] = None,
-    path: Annotated[str | None, typer.Option("--path")] = None,
     max_workers: Annotated[int | None, typer.Option()] = None,
-    keep_going: Annotated[bool, typer.Option()] = True,
     commit: Annotated[bool, typer.Option("--commit", "-c")] = False,
-    prompt: Annotated[bool, typer.Option()] = False,
-    order: Annotated[Order | None, typer.Option("--order", "-o")] = None,
     dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
 ):
-    """Run nixpkgs maintainers/scripts/update.nix to refresh package sources."""
+    """Run each package's `passthru.updateScript` to refresh sources, in parallel."""
     cfg: Config = ctx.obj
-    specs = sum(x is not None for x in [maintainer, package, predicate, path])
-
-    if specs > 1:
+    if cfg.update_path is None or cfg.update_scripts_nix is None:
         typer.echo(
-            "Specify only one of maintainer / package / predicate / path.",
-            err=True,
+            "update-pkgs requires --update-path and --update-scripts-nix.", err=True
         )
         raise typer.Exit(1)
-    if specs == 0 and cfg.update_path:
-        path = cfg.update_path
 
-    # `resolve_nixpkgs` and the `include-overlays` overlay both read the live
-    # flake, so the updater's base nixpkgs and the overlay nixpkgs are the same
-    # lock and cannot drift apart across a flake.lock update.
-    cmd: list[str] = [
-        cfg.nix_shell_exe,
-        f"{resolve_nixpkgs(cfg.nix_exe)}/maintainers/scripts/update.nix",
-    ]
-    if maintainer is not None:
-        cmd += _nix_arg("maintainer", maintainer)
-    if package is not None:
-        cmd += _nix_arg("package", package)
-    if predicate is not None:
-        cmd += _nix_arg("predicate", predicate, raw=True)
-    if path is not None:
-        cmd += _nix_arg("path", path)
-    if max_workers is not None:
-        cmd += _nix_arg("max-workers", str(max_workers))
-    if keep_going:
-        cmd += _nix_arg("keep-going", True)
-    if not prompt:
-        cmd += _nix_arg("skip-prompt", True)
-    if order is not None:
-        cmd += _nix_arg("order", order.value)
-
-    # Log before adding `include-overlays` (too noisy for the trace).
-    typer.echo(
-        shlex.join([Path(cmd[0]).name, Path(cmd[1]).name, *cmd[2:]]),
-        err=True,
+    typer.echo("Discovering updateScripts...", err=True)
+    scripts = discover_update_scripts(
+        cfg.nix_exe, cfg.update_scripts_nix, cfg.update_path
     )
-
-    if cfg.update_overlays is not None:
-        cmd += _nix_arg("include-overlays", cfg.update_overlays, raw=True)
-
-    if dry_run:
-        typer.echo("Dry run, no changes written", err=True)
+    if package is not None:
+        scripts = {k: v for k, v in scripts.items() if k == package}
+    if not scripts:
+        typer.echo("No matching packages with an updateScript.", err=True)
         raise typer.Exit(0)
 
-    result = subprocess.run(cmd)
+    typer.echo(
+        f"Updating {len(scripts)} package(s): {', '.join(scripts)}",
+        err=True,
+    )
+    if dry_run:
+        raise typer.Exit(0)
 
-    if result.returncode == 0 and commit:
-        commit_pkgs(cfg.git_exe, "chore(deps/pkgs): update")
+    failures: list[str] = []
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=max_workers or min(len(scripts), 8)
+    ) as pool:
+        futures = {pool.submit(script.run): key for key, script in scripts.items()}
+        for future in concurrent.futures.as_completed(futures):
+            key = futures[future]
+            result = future.result()
+            if result.returncode == 0:
+                typer.echo(f"{key}: done", err=True)
+            else:
+                failures.append(key)
+                typer.echo(f"{key}: FAILED", err=True)
+                if result.stderr:
+                    typer.echo(result.stderr.rstrip(), err=True)
 
-    raise typer.Exit(result.returncode)
+    if commit:
+        # Read each package's new version (a plain eval, no script build), then
+        # list every bump in the commit body (sorted), à la `nix flake update`.
+        new = eval_versions(cfg.nix_exe, cfg.update_scripts_nix, cfg.update_path)
+        bumps = sorted(
+            (key, s.old_version, new[key])
+            for key, s in scripts.items()
+            if key not in failures and key in new and s.old_version != new[key]
+        )
+        message = "chore(deps/pkgs): update"
+        if bumps:
+            summary = "\n".join(
+                f"- {key}: {old} -> {new_version}" for key, old, new_version in bumps
+            )
+            message += f"\n\nUpdated packages:\n\n{summary}"
+        commit_pkgs(cfg.git_exe, message)
+    if failures:
+        typer.echo(f"Failed: {', '.join(failures)}", err=True)
+    raise typer.Exit(1 if failures else 0)
 
 
 @app.command("update-all")
