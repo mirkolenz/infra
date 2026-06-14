@@ -10,16 +10,16 @@
 }:
 buildGoModule (finalAttrs: {
   pname = "wol";
-  version = "0.1.0";
+  version = "0.2.0";
 
   src = fetchFromGitHub {
     owner = "Trugamr";
     repo = "wol";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-kiV7DDGmVwJQzGMmvZHmmyz9IUfflbIrvxkIT5bY0Lw=";
+    hash = "sha256-WLHTQ6oeYE3gP6I1YTv9RXuGdwbIknBaQi/iqDQJDak=";
   };
 
-  vendorHash = "sha256-DRA9PPNohzUtrIzucVIke5FhGvvA6zRuJzHt0qfB7PA=";
+  vendorHash = "sha256-HC0d5BeFxMccRMom2p/FFFF4HPGLjcftxz//gR9wlQU=";
 
   subPackages = [ "." ];
 
