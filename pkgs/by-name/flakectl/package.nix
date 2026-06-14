@@ -9,7 +9,6 @@
   darwin-rebuild,
   nixos-rebuild-ng,
   home-manager,
-  inputs,
 }:
 let
   flakectl = writers.writePython3Bin "flakectl" {
@@ -24,8 +23,6 @@ let
       "--git-exe=${lib.getExe git}"
       "--add-flag"
       "--gh-exe=${lib.getExe gh}"
-      "--add-flag"
-      "--nixpkgs=${inputs.nixpkgs.outPath}"
       "--add-flag"
       "--darwin-builder=${lib.getExe darwin-rebuild}"
       "--add-flag"

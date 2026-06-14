@@ -15,6 +15,10 @@
           build-path = "checks.${system}";
           hash-path = "custom.hashedPackages";
           update-path = "custom.flattenedPackages";
+          # Import `./pkgs` from the working tree (not the store-copied
+          # `flake.overlays.default`) so package paths like `file = ./release.json`
+          # point at the repo and updateScripts can edit them in place. The
+          # overlay's nixpkgs matches the one `resolve_nixpkgs` feeds the updater.
           update-overlays = ''
             let
               flake = builtins.getFlake ("git+file://" + toString ./.);

@@ -32,7 +32,6 @@ class Config:
     darwin_builder: str
     linux_builder: str
     home_builder: str
-    nixpkgs: str
     cache: str | None
     impure_attr: str | None
     update_overlays: str | None
@@ -72,6 +71,29 @@ def nix_eval_dict(nix_exe: str, *args: str) -> dict[str, str]:
         )
         raise typer.Exit(1)
     return entries
+
+
+def resolve_nixpkgs(nix_exe: str) -> str:
+    """Resolve nixpkgs from the live flake in the working directory.
+
+    `update-pkgs` builds its overlays from `builtins.getFlake` on the working
+    tree, so the base nixpkgs that `maintainers/scripts/update.nix` imports must
+    come from the *same* lock. Pinning it at the wrapper's build time skews the
+    two whenever the lock changes mid-run (e.g. `update-all` bumps flake.lock,
+    then the still-old wrapper runs the package update), crashing the stdenv
+    bootstrap by mixing two nixpkgs.
+    """
+    return subprocess_stdout(
+        [
+            nix_exe,
+            *EXPERIMENTAL_FLAGS,
+            "eval",
+            "--raw",
+            "--impure",
+            "--expr",
+            '(builtins.getFlake ("git+file://" + toString ./.)).inputs.nixpkgs.outPath',
+        ]
+    )
 
 
 def nix_path_info(nix_exe: str, cache: str, paths: Iterable[str]) -> dict[str, object]:
@@ -133,7 +155,6 @@ app = typer.Typer(
 @app.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,
-    nixpkgs: Annotated[str, typer.Option()],
     nix_exe: Annotated[str, typer.Option()] = "nix",
     nix_shell_exe: Annotated[str, typer.Option()] = "nix-shell",
     git_exe: Annotated[str, typer.Option()] = "git",
@@ -160,7 +181,6 @@ def main(
         darwin_builder=darwin_builder,
         linux_builder=linux_builder,
         home_builder=home_builder,
-        nixpkgs=nixpkgs,
         cache=cache,
         impure_attr=impure_attr,
         update_overlays=update_overlays,
@@ -433,9 +453,12 @@ def update_pkgs(
     if specs == 0 and cfg.update_path:
         path = cfg.update_path
 
+    # `resolve_nixpkgs` and the `include-overlays` overlay both read the live
+    # flake, so the updater's base nixpkgs and the overlay nixpkgs are the same
+    # lock and cannot drift apart across a flake.lock update.
     cmd: list[str] = [
         cfg.nix_shell_exe,
-        f"{cfg.nixpkgs}/maintainers/scripts/update.nix",
+        f"{resolve_nixpkgs(cfg.nix_exe)}/maintainers/scripts/update.nix",
     ]
     if maintainer is not None:
         cmd += _nix_arg("maintainer", maintainer)
