@@ -6,6 +6,7 @@
         # keep-sorted start
         btop.enable = true;
         carapace.enable = false;
+        devenv.enable = true;
         fastfetch.enable = true;
         home-manager.enable = true;
         htop.enable = true;

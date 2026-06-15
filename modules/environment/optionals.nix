@@ -62,7 +62,6 @@
         nixf-diagnose
         nixfmt-rs
         nix-update
-        devenv
         nurl
         hydra-check
         nixos-render-docs
