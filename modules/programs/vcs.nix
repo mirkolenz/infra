@@ -49,6 +49,14 @@
           line-numbers = false;
           navigate = true;
           syntax-theme = "Monokai Extended";
+          # Red-green deficiency friendly palette: blue additions, orange deletions.
+          # Overrides zebra-dark's red/green plus/minus styles (the main section
+          # always wins over feature-provided options); zebra-dark's moved-line
+          # map-styles stay since they already use colorblind-safe hues.
+          minus-style = ''syntax "#3a2400"'';
+          minus-emph-style = ''syntax "#5c3800"'';
+          plus-style = ''syntax "#002a4d"'';
+          plus-emph-style = ''syntax "#004680"'';
         };
       };
       programs.git = {
