@@ -415,6 +415,7 @@ class UpdateScript:
     name: str
     pname: str
     old_version: str
+    position: str | None
     command: list[str]
 
     @property
@@ -428,6 +429,20 @@ class UpdateScript:
             f"UPDATE_NIX_ATTR_PATH={self.attr_path}",
             *self.command,
         ]
+
+    @property
+    def path(self) -> str | None:
+        """Repo-relative source path: the package directory for dir-based
+        packages (mirroring `packagesFromDirectoryRecursive`'s package rule),
+        else the single file. None when defined outside the working tree."""
+        if self.position is None:
+            return None
+
+        file = Path(self.position.rsplit(":", 1)[0])
+        target = file.parent if file.name == "package.nix" else file
+        root = Path.cwd()
+
+        return str(target.relative_to(root)) if target.is_relative_to(root) else None
 
     def run(self) -> subprocess.CompletedProcess[str]:
         """Run the updateScript, inheriting cwd (repo root) and PATH."""
@@ -500,6 +515,18 @@ def eval_versions(
     return json.loads(out)
 
 
+def revert_pkgs(git_exe: str, scripts: Iterable[UpdateScript]) -> None:
+    """Restore each package's source from git, discarding a broken or partial
+    update so it is never kept or committed."""
+    sources = sorted({p for s in scripts if (p := s.path)})
+
+    if not sources:
+        return
+
+    typer.echo(f"Reverting {len(sources)} package(s): {', '.join(sources)}", err=True)
+    run_logged([git_exe, "restore", "--", *sources])
+
+
 @app.command("update-pkgs")
 def update_pkgs(
     ctx: typer.Context,
@@ -537,25 +564,35 @@ def update_pkgs(
     if dry_run:
         raise typer.Exit(0)
 
-    failures: list[str] = []
+    succeeded: set[str] = set()
 
     with concurrent.futures.ThreadPoolExecutor(
         max_workers=min(len(scripts), max_workers)
     ) as pool:
         futures = {pool.submit(script.run): key for key, script in scripts.items()}
 
-        for future in concurrent.futures.as_completed(futures):
-            key = futures[future]
-            result = future.result()
+        try:
+            for future in concurrent.futures.as_completed(futures):
+                key = futures[future]
+                result = future.result()
 
-            if result.returncode == 0:
-                typer.echo(f"{key}: done", err=True)
-            else:
-                failures.append(key)
-                typer.echo(f"{key}: FAILED", err=True)
+                if result.returncode == 0:
+                    succeeded.add(key)
+                    typer.echo(f"{key}: done", err=True)
+                else:
+                    typer.echo(f"{key}: FAILED", err=True)
 
-                if result.stderr:
-                    typer.echo(result.stderr.rstrip(), err=True)
+                    if result.stderr:
+                        typer.echo(result.stderr.rstrip(), err=True)
+        except KeyboardInterrupt:
+            # Ctrl+C reaches the whole process group, so running scripts are
+            # already dying; cancel the queued ones instead of draining them.
+            typer.echo("\nInterrupted, stopping...", err=True)
+            pool.shutdown(cancel_futures=True)
+            raise typer.Exit(130)
+
+    failures = [key for key in scripts if key not in succeeded]
+    revert_pkgs(cfg.git_exe, [scripts[key] for key in failures])
 
     if commit:
         # List every version bump in the commit body (sorted), à la `nix flake update`.
@@ -563,7 +600,7 @@ def update_pkgs(
         bumps = sorted(
             (key, s.old_version, new[key])
             for key, s in scripts.items()
-            if key not in failures and key in new and s.old_version != new[key]
+            if key in succeeded and key in new and s.old_version != new[key]
         )
         message = "chore(deps/pkgs): update"
 

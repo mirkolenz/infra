@@ -21,6 +21,7 @@ let
     inherit (pkg) name;
     pname = lib.getName pkg;
     old_version = lib.getVersion pkg;
+    position = pkg.meta.position or null;
     command = map toString (lib.toList (pkg.updateScript.command or pkg.updateScript));
   }) withScript;
 in
