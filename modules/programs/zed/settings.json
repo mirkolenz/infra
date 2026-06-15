@@ -181,6 +181,15 @@
     "Nix": {
       "language_servers": ["nixd"]
     },
+    "PHP": {
+      "language_servers": ["phpactor"],
+      "formatter": {
+        "external": {
+          "command": "mago",
+          "arguments": ["format", "--stdin-input"]
+        }
+      }
+    },
     "Plain Text": {
       "soft_wrap": "editor_width"
     },
