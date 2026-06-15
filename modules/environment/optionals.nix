@@ -41,7 +41,6 @@
         comrak
         mdbook
         treefmt-nix
-        uv-migrator
         llm
         ghostscript
         janice
