@@ -15,18 +15,12 @@ import typer
 # Flags passed to every `nix` invocation.
 NIX_FLAGS = ["--extra-experimental-features", "nix-command flakes"]
 
-# Evaluating the working-tree `import ./. { }` entry point on a just-committed
-# rev (right after `flake update --commit-lock-file`) intermittently crashes
-# under lazy-trees (Determinate Nix) with "polling file descriptor: Invalid
-# argument", as nix accesses the fresh rev through a racy git accessor. Disable
-# lazy-trees for those evals only: it is free there (they are `--impure --expr`
-# projections, not flake refs that lazy-trees would speed up) and keeps
-# lazy-trees -- and its eval-cache reuse -- for every other, heavier call.
-# `meta.position` is unaffected; it comes from the plain `import ./pkgs` path.
+# Disable lazy-trees for working-tree `--impure` evals: on a just-committed rev
+# they intermittently crash ("polling file descriptor: Invalid argument") via a
+# racy git accessor, and lazy-trees buys nothing for these non-flake-ref evals.
 WORKING_TREE_FLAGS = [*NIX_FLAGS, "--option", "lazy-trees", "false"]
 
-# Match github inputs whose ref contains a full semver (major.minor.patch),
-# allowing arbitrary prefix/suffix (e.g. v1.2.3, release-1.2.3-rc1).
+# Match github inputs pinned to a semver ref (e.g. v1.2.3, release-1.2.3-rc1).
 GITHUB_SEMVER_REF = re.compile(
     r'url = "github:(?P<owner>[^/"]+)/(?P<repo>[^/"]+)/(?P<ref>[^/"]*\d+\.\d+\.\d+[^/"]*)"'
 )
@@ -52,20 +46,25 @@ class Config:
 
 def subprocess_stdout(cmd: list[str]) -> str:
     result = subprocess.run(cmd, capture_output=True, text=True)
+
     try:
         result.check_returncode()
     except subprocess.CalledProcessError as e:
         typer.echo(e.stderr, err=True)
         raise typer.Exit(1) from e
+
     return result.stdout.strip()
 
 
 def run_logged(cmd: list[str], *, check: bool = True) -> int:
     """Log `cmd` (basename argv0, leading NIX_FLAGS elided) then run it; return its returncode."""
     head, *tail = cmd
+
     if tail[: len(NIX_FLAGS)] == NIX_FLAGS:
         tail = tail[len(NIX_FLAGS) :]
+
     typer.echo(shlex.join([Path(head).name, *tail]), err=True)
+
     return subprocess.run(cmd, check=check).returncode
 
 
@@ -77,6 +76,7 @@ def nix_eval_json(nix_exe: str, *args: str) -> Any:
 def nix_eval_dict(nix_exe: str, *args: str) -> dict[str, str]:
     """Evaluate a nix expression and assert it returns `{name: store_path}`."""
     entries = nix_eval_json(nix_exe, *args)
+
     if not isinstance(entries, dict) or not all(
         isinstance(k, str) and isinstance(v, str) and v.startswith("/nix/store/")
         for k, v in entries.items()
@@ -86,6 +86,7 @@ def nix_eval_dict(nix_exe: str, *args: str) -> dict[str, str]:
             err=True,
         )
         raise typer.Exit(1)
+
     return entries
 
 
@@ -103,9 +104,11 @@ def nix_path_info(nix_exe: str, cache: str, paths: Iterable[str]) -> dict[str, o
             ]
         )
     )
+
     if not isinstance(entries, dict):
         typer.echo(f"Failed to query cache {cache}", err=True)
         raise typer.Exit(1)
+
     return entries
 
 
@@ -218,15 +221,19 @@ def build_config(
         builder, attr = cfg.linux_builder, "nixosConfigurations"
 
     is_impure = False
+
     if cfg.impure_attr:
         is_impure = nix_eval_json(
             cfg.nix_exe, f'{cfg.flake}#{attr}."{name}".{cfg.impure_attr}'
         )
 
     cmd: list[str] = [builder, operation, "--flake", f"{cfg.flake}#{name}"]
+
     if is_impure:
         cmd.append("--impure")
+
     cmd.extend(ctx.args)
+
     raise typer.Exit(run_logged(cmd, check=False))
 
 
@@ -237,8 +244,10 @@ def get_latest_release(gh_exe: str, owner: str, repo: str) -> str | None:
         capture_output=True,
         text=True,
     )
+
     if result.returncode != 0:
         return None
+
     return result.stdout.strip() or None
 
 
@@ -311,6 +320,7 @@ def update_flake(
         raise typer.Exit(0)
 
     flake_changed = new_content != content
+
     if flake_changed:
         flake_file.write_text(new_content)
     else:
@@ -330,9 +340,8 @@ def update_flake(
     if commit and flake_changed:
         run_logged([cfg.git_exe, "commit", "--amend", "--no-edit", str(flake_file)])
 
-    # Fail fast if the update broke evaluation: forcing the package set turns a
-    # broken input/override into one clear error here, instead of a cascade of
-    # opaque failures in the steps below and the checks on the resulting PR.
+    # Fail fast: forcing the package set surfaces a broken input/override as one
+    # clear error here instead of a cascade downstream and in the PR's checks.
     if cfg.update_path and cfg.update_scripts_nix:
         typer.echo("Verifying the updated flake still evaluates...", err=True)
         subprocess_stdout(
@@ -346,6 +355,7 @@ def update_flake(
         )
 
     run_fix_hashes = True
+
     if path:
         pkgs2path = nix_eval_dict(cfg.nix_exe, f"{cfg.flake}#{path}")
         # Tolerate build failures — fix-hashes runs next and may resolve them.
@@ -373,9 +383,11 @@ def build_pkgs(
     cfg: Config = ctx.obj
     path = path or cfg.build_path
     cache = cache or cfg.cache
+
     if not path:
         typer.echo("Specify --path or set --build-path.", err=True)
         raise typer.Exit(1)
+
     typer.echo("Discovering packages...", err=True)
     pkgs2path = nix_eval_dict(cfg.nix_exe, f"{cfg.flake}#{path}")
 
@@ -390,7 +402,7 @@ def build_pkgs(
     )
 
     if dry_run:
-        return
+        raise typer.Exit(0)
 
     build_uncached(cfg.nix_exe, cfg.flake, cache, pkgs2path, ctx.args)
 
@@ -442,11 +454,11 @@ def update_scripts_args(
 def discover_update_scripts(
     nix_exe: str, update_scripts_nix: str, attr_path: str
 ) -> dict[str, UpdateScript]:
-    """Build and parse the update-scripts manifest for the derivations under `attr_path`.
+    """Build and parse the update-scripts manifest for derivations under `attr_path`.
 
-    Building update-scripts.nix's `manifest` realizes every command (carried as
-    Nix string context), so the scripts exist before they run; it imports the
-    working tree by `root` so updateScripts edit package files in place.
+    Building `manifest` realizes every command (carried as Nix string context) so
+    the scripts exist before they run; `root` imports the working tree so
+    updateScripts edit package files in place.
     """
     out = subprocess_stdout(
         [
@@ -459,6 +471,7 @@ def discover_update_scripts(
             "--print-out-paths",
         ]
     )
+
     return {
         key: UpdateScript(**fields)
         for key, fields in json.loads(Path(out).read_text()).items()
@@ -470,8 +483,8 @@ def eval_versions(
 ) -> dict[str, str]:
     """Current `{key: version}` for every updateScript package under `attr_path`.
 
-    Evaluates update-scripts.nix's `versions` output: a plain eval that forces
-    only each package's version, so unlike the manifest it realizes nothing.
+    Evaluates the `versions` output, which forces only each version and so
+    realizes nothing (unlike the manifest).
     """
     out = subprocess_stdout(
         [
@@ -483,6 +496,7 @@ def eval_versions(
             *update_scripts_args(update_scripts_nix, "versions", attr_path),
         ]
     )
+
     return json.loads(out)
 
 
@@ -490,12 +504,13 @@ def eval_versions(
 def update_pkgs(
     ctx: typer.Context,
     package: Annotated[str | None, typer.Option("--package", "-p")] = None,
-    max_workers: Annotated[int | None, typer.Option()] = None,
+    max_workers: Annotated[int, typer.Option()] = 8,
     commit: Annotated[bool, typer.Option("--commit", "-c")] = False,
     dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
 ):
     """Run each package's `passthru.updateScript` to refresh sources, in parallel."""
     cfg: Config = ctx.obj
+
     if cfg.update_path is None or cfg.update_scripts_nix is None:
         typer.echo(
             "update-pkgs requires --update-path and --update-scripts-nix.", err=True
@@ -506,8 +521,10 @@ def update_pkgs(
     scripts = discover_update_scripts(
         cfg.nix_exe, cfg.update_scripts_nix, cfg.update_path
     )
+
     if package is not None:
         scripts = {k: v for k, v in scripts.items() if k == package}
+
     if not scripts:
         typer.echo("No matching packages with an updateScript.", err=True)
         raise typer.Exit(0)
@@ -516,28 +533,32 @@ def update_pkgs(
         f"Updating {len(scripts)} package(s): {', '.join(scripts)}",
         err=True,
     )
+
     if dry_run:
         raise typer.Exit(0)
 
     failures: list[str] = []
+
     with concurrent.futures.ThreadPoolExecutor(
-        max_workers=max_workers or min(len(scripts), 8)
+        max_workers=min(len(scripts), max_workers)
     ) as pool:
         futures = {pool.submit(script.run): key for key, script in scripts.items()}
+
         for future in concurrent.futures.as_completed(futures):
             key = futures[future]
             result = future.result()
+
             if result.returncode == 0:
                 typer.echo(f"{key}: done", err=True)
             else:
                 failures.append(key)
                 typer.echo(f"{key}: FAILED", err=True)
+
                 if result.stderr:
                     typer.echo(result.stderr.rstrip(), err=True)
 
     if commit:
-        # Read each package's new version (a plain eval, no script build), then
-        # list every bump in the commit body (sorted), à la `nix flake update`.
+        # List every version bump in the commit body (sorted), à la `nix flake update`.
         new = eval_versions(cfg.nix_exe, cfg.update_scripts_nix, cfg.update_path)
         bumps = sorted(
             (key, s.old_version, new[key])
@@ -545,15 +566,17 @@ def update_pkgs(
             if key not in failures and key in new and s.old_version != new[key]
         )
         message = "chore(deps/pkgs): update"
+
         if bumps:
             summary = "\n".join(
                 f"- {key}: {old} -> {new_version}" for key, old, new_version in bumps
             )
             message += f"\n\nUpdated packages:\n\n{summary}"
+
         commit_pkgs(cfg.git_exe, message)
+
     if failures:
         typer.echo(f"Failed: {', '.join(failures)}", err=True)
-    raise typer.Exit(1 if failures else 0)
 
 
 @app.command("update-all")
