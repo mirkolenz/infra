@@ -33,6 +33,18 @@ let
     ++ onAct.extraFlags
   );
 
+  # Zed rewrites its JSON config at runtime, so it lives outside home.file; copy
+  # the source files straight from this flake to the standard XDG location.
+  zedDir = ../../modules/programs/zed;
+  zedEntries = map (name: {
+    name = "Zed ${name}";
+    source = builtins.path {
+      path = zedDir + "/${name}";
+      name = "zed-${name}";
+    };
+    target = "~/.config/zed/${name}";
+  }) (lib.filter (lib.hasSuffix ".json") (lib.attrNames (builtins.readDir zedDir)));
+
   entries = [
     (mkHmFileEntry "Ghostty config" hmCfg.xdg.configFile."ghostty/config")
     (mkHmFileEntry "SSH config" hmCfg.home.file.".ssh/config")
@@ -41,7 +53,8 @@ let
       source = brewfile;
       target = brewfileTarget;
     }
-  ];
+  ]
+  ++ zedEntries;
 
   copyCommands = lib.concatMapStringsSep "\n" (
     e:
