@@ -47,16 +47,17 @@
           features = "zebra-dark";
           hyperlinks = true;
           line-numbers = false;
+          keep-plus-minus-markers = true;
           navigate = true;
           syntax-theme = "Monokai Extended";
           # Red-green deficiency friendly palette: blue additions, orange deletions.
           # Overrides zebra-dark's red/green plus/minus styles (the main section
           # always wins over feature-provided options); zebra-dark's moved-line
           # map-styles stay since they already use colorblind-safe hues.
-          minus-style = ''syntax "#3a2400"'';
-          minus-emph-style = ''syntax "#5c3800"'';
-          plus-style = ''syntax "#002a4d"'';
-          plus-emph-style = ''syntax "#004680"'';
+          # minus-style = ''syntax "#3a2400"'';
+          # minus-emph-style = ''syntax "#5c3800"'';
+          # plus-style = ''syntax "#002a4d"'';
+          # plus-emph-style = ''syntax "#004680"'';
         };
       };
       programs.git = {
@@ -360,7 +361,7 @@
             # https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md
             pagers = [
               {
-                pager = "delta --paging=never --hyperlinks-file-link-format=\"lazygit-edit://{path}:{line}\"";
+                pager = "delta --paging=never --width={{columnWidth}} --hyperlinks-file-link-format=\"lazygit-edit://{path}:{line}\"";
               }
               {
                 externalDiffCommand = "difft --color=always --display=inline";
