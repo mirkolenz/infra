@@ -64,6 +64,7 @@
           - Exec `nix-flake-input <name>` to obtain the store path of an input `<name>` such as `nixpkgs` from the current repo.
           - After creating new files, you must add them to the git index to make them visible for nix evaluations.
           - Never run plain find/grep commands in `/` or `/nix/store`.
+          - Avoid nested let ... in bindings and favor top-level variables when possible.
 
           ## LaTeX
 
