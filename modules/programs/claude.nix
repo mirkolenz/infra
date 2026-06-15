@@ -36,7 +36,6 @@
             network = {
               allowUnixSockets = [
                 "/nix/var/nix/daemon-socket/socket"
-                ".git/fsmonitor--daemon.ipc"
               ];
               allowedDomains = [
                 "github.com"

@@ -15,11 +15,6 @@ import typer
 # Flags passed to every `nix` invocation.
 NIX_FLAGS = ["--extra-experimental-features", "nix-command flakes"]
 
-# Disable lazy-trees for working-tree `--impure` evals: on a just-committed rev
-# they intermittently crash ("polling file descriptor: Invalid argument") via a
-# racy git accessor, and lazy-trees buys nothing for these non-flake-ref evals.
-WORKING_TREE_FLAGS = [*NIX_FLAGS, "--option", "lazy-trees", "false"]
-
 # Match github inputs pinned to a semver ref (e.g. v1.2.3, release-1.2.3-rc1).
 GITHUB_SEMVER_REF = re.compile(
     r'url = "github:(?P<owner>[^/"]+)/(?P<repo>[^/"]+)/(?P<ref>[^/"]*\d+\.\d+\.\d+[^/"]*)"'
@@ -347,7 +342,7 @@ def update_flake(
         subprocess_stdout(
             [
                 cfg.nix_exe,
-                *WORKING_TREE_FLAGS,
+                *NIX_FLAGS,
                 "eval",
                 "--impure",
                 *update_scripts_args(cfg.update_scripts_nix, "names", cfg.update_path),
@@ -478,7 +473,7 @@ def discover_update_scripts(
     out = subprocess_stdout(
         [
             nix_exe,
-            *WORKING_TREE_FLAGS,
+            *NIX_FLAGS,
             "build",
             "--impure",
             *update_scripts_args(update_scripts_nix, "manifest", attr_path),
@@ -504,7 +499,7 @@ def eval_versions(
     out = subprocess_stdout(
         [
             nix_exe,
-            *WORKING_TREE_FLAGS,
+            *NIX_FLAGS,
             "eval",
             "--impure",
             "--json",
