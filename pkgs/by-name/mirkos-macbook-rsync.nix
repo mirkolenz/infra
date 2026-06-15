@@ -9,7 +9,6 @@
 let
   cfg = darwinConfig.config;
   hmCfg = cfg.home-manager.users.${cfg.system.primaryUser};
-  onAct = cfg.homebrew.onActivation;
 
   # `target` on home.file/xdg.configFile submodules is normalized to a path
   # relative to homeDirectory, so the file's attrname only appears once.
@@ -21,17 +20,7 @@ let
 
   brewfile = pkgs.writeText "Brewfile" cfg.homebrew.brewfile;
   brewfileTarget = "~/.config/homebrew/Brewfile";
-
-  # Rebuilt from the same options that nix-darwin's homebrew module reads, so
-  # we don't depend on the (internal) string format of onActivation.brewBundleCmd.
-  brewBundleCmd = lib.concatStringsSep " " (
-    lib.optional (!onAct.autoUpdate) "HOMEBREW_NO_AUTO_UPDATE=1"
-    ++ [ "brew bundle --file=${brewfileTarget}" ]
-    ++ lib.optional (!onAct.upgrade) "--no-upgrade"
-    ++ lib.optional (onAct.cleanup == "uninstall") "--cleanup"
-    ++ lib.optional (onAct.cleanup == "zap") "--cleanup --zap"
-    ++ onAct.extraFlags
-  );
+  brewBundleCmd = "brew bundle --file=${brewfileTarget}";
 
   # Zed rewrites its JSON config at runtime, so it lives outside home.file; copy
   # the source files straight from this flake to the standard XDG location.
