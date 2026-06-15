@@ -199,8 +199,14 @@
             --one "<pdfpc-file>" \
             > "./$filename.pdfpc"
         '';
-        nixos-env = /* bash */ ''
-          exec nix-env --profile /nix/var/nix/profiles/system "$@"
+        nixos-profile = /* bash */ ''
+          if [ "$#" -lt 1 ]; then
+            echo "Usage: $0 COMMAND [NIX_PROFILE_ARGS...]" >&2
+            exit 1
+          fi
+          command="$1"
+          shift
+          exec nix profile "$command" --profile /nix/var/nix/profiles/system "$@"
         '';
         skim = /* bash */ ''
           exec open -g -a Skim "$@"
