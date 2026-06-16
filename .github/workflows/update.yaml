@@ -20,6 +20,9 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - uses: fregante/setup-git-user@024bc0b8e177d7e77203b48dab6fb45666854b35 # v2
+      - name: capture base commit
+        id: base
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: DeterminateSystems/determinate-nix-action@4eea0b33e3d1f02ecfe37cf16e7204c424009606 # v3
         with:
           extra-conf: |
@@ -32,6 +35,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
       - name: remove unstaged changes
         run: git restore .
+      - name: build pr body
+        run: git log --reverse --format='## %s%n%n%b' ${{ steps.base.outputs.sha }}..HEAD > "$RUNNER_TEMP/pr-body.md"
       - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
         id: pr
         with:
@@ -39,7 +44,7 @@ jobs:
           branch: update-deps
           delete-branch: true
           title: "chore(deps): update"
-          body: "Automated changes by the update workflow."
+          body-path: ${{ runner.temp }}/pr-body.md
       - name: automerge
         run: gh pr merge --auto --rebase ${{ steps.pr.outputs.pull-request-number }}
         if: steps.pr.outputs.pull-request-number != ''
