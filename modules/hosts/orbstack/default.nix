@@ -32,6 +32,8 @@ in
       home-manager.users.${config.custom.user.login} = {
         programs.fish.functions.fish_greeting.body = lib.mkForce "";
       };
+
+      custom.features.withOptionals = lib.mkDefault true;
     };
 
   configurations.nixos = {
