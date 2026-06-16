@@ -14,6 +14,7 @@
         gopls.enable = true;
         java_language_server.enable = true;
         lemminx.enable = true;
+        phpactor.enable = true;
         tailwindcss.enable = true;
         tombi.enable = true;
         tsgo.enable = true;
