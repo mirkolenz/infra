@@ -15,6 +15,7 @@
       programs.claude-code = {
         enable = true;
         package = pkgs.claude-code-bin;
+        enableMcpIntegration = true;
         settings = {
           autoMemoryEnabled = false;
           cleanupPeriodDays = 30;

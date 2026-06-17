@@ -11,6 +11,7 @@
       programs.codex = {
         enable = true;
         package = pkgs.codex-bin;
+        enableMcpIntegration = true;
         # https://developers.openai.com/codex/config-reference
         # https://developers.openai.com/codex/config-schema.json
         settings = {
