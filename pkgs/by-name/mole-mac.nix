@@ -7,13 +7,13 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "mole";
-  version = "1.43.0";
+  version = "1.43.1";
 
   src = fetchFromGitHub {
     owner = "tw93";
     repo = "Mole";
     tag = "V${finalAttrs.version}";
-    hash = "sha256-xWqPeM1A9YV/kPJwTa8AgasLqkSNkNquFeUG2gzfjyg=";
+    hash = "sha256-cr/dv6yTM+d1X5FpHcuJPqWJCxNvEDbUyjJaDl3qaKg=";
   };
 
   nativeBuildInputs = [ makeBinaryWrapper ];
