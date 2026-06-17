@@ -1,6 +1,7 @@
-# Cross-cutting feature flags, shared across nixos/darwin/home. (nixvim declares
-# its own withOptionals default in options/nixvim/features.nix.) Values are set
-# per host/configuration; home inherits them from the host in modules/core/home.nix.
+# Cross-cutting feature flags, shared across all module systems
+# (nixos/darwin/home/nixvim). Values are set per host/configuration; home inherits
+# them from the host in modules/core/home.nix, and nixvim inherits withOptionals in
+# modules/programs/neovim.nix.
 { lib, ... }:
 {
   options.custom.features = {
