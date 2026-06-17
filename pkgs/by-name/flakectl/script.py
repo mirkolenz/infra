@@ -603,7 +603,7 @@ def update_pkgs(
             summary = "\n".join(
                 f"- {key}: {old} -> {new_version}" for key, old, new_version in bumps
             )
-            message += f"\n\nUpdated packages:\n\n{summary}"
+            message += f"\n\nPackage updates:\n\n{summary}"
 
         commit_pkgs(cfg.git_exe, message)
 
