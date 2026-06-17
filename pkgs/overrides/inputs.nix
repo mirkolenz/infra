@@ -2,7 +2,7 @@ final: prev:
 let
   inherit (prev.stdenv.hostPlatform) system;
   inherit (final) inputs;
-  fromInput = input: package: inputs.${input}.packages.${system}.${package} or final.empty;
+  fromInput = input: package: inputs.${input}.packages.${system}.${package} or prev.emptyDirectory;
 in
 {
   cosmic-manager = fromInput "cosmic-manager" "cosmic-manager";
