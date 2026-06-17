@@ -10,7 +10,7 @@
     {
       xdg = {
         enable = true;
-        localBinInPath = true;
+        localBinInPath = false;
       };
 
       home = {

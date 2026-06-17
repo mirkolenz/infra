@@ -175,7 +175,7 @@
           };
         };
         taps = [ ];
-        brews = [ ];
+        brews = [ "1password-cli@beta" ];
         casks = caskApps ++ caskFonts;
         inherit masApps;
       };
