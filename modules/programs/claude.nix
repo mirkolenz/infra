@@ -4,6 +4,7 @@
       config,
       pkgs,
       lib,
+      lib',
       ...
     }:
     lib.mkIf config.custom.features.withOptionals {
@@ -29,13 +30,13 @@
             allowLocalBinding = true;
             allowUnsandboxedCommands = true;
             enableWeakerNetworkIsolation = true;
-            excludedCommands = [
-              "git *"
-              "nix *"
-            ];
             network = {
               allowUnixSockets = [
-                "/nix/var/nix/daemon-socket/socket"
+                (lib'.nixDaemonSocket pkgs.stdenv)
+              ]
+              # orb talks to the OrbStack daemon over the sockets under this dir, darwin only
+              ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
+                "${config.home.homeDirectory}/.orbstack/run"
               ];
               allowedDomains = [
                 "github.com"
@@ -56,6 +57,10 @@
                 "/${config.home.homeDirectory}/Library/Caches"
                 "/${config.xdg.cacheHome}"
                 "/${config.xdg.configHome}/.wrangler/logs"
+              ]
+              # orb stores logs, sockets, and state here and reads them on every call, darwin only
+              ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
+                "/${config.home.homeDirectory}/.orbstack"
               ];
               # denyRead = [
               #   ".env*"
@@ -88,6 +93,9 @@
             # ANTHROPIC_DEFAULT_HAIKU_MODEL = "sonnet";
             ENABLE_CLAUDEAI_MCP_SERVERS = false;
             ASTRO_TELEMETRY_DISABLED = true;
+            # determinate-nix spawns a sentry crashpad_handler that cannot register its
+            # mach bootstrap port inside the sandbox, so disable it to avoid stderr noise
+            NIX_SENTRY_ENDPOINT = "";
           };
           permissions = {
             defaultMode = "auto";

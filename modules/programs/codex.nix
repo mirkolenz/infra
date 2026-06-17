@@ -41,13 +41,32 @@
               "${config.xdg.cacheHome}" = "write";
               "${config.xdg.configHome}/git" = "read";
               "${config.xdg.configHome}/.wrangler/logs" = "write";
+            }
+            # orb stores logs, sockets, and state here and reads them on every call, darwin only
+            // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+              "${config.home.homeDirectory}/.orbstack" = "write";
             };
             network = {
               enabled = true;
               mode = "limited";
               allow_local_binding = true;
+              domains = {
+                "github.com" = "allow";
+                "api.github.com" = "allow";
+                "raw.githubusercontent.com" = "allow";
+                "pypi.org" = "allow";
+                "files.pythonhosted.org" = "allow";
+                "huggingface.co" = "allow";
+                "registry.npmjs.org" = "allow";
+                "api.npmjs.org" = "allow";
+                "ui.shadcn.com" = "allow";
+              };
               unix_sockets = {
-                "/nix/var/nix/daemon-socket/socket" = "allow";
+                ${lib'.nixDaemonSocket pkgs.stdenv} = "allow";
+              }
+              # orb talks to the OrbStack daemon over the sockets under this dir, darwin only
+              // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+                "${config.home.homeDirectory}/.orbstack/run" = "allow";
               };
             };
           };
@@ -65,6 +84,9 @@
           shell_environment_policy = {
             set = {
               ASTRO_TELEMETRY_DISABLED = "1";
+              # determinate-nix spawns a sentry crashpad_handler that cannot register its
+              # mach bootstrap port inside the sandbox, so disable it to avoid stderr noise
+              NIX_SENTRY_ENDPOINT = "";
             };
           };
           # codex features list

@@ -19,6 +19,16 @@
     setEqual = list1: list2: (lib.naturalSort list1) == (lib.naturalSort list2);
     # return [ path ] if it exists, otherwise [ ]
     optionalPath = path: if builtins.pathExists path then [ path ] else [ ];
+    # resolved nix daemon socket path as a sandbox sees it after symlink resolution.
+    # on darwin determinate-nixd symlinks the default /nix/var/nix/daemon-socket/socket
+    # to /var/run/nix-daemon.socket, which the /var firmlink resolves to /private/var/run.
+    # on linux the default location is a real socket, so no rewriting is needed.
+    nixDaemonSocket =
+      stdenv:
+      if stdenv.hostPlatform.isDarwin then
+        "/private/var/run/nix-daemon.socket"
+      else
+        "/nix/var/nix/daemon-socket/socket";
     mkVimKeymap =
       {
         raw,
