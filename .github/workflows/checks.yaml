@@ -39,11 +39,3 @@ jobs:
           name: mirkolenz
           authToken: ${{ secrets.CACHIX_TOKEN }}
       - run: nix flake check --show-trace
-  check-all:
-    needs: check-systems
-    runs-on: ubuntu-slim
-    if: always()
-    steps:
-      - name: Check matrix results
-        run: |
-          [[ "${{ needs.check-systems.result }}" == "success" ]]
