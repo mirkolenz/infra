@@ -71,6 +71,12 @@
         options.desc = "Delete without yanking (whole line)";
       }
       {
+        key = "<leader>tp";
+        mode = "n";
+        action = "<cmd>PdfPreview<CR>";
+        options.desc = "Toggle PDF preview";
+      }
+      {
         key = "<leader>;";
         mode = "n";
         action = ":!";
