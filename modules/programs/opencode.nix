@@ -14,16 +14,14 @@
         settings = {
           share = "disabled";
           autoupdate = false;
-          model = "llama-cpp/zai-org/glm-4.7-flash";
+          model = "llama-cpp/qwen3.6-35b-a3b";
           provider = {
             llama-cpp = {
               npm = "@ai-sdk/openai-compatible";
               name = "llama.cpp";
               options.baseURL = "http://127.0.0.1:18000/v1";
               models = {
-                "qwen/qwen3.6-35b-a3b" = {
-                  name = "Qwen 3.6 MoE";
-                };
+                "qwen3.6-35b-a3b".name = "Qwen 3.6 MoE";
               };
             };
           };
