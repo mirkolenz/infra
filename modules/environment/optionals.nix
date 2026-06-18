@@ -57,6 +57,7 @@
         copilot-cli-bin
         html2markdown
         zapp
+        restic-browser
         # nix
         nixd
         nixf-diagnose

@@ -11,7 +11,6 @@
       {
         home.packages = with pkgs; [
           mas
-          restic-browser-bin
           undmg
           rcodesign
           container
