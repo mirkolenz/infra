@@ -6,6 +6,8 @@
   writableTmpDirAsHomeHook,
   unzip,
   makeBinaryWrapper,
+  fzf,
+  ripgrep,
 }:
 mkGitHubBinary {
   owner = "anomalyco";
@@ -33,7 +35,13 @@ mkGitHubBinary {
 
   postInstall = ''
     wrapProgram $out/bin/opencode \
-      --set OPENCODE_DISABLE_AUTOUPDATE 1
+      --set OPENCODE_DISABLE_AUTOUPDATE 1 \
+      --prefix PATH : ${
+        lib.makeBinPath [
+          fzf
+          ripgrep
+        ]
+      }
   '';
 
   # opencode creates $TMPDIR/opencode on startup, which collides with the
