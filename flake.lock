@@ -354,16 +354,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1781599426,
-        "narHash": "sha256-sv0gaEA7dvf4trxlsRQS9xA5Hiike5i/aLI3qYKP/lY=",
+        "lastModified": 1781859684,
+        "narHash": "sha256-aLpOywjBt0vvetQV0XdSngllB+lOOgcUbT47fyX0UbE=",
         "owner": "mistralai",
         "repo": "mistral-vibe",
-        "rev": "564a14365e583515c66d8dc6d80c3f464f79049f",
+        "rev": "6bedf271ce120f028eb990e3ca6bd0d1a8685590",
         "type": "github"
       },
       "original": {
         "owner": "mistralai",
-        "ref": "v2.16.1",
+        "ref": "v2.17.0",
         "repo": "mistral-vibe",
         "type": "github"
       }
