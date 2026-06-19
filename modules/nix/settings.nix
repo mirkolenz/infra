@@ -16,6 +16,7 @@ let
     ];
     accept-flake-config = true;
     commit-lock-file-summary = "chore(deps/nix): update";
+    fallback = true;
     lint-url-literals = "fatal";
     use-xdg-base-directories = true;
     warn-dirty = false;

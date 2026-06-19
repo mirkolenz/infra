@@ -31,6 +31,7 @@ jobs:
         with:
           extra-conf: |
             accept-flake-config = true
+            fallback = true
             keep-going = true
             download-buffer-size = 1000000000
             log-lines = 200
