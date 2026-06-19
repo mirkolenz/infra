@@ -4,6 +4,7 @@
       caskApps = [
         # keep-sorted start
         "1password"
+        "1password-cli@beta"
         "affinity"
         "alt-tab"
         "anydesk"
@@ -175,7 +176,7 @@
           };
         };
         taps = [ ];
-        brews = [ "1password-cli@beta" ];
+        brews = [ ];
         casks = caskApps ++ caskFonts;
         inherit masApps;
       };
