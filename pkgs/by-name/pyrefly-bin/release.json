@@ -1,14 +1,14 @@
 {
-  "tag_name": "1.1.0",
+  "tag_name": "1.1.1",
   "assets": {
     "pyrefly-macos-arm64.tar.gz": {
-      "digest": "sha256:b587c88a7e6f030f4c9c886a1e4bf33f098c5d2ccbb324fcfd41f0bb8039079f"
+      "digest": "sha256:022a989d2af4748e4d75a48fed7dbb0cc49f30a4b83745d4e4f742d0920ada70"
     },
     "pyrefly-linux-arm64.tar.gz": {
-      "digest": "sha256:2cb0e8b0ce6581ceaa4bf78ce6f1afff0f8683c94ae80dbff463b8f909b2300e"
+      "digest": "sha256:30251929e2c074644febe1de4b0fe306f3d9d737f084b0ca19590511d174e76b"
     },
     "pyrefly-linux-x86_64.tar.gz": {
-      "digest": "sha256:3fe7ed509b7bb4020516f2c140aad5f89360bb2d495d5591f5d142669ce27880"
+      "digest": "sha256:7f950c246826ea4ba88bd209cdd1593156fed9d11e2114334d7e112581c80a83"
     }
   }
 }
