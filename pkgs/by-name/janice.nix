@@ -32,7 +32,8 @@ buildGoModule (finalAttrs: {
   meta = {
     description = "A desktop app for viewing large JSON files";
     homepage = "https://github.com/ErikKalkoken/janice";
-    downloadPage = "https://github.com/ErikKalkoken/janice/releases";
+    changelog = "https://github.com/ErikKalkoken/janice/releases";
+    downloadPage = "https://github.com/ErikKalkoken/janice/releases/tag/v${finalAttrs.version}";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ mirkolenz ];
     mainProgram = "janice";
