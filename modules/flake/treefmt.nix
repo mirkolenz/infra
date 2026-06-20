@@ -20,7 +20,6 @@
           rustfmt.enable = true;
           texfmt.enable = true;
           typstyle.enable = true;
-          yamlfmt.enable = true;
           # keep-sorted end
         };
         programs.nixf-diagnose = {
