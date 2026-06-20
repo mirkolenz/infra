@@ -34,6 +34,7 @@ in
     inputs.determinate.nixosModules.default
     inputs.disko.nixosModules.default
     inputs.opnix.nixosModules.default
+    inputs.hermes-agent.nixosModules.default
     (inputs.import-tree ../../options/shared)
     (inputs.import-tree ../../options/nixos)
   ];
