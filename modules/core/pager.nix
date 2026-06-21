@@ -22,6 +22,10 @@ in
   flake.modules.nixos.base = {
     imports = [ system ];
     programs.less.enable = true;
+    environment.variables = {
+      SYSTEMD_PAGER = "moor";
+      SYSTEMD_PAGERSECURE = 1;
+    };
   };
   flake.modules.darwin.base = system;
   flake.modules.homeManager.base =
