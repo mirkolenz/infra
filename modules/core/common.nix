@@ -1,11 +1,10 @@
-# Shared nixos + darwin base: timezone, pager, default shells, 1password/opnix.
+# Shared nixos + darwin base: timezone, default shells, 1password/opnix.
 let
   shared =
     { lib, pkgs, ... }:
     {
       time.timeZone = "Europe/Berlin";
       environment = {
-        variables.PAGER = "less";
         defaultPackages = lib.mkForce [ ];
         systemPackages = [ pkgs.opnix ];
       };

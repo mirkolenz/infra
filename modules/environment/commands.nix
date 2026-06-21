@@ -276,6 +276,9 @@
         ssh-once = /* bash */ ''
           exec ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" "$@"
         '';
+        jlog = /* bash */ ''
+          exec journalctl -a -o json "$@" | ${lib.getExe pkgs.lnav}
+        '';
         fontconvert = /* bash */ ''
           if [ "$#" -lt 2 ]; then
             echo "Usage: $0 SOURCE TARGET [FONTFORGE_ARGS...]" >&2

@@ -22,8 +22,6 @@
           else
             "/home/${config.custom.user.login}";
         sessionVariables = {
-          PAGER = "less";
-          MANPAGER = "bat -plman";
           LANG = "en_US.UTF-8";
           LC_ALL = "en_US.UTF-8";
         };

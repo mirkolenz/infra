@@ -52,7 +52,6 @@
           viAlias = true;
           vimAlias = true;
         };
-        less.enable = true;
       };
 
       system.autoUpgrade = {
