@@ -1,5 +1,5 @@
-# Home scaffolding (xdg, home dirs derived from the shared options, generic
-# session variables). User-agnostic, so it lives in the base foundation.
+# Home scaffolding (xdg, home dirs derived from the shared options).
+# User-agnostic, so it lives in the base foundation.
 {
   flake.modules.homeManager.base =
     {
@@ -21,10 +21,6 @@
             "/Users/${config.custom.user.login}"
           else
             "/home/${config.custom.user.login}";
-        sessionVariables = {
-          LANG = "en_US.UTF-8";
-          LC_ALL = "en_US.UTF-8";
-        };
         file = {
           ".hushlogin".text = "";
         };

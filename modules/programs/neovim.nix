@@ -11,7 +11,6 @@ in
     {
       programs.nixvim = {
         enable = true;
-        defaultEditor = true;
         nixpkgs.useGlobalPackages = true;
         imports = [ nixvimDefault ];
         custom.features = {

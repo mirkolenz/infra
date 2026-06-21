@@ -1,5 +1,5 @@
 # NixOS base profile: core system settings, base programs, auto-upgrade and the
-# always-on/server tweaks (nixos.base), plus the full-system locale and packages
+# always-on/server tweaks (nixos.base), plus the full-system packages
 # (nixos.default). Foundational config that is not a distinct feature domain.
 {
   flake.modules.nixos.base =
@@ -48,7 +48,6 @@
         git.enable = true;
         neovim = {
           enable = true;
-          defaultEditor = true;
           viAlias = true;
           vimAlias = true;
         };
@@ -81,18 +80,8 @@
   flake.modules.nixos.default =
     { pkgs, ... }:
     {
-      i18n.defaultLocale = "en_US.UTF-8";
-
-      environment.variables = {
-        LANG = "en_US.UTF-8";
-        LC_ALL = "en_US.UTF-8";
-      };
-
       environment.systemPackages = with pkgs; [
         strace
-        perl
-        python3
-        rsync
       ];
     };
 }

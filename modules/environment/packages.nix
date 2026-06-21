@@ -81,7 +81,6 @@
         gnused
         gzip
         xz
-        less
         # libcap # not available on darwin
         # ncurses # conflict with ghostty terminfo
         netcat

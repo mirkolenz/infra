@@ -1,4 +1,4 @@
-# nix-darwin base: system packages, locale, state version and activation
+# nix-darwin base: system packages, state version and activation
 # (determinate-nixd self-upgrade).
 {
   flake.modules.darwin.default =
@@ -13,19 +13,8 @@
         libvirt
         virt-viewer
         virt-manager
-        less
-        perl
-        python3
-        rsync
         ghostty-bin.terminfo
       ];
-
-      environment.variables = {
-        EDITOR = "zed";
-        VISUAL = "zed";
-        LANG = "en_US.UTF-8";
-        LC_ALL = "en_US.UTF-8";
-      };
 
       system.stateVersion = config.custom.stateVersions.darwin;
 

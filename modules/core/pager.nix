@@ -27,11 +27,17 @@ in
       SYSTEMD_PAGERSECURE = 1;
     };
   };
-  flake.modules.darwin.base = system;
+  # programs.less is NixOS-only, so install the package directly elsewhere.
+  flake.modules.darwin.base =
+    { pkgs, ... }:
+    {
+      imports = [ system ];
+      environment.systemPackages = [ pkgs.less ];
+    };
   flake.modules.homeManager.base =
     { pkgs, ... }:
     {
-      home.packages = packages pkgs;
+      home.packages = packages pkgs ++ [ pkgs.less ];
       home.sessionVariables = variables;
     };
 }
