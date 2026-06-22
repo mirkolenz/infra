@@ -299,7 +299,7 @@
           filter="$1"
           shift
 
-          prs="$(gh search prs --assignee @me --state open --limit 100 "$@" \
+          prs="$(gh search prs --assignee @me --state open "$@" \
             --json title,url,number,repository)"
 
           matched="$(jq "[.[] | select($filter)]" <<<"$prs")"
@@ -310,7 +310,7 @@
             exit 0
           fi
 
-          echo "The following pull requests will be merged:"
+          echo "Matching pull requests:"
           echo
           jq -r '
             ["REPOSITORY", "ID", "TITLE"],
@@ -319,14 +319,17 @@
           ' <<<"$matched" | column -t -s $'\t'
           echo
 
-          read -r -n 1 -p "Merge these pull requests? (y/n) " answer
+          read -r -n 1 -p "How should they be merged? (s)quash/(m)erge/(r)ebase, any other key to skip " method
           echo
-          if [ "$answer" != "y" ]; then
-            echo "Aborted." >&2
-            exit 1
-          fi
 
-          xargs -I {} gh pr merge {} --squash --delete-branch --auto <<<"$urls"
+          case "$method" in
+            s) mergeArg="--squash" ;;
+            m) mergeArg="--merge" ;;
+            r) mergeArg="--rebase" ;;
+            *) echo "Nothing merged."; exit 0 ;;
+          esac
+
+          xargs -I {} gh pr merge {} "$mergeArg" --delete-branch --auto <<<"$urls"
         '';
       };
     };
