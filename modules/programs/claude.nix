@@ -98,6 +98,10 @@
             # mach bootstrap port inside the sandbox, so disable it to avoid stderr noise
             NIX_SENTRY_ENDPOINT = "";
           };
+          worktree = {
+            baseRef = "head";
+            symlinkDirectories = [ ];
+          };
           permissions = {
             defaultMode = "auto";
             disableBypassPermissionsMode = "disable";
