@@ -5,12 +5,12 @@
 }:
 vimUtils.buildVimPlugin {
   pname = "direnv.nvim";
-  version = "0-unstable-2026-06-23";
+  version = "0-unstable-2026-06-24";
   src = fetchFromGitHub {
     owner = "NotAShelf";
     repo = "direnv.nvim";
-    rev = "444fad801fc67325ed502e526a90f8d875b3dc25";
-    hash = "sha256-ein9IK0rzGsr0DPkkTpMRxvj9MmxBCh5MgR9Cj7HoOs=";
+    rev = "b41d16d88de2753059827e030d4dabcdb8deeec2";
+    hash = "sha256-gWOe2NjmWf1LPWgHgSJqMkaq9As+XA/pTPJT04WZMCA=";
   };
   meta.homepage = "https://github.com/NotAShelf/direnv.nvim";
   passthru.updateScript = nix-update-script {
