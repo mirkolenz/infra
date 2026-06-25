@@ -34,7 +34,7 @@
         enable = true;
         autosuggestion.enable = true;
         enableCompletion = true;
-        syntaxHighlighting.enable = true;
+        fastSyntaxHighlighting.enable = true;
         shellAliases.sudo = lib.mkDefault "sudo ";
       };
       programs.bash = {
