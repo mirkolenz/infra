@@ -3,7 +3,6 @@
   inputs,
   config,
   lib,
-  lib',
   ...
 }:
 let
@@ -21,12 +20,7 @@ let
             hostPlatform = system;
             config = config.flake.nixpkgsConfig;
             overlays = [ config.flake.overlays.default ];
-            source = lib'.systemInput {
-              inherit inputs;
-              os = lib'.systemOs system;
-              channel = "unstable";
-              name = "nixpkgs";
-            };
+            source = inputs.nixpkgs;
           };
           custom.features.withOptionals = withOptionals;
         }
