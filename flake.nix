@@ -44,7 +44,7 @@
       };
     };
     herdr = {
-      url = "github:ogulcancelik/herdr/v0.7.0";
+      url = "github:ogulcancelik/herdr/v0.7.1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     hermes-agent = {
