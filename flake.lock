@@ -343,11 +343,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1782358560,
-        "narHash": "sha256-vCcLh9pw3XO/+Lxk8r6xv6QnoCrTfGqiACcI7O637Wg=",
+        "lastModified": 1782423922,
+        "narHash": "sha256-qPNd6lUohHP5gcJhqQ7rLV87RwIx0xYR2A4Frb9Zjc4=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "3a70e333f2950c302e875c44cfcfaff3f80f36bc",
+        "rev": "5d320ab301cfaaca7d32514f13815d19d109f5f4",
         "type": "github"
       },
       "original": {
@@ -388,16 +388,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1781883584,
-        "narHash": "sha256-JrUepzbJupeyHiNz9gbX+C3kc2tJaNkxCldMELKeXcU=",
+        "lastModified": 1782396525,
+        "narHash": "sha256-2eDu2Fqd6K/ZxWSl/pXSN284z7UquNb+zwkHYe9ZWBw=",
         "owner": "mistralai",
         "repo": "mistral-vibe",
-        "rev": "725d3a56ce99aa69157f33cabdf28f23a69320da",
+        "rev": "e607ccbb0046c9f68c8d49a85d4dab7c28239f08",
         "type": "github"
       },
       "original": {
         "owner": "mistralai",
-        "ref": "v2.17.1",
+        "ref": "v2.18.0",
         "repo": "mistral-vibe",
         "type": "github"
       }
@@ -470,11 +470,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1782166108,
-        "narHash": "sha256-/EtnQBcKbsaCAGQ5VRcplrHRkR4ryqyLMpBfkVuG9Xw=",
+        "lastModified": 1782379505,
+        "narHash": "sha256-zPvPiU+a7pqtH47xrtZLNRABJKpOjfZQclDbcvNtH+I=",
         "owner": "nixos",
         "repo": "nixos-hardware",
-        "rev": "875776f0252fcb8618bb948640a0d1f7a5b362be",
+        "rev": "603d3afd1b6145bd66e97ae38a34d91c95df70cf",
         "type": "github"
       },
       "original": {
@@ -549,11 +549,11 @@
     },
     "nixpkgs-linux-stable": {
       "locked": {
-        "lastModified": 1782116945,
-        "narHash": "sha256-V5ETSfFGe1lKGxwEc2dm6jJyom4iPeIDT/qiKp4lxGU=",
-        "rev": "34268251cf5547d39063f2c5ea9a196246f7f3a6",
+        "lastModified": 1782233679,
+        "narHash": "sha256-xdhpn8z51QYzbwZ+G2H+2W1Ec5LfdCeX7BqwpLD5Mgo=",
+        "rev": "667d5cf1c59585031d743c78b394b0a647537c35",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixos/26.05/nixos-26.05.3021.34268251cf55/nixexprs.tar.xz"
+        "url": "https://releases.nixos.org/nixos/26.05/nixos-26.05.3123.667d5cf1c595/nixexprs.tar.xz"
       },
       "original": {
         "type": "tarball",
