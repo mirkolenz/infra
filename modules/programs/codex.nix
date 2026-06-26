@@ -107,7 +107,7 @@
       # store symlink (https://github.com/openai/codex/issues/6646). Replace it with a
       # writable copy of the generated config; trust resets on each activation.
       home.file.".codex/config.toml".enable = lib.mkForce false;
-      home.activation.codexFiles = lib'.mkMutableFile {
+      home.activation.setupCodexFiles = lib'.mkMutableFile {
         inherit config;
         source = config.home.file.".codex/config.toml".source;
         target = "${config.home.homeDirectory}/.codex/config.toml";
