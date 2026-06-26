@@ -78,6 +78,7 @@
           tui = {
             notifications = true;
             vim_mode_default = false;
+            alternate_screen = "auto";
           };
           notice = {
             hide_rate_limit_model_nudge = true;
