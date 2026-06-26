@@ -93,13 +93,9 @@
           # codex features list
           # https://github.com/openai/codex/blob/main/codex-rs/features/src/lib.rs
           features = {
-            apps = false;
-            external_migration = false;
             fast_mode = false;
-            goals = true;
             memories = false;
             prevent_idle_sleep = true;
-            terminal_resize_reflow = true;
           };
         };
       };
