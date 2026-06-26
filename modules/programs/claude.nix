@@ -26,6 +26,7 @@
           includeGitInstructions = false;
           skipAutoPermissionPrompt = true;
           spinnerTipsEnabled = false;
+          tui = "fullscreen";
           sandbox = {
             enabled = true;
             allowLocalBinding = true;
