@@ -18,9 +18,9 @@ jobs:
         include:
           # https://docs.github.com/en/actions/reference/runners/github-hosted-runners
           - system: aarch64-linux
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-26.04-arm
           - system: x86_64-linux
-            runner: ubuntu-24.04
+            runner: ubuntu-26.04
           - system: aarch64-darwin
             runner: macos-26
     steps:
