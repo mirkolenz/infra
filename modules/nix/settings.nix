@@ -24,7 +24,7 @@ let
   # Daemon-level settings layered on top for the nixos and darwin system configs.
   sharedSettings = unprivilegedSettings // {
     auto-optimise-store = true;
-    download-buffer-size = 1000000000; # 1 GB
+    download-buffer-size = 1000 * 1000 * 1000; # 1 GB
     keep-derivations = true;
     keep-failed = false;
     keep-going = true;
