@@ -33,7 +33,7 @@ jobs:
             accept-flake-config = true
             build-dir = /nix/build
             cores = 1
-            eval-cores = 0
+            eval-cores = 1
             fallback = true
             keep-going = true
             log-lines = 200
