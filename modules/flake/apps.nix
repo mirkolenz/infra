@@ -6,7 +6,12 @@
 }:
 {
   perSystem =
-    { pkgs, system, ... }:
+    {
+      pkgs,
+      system,
+      config,
+      ...
+    }:
     {
       apps = {
         default.program = pkgs.flakectl.withFlags {
@@ -18,6 +23,9 @@
         };
         home-manager.program = pkgs.writeShellScriptBin "home-manager" /* bash */ ''
           exec ${lib.getExe pkgs.home-manager} --flake "${self.outPath}" "$@"
+        '';
+        neovide.program = pkgs.writeShellScriptBin "neovide" /* bash */ ''
+          ${lib.getExe pkgs.neovide} --neovim-bin ${lib.getExe config.packages.nixvim-default} "$@"
         '';
         t2-updater.program = pkgs.writers.writePython3Bin "t2-updater" {
           libraries = with pkgs.python3Packages; [ requests ];

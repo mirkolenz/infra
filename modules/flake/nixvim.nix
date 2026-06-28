@@ -2,7 +2,6 @@
 {
   inputs,
   config,
-  lib,
   ...
 }:
 let
@@ -40,19 +39,8 @@ in
   };
 
   perSystem =
+    { system, ... }:
     {
-      system,
-      pkgs,
-      config,
-      ...
-    }:
-    {
-      packages.neovide = pkgs.writeShellApplication {
-        name = "neovide";
-        text = /* bash */ ''
-          ${lib.getExe pkgs.neovide} --neovim-bin ${lib.getExe config.packages.nixvim-default} "$@"
-        '';
-      };
       nixvimConfigurations = {
         default = mkNixvim {
           inherit system;
