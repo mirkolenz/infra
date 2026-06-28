@@ -27,7 +27,6 @@ jobs:
         with:
           extra-conf: |
             accept-flake-config = true
-            download-buffer-size = 1000000000
             log-lines = 200
             commit-lock-file-summary = chore(deps/nix): update
       - run: nix run . -- update-all --commit
