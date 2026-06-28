@@ -16,10 +16,9 @@
           "__pycache__"
           "node_modules"
         ];
-        repository = "s3:https://s3.eu-central-2.wasabisys.com/restic-macbook-161";
-        passwordFile = "/etc/nixos/secrets/restic-wasabi.passwd";
-        # AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
-        environmentFile = "/etc/nixos/secrets/restic-wasabi.env";
+        repositoryFile = config.services.onepassword-secrets.secretPaths.resticWasabiRepository;
+        passwordFile = config.services.onepassword-secrets.secretPaths.resticWasabiPassword;
+        environmentFile = config.services.onepassword-secrets.secretPaths.resticWasabiEnv;
         timerConfig = {
           OnCalendar = "daily";
           Persistent = true;
