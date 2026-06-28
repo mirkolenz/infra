@@ -87,10 +87,10 @@
       url = "github:nix-community/nixos-wsl";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixpkgs-darwin-stable.url = "github:nixos/nixpkgs/nixpkgs-26.05-darwin";
-    nixpkgs-linux-stable.url = "github:nixos/nixpkgs/nixos-26.05";
-    nixpkgs-linux-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixpkgs-darwin-stable.url = "https://channels.nixos.org/nixpkgs-26.05-darwin/nixexprs.tar.xz";
+    nixpkgs-linux-stable.url = "https://channels.nixos.org/nixos-26.05/nixexprs.tar.xz";
+    nixpkgs-linux-unstable.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz";
+    nixpkgs.url = "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz";
     nixvim = {
       url = "github:nix-community/nixvim";
       inputs = {
