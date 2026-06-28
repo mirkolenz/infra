@@ -7,11 +7,11 @@
     }:
     let
       # https://github.com/t2linux/linux-t2-patches
-      # nix run .#t2-updater -- --branch 6.18 ./hosts/macbook-161/kernel.json
+      # nix run .#t2-updater -- --branch main ./modules/hosts/macbook-161/kernel.json
       patchset = lib.fromJSON (lib.readFile ./kernel.json);
     in
     {
-      boot.kernelPackages = lib.mkForce pkgs.linuxPackages_6_18;
+      boot.kernelPackages = lib.mkForce pkgs.linuxPackages_7_1;
       boot.kernelPatches = [
         {
           # https://github.com/NixOS/nixos-hardware/blob/master/apple/t2/pkgs/linux-t2/generic.nix

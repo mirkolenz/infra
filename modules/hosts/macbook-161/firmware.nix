@@ -25,7 +25,7 @@
           boardId = "Mac-CFF7D910A743CAAF";
           mlb = "00000000000000000";
           osType = "latest";
-          hash = "sha256-BPpYd9uDKkp6JU9m/nPRQyjPtuG+zzSD7o5M2VNx6hs=";
+          hash = "sha256-p92fXePpaQ0+7CKpy/t+66B5nmOTmSCFWUw4+6aKq0A=";
         };
       });
       cfg = config.hardware.apple-t2-firmware;

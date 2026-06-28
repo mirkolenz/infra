@@ -63,7 +63,7 @@ in
       # https://github.com/NixOS/nixos-hardware/blob/master/apple/t2/default.nix
       hardware.apple-t2 = {
         enableIGPU = false;
-        kernelChannel = "stable";
+        kernelChannel = "latest";
         firmware.enable = false;
       };
       hardware.apple-t2-firmware.enable = true;
