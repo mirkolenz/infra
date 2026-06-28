@@ -13,6 +13,8 @@
         "herdr"
         "hermes-agent"
         "mistral-vibe"
+        "nixvim-default"
+        "nixvim-minimal"
       ];
     in
     {
