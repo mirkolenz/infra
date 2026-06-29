@@ -233,7 +233,8 @@
     // keep-sorted start block=yes
     "astro-language-server": {
       "binary": {
-        "path": "/etc/profiles/per-user/mlenz/bin/astro-ls"
+        "path": "/etc/profiles/per-user/mlenz/bin/astro-ls",
+        "arguments": ["--stdio"]
       }
     },
     "basedpyright": {
