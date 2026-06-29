@@ -49,7 +49,14 @@ lib.mergeAttrsList [
   # by-name scopes merged with nixpkgs
   (lib.mapAttrs (name: scope: (prev.${name} or { }) // scope) scopes)
 
-  # internal passthrough (inputs / prev / custom)
-  { inherit inputs prev custom; }
+  # internal passthrough (inputs / prev / custom / lib')
+  {
+    inherit
+      inputs
+      prev
+      custom
+      lib'
+      ;
+  }
 
 ]

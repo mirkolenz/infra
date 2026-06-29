@@ -149,6 +149,17 @@
         files = [ { inherit source target mode; } ];
       };
 
+    # Disable a package's nixpkgs `updateScript`, e.g. after an `override` that
+    # would otherwise feed `nix-update` the wrong source. Merges into existing
+    # passthru so other attributes survive.
+    disableUpdateScript =
+      pkg:
+      pkg.overrideAttrs (old: {
+        passthru = (old.passthru or { }) // {
+          updateScript = null;
+        };
+      });
+
     # import every `final: prev: -> attrset` overlay fragment in `dir` and merge them at the top level
     importOverlays =
       dir: final: prev:
