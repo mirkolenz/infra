@@ -38,7 +38,7 @@
     }
   },
   {
-    "label": "latex-build",
+    "label": "latex-compile",
     "command": "latexmk",
     "args": ["-synctex=1", "-interaction=nonstopmode", "-recorder", "-pv"],
     "hide": "never",

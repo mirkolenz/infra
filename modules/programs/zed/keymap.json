@@ -11,14 +11,14 @@
   {
     "context": "Editor && extension == tex",
     "bindings": {
-      "cmd-alt-b": ["task::Spawn", { "task_name": "latex-build" }],
-      "cmd-alt-c": ["task::Spawn", { "task_name": "latex-clean" }]
+      "cmd-alt-c": ["task::Spawn", { "task_name": "latex-compile" }],
+      "cmd-alt-shift-c": ["task::Spawn", { "task_name": "latex-clean" }]
     }
   },
   {
     "context": "Editor && extension == typ",
     "bindings": {
-      "cmd-alt-b": ["task::Spawn", { "task_name": "typst-compile" }],
+      "cmd-alt-c": ["task::Spawn", { "task_name": "typst-compile" }],
       "cmd-alt-w": ["task::Spawn", { "task_name": "typst-watch" }]
     }
   },
