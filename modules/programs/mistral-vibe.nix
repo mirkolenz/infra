@@ -8,14 +8,14 @@
     }:
     lib.mkIf config.custom.features.withOptionals {
       programs.mistral-vibe = {
-        enable = true;
+        enable = false;
         package = pkgs.mistral-vibe;
         # Upstream references (pinned to the version in flake.nix; bump together):
-        # https://github.com/mistralai/mistral-vibe/blob/v2.9.2/README.md
-        # https://github.com/mistralai/mistral-vibe/blob/v2.9.2/vibe/core/config/_settings.py
-        # https://github.com/mistralai/mistral-vibe/tree/v2.9.2/vibe/core/tools/builtins
-        # https://github.com/mistralai/mistral-vibe/blob/v2.9.2/vibe/core/tools/base.py
-        # https://github.com/mistralai/mistral-vibe/blob/v2.9.2/vibe/core/agents/models.py
+        # https://github.com/mistralai/mistral-vibe/blob/main/README.md
+        # https://github.com/mistralai/mistral-vibe/blob/main/vibe/core/config/_settings.py
+        # https://github.com/mistralai/mistral-vibe/tree/main/vibe/core/tools/builtins
+        # https://github.com/mistralai/mistral-vibe/blob/main/vibe/core/tools/base.py
+        # https://github.com/mistralai/mistral-vibe/blob/main/vibe/core/agents/models.py
         settings = {
           active_model = "mistral-medium-3.5";
           enable_auto_update = false;
