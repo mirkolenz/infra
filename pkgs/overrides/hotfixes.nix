@@ -8,4 +8,7 @@ final: prev:
       nodejs_latest = prev.nodejs;
     }
   );
+  podman = prev.lib.addMetaAttrs {
+    platforms = prev.lib.platforms.unix;
+  } prev.podman;
 })
