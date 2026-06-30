@@ -24,8 +24,8 @@
           # keep-sorted start
           hf-repo = "unsloth/gemma-4-26B-A4B-it-qat-GGUF:UD-Q4_K_XL";
           reasoning = "on";
-          spec-draft-n-max = 4;
-          spec-type = "draft-mtp";
+          # spec-draft-n-max = 4;
+          # spec-type = "draft-mtp";
           temperature = 1.0;
           top-k = 20;
           top-p = 0.95;
