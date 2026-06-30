@@ -119,7 +119,7 @@ in
         KeepAlive = true;
         RunAtLoad = true;
         ExitTimeOut = 90;
-        ThrottleInterval = 300;
+        ThrottleInterval = 10;
         UserName = "_llamacpp";
         GroupName = "_llamacpp";
         WorkingDirectory = cfg.home;
