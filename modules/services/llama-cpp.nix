@@ -12,10 +12,12 @@
           cache-type-v = "q8_0";
           ctx-size = 256 * 1024 * parallel;
           flash-attn = "on";
+          kv-unified = false;
           mlock = true;
           mmap = false;
           n-gpu-layers = "all";
           parallel = 1;
+          reasoning = "on";
           sleep-idle-seconds = -1;
           # keep-sorted end
         };
@@ -23,9 +25,6 @@
         "gemma4-26b-a4b" = {
           # keep-sorted start
           hf-repo = "unsloth/gemma-4-26B-A4B-it-qat-GGUF:UD-Q4_K_XL";
-          reasoning = "on";
-          # spec-draft-n-max = 4;
-          # spec-type = "draft-mtp";
           temperature = 1.0;
           top-k = 20;
           top-p = 0.95;
@@ -36,7 +35,6 @@
           # keep-sorted start
           hf-repo = "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_XL";
           min-p = 0.00;
-          reasoning = "on";
           spec-draft-n-max = 4;
           spec-type = "draft-mtp";
           temperature = 1.0;
@@ -51,7 +49,7 @@
         enable = true;
         settings = {
           # keep-sorted start
-          models-max = 10;
+          models-max = 1;
           models-preset = pkgs.writeText "llama-models.ini" (lib.generators.toINI { } modelsPreset);
           no-models-autoload = true;
           port = 18000;
