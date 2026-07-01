@@ -70,7 +70,7 @@
     "dock": "bottom"
   },
   "edit_predictions": {
-    "provider": "copilot",
+    "provider": "none",
     "disabled_globs": ["*.env", "*secret*"],
     "mode": "eager",
     "allow_data_collection": "no",
@@ -79,7 +79,7 @@
       "model": "qwen2.5-coder:7b"
     },
     "open_ai_compatible_api": {
-      "api_url": "http://127.0.0.1/v1:1234",
+      "api_url": "http://127.0.0.1/v1:18000",
       "max_output_tokens": 16,
       "model": "qwen2.5-coder:7b"
     },
