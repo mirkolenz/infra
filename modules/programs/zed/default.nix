@@ -7,10 +7,13 @@
       lib',
       ...
     }:
-    {
-      programs.zed-editor.enable = lib.mkDefault (
-        pkgs.stdenv.isLinux && config.custom.features.withDisplay
-      );
+    lib.mkIf config.custom.features.withDisplay {
+      programs.zed-editor.enable = false;
+
+      home.packages = lib.mkIf pkgs.stdenv.isLinux [
+        pkgs.zed-editor
+      ];
+
       # Zed rewrites these JSON files at runtime, which fails on read-only store
       # symlinks. Install writable copies instead; they reset on each rebuild.
       home.activation.setupZedFiles = lib'.mkMutableFiles {
@@ -28,7 +31,8 @@
               "tasks.json"
             ];
       };
-      home.shellAliases = lib.mkIf config.programs.zed-editor.enable {
+
+      home.shellAliases = lib.mkIf pkgs.stdenv.isLinux {
         zed = "zeditor";
       };
     };
