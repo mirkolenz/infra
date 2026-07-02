@@ -40,7 +40,9 @@
               "${config.home.homeDirectory}/.npm" = "write";
               "${config.home.homeDirectory}/Library/Caches" = "write";
               "${config.xdg.cacheHome}" = "write";
+              "${config.xdg.configHome}/gh" = "read";
               "${config.xdg.configHome}/git" = "read";
+              "${config.xdg.configHome}/uv" = "read";
               "${config.xdg.configHome}/.wrangler/logs" = "write";
             }
             # orb stores logs, sockets, and state here and reads them on every call, darwin only
