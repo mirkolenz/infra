@@ -38,7 +38,7 @@
           - Add docstrings to all public functions and classes.
           - Add doctests to functions and classes where appropriate.
           - Use the Google style for docstrings.
-          - Never use globals in Python.
+          - Never use `global` or `nonlocal` variables.
           - Prefer dataclasses over regular classes for data structures.
           - Always use `slots=True` for dataclasses and set `frozen=True` when possible.
           - Prefer `__post_init__` over `__init__` to customize dataclass initialization.
