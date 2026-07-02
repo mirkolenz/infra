@@ -1,11 +1,12 @@
 [
   {
     "bindings": {
-      "cmd-shift-g": ["task::Spawn", { "task_name": "git" }],
+      "alt-shift-f": "text_finder::Toggle",
       "cmd-alt-n": "agent::NewTerminalThread",
       "cmd-r": "workspace::Reload",
-      "ctrl-`": "terminal_panel::Toggle",
-      "ctrl-/": "workspace::NewCenterTerminal"
+      "cmd-shift-g": ["task::Spawn", { "task_name": "git" }],
+      "ctrl-/": "workspace::NewCenterTerminal",
+      "ctrl-`": "terminal_panel::Toggle"
     }
   },
   {
