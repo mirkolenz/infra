@@ -5,6 +5,7 @@
     {
       lib,
       config,
+      pkgs,
       ...
     }:
     lib.mkIf config.custom.features.withDisplay {
@@ -17,6 +18,13 @@
       nix.settings.trusted-users = [ "@wheel" ];
 
       programs.nix-ld.enable = true;
+
+      # X server foundation shared by every desktop environment; each DE module
+      # (cosmic/gnome/xfce) only adds its own session and display manager.
+      services.xserver = {
+        enable = true;
+        excludePackages = with pkgs; [ xterm ];
+      };
     };
 
   flake.modules.nixos.default =

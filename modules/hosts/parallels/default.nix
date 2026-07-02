@@ -14,6 +14,7 @@ in
   flake.modules.nixos.parallels = {
     custom.features = {
       withDisplay = true;
+      desktop = "cosmic";
       withOptionals = true;
     };
 

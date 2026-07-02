@@ -1,5 +1,6 @@
 # Linux home-manager profile: base packages and the desktop applications.
-# Cosmic itself lives in modules/desktop/cosmic.nix (cross-class).
+# The desktop environments themselves live in modules/desktop/{cosmic,gnome,xfce}.nix
+# (cross-class), selected by custom.features.desktop.
 {
   flake.modules.homeManager.linux.imports = [
     (

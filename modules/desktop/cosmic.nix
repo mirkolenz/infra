@@ -5,18 +5,13 @@
     {
       lib,
       config,
-      pkgs,
       ...
     }:
-    lib.mkIf config.custom.features.withDisplay {
+    lib.mkIf (config.custom.features.withDisplay && config.custom.features.desktop == "cosmic") {
       services = {
         desktopManager.cosmic.enable = true;
         displayManager.cosmic-greeter.enable = true;
         system76-scheduler.enable = true;
-        xserver = {
-          enable = true;
-          excludePackages = with pkgs; [ xterm ];
-        };
       };
 
       security.pam.services.greetd.enableGnomeKeyring = true;
@@ -31,7 +26,7 @@
       cosmicLib,
       ...
     }:
-    lib.mkIf config.custom.features.withDisplay {
+    lib.mkIf (config.custom.features.withDisplay && config.custom.features.desktop == "cosmic") {
       wayland.desktopManager.cosmic = {
         enable = true;
         appearance.theme.mode = "dark";

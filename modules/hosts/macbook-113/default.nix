@@ -19,6 +19,7 @@ in
 
     custom.features = {
       withDisplay = true;
+      desktop = "cosmic";
       withOptionals = true;
     };
 
