@@ -26,6 +26,9 @@
       };
     };
 
+  # The SSH agent and git signing rely on the 1Password app installed by the
+  # host (programs._1password-gui on NixOS, homebrew on Darwin). Standalone
+  # home-manager has no host config, so skip the integration.
   flake.modules.homeManager.default =
     {
       pkgs,
@@ -33,7 +36,7 @@
       config,
       ...
     }:
-    lib.mkIf config.custom.features.withDisplay {
+    lib.mkIf (config.custom.features.withDisplay && !config.custom.standalone) {
       programs.op = {
         enable = true;
         sshAgent = {

@@ -39,6 +39,7 @@ in
           inherit inputs lib';
         };
         custom = {
+          standalone = !(args ? osConfig);
           features = osConfig.custom.features or { };
         };
       };
