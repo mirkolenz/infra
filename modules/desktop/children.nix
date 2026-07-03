@@ -14,19 +14,23 @@
       programs.firefox.enable = true;
 
       # Keep the terminal out of the kids' Cosmic session but available to mirko.
-      environment.cosmic.excludePackages = lib.mkIf (config.custom.features.graphical.desktopManager == "cosmic") (
-        with pkgs;
-        [
-          cosmic-term
-        ]
-      );
+      environment.cosmic.excludePackages =
+        lib.mkIf (config.custom.features.graphical.desktopManager == "cosmic")
+          (
+            with pkgs;
+            [
+              cosmic-term
+            ]
+          );
 
-      users.users.mirko.packages = lib.mkIf (config.custom.features.graphical.desktopManager == "cosmic") (
-        with pkgs;
-        [
-          cosmic-term
-        ]
-      );
+      users.users.mirko.packages =
+        lib.mkIf (config.custom.features.graphical.desktopManager == "cosmic")
+          (
+            with pkgs;
+            [
+              cosmic-term
+            ]
+          );
 
       environment.systemPackages = with pkgs; [
         (makeDesktopItem {
