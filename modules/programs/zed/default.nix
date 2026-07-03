@@ -7,7 +7,7 @@
       lib',
       ...
     }:
-    lib.mkIf config.custom.features.withDisplay {
+    lib.mkIf config.custom.features.graphical.enable {
       programs.zed-editor.enable = false;
 
       home.packages = lib.mkIf pkgs.stdenv.isLinux [

@@ -8,7 +8,7 @@ let
   mkNixvim =
     {
       system,
-      withOptionals,
+      features,
     }:
     inputs.nixvim.lib.evalNixvim {
       modules = [
@@ -21,7 +21,7 @@ let
             overlays = [ config.flake.overlays.default ];
             source = inputs.nixpkgs;
           };
-          custom.features.withOptionals = withOptionals;
+          custom.features = features;
         }
       ];
     };
@@ -44,11 +44,11 @@ in
       nixvimConfigurations = {
         default = mkNixvim {
           inherit system;
-          withOptionals = true;
+          features.extras.enable = true;
         };
         minimal = mkNixvim {
           inherit system;
-          withOptionals = false;
+          features.extras.enable = false;
         };
       };
     };

@@ -6,7 +6,7 @@
       config,
       ...
     }:
-    lib.mkIf config.custom.features.withOptionals {
+    lib.mkIf config.custom.features.extras.enable {
       home.packages = with pkgs; [
         tlrc
       ];

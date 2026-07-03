@@ -1,7 +1,7 @@
 {
   flake.modules.homeManager.default =
     { lib, config, ... }:
-    lib.mkIf config.custom.features.withOptionals {
+    lib.mkIf config.custom.features.extras.enable {
       programs.yt-dlp = {
         enable = true;
         settings = {

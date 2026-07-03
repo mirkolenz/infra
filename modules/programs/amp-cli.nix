@@ -5,7 +5,7 @@
       lib,
       ...
     }:
-    lib.mkIf config.custom.features.withOptionals {
+    lib.mkIf config.custom.features.extras.enable {
       # https://ampcode.com/manual#configuration
       programs.amp-cli = {
         enable = false;

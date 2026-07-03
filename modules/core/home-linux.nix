@@ -1,6 +1,6 @@
 # Linux home-manager profile: base packages and the desktop applications.
 # The desktop environments themselves live in modules/desktop/{cosmic,gnome,xfce}.nix
-# (cross-class), selected by custom.features.desktop.
+# (cross-class), selected by custom.features.graphical.desktopManager.
 {
   flake.modules.homeManager.linux.imports = [
     (
@@ -31,7 +31,7 @@
         config,
         ...
       }:
-      lib.mkIf config.custom.features.withDisplay {
+      lib.mkIf config.custom.features.graphical.enable {
         home.packages =
           with pkgs;
           [

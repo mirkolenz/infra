@@ -6,7 +6,7 @@
       config,
       ...
     }:
-    lib.mkIf config.custom.features.withDisplay {
+    lib.mkIf config.custom.features.graphical.enable {
       services.pipewire = {
         enable = true;
         alsa = {

@@ -25,7 +25,7 @@ in
       ];
       nixpkgs.hostPlatform = "x86_64-linux";
 
-      custom.features.withAlwaysOn = true;
+      custom.features.unattended.enable = true;
 
       # Compact intermediate; diskSize defaults to "auto" so the artifact stays
       # small and the root grows on first boot. Converted to a fixed VHD by

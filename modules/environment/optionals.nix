@@ -9,7 +9,7 @@
     let
       pythonWithPackages = pkgs.python3.withPackages (ps: with ps; [ typer ]);
     in
-    lib.mkIf config.custom.features.withOptionals {
+    lib.mkIf config.custom.features.extras.enable {
       home.sessionVariables = {
         RUST_SRC_PATH = pkgs.rustPlatform.rustLibSrc;
       };

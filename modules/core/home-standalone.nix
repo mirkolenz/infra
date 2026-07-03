@@ -19,7 +19,7 @@
       ];
     in
     {
-      custom.features.withAlwaysOn = lib.mkDefault true;
+      custom.features.unattended.enable = lib.mkDefault true;
 
       custom.autoUpgrade = {
         enable = true;

@@ -7,7 +7,7 @@ in
     imports = [ nixos.default ];
     nixpkgs.hostPlatform = "x86_64-linux";
 
-    custom.features.withAlwaysOn = true;
+    custom.features.unattended.enable = true;
 
     boot.loader = {
       systemd-boot.enable = true;

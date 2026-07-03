@@ -23,7 +23,7 @@ in
       ];
       nixpkgs.hostPlatform = "x86_64-linux";
 
-      custom.features.withAlwaysOn = true;
+      custom.features.unattended.enable = true;
 
       boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
       boot.loader = {

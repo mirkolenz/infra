@@ -6,7 +6,7 @@
       lib,
       ...
     }:
-    lib.mkIf config.custom.features.withOptionals {
+    lib.mkIf config.custom.features.extras.enable {
       programs.mcp = {
         enable = true;
         servers = {

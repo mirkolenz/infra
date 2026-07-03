@@ -37,7 +37,7 @@ in
         })
       ];
 
-      custom.features.withAlwaysOn = true;
+      custom.features.unattended.enable = true;
 
       hardware.raspberry-pi."4" = {
         # https://github.com/NixOS/nixos-hardware/blob/master/raspberry-pi/4/poe-plus-hat.nix

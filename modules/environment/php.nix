@@ -6,7 +6,7 @@
       pkgs,
       ...
     }:
-    lib.mkIf config.custom.features.withOptionals {
+    lib.mkIf config.custom.features.extras.enable {
       programs.mago.enable = true;
 
       home.packages = with pkgs; [

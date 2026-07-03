@@ -8,7 +8,7 @@
       pkgs,
       ...
     }:
-    lib.mkIf (config.custom.features.withDisplay && config.custom.features.desktop == "gnome") {
+    lib.mkIf (config.custom.features.graphical.enable && config.custom.features.graphical.desktopManager == "gnome") {
       services = {
         displayManager.gdm.enable = true;
         desktopManager.gnome.enable = true;
@@ -41,7 +41,7 @@
         blur-my-shell
       ];
     in
-    lib.mkIf (config.custom.features.withDisplay && config.custom.features.desktop == "gnome") {
+    lib.mkIf (config.custom.features.graphical.enable && config.custom.features.graphical.desktopManager == "gnome") {
       home.packages = extensions;
 
       gtk = {

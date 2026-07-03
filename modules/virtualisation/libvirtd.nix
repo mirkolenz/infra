@@ -33,9 +33,9 @@
             "libvirtd"
           ];
 
-      programs.virt-manager.enable = lib.mkDefault config.custom.features.withDisplay;
+      programs.virt-manager.enable = lib.mkDefault config.custom.features.graphical.enable;
 
-      environment.systemPackages = lib.mkIf config.custom.features.withDisplay [
+      environment.systemPackages = lib.mkIf config.custom.features.graphical.enable [
         pkgs.virt-viewer
       ];
 

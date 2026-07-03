@@ -9,7 +9,7 @@
       pkgs,
       ...
     }:
-    lib.mkIf (config.custom.features.withDisplay && config.custom.features.desktop == "xfce") {
+    lib.mkIf (config.custom.features.graphical.enable && config.custom.features.graphical.desktopManager == "xfce") {
       services.xserver = {
         desktopManager.xfce.enable = true;
         displayManager.lightdm.enable = true;
@@ -31,7 +31,7 @@
       config,
       ...
     }:
-    lib.mkIf (config.custom.features.withDisplay && config.custom.features.desktop == "xfce") {
+    lib.mkIf (config.custom.features.graphical.enable && config.custom.features.graphical.desktopManager == "xfce") {
       # xfconf-query -c <channel> -p <property> -v to discover keys.
       xfconf.settings = {
         xsettings = {

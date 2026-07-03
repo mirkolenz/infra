@@ -18,9 +18,8 @@ in
     nixpkgs.hostPlatform = "x86_64-linux";
 
     custom.features = {
-      withDisplay = true;
-      desktop = "cosmic";
-      withOptionals = true;
+      graphical.desktopManager = "cosmic";
+      extras.enable = true;
     };
 
     boot.kernelParams = [

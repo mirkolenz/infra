@@ -37,7 +37,7 @@
         memoryMax = 8 * 1024 * 1024 * 1024;
       };
 
-      environment.variables.BROWSER = lib.mkIf (!config.custom.features.withDisplay) "echo";
+      environment.variables.BROWSER = lib.mkIf (!config.custom.features.graphical.enable) "echo";
 
       environment.systemPackages = with pkgs; [
         pciutils
@@ -64,10 +64,10 @@
           upper = "05:00";
         };
         # only unattended on always-on hosts
-        enable = lib.mkIf config.custom.features.withAlwaysOn true;
+        enable = lib.mkIf config.custom.features.unattended.enable true;
       };
 
-      systemd.sleep.settings.Sleep = lib.mkIf config.custom.features.withAlwaysOn (
+      systemd.sleep.settings.Sleep = lib.mkIf config.custom.features.unattended.enable (
         lib.mkDefault {
           AllowSuspend = "no";
           AllowHibernation = "no";

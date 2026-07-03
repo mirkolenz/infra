@@ -6,7 +6,7 @@
       config,
       ...
     }:
-    lib.mkIf config.custom.features.withDisplay {
+    lib.mkIf config.custom.features.graphical.enable {
       programs.ghostty = {
         enable = true;
         package = if pkgs.stdenv.isDarwin then null else pkgs.ghostty;

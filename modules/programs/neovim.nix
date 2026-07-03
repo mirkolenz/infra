@@ -13,11 +13,9 @@ in
         enable = true;
         nixpkgs.useGlobalPackages = true;
         imports = [ nixvimDefault ];
-        custom.features = {
-          inherit (config.custom.features) withOptionals;
-        };
+        custom.features.extras.enable = config.custom.features.extras.enable;
       };
-      programs.neovide = lib.mkIf config.custom.features.withDisplay {
+      programs.neovide = lib.mkIf config.custom.features.graphical.enable {
         enable = true;
         settings = {
           fork = true;

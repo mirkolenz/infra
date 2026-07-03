@@ -6,7 +6,7 @@ let
       config,
       ...
     }:
-    lib.mkIf config.custom.features.withDisplay {
+    lib.mkIf config.custom.features.graphical.enable {
       fonts.packages =
         with pkgs;
         [

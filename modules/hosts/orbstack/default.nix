@@ -33,7 +33,7 @@ in
         programs.fish.functions.fish_greeting.body = lib.mkForce "";
       };
 
-      custom.features.withOptionals = lib.mkDefault true;
+      custom.features.extras.enable = lib.mkDefault true;
     };
 
   configurations.nixos = {

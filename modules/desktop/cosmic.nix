@@ -7,7 +7,7 @@
       config,
       ...
     }:
-    lib.mkIf (config.custom.features.withDisplay && config.custom.features.desktop == "cosmic") {
+    lib.mkIf (config.custom.features.graphical.enable && config.custom.features.graphical.desktopManager == "cosmic") {
       services = {
         desktopManager.cosmic.enable = true;
         displayManager.cosmic-greeter.enable = true;
@@ -26,7 +26,7 @@
       cosmicLib,
       ...
     }:
-    lib.mkIf (config.custom.features.withDisplay && config.custom.features.desktop == "cosmic") {
+    lib.mkIf (config.custom.features.graphical.enable && config.custom.features.graphical.desktopManager == "cosmic") {
       wayland.desktopManager.cosmic = {
         enable = true;
         appearance.theme.mode = "dark";

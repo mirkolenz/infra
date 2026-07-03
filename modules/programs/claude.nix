@@ -7,7 +7,7 @@
       lib',
       ...
     }:
-    lib.mkIf config.custom.features.withOptionals {
+    lib.mkIf config.custom.features.extras.enable {
       # https://code.claude.com/docs/en/permissions
       # https://code.claude.com/docs/en/sandboxing
       # https://code.claude.com/docs/en/settings

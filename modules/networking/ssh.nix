@@ -76,7 +76,7 @@ in
       config,
       ...
     }:
-    lib.mkIf config.custom.features.withDisplay {
+    lib.mkIf config.custom.features.graphical.enable {
       programs.ssh = {
         enable = true;
         enableDefaultConfig = false;

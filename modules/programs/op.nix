@@ -5,7 +5,7 @@
       config,
       ...
     }:
-    lib.mkIf config.custom.features.withDisplay {
+    lib.mkIf config.custom.features.graphical.enable {
       programs._1password-gui.enable = true;
     };
 
@@ -15,7 +15,7 @@
       config,
       ...
     }:
-    lib.mkIf config.custom.features.withDisplay {
+    lib.mkIf config.custom.features.graphical.enable {
       programs._1password-gui.polkitPolicyOwners = [ config.custom.user.login ];
 
       environment.etc."1password/custom_allowed_browsers" = {
@@ -36,7 +36,7 @@
       config,
       ...
     }:
-    lib.mkIf (config.custom.features.withDisplay && !config.custom.standalone) {
+    lib.mkIf (config.custom.features.graphical.enable && !config.custom.standalone) {
       programs.op = {
         enable = true;
         sshAgent = {

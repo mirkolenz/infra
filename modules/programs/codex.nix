@@ -7,7 +7,7 @@
       pkgs,
       ...
     }:
-    lib.mkIf config.custom.features.withOptionals {
+    lib.mkIf config.custom.features.extras.enable {
       programs.codex = {
         enable = true;
         package = pkgs.codex-bin;

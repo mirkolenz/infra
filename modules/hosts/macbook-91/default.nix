@@ -18,10 +18,7 @@ in
     ];
     nixpkgs.hostPlatform = "x86_64-linux";
 
-    custom.features = {
-      withDisplay = true;
-      desktop = "cosmic";
-    };
+    custom.features.graphical.desktopManager = "cosmic";
 
     boot.loader = {
       systemd-boot.enable = true;

@@ -8,7 +8,7 @@
       pkgs,
       ...
     }:
-    lib.mkIf config.custom.features.withDisplay {
+    lib.mkIf config.custom.features.graphical.enable {
       # there is an issue with wpa_supplicant and broadcom-wl (used in Macs)
       networking.networkmanager = {
         enable = true;
@@ -33,7 +33,7 @@
       config,
       ...
     }:
-    lib.mkIf config.custom.features.withDisplay {
+    lib.mkIf config.custom.features.graphical.enable {
       services.xserver.xkb.layout = "us";
 
       users.users.${config.custom.user.login}.extraGroups = [ "networkmanager" ];

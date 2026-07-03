@@ -6,7 +6,7 @@
       lib,
       ...
     }:
-    lib.mkIf (pkgs.stdenv.isLinux && config.custom.features.withDisplay) {
+    lib.mkIf (pkgs.stdenv.isLinux && config.custom.features.graphical.enable) {
       programs.vscode = {
         enable = true;
         package = pkgs.vscode;

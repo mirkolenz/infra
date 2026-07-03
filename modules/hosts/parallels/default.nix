@@ -13,9 +13,8 @@ in
   # Shared parallels base (disko and users live in their own files).
   flake.modules.nixos.parallels = {
     custom.features = {
-      withDisplay = true;
-      desktop = "cosmic";
-      withOptionals = true;
+      graphical.desktopManager = "cosmic";
+      extras.enable = true;
     };
 
     security.sudo.wheelNeedsPassword = false;
