@@ -25,6 +25,7 @@
           - In source code files, keep blocks such as if/while/for/try/match/return separated by blank lines from the surrounding code to improve readability.
           - When wrapping comments to fit within a certain line width, break lines at periods or commas to avoid breaking up clauses and sentences.
           - Exec `gh` to interact with GitHub, not `curl` or a built-in web fetch tool.
+          - I use `fish` as my login shell, not `bash` or `zsh`, so make sure to use the correct syntax when running shell commands.
 
           ## Python
 
