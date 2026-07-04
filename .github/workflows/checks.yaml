@@ -32,12 +32,12 @@ jobs:
           extra-conf: |
             accept-flake-config = true
             build-dir = /nix/build
-            cores = 0
-            eval-cores = 1
+            cores = 2
+            eval-cores = 0
             fallback = true
             keep-going = true
             log-lines = 200
-            max-jobs = 1
+            max-jobs = 2
       - uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: mirkolenz
