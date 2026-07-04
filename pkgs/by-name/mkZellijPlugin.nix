@@ -9,11 +9,17 @@ lib.extendMkDerivation {
     {
       nativeBuildInputs ? [ ],
       passthru ? { },
+      meta ? { },
       ...
     }:
     {
       env.RUSTFLAGS = "-C linker=wasm-ld";
       nativeBuildInputs = nativeBuildInputs ++ [ pkgsCross.wasi32.lld ];
+
+      # cross-compiled to wasm, not a CI build target on any host platform
+      meta = meta // {
+        hydraPlatforms = [ ];
+      };
 
       installPhase = ''
         runHook preInstall
