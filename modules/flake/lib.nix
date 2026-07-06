@@ -149,14 +149,19 @@
         files = [ { inherit source target mode; } ];
       };
 
-    # Disable a package's nixpkgs `updateScript`, e.g. after an `override` that
-    # would otherwise feed `nix-update` the wrong source. Merges into existing
-    # passthru so other attributes survive.
     disableUpdateScript =
       pkg:
       pkg.overrideAttrs (old: {
         passthru = (old.passthru or { }) // {
           updateScript = null;
+        };
+      });
+
+    disableHydra =
+      pkg:
+      pkg.overrideAttrs (old: {
+        meta = (old.meta or { }) // {
+          hydraPlatforms = [ ];
         };
       });
 
