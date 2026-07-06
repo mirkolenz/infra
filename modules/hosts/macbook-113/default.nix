@@ -21,21 +21,12 @@ in
       extras.enable = true;
     };
 
-    boot.kernelParams = [
-      "i915.modeset=0"
-      # https://www.thomas-krenn.com/en/wiki/Processor_P-states_and_C-states
-      "intel_idle.max_cstate=2"
-      "processor.max_cstate=2"
-    ];
-
     boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
     boot.loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
       efi.efiSysMountPoint = "/boot";
     };
-
-    boot.blacklistedKernelModules = [ "thunderbolt" ];
 
     swapDevices = [
       {
