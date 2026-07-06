@@ -31,7 +31,8 @@ in
     swapDevices = [
       {
         device = "/swapfile";
-        size = 4 * 1024;
+        # >= RAM (16 GiB) so it can hold a hibernation image (see hibernate.nix).
+        size = 20 * 1024;
       }
     ];
   };
