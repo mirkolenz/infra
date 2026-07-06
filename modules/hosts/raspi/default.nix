@@ -15,7 +15,6 @@ in
         nixos.default
         "${inputs.nixos-hardware}/raspberry-pi/4"
       ];
-      nixpkgs.hostPlatform = "aarch64-linux";
 
       # TODO: Work around https://github.com/NixOS/nixos-hardware/issues/1920: for kernel >=6.18
       # nixpkgs common-config enables PREEMPT_LAZY while nixos-hardware forces PREEMPT, leaving

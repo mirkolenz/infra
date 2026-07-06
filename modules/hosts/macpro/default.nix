@@ -21,7 +21,6 @@ in
         "${inputs.nixos-hardware}/common/gpu/amd"
         "${inputs.nixos-hardware}/common/pc/ssd"
       ];
-      nixpkgs.hostPlatform = "x86_64-linux";
 
       custom.features.unattended.enable = true;
 
