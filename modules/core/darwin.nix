@@ -9,6 +9,10 @@
       ...
     }:
     {
+      documentation = {
+        doc.enable = false;
+      };
+
       environment.systemPackages = with pkgs; [
         libvirt
         virt-viewer
