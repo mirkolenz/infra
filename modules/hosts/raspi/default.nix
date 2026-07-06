@@ -9,31 +9,11 @@ let
 in
 {
   configurations.nixos.raspi.module =
-    { pkgs, lib, ... }:
+    { pkgs, ... }:
     {
       imports = [
         nixos.default
         "${inputs.nixos-hardware}/raspberry-pi/4"
-      ];
-
-      # TODO: Work around https://github.com/NixOS/nixos-hardware/issues/1920: for kernel >=6.18
-      # nixpkgs common-config enables PREEMPT_LAZY while nixos-hardware forces PREEMPT, leaving
-      # two answers in the preemption-model choice and tripping the strict generate-config.pl
-      # check. The rpi kernel hardcodes its patches and structured config, so the only injection
-      # point is buildLinux: drop PREEMPT_LAZY there and keep nixos-hardware's PREEMPT.
-      nixpkgs.overlays = [
-        (_: prev: {
-          buildLinux =
-            args:
-            prev.buildLinux (
-              args
-              // {
-                structuredExtraConfig = args.structuredExtraConfig or { } // {
-                  PREEMPT_LAZY = lib.mkForce lib.kernel.no;
-                };
-              }
-            );
-        })
       ];
 
       custom.features.unattended.enable = true;
