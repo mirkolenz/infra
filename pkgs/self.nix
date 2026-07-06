@@ -1,11 +1,11 @@
-{
-  inputs,
-  self,
-  lib',
-  system,
-  ...
-}:
+final: prev:
 let
+  inherit (prev.stdenv.hostPlatform) system;
+  inherit (final)
+    inputs
+    self
+    lib'
+    ;
   os = lib'.systemOs system;
   nixpkgsArgs = {
     inherit system;

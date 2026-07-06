@@ -1,8 +1,11 @@
-args@{ inputs, lib', ... }:
+{
+  self,
+  inputs,
+  lib',
+}:
 final: prev:
 let
   inherit (prev) lib;
-  inherit (prev.stdenv.hostPlatform) system;
 
   # callPackage-style packages from ./by-name; subdirectories form nested scopes (e.g. vimPlugins)
   byName = lib.packagesFromDirectoryRecursive {
@@ -38,7 +41,7 @@ lib.mergeAttrsList [
   (inputs.nix-darwin.overlays.default final prev)
 
   # pinned nixpkgs instances + determinate-nix
-  (import ./self.nix (args // { inherit system; }))
+  (import ./self.nix final prev)
 
   # overrides/ fragments
   overrides
@@ -52,6 +55,7 @@ lib.mergeAttrsList [
   # internal passthrough (inputs / prev / custom / lib')
   {
     inherit
+      self
       inputs
       prev
       custom
