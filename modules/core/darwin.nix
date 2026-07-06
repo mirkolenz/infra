@@ -13,6 +13,9 @@
         doc.enable = false;
       };
 
+      # todo: html manual broken as of 2026-07-06
+      system.tools.darwin-uninstaller.enable = false;
+
       environment.systemPackages = with pkgs; [
         libvirt
         virt-viewer
