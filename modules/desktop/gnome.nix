@@ -17,12 +17,10 @@
         services = {
           displayManager.gdm.enable = true;
           desktopManager.gnome.enable = true;
-          gnome.core-utilities.enable = true;
+          gnome.core-apps.enable = true;
         };
 
         programs.dconf.enable = true;
-
-        security.pam.services.gdm.enableGnomeKeyring = true;
 
         environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
@@ -113,7 +111,10 @@
           };
 
           "org/gnome/mutter" = {
-            experimental-features = [ "scale-monitor-framebuffer" ];
+            experimental-features = [
+              "scale-monitor-framebuffer"
+              "xwayland-native-scaling"
+            ];
           };
 
           "org/gnome/shell/extensions/dash-to-dock" = {
