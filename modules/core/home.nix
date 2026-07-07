@@ -48,6 +48,7 @@ in
   flake.modules.homeManager.linux.imports = [
     modules.homeManager.default
     inputs.cosmic-manager.homeManagerModules.default
+    inputs.plasma-manager.homeModules.plasma-manager
   ];
 
   flake.modules.homeManager.darwin.imports = [

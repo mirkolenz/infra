@@ -22,6 +22,7 @@
           lib.types.enum [
             "cosmic"
             "gnome"
+            "plasma"
             "xfce"
           ]
         );
