@@ -36,9 +36,9 @@
       # (not a partition) the kernel also needs its physical offset, which only
       # exists once the 20 GiB /swapfile has been created and changes if it is ever
       # recreated. NixOS provides no option for this, so after the first rebuild run
-      #   sudo btrfs inspect-internal map-swapfile -r /swapfile
-      # and add the value below, then rebuild again:
-      #   boot.kernelParams = [ "resume_offset=<value>" ];
+      # the following command and add the value below, then rebuild again:
+      # sudo btrfs inspect-internal map-swapfile -r /swapfile
+      boot.kernelParams = [ "resume_offset=10599087" ];
       boot.resumeDevice = "/dev/mapper/cryptroot";
     };
 }
