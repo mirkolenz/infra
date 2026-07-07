@@ -3,7 +3,6 @@
     { pkgs, ... }:
     {
       boot.kernelParams = [
-        "i915.modeset=0"
         # Deep C-states hard-freeze this MacBookPro11,3 (Haswell i7-4980HQ) on
         # idle, so cap them. C1E (max_cstate=2) is safe but saves almost no power;
         # C6 (index 4) power-gates the core for real idle savings while staying
