@@ -39,7 +39,13 @@
       ...
     }:
     lib.mkIf config.custom.features.graphical.enable {
-      services.xserver.xkb.layout = "us";
+      services.xserver.xkb = {
+        layout = "us";
+        options = "caps:escape";
+      };
+
+      # Apply the same XKB remapping to the virtual consoles (TTYs).
+      console.useXkbConfig = true;
 
       users.users.${config.custom.user.login}.extraGroups = [ "networkmanager" ];
     };
