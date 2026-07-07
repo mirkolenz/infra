@@ -15,6 +15,11 @@
         wifi.backend = "iwd";
       };
 
+      # NetworkManager owns the interfaces here, so networkd manages nothing and
+      # its wait-online times out and fails the rebuild.
+      # NetworkManager-wait-online.service already gates network-online.target.
+      systemd.network.wait-online.enable = false;
+
       nix.settings.trusted-users = [ "@wheel" ];
 
       programs.nix-ld.enable = true;
