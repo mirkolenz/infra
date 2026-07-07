@@ -288,16 +288,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1782308245,
-        "narHash": "sha256-/WnsUO1DuSmBfVo8LCFaDJEZvSrYnJZPyRNqASbPzV8=",
+        "lastModified": 1783441162,
+        "narHash": "sha256-pdoH9jpoecI1M6CqbSZXSKwuTOTSqotI8L25rvWVVmI=",
         "owner": "ogulcancelik",
         "repo": "herdr",
-        "rev": "dbc45f6306bda3eee681d73a14b48ffbb39f3fcc",
+        "rev": "199c27609c08a253a884eeba8331449b0b1a71a4",
         "type": "github"
       },
       "original": {
         "owner": "ogulcancelik",
-        "ref": "v0.7.1",
+        "ref": "v0.7.2",
         "repo": "herdr",
         "type": "github"
       }
@@ -343,11 +343,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1783388784,
-        "narHash": "sha256-w+YU5vatysjLZIg1wOKSzo/RL9Z66eBQuIjVnBM/1Zg=",
+        "lastModified": 1783436070,
+        "narHash": "sha256-F80z1JoiJgZyTT5D+3siLOVzqmCEphLR7t0Ym/I2CLI=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "63d02d1c19f1c2b47a5bc7e55c620b6af7b218a6",
+        "rev": "f09af49406ffad37acb6538d3207189a1a1e0b7e",
         "type": "github"
       },
       "original": {
