@@ -17,7 +17,7 @@ in
     ];
 
     custom.features = {
-      graphical.desktopManager = "xfce";
+      graphical.desktopManager = "gnome";
       extras.enable = true;
     };
 
