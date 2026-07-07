@@ -143,6 +143,17 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+    vicinae = {
+      url = "github:vicinaehq/vicinae";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    vicinae-extensions = {
+      url = "github:vicinaehq/extensions";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        vicinae.follows = "vicinae";
+      };
+    };
     # keep-sorted end
   };
 
