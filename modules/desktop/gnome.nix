@@ -40,8 +40,9 @@
       gv = lib.hm.gvariant;
 
       extensions = with pkgs.gnomeExtensions; [
-        dash-to-dock
         blur-my-shell
+        dash-to-dock
+        rounded-window-corners-reborn
       ];
     in
     lib.mkIf
