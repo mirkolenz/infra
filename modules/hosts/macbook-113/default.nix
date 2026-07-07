@@ -17,7 +17,7 @@ in
     ];
 
     custom.features = {
-      graphical.desktopManager = "cosmic";
+      graphical.desktopManager = "xfce";
       extras.enable = true;
     };
 
