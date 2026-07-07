@@ -20,7 +20,6 @@
       systemd.enableStrictShellChecks = true;
 
       documentation = {
-        doc.enable = false;
         nixos.enable = false;
         # this is slow
         man.cache.enable = false;
