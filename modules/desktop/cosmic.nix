@@ -40,6 +40,25 @@
         wayland.desktopManager.cosmic = {
           enable = true;
           appearance.theme.mode = "dark";
+          # Written to configFile directly rather than via the higher-level
+          # `shortcuts` option, whose action type builds a regex with a lazy
+          # quantifier that Nix's POSIX regex engine rejects.
+          configFile."com.system76.CosmicSettings.Shortcuts" = {
+            version = 1;
+            entries.custom = cosmicLib.cosmic.mkRON "map" [
+              {
+                key = {
+                  modifiers = [ (cosmicLib.cosmic.mkRON "enum" "Ctrl") ];
+                  key = "space";
+                  description = cosmicLib.cosmic.mkRON "optional" "Toggle Vicinae";
+                };
+                value = cosmicLib.cosmic.mkRON "enum" {
+                  variant = "Spawn";
+                  value = [ "vicinae vicinae://toggle" ];
+                };
+              }
+            ];
+          };
           wallpapers = [
             {
               filter_by_theme = true;

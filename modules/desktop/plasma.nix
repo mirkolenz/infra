@@ -47,6 +47,12 @@
         programs.plasma = {
           enable = true;
 
+          hotkeys.commands."toggle-vicinae" = {
+            name = "Toggle Vicinae";
+            key = "Ctrl+Space";
+            command = "vicinae vicinae://toggle";
+          };
+
           workspace = {
             clickItemTo = "select";
             lookAndFeel = "org.kde.breezedark.desktop";

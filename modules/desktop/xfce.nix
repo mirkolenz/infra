@@ -53,6 +53,10 @@
             "general/theme" = "Default";
             "general/title_font" = "Inter Bold 11";
           };
+
+          xfce4-keyboard-shortcuts = {
+            "commands/custom/<Primary>space" = "vicinae vicinae://toggle";
+          };
         };
       };
 }

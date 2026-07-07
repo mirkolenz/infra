@@ -44,6 +44,21 @@
         dash-to-dock
         rounded-window-corners-reborn
       ];
+
+      # GNOME stores command shortcuts at indexed custom-keybinding subpaths that
+      # must also be listed in `custom-keybindings`; this maps a friendlier attrset
+      # of shortcuts (keyed by a slug) onto both the list and the per-shortcut keys.
+      mediaKeys = "org/gnome/settings-daemon/plugins/media-keys";
+      mkCustomKeybindings =
+        shortcuts:
+        {
+          "${mediaKeys}".custom-keybindings = lib.mapAttrsToList (
+            slug: _: "/${mediaKeys}/custom-keybindings/${slug}/"
+          ) shortcuts;
+        }
+        // lib.mapAttrs' (
+          slug: value: lib.nameValuePair "${mediaKeys}/custom-keybindings/${slug}" value
+        ) shortcuts;
     in
     lib.mkIf
       (
@@ -124,6 +139,13 @@
             dash-max-icon-size = 42;
             intellihide = false;
             disable-overview-on-startup = true;
+          };
+        }
+        // mkCustomKeybindings {
+          vicinae = {
+            name = "Toggle Vicinae";
+            command = "vicinae vicinae://toggle";
+            binding = "<Control>space";
           };
         };
       };
