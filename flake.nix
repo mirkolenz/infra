@@ -44,11 +44,11 @@
       };
     };
     herdr = {
-      url = "github:ogulcancelik/herdr/v0.7.2";
+      url = "github:ogulcancelik/herdr/v0.7.3";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     hermes-agent = {
-      url = "github:nousresearch/hermes-agent/v2026.7.1";
+      url = "github:nousresearch/hermes-agent/v2026.7.7.2";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
