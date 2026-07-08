@@ -63,9 +63,14 @@ def run_logged(cmd: list[str], *, check: bool = True) -> int:
     return subprocess.run(cmd, check=check).returncode
 
 
+def nix_argv(nix_exe: str, *args: str) -> list[str]:
+    """Build a `nix` argv with the standard flags prepended."""
+    return [nix_exe, *NIX_FLAGS, *args]
+
+
 def nix_eval_json(nix_exe: str, *args: str) -> Any:
     """Evaluate a nix expression to JSON and parse it."""
-    return json.loads(subprocess_stdout([nix_exe, *NIX_FLAGS, "eval", "--json", *args]))
+    return json.loads(subprocess_stdout(nix_argv(nix_exe, "eval", "--json", *args)))
 
 
 def nix_eval_dict(nix_exe: str, *args: str) -> dict[str, str]:
@@ -88,15 +93,7 @@ def nix_eval_dict(nix_exe: str, *args: str) -> dict[str, str]:
 def nix_path_info(nix_exe: str, cache: str, paths: Iterable[str]) -> dict[str, object]:
     entries = json.loads(
         subprocess_stdout(
-            [
-                nix_exe,
-                *NIX_FLAGS,
-                "path-info",
-                "--json",
-                "--store",
-                cache,
-                *paths,
-            ]
+            nix_argv(nix_exe, "path-info", "--json", "--store", cache, *paths)
         )
     )
 
@@ -132,7 +129,7 @@ def build_uncached(
         err=True,
     )
     refs = [f'{flake}#"{name}"' for name in uncached]
-    run_logged([nix_exe, *NIX_FLAGS, "build", *refs, *extra], check=check)
+    run_logged(nix_argv(nix_exe, "build", *refs, *extra), check=check)
     return uncached
 
 
@@ -161,22 +158,7 @@ def main(
     hash_path: Annotated[str | None, typer.Option()] = None,
     update_path: Annotated[str | None, typer.Option()] = None,
 ):
-    ctx.obj = Config(
-        flake=flake,
-        nix_exe=nix_exe,
-        git_exe=git_exe,
-        gh_exe=gh_exe,
-        update_scripts_nix=update_scripts_nix,
-        nixd_exe=nixd_exe,
-        darwin_builder=darwin_builder,
-        linux_builder=linux_builder,
-        home_builder=home_builder,
-        cache=cache,
-        impure_attr=impure_attr,
-        build_path=build_path,
-        hash_path=hash_path,
-        update_path=update_path,
-    )
+    ctx.obj = Config(**ctx.params)
     if ctx.invoked_subcommand is None:
         build_config(ctx)
 
@@ -321,12 +303,7 @@ def update_flake(
     else:
         typer.echo("No changes needed", err=True)
 
-    nix_cmd = [
-        cfg.nix_exe,
-        *NIX_FLAGS,
-        "flake",
-        "update" if update else "lock",
-    ]
+    nix_cmd = nix_argv(cfg.nix_exe, "flake", "update" if update else "lock")
     if commit:
         nix_cmd.append("--commit-lock-file")
     run_logged(nix_cmd)
@@ -340,13 +317,12 @@ def update_flake(
     if cfg.update_path and cfg.update_scripts_nix:
         typer.echo("Verifying the updated flake still evaluates...", err=True)
         subprocess_stdout(
-            [
+            nix_argv(
                 cfg.nix_exe,
-                *NIX_FLAGS,
                 "eval",
                 "--impure",
                 *update_scripts_args(cfg.update_scripts_nix, "names", cfg.update_path),
-            ]
+            )
         )
 
     run_fix_hashes = True
@@ -471,15 +447,14 @@ def discover_update_scripts(
     updateScripts edit package files in place.
     """
     out = subprocess_stdout(
-        [
+        nix_argv(
             nix_exe,
-            *NIX_FLAGS,
             "build",
             "--impure",
             *update_scripts_args(update_scripts_nix, "manifest", attr_path),
             "--no-link",
             "--print-out-paths",
-        ]
+        )
     )
 
     return {
@@ -497,14 +472,13 @@ def eval_versions(
     realizes nothing (unlike the manifest).
     """
     out = subprocess_stdout(
-        [
+        nix_argv(
             nix_exe,
-            *NIX_FLAGS,
             "eval",
             "--impure",
             "--json",
             *update_scripts_args(update_scripts_nix, "versions", attr_path),
-        ]
+        )
     )
 
     return json.loads(out)
