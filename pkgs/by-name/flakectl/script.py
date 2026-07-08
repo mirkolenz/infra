@@ -38,6 +38,7 @@ class Config:
     build_path: str | None
     hash_path: str | None
     update_path: str | None
+    max_workers: int
 
 
 def subprocess_stdout(cmd: list[str]) -> str:
@@ -107,7 +108,9 @@ def path_in_cache(nix_exe: str, cache: str, path: str) -> bool:
     )
 
 
-def cached_paths(nix_exe: str, cache: str, paths: Iterable[str]) -> set[str]:
+def cached_paths(
+    nix_exe: str, cache: str, paths: Iterable[str], max_workers: int
+) -> set[str]:
     """Return the subset of `paths` already present in the binary `cache`.
 
     A single `nix path-info --store <cache>` aborts on the first path it cannot
@@ -129,7 +132,7 @@ def cached_paths(nix_exe: str, cache: str, paths: Iterable[str]) -> set[str]:
     check = functools.partial(path_in_cache, nix_exe, cache)
 
     with concurrent.futures.ThreadPoolExecutor(
-        max_workers=min(len(paths), 16)
+        max_workers=min(len(paths), max_workers)
     ) as pool:
         return {path for path, ok in zip(paths, pool.map(check, paths)) if ok}
 
@@ -139,13 +142,14 @@ def build_uncached(
     flake: str,
     cache: str | None,
     pkgs2path: dict[str, str],
+    max_workers: int,
     extra: Sequence[str] = (),
     *,
     check: bool = True,
 ) -> list[str]:
     """Build any of `pkgs2path` not yet present in `cache`; return their names."""
     if cache:
-        cached = cached_paths(nix_exe, cache, pkgs2path.values())
+        cached = cached_paths(nix_exe, cache, pkgs2path.values(), max_workers)
         uncached = [name for name, path in pkgs2path.items() if path not in cached]
     else:
         uncached = list(pkgs2path.keys())
@@ -187,6 +191,7 @@ def main(
     build_path: Annotated[str | None, typer.Option()] = None,
     hash_path: Annotated[str | None, typer.Option()] = None,
     update_path: Annotated[str | None, typer.Option()] = None,
+    max_workers: Annotated[int, typer.Option()] = 8,
 ):
     ctx.obj = Config(**ctx.params)
     if ctx.invoked_subcommand is None:
@@ -360,7 +365,9 @@ def update_flake(
     if path:
         pkgs2path = nix_eval_dict(cfg.nix_exe, f"{cfg.flake}#{path}")
         # Tolerate build failures — fix-hashes runs next and may resolve them.
-        uncached = build_uncached(cfg.nix_exe, cfg.flake, cache, pkgs2path, check=False)
+        uncached = build_uncached(
+            cfg.nix_exe, cfg.flake, cache, pkgs2path, cfg.max_workers, check=False
+        )
         run_fix_hashes = bool(uncached)
 
     if run_fix_hashes:
@@ -405,7 +412,7 @@ def build_pkgs(
     if dry_run:
         raise typer.Exit(0)
 
-    build_uncached(cfg.nix_exe, cfg.flake, cache, pkgs2path, ctx.args)
+    build_uncached(cfg.nix_exe, cfg.flake, cache, pkgs2path, cfg.max_workers, ctx.args)
 
 
 @dataclass(frozen=True, slots=True)
@@ -530,7 +537,6 @@ def revert_pkgs(git_exe: str, scripts: Iterable[UpdateScript]) -> None:
 def update_pkgs(
     ctx: typer.Context,
     package: Annotated[str | None, typer.Option("--package", "-p")] = None,
-    max_workers: Annotated[int, typer.Option()] = 8,
     commit: Annotated[bool, typer.Option("--commit", "-c")] = False,
     dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
 ):
@@ -566,7 +572,7 @@ def update_pkgs(
     succeeded: set[str] = set()
 
     with concurrent.futures.ThreadPoolExecutor(
-        max_workers=min(len(scripts), max_workers)
+        max_workers=min(len(scripts), cfg.max_workers)
     ) as pool:
         futures = {pool.submit(script.run): key for key, script in scripts.items()}
 
