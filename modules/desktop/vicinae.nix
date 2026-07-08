@@ -10,6 +10,10 @@
       inputs,
       ...
     }:
+    let
+      inherit (pkgs.stdenv.hostPlatform) system;
+      vicinaeExtensions = inputs.vicinae-extensions.packages.${system};
+    in
     lib.mkIf config.custom.features.graphical.enable {
       programs.vicinae = {
         enable = true;
@@ -19,9 +23,14 @@
           autoStart = true;
         };
 
-        extensions = with inputs.vicinae-extensions.packages.${pkgs.stdenv.hostPlatform.system}; [
-          nix
-        ];
+        extensions =
+          (with vicinaeExtensions; [
+            nix
+            zoxide-recent-directories
+          ])
+          ++ (with pkgs.raycastExtensions; [
+            _1password
+          ]);
 
         settings = {
           theme = {
