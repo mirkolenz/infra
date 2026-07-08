@@ -25,7 +25,7 @@ jobs:
         with:
           name: mirkolenz
           authToken: ${{ secrets.CACHIX_TOKEN }}
-      - run: nix flake check --all-systems --no-build --show-trace
+      - run: nix flake check --no-build --show-trace
       - run: nix fmt -- --ci
   check-systems:
     name: check-${{ matrix.system }}
