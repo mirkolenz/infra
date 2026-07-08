@@ -1,9 +1,15 @@
 # https://github.com/NixOS/nixpkgs/blob/master/ci/default.nix
 {
   perSystem =
-    { config, pkgs, ... }:
+    {
+      config,
+      pkgs,
+      system,
+      ...
+    }:
     {
       treefmt = {
+        flakeCheck = system == "x86_64-linux";
         projectRootFile = "flake.nix";
         programs = {
           # keep-sorted start
