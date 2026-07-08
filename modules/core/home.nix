@@ -31,6 +31,7 @@ in
         inputs.nix-index-database.homeModules.nix-index
         inputs.nixvim.homeModules.nixvim
         inputs.opnix.homeManagerModules.default
+        inputs.vicinae.homeManagerModules.default
         (inputs.import-tree ../../options/home-manager)
         (inputs.import-tree ../../options/shared)
       ];

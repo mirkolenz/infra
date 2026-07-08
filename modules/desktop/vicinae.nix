@@ -2,7 +2,7 @@
 # every Linux desktop. Runs as a user systemd service that autostarts with the
 # graphical session. https://docs.vicinae.com/nixos
 {
-  flake.modules.homeManager.linux =
+  flake.modules.homeManager.default =
     {
       lib,
       pkgs,
