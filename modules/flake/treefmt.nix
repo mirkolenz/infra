@@ -1,15 +1,12 @@
 # https://github.com/NixOS/nixpkgs/blob/master/ci/default.nix
 {
   perSystem =
-    {
-      config,
-      pkgs,
-      system,
-      ...
-    }:
+    { config, pkgs, ... }:
     {
       treefmt = {
-        flakeCheck = system == "x86_64-linux";
+        # Formatting is platform-independent, so it is verified once in CI via
+        # `nix fmt -- --ci` rather than redundantly per system as a flake check.
+        flakeCheck = false;
         projectRootFile = "flake.nix";
         programs = {
           # keep-sorted start
