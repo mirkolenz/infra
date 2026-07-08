@@ -1,4 +1,5 @@
 import concurrent.futures
+import functools
 import getpass
 import json
 import os
@@ -90,18 +91,47 @@ def nix_eval_dict(nix_exe: str, *args: str) -> dict[str, str]:
     return entries
 
 
-def nix_path_info(nix_exe: str, cache: str, paths: Iterable[str]) -> dict[str, object]:
-    entries = json.loads(
-        subprocess_stdout(
-            nix_argv(nix_exe, "path-info", "--json", "--store", cache, *paths)
-        )
+def path_in_cache(nix_exe: str, cache: str, path: str) -> bool:
+    """Whether `path` is present in the binary `cache` itself.
+
+    Substituters are disabled so the exit code reflects true membership of
+    `cache`, not whether some other cache could supply the path."""
+    return (
+        subprocess.run(
+            nix_argv(
+                nix_exe, "path-info", "--store", cache, "--substituters", "", path
+            ),
+            capture_output=True,
+        ).returncode
+        == 0
     )
 
-    if not isinstance(entries, dict):
-        typer.echo(f"Failed to query cache {cache}", err=True)
+
+def cached_paths(nix_exe: str, cache: str, paths: Iterable[str]) -> set[str]:
+    """Return the subset of `paths` already present in the binary `cache`.
+
+    A single `nix path-info --store <cache>` aborts on the first path it cannot
+    resolve, so query each path on its own via `path_in_cache` and keep the ones
+    that are present."""
+    paths = list(paths)
+
+    if not paths:
+        return set()
+
+    # Probe reachability first: otherwise an unreachable cache reads as every
+    # path missing and silently rebuilds everything instead of failing loudly.
+    if subprocess.run(
+        nix_argv(nix_exe, "store", "info", "--store", cache), capture_output=True
+    ).returncode:
+        typer.echo(f"Cache {cache} is unreachable.", err=True)
         raise typer.Exit(1)
 
-    return entries
+    check = functools.partial(path_in_cache, nix_exe, cache)
+
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=min(len(paths), 16)
+    ) as pool:
+        return {path for path, ok in zip(paths, pool.map(check, paths)) if ok}
 
 
 def build_uncached(
@@ -115,8 +145,8 @@ def build_uncached(
 ) -> list[str]:
     """Build any of `pkgs2path` not yet present in `cache`; return their names."""
     if cache:
-        info = nix_path_info(nix_exe, cache, pkgs2path.values())
-        uncached = [name for name, path in pkgs2path.items() if info.get(path) is None]
+        cached = cached_paths(nix_exe, cache, pkgs2path.values())
+        uncached = [name for name, path in pkgs2path.items() if path not in cached]
     else:
         uncached = list(pkgs2path.keys())
 
