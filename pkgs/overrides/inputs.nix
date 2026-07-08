@@ -11,5 +11,5 @@ in
   hermes-agent = lib'.disableHydra (fromInput "hermes-agent" "default");
   mistral-vibe = lib'.disableHydra (fromInput "mistral-vibe" "default");
   opnix = fromInput "opnix" "default";
-  vicinae = fromInput "vicinae" "default";
+  vicinae = lib'.disableHydra (fromInput "vicinae" "default");
 }
