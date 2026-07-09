@@ -359,11 +359,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1783550008,
-        "narHash": "sha256-qbbZUk9IG9dLNwCPwdPBs6I5clxwugRpP+1YU+GPK20=",
+        "lastModified": 1783618078,
+        "narHash": "sha256-F43DGcBoIO8xOZFAfodg3jy0VghB9NGdb6xbTYAIx1A=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "f4d01c1d87c7c2ec909549165d5a8338f1bd3315",
+        "rev": "144f4e36d0186195037da9fce80a727108978070",
         "type": "github"
       },
       "original": {
@@ -404,16 +404,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1783088105,
-        "narHash": "sha256-PODG/SQsZsixBz/j+k8ALBhXS1fPg3v/o6TXkTyzSIQ=",
+        "lastModified": 1783597104,
+        "narHash": "sha256-+Ntt+uuxEFT4BuFmEAXo6M0tF9E9qrdZb0p3m0JjCao=",
         "owner": "mistralai",
         "repo": "mistral-vibe",
-        "rev": "474a0e4055b210a60c39ed0c89458d904b7f6a7b",
+        "rev": "30792a4cac2c2e5173c6b5a98739fbbf36324545",
         "type": "github"
       },
       "original": {
         "owner": "mistralai",
-        "ref": "v2.19.0",
+        "ref": "v2.19.1",
         "repo": "mistral-vibe",
         "type": "github"
       }
@@ -486,11 +486,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1783370751,
-        "narHash": "sha256-E+3MIMvKuo9k+K+qLQ9YXzsBzkgHuyVLnsEbN2DFfuc=",
+        "lastModified": 1783582157,
+        "narHash": "sha256-EteIu2AVVbxzkBnBKjrbdknbpjxBkWTMNg02rXj4mgU=",
         "owner": "nixos",
         "repo": "nixos-hardware",
-        "rev": "662bd6e312d2c8b212e32cb377abaee190749320",
+        "rev": "968980fba2c290b5529025636474eae8457b854c",
         "type": "github"
       },
       "original": {
@@ -643,11 +643,11 @@
         "systems": "systems_3"
       },
       "locked": {
-        "lastModified": 1783544129,
-        "narHash": "sha256-qN9Z9Tw6sPp1vLeEz0RfrsiBOYS1yP+3919S+Gy8sYQ=",
+        "lastModified": 1783618792,
+        "narHash": "sha256-CIvxoB4CraboX/Rq6xqENLexorkCjWiU4AUwNhueXI0=",
         "owner": "nix-community",
         "repo": "nixvim",
-        "rev": "6d1424cefd041c595a517ee9f46adcb250938e24",
+        "rev": "511a763e20ca8a39c4182c046074cc772b9d29d5",
         "type": "github"
       },
       "original": {
