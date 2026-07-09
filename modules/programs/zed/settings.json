@@ -7,8 +7,11 @@
     "use_modifier_to_send": false,
     "play_sound_when_agent_done": "always",
     "default_model": {
-      "provider": "copilot_chat",
-      "model": "gpt-5.4"
+      "effort": "xhigh",
+      "enable_thinking": true,
+      "provider": "zed.dev",
+      "model": "claude-sonnet-5",
+      "speed": "standard"
     },
     "default_width": 640,
     "default_height": 320
@@ -94,6 +97,7 @@
     "Jinja2": ["j2", "jinja2", "jinja"],
     "Plain Text": ["jjdescription"]
   },
+  "format_on_save": "on",
   "git": {
     "inline_blame": {
       "enabled": false
@@ -116,6 +120,11 @@
     "enabled": true,
     "show_background": true,
     "edit_debounce_ms": 300
+  },
+  "language_models": {
+    "llama.cpp": {
+      "api_url": "http://localhost:18000"
+    }
   },
   "languages": {
     // keep-sorted start block=yes
