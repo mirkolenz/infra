@@ -15,27 +15,28 @@
         # https://developers.openai.com/codex/config-reference
         # https://developers.openai.com/codex/config-schema.json
         settings = {
-          model = "gpt-5.5";
-          commit_attribution = "";
+          model = "gpt-5.6-sol";
           model_reasoning_effort = "xhigh";
           plan_mode_reasoning_effort = "xhigh";
           approval_policy = "on-request";
           approvals_reviewer = "auto_review";
           file_opener = "none";
-          preferred_auth_method = "chatgpt";
+          forced_login_method = "chatgpt";
           check_for_update_on_startup = false;
           personality = "pragmatic";
           web_search = "live";
-          default_permissions = "default";
-          permissions.default = {
+          service_tier = "default";
+          memories = {
+            generate_memories = false;
+            use_memories = false;
+          };
+          # https://developers.openai.com/codex/permissions
+          default_permissions = "workspace-net";
+          permissions.workspace-net = {
+            # :workspace grants writable workspace roots, read-only .git/.codex within
+            # them, :minimal read access, and write to :tmpdir and :slash_tmp (/tmp).
+            extends = ":workspace";
             filesystem = {
-              ":minimal" = "read";
-              ":workspace_roots" = {
-                "." = "write";
-                ".git" = "read";
-              };
-              ":tmpdir" = "write";
-              "/tmp" = "write";
               "/nix" = "write";
               "${config.home.homeDirectory}/.npm" = "write";
               "${config.home.homeDirectory}/Library/Caches" = "write";
@@ -51,7 +52,6 @@
             };
             network = {
               enabled = true;
-              mode = "limited";
               allow_local_binding = true;
               domains = {
                 "github.com" = "allow";
@@ -73,10 +73,6 @@
               };
             };
           };
-          tools = {
-            view_image = true;
-            web_search = { };
-          };
           tui = {
             notifications = true;
             vim_mode_default = false;
@@ -93,13 +89,29 @@
               NIX_SENTRY_ENDPOINT = "";
             };
           };
-          # codex features list
-          # https://github.com/openai/codex/blob/main/codex-rs/features/src/lib.rs
-          features = {
-            fast_mode = false;
-            memories = false;
-            prevent_idle_sleep = true;
+          desktop = {
+            followUpQueueMode = "queue";
+            show-context-window-usage = true;
+            hotkey-window-projectless-default-enabled = true;
+            appearanceDarkCodeThemeId = "codex";
+            appearanceLightCodeThemeId = "codex";
+            usePointerCursors = false;
+            git-pull-request-merge-method = "squash";
+            mac-menu-bar-enabled = false;
+            open-in-target-preferences.global = "zed";
+            enabled-reasoning-efforts = [
+              "low"
+              "medium"
+              "high"
+              "xhigh"
+              "ultra"
+              "max"
+            ];
           };
+          # sandbox_mode = "workspace-write";
+          # sandbox_workspace_write = {
+          #   network_access = true;
+          # };
         };
       };
       # Codex writes trust decisions back to config.toml, which fails on a read-only
