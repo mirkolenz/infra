@@ -43,7 +43,7 @@
         treefmt-nix
         llm
         ghostscript
-        janice
+        # janice
         harper
         protobuf-language-server
         touying
