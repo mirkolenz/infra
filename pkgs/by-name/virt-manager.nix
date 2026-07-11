@@ -2,9 +2,10 @@
   lib,
   stdenv,
   makeBinaryWrapper,
-  prev,
+  stable,
 }:
-prev.virt-manager.overrideAttrs (oldAttrs: {
+# todo: switch to prev
+stable.virt-manager.overrideAttrs (oldAttrs: {
   nativeBuildInputs =
     (oldAttrs.nativeBuildInputs or [ ])
     ++ (lib.optional stdenv.hostPlatform.isDarwin makeBinaryWrapper);
