@@ -16,7 +16,7 @@
     in
     lib.mkIf config.custom.features.graphical.enable {
       programs.vicinae = {
-        enable = true;
+        enable = pkgs.stdenv.hostPlatform.isLinux;
 
         systemd = {
           enable = true;
