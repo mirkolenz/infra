@@ -14,7 +14,7 @@
 
     viAlias = true;
     vimAlias = true;
-    enableMan = true;
+    enableMan = false;
 
     withNodeJs = true;
     withPython3 = true;
