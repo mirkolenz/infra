@@ -13,7 +13,6 @@
         "betterdisplay"
         "chatgpt"
         "claude"
-        "codex-app"
         "cyberduck"
         "daisydisk"
         "default-folder-x"
