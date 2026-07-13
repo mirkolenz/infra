@@ -22,7 +22,7 @@
     in
     lib.mkIf config.custom.features.graphical.enable {
       programs.vicinae = {
-        enable = pkgs.stdenv.hostPlatform.isLinux;
+        enable = pkgs.stdenv.hostPlatform.isLinux; # todo: set to true
 
         systemd = {
           enable = true;

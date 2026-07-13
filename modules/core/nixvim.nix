@@ -14,7 +14,7 @@
 
     viAlias = true;
     vimAlias = true;
-    enableMan = false;
+    enableMan = false; # todo: enable
 
     withNodeJs = true;
     withPython3 = true;

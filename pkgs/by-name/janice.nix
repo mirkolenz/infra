@@ -37,6 +37,6 @@ buildGoModule (finalAttrs: {
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ mirkolenz ];
     mainProgram = "janice";
-    broken = true;
+    broken = true; # todo: remove
   };
 })
