@@ -21,14 +21,6 @@ jobs:
             eval-cores = 1
             log-lines = 200
             max-jobs = 1
-      # small eval store: cache /nix and the eval cache
-      - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7
-        with:
-          primary-key: nix-eval-x86_64-linux-${{ hashFiles('flake.lock', '**/*.nix') }}
-          restore-prefixes-first-match: nix-eval-x86_64-linux-
-          paths: |
-            /nix
-            ~/.cache/nix
       - uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: mirkolenz
@@ -63,13 +55,6 @@ jobs:
             keep-going = true
             log-lines = 200
             max-jobs = 1
-      # closure exceeds the 10 GB cache limit: cache only the eval cache, not /nix
-      - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7
-        with:
-          nix: false
-          primary-key: nix-build-${{ matrix.system }}-${{ hashFiles('flake.lock', '**/*.nix') }}
-          restore-prefixes-first-match: nix-build-${{ matrix.system }}-
-          paths: ~/.cache/nix
       - uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: mirkolenz

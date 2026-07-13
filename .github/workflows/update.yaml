@@ -28,12 +28,6 @@ jobs:
           extra-conf: |
             accept-flake-config = true
             commit-lock-file-summary = chore(deps/nix): update
-      # restore-only warm start; the resulting PR's checks.yaml run feeds the cache
-      - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7
-        with:
-          primary-key: nix-eval-x86_64-linux-${{ hashFiles('flake.lock', '**/*.nix') }}
-          restore-prefixes-first-match: nix-eval-x86_64-linux-
-          save: false
       - run: nix run . -- update-all --commit
         env:
           GH_TOKEN: ${{ github.token }}
