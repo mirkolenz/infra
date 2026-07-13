@@ -36,6 +36,7 @@
         "raindropio"
         "raycast"
         "rode-central"
+        "signal"
         "skim"
         "soundsource"
         "stats"
