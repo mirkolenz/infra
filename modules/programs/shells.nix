@@ -16,12 +16,6 @@
             ${lib.getExe config.programs.macchina.package}
           end
         '';
-        # Fish lacks the `sudo ` alias trick, so re-expose every command alias
-        # (ll, la, ... set by the eza module) as a sudo-scoped abbreviation.
-        shellAbbrs = lib.mapAttrs (_: expansion: {
-          command = "sudo";
-          inherit expansion;
-        }) (lib.filterAttrs (name: _: name != "sudo") config.programs.bash.shellAliases);
       };
       xdg.configFile = {
         "fish/themes/flexoki-dark.theme".source = "${pkgs.flexoki}/share/fish/flexoki-dark.theme";
