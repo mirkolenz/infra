@@ -2,6 +2,12 @@
 # every Linux desktop. Runs as a user systemd service that autostarts with the
 # graphical session. https://docs.vicinae.com/nixos
 {
+  flake.modules.nixos.base =
+    { config, ... }:
+    {
+      programs.vicinae.input-server.enable = config.custom.features.graphical.enable;
+    };
+
   flake.modules.homeManager.default =
     {
       lib,
