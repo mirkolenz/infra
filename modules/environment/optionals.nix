@@ -43,6 +43,7 @@
         treefmt-nix
         llm
         ghostscript
+        grype
         # janice
         harper
         protobuf-language-server
@@ -68,6 +69,8 @@
         nixos-render-docs
         nix-converter
         nix-sweep
+        sbomnix
+        vulnix
         # go
         gopls
         delve
