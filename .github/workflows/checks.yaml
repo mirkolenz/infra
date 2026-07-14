@@ -25,8 +25,9 @@ jobs:
         with:
           name: mirkolenz
           authToken: ${{ secrets.CACHIX_TOKEN }}
-      - run: nix flake check --no-build --show-trace
       - run: nix fmt -- --ci
+      - if: ${{ !cancelled() }}
+        run: nix flake check --no-build --show-trace
   check-systems:
     name: check-${{ matrix.system }}
     runs-on: ${{ matrix.runner }}
