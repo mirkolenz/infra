@@ -2,6 +2,7 @@
   flake.modules.darwin.default =
     let
       caskApps = [
+        # "rode-central" # todo: broken as of 2026-07-15
         # keep-sorted start
         "1password"
         "1password-cli@beta"
@@ -35,7 +36,6 @@
         "presentation"
         "raindropio"
         "raycast"
-        "rode-central"
         "signal"
         "skim"
         "soundsource"
