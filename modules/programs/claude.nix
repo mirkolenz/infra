@@ -109,7 +109,7 @@
             allow = [
               "WebFetch"
               "WebSearch"
-              "Write(//nix/**/*)"
+              "Edit(//nix/**/*)"
             ];
             deny = [ ];
             ask = [ ];
