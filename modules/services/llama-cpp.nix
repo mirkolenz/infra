@@ -41,10 +41,8 @@
         # https://unsloth.ai/docs/models/qwen3.6
         "qwen3.6-35b-a3b" = {
           # keep-sorted start
-          hf-repo = "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_XL";
-          min-p = 0.00;
-          spec-draft-n-max = 4;
-          spec-type = "draft-mtp";
+          hf-repo = "unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_XL";
+          min-p = 0.0;
           temperature = 1.0;
           top-k = 20;
           top-p = 0.95;
@@ -52,10 +50,8 @@
         };
         "qwen3.6-27b" = {
           # keep-sorted start
-          hf-repo = "unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q4_K_XL";
-          min-p = 0.00;
-          spec-draft-n-max = 4;
-          spec-type = "draft-mtp";
+          hf-repo = "unsloth/Qwen3.6-27B-GGUF:UD-Q4_K_XL";
+          min-p = 0.0;
           temperature = 1.0;
           top-k = 20;
           top-p = 0.95;
