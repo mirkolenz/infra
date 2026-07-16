@@ -150,14 +150,6 @@ sudo /nix/nix-installer uninstall
 <summary>Shell</summary>
 
 - Copy `$HOME/.local/share/fish/fish_history`
-- Copy `$HOME/.ssh/id_ed25519`
-
-</details>
-<details>
-
-<summary>Zed</summary>
-
-- Copy keymap/settings/tasks from `$HOME/.config/zed`
 
 </details>
 
@@ -177,8 +169,6 @@ sudo /nix/nix-installer uninstall
 <summary>Raycast</summary>
 
 - `Settings > Advanced > Import/Export` (also set up new schedule)
-- `Settings > Account > Login`
-- `Settings > Extensions > Scripts > Plus`: iCloud Drive
 - `Launch > Manage Fallback Command`: Add Kagi
 
 </details>
@@ -209,13 +199,6 @@ sudo /nix/nix-installer uninstall
 <summary>Default Folder X</summary>
 
 - `Settings > Options > Sync settings via iCloud`
-
-</details>
-
-<details>
-<summary>iA Presenter</summary>
-
-- Move theme to `$HOME/Library/Containers/net.ia.presenter/Data/Library/Application Support/iA Presenter/Themes`
 
 </details>
 
