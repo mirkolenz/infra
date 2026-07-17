@@ -24,7 +24,8 @@ let
   ) scopes;
 
   # overlay-style fragments from ./overrides, each `final: prev: -> attrset`
-  overrides = lib'.importOverlays ./overrides final prev;
+  # these shadow nixpkgs packages, so their update scripts would target the wrong source
+  overrides = lib.mapAttrs (_: lib'.disableUpdateScript) (lib'.importOverlays ./overrides final prev);
 
   custom = {
     # flat derivations exposed via flake.packages and built in CI

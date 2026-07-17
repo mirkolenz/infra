@@ -8,9 +8,7 @@ prev.lib.genAttrs
   ]
   (
     name:
-    final.lib'.disableUpdateScript (
-      prev.${name}.override {
-        nix = final.determinate-nix;
-      }
-    )
+    prev.${name}.override {
+      nix = final.determinate-nix;
+    }
   )
