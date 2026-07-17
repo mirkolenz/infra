@@ -200,7 +200,7 @@
               makefile = "Zed";
               javascript = "Zed";
               python-script = "Zed";
-              # typescript = "Zed"; # todo: not yet released
+              # typescript = "Zed"; # not yet released
               # System types
               executable = "Ghostty";
               unix-executable = "Ghostty";
