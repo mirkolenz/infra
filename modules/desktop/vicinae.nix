@@ -22,7 +22,8 @@
     in
     lib.mkIf config.custom.features.graphical.enable {
       programs.vicinae = {
-        enable = pkgs.stdenv.hostPlatform.isLinux; # todo: set to true
+        enable = true;
+        package = if pkgs.stdenv.isDarwin then pkgs.writeShellScriptBin "vicinae" "true" else pkgs.vicinae;
 
         systemd = {
           enable = true;

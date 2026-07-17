@@ -44,6 +44,7 @@
         "sublime-merge"
         "tailscale-app"
         "tiptoi-manager"
+        "vicinae"
         "viscosity"
         "visual-studio-code"
         "vivaldi"
