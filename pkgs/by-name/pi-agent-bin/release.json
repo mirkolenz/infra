@@ -1,14 +1,14 @@
 {
-  "tag_name": "v0.80.7",
+  "tag_name": "v0.80.10",
   "assets": {
     "pi-darwin-arm64.tar.gz": {
-      "digest": "sha256:0f15771ef76ecd69b03e28fecf0c512593ff6e2477acf39e35bc2c8a4056d1e3"
+      "digest": "sha256:4406ed227c486f2e3c16cf14f793dc3ad46b5d01bf69135a2424cffa58a9a34b"
     },
     "pi-linux-arm64.tar.gz": {
-      "digest": "sha256:bd8bf49b36da00faf41b95c832daf538522816c09506191c900be606868bb531"
+      "digest": "sha256:dfe4340063dfe27406fa64aac99d904726fac079197c4579b9e8155175d05272"
     },
     "pi-linux-x64.tar.gz": {
-      "digest": "sha256:c5f5a9a77a38e68fcb089dd4e3505abb64c98d19595b55818c961be779889719"
+      "digest": "sha256:ab6604f6c3f3d050783e7abbbdd1f79b775b20f3969833ce9721740685d01e13"
     }
   }
 }
