@@ -144,7 +144,7 @@
       };
     };
     vicinae = {
-      url = "github:vicinaehq/vicinae"; # todo: pin to v0.24.0
+      url = "github:vicinaehq/vicinae/v0.23.2";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.soulver-cpp.inputs.nixpkgs.follows = "nixpkgs";
     };
