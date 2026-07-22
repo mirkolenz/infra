@@ -44,7 +44,7 @@
       };
     };
     herdr = {
-      url = "github:ogulcancelik/herdr/v0.7.4";
+      url = "github:ogulcancelik/herdr/v0.7.5";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     hermes-agent = {
@@ -63,7 +63,7 @@
     };
     import-tree.url = "github:denful/import-tree";
     mistral-vibe = {
-      url = "github:mistralai/mistral-vibe/v2.21.0";
+      url = "github:mistralai/mistral-vibe/v2.22.0";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         pyproject-nix.follows = "pyproject-nix";
