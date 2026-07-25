@@ -36,6 +36,7 @@ class Config:
     cache: str | None
     impure_attr: str | None
     build_path: str | None
+    hash_path: str | None
     update_path: str | None
     max_workers: int
 
@@ -190,6 +191,7 @@ def main(
     cache: Annotated[str | None, typer.Option()] = None,
     impure_attr: Annotated[str | None, typer.Option()] = None,
     build_path: Annotated[str | None, typer.Option()] = None,
+    hash_path: Annotated[str | None, typer.Option()] = None,
     update_path: Annotated[str | None, typer.Option()] = None,
     max_workers: Annotated[int, typer.Option()] = 8,
 ):
@@ -349,9 +351,15 @@ def update_flake(
             )
         )
 
-    # nixd reads the working tree, so unlike `cfg.flake` it sees the lockfile
-    # rewritten above. Not fatal: it also exits non-zero when there is no hash to
-    # fix, and one it could not repair still fails the PR's own checks.
+    if cfg.hash_path:
+        # `fix hashes` repairs what nix journaled while building, so the build is
+        # what gives it anything to do and its failure is the point. `.` re-resolves
+        # the working tree; `cfg.flake` predates the lockfile rewritten above.
+        hashed = nix_eval_dict(cfg.nix_exe, f".#{cfg.hash_path}")
+        refs = [f'.#"{name}"' for name in hashed]
+        run_logged(nix_argv(cfg.nix_exe, "build", "--no-link", *refs), check=False)
+
+    # Non-zero also means "nothing to fix".
     run_logged([cfg.nixd_exe, "fix", "hashes", "--auto-apply"], check=False)
 
     if commit:
