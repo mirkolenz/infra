@@ -30,6 +30,10 @@ let
   custom = {
     # flat derivations exposed via flake.packages and built in CI
     flattenedPackages = lib.filterAttrs (_: lib.isDerivation) (byName // flattenedScopes // overrides);
+    # derivations with an in-tree hash, built by `update-flake` so it can fix them
+    hashedPackages = {
+      inherit (final) caddy-custom;
+    };
   };
 in
 # overlay layers, ordered low -> high precedence (mergeAttrsList lets later entries win)

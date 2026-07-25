@@ -36,6 +36,7 @@ class Config:
     cache: str | None
     impure_attr: str | None
     build_path: str | None
+    hash_path: str | None
     update_path: str | None
     max_workers: int
 
@@ -190,6 +191,7 @@ def main(
     cache: Annotated[str | None, typer.Option()] = None,
     impure_attr: Annotated[str | None, typer.Option()] = None,
     build_path: Annotated[str | None, typer.Option()] = None,
+    hash_path: Annotated[str | None, typer.Option()] = None,
     update_path: Annotated[str | None, typer.Option()] = None,
     max_workers: Annotated[int, typer.Option()] = 8,
 ):
@@ -280,6 +282,24 @@ def replace_github_ref(gh_exe: str, match: re.Match[str]) -> str:
     return f'url = "github:{owner}/{repo}/{latest}"'
 
 
+def require_worktree(flake: str) -> None:
+    """Refuse to edit a checkout that is not the flake we were resolved from.
+
+    `nix run github:mirkolenz/infra -- update-…` would otherwise rewrite whatever
+    repo happens to be the cwd. `flake` is a store snapshot of our own source, so
+    its flake.nix matches the one here exactly when this is its working copy —
+    dirty included, since `nix run .` snapshots uncommitted edits too.
+    """
+    target = Path("flake.nix")
+    source = Path(flake) / "flake.nix"
+
+    if not target.is_file() or (
+        source.is_file() and source.read_bytes() != target.read_bytes()
+    ):
+        typer.echo("Not this flake's working copy; run from a checkout.", err=True)
+        raise typer.Exit(1)
+
+
 def commit_pkgs(git_exe: str, message: str) -> None:
     """Commit anything that changed under pkgs/, if anything did."""
     status = subprocess_stdout([git_exe, "status", "--porcelain", "--", "pkgs/"])
@@ -295,22 +315,14 @@ def commit_pkgs(git_exe: str, message: str) -> None:
 @app.command("update-flake")
 def update_flake(
     ctx: typer.Context,
-    flake_file: Annotated[
-        Path,
-        typer.Argument(
-            exists=True,
-            file_okay=True,
-            dir_okay=False,
-            readable=True,
-            writable=True,
-        ),
-    ] = Path("flake.nix"),
     dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
     commit: Annotated[bool, typer.Option("--commit", "-c")] = False,
     update: Annotated[bool, typer.Option("--update", "-u")] = True,
 ):
     """Update flake.nix github inputs and lockfile; refresh pinned hashes."""
     cfg: Config = ctx.obj
+    require_worktree(cfg.flake)
+    flake_file = Path("flake.nix")
     content = flake_file.read_text()
     new_content = GITHUB_SEMVER_REF.sub(
         lambda m: replace_github_ref(cfg.gh_exe, m), content
@@ -349,9 +361,15 @@ def update_flake(
             )
         )
 
-    # nixd reads the working tree, so unlike `cfg.flake` it sees the lockfile
-    # rewritten above. Not fatal: it also exits non-zero when there is no hash to
-    # fix, and one it could not repair still fails the PR's own checks.
+    if cfg.hash_path:
+        # `fix hashes` repairs what nix journaled while building, so the build is
+        # what gives it anything to do and its failure is the point. `.` re-resolves
+        # the working tree; `cfg.flake` predates the lockfile rewritten above.
+        hashed = nix_eval_dict(cfg.nix_exe, f".#{cfg.hash_path}")
+        refs = [f'.#"{name}"' for name in hashed]
+        run_logged(nix_argv(cfg.nix_exe, "build", "--no-link", *refs), check=False)
+
+    # Non-zero also means "nothing to fix".
     run_logged([cfg.nixd_exe, "fix", "hashes", "--auto-apply"], check=False)
 
     if commit:
@@ -517,6 +535,7 @@ def update_pkgs(
 ):
     """Run each package's `passthru.updateScript` to refresh sources, in parallel."""
     cfg: Config = ctx.obj
+    require_worktree(cfg.flake)
 
     if cfg.update_path is None or cfg.update_scripts_nix is None:
         typer.echo(
