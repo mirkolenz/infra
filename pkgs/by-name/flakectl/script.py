@@ -290,14 +290,12 @@ def require_worktree(flake: str) -> None:
     its flake.nix matches the one here exactly when this is its working copy —
     dirty included, since `nix run .` snapshots uncommitted edits too.
     """
+    target = Path("flake.nix")
     source = Path(flake) / "flake.nix"
 
-    if not source.is_file():
-        return
-
-    target = Path("flake.nix")
-
-    if not target.is_file() or source.read_bytes() != target.read_bytes():
+    if not target.is_file() or (
+        source.is_file() and source.read_bytes() != target.read_bytes()
+    ):
         typer.echo("Not this flake's working copy; run from a checkout.", err=True)
         raise typer.Exit(1)
 
@@ -317,16 +315,6 @@ def commit_pkgs(git_exe: str, message: str) -> None:
 @app.command("update-flake")
 def update_flake(
     ctx: typer.Context,
-    flake_file: Annotated[
-        Path,
-        typer.Argument(
-            exists=True,
-            file_okay=True,
-            dir_okay=False,
-            readable=True,
-            writable=True,
-        ),
-    ] = Path("flake.nix"),
     dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
     commit: Annotated[bool, typer.Option("--commit", "-c")] = False,
     update: Annotated[bool, typer.Option("--update", "-u")] = True,
@@ -334,6 +322,7 @@ def update_flake(
     """Update flake.nix github inputs and lockfile; refresh pinned hashes."""
     cfg: Config = ctx.obj
     require_worktree(cfg.flake)
+    flake_file = Path("flake.nix")
     content = flake_file.read_text()
     new_content = GITHUB_SEMVER_REF.sub(
         lambda m: replace_github_ref(cfg.gh_exe, m), content
