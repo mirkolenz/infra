@@ -18,7 +18,6 @@
           flake = self.outPath;
           cache = "https://mirkolenz.cachix.org";
           build-path = "checks.${system}";
-          hash-path = "custom.hashedPackages";
           update-path = "custom.flattenedPackages";
         };
         home-manager.program = pkgs.writeShellScriptBin "home-manager" /* bash */ ''
