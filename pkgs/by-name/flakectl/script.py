@@ -36,25 +36,28 @@ class Config:
     cache: str | None
     impure_attr: str | None
     build_path: str | None
-    hash_path: str | None
     update_path: str | None
     max_workers: int
 
 
 def subprocess_stdout(cmd: list[str]) -> str:
+    """Capture `cmd`'s stdout; on failure echo its stderr and exit with its status."""
     result = subprocess.run(cmd, capture_output=True, text=True)
 
-    try:
-        result.check_returncode()
-    except subprocess.CalledProcessError as e:
-        typer.echo(e.stderr, err=True)
-        raise typer.Exit(1) from e
+    if result.returncode:
+        typer.echo(result.stderr.rstrip(), err=True)
+        raise typer.Exit(result.returncode)
 
     return result.stdout.strip()
 
 
-def run_logged(cmd: list[str], *, check: bool = True) -> int:
-    """Log `cmd` (basename argv0, leading NIX_FLAGS elided) then run it; return its returncode."""
+def run_logged(cmd: list[str], *, check: bool = True) -> None:
+    """Log `cmd` (basename argv0, leading NIX_FLAGS elided) then run it.
+
+    Failure exits with `cmd`'s own status rather than raising: `cmd` reported it
+    on our stderr already, and a traceback would only displace that. Pass
+    `check=False` for a command whose failure is not fatal.
+    """
     head, *tail = cmd
 
     if tail[: len(NIX_FLAGS)] == NIX_FLAGS:
@@ -62,7 +65,8 @@ def run_logged(cmd: list[str], *, check: bool = True) -> int:
 
     typer.echo(shlex.join([Path(head).name, *tail]), err=True)
 
-    return subprocess.run(cmd, check=check).returncode
+    if (returncode := subprocess.run(cmd).returncode) and check:
+        raise typer.Exit(returncode)
 
 
 def nix_argv(nix_exe: str, *args: str) -> list[str]:
@@ -144,10 +148,8 @@ def build_uncached(
     pkgs2path: dict[str, str],
     max_workers: int,
     extra: Sequence[str] = (),
-    *,
-    check: bool = True,
-) -> list[str]:
-    """Build any of `pkgs2path` not yet present in `cache`; return their names."""
+) -> None:
+    """Build any of `pkgs2path` not yet present in `cache`."""
     if cache:
         cached = cached_paths(nix_exe, cache, pkgs2path.values(), max_workers)
         uncached = [name for name, path in pkgs2path.items() if path not in cached]
@@ -156,15 +158,14 @@ def build_uncached(
 
     if not uncached:
         typer.echo(f"All {len(pkgs2path)} package(s) available from {cache}.", err=True)
-        return uncached
+        return
 
     typer.echo(
         f"Building {len(uncached)} uncached package(s): {', '.join(uncached)}.",
         err=True,
     )
     refs = [f'{flake}#"{name}"' for name in uncached]
-    run_logged(nix_argv(nix_exe, "build", *refs, *extra), check=check)
-    return uncached
+    run_logged(nix_argv(nix_exe, "build", *refs, *extra))
 
 
 app = typer.Typer(
@@ -189,7 +190,6 @@ def main(
     cache: Annotated[str | None, typer.Option()] = None,
     impure_attr: Annotated[str | None, typer.Option()] = None,
     build_path: Annotated[str | None, typer.Option()] = None,
-    hash_path: Annotated[str | None, typer.Option()] = None,
     update_path: Annotated[str | None, typer.Option()] = None,
     max_workers: Annotated[int, typer.Option()] = 8,
 ):
@@ -246,7 +246,7 @@ def build_config(
 
     cmd.extend(ctx.args)
 
-    raise typer.Exit(run_logged(cmd, check=False))
+    run_logged(cmd)
 
 
 def get_latest_release(gh_exe: str, owner: str, repo: str) -> str | None:
@@ -305,23 +305,12 @@ def update_flake(
             writable=True,
         ),
     ] = Path("flake.nix"),
-    path: Annotated[
-        str | None,
-        typer.Option(
-            "--path",
-            "-p",
-            help="Attribute path of packages to build before fix-hashes.",
-        ),
-    ] = None,
-    cache: Annotated[str | None, typer.Option()] = None,
     dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
     commit: Annotated[bool, typer.Option("--commit", "-c")] = False,
     update: Annotated[bool, typer.Option("--update", "-u")] = True,
 ):
     """Update flake.nix github inputs and lockfile; refresh pinned hashes."""
     cfg: Config = ctx.obj
-    path = path or cfg.hash_path
-    cache = cache or cfg.cache
     content = flake_file.read_text()
     new_content = GITHUB_SEMVER_REF.sub(
         lambda m: replace_github_ref(cfg.gh_exe, m), content
@@ -360,21 +349,13 @@ def update_flake(
             )
         )
 
-    run_fix_hashes = True
+    # nixd reads the working tree, so unlike `cfg.flake` it sees the lockfile
+    # rewritten above. Not fatal: it also exits non-zero when there is no hash to
+    # fix, and one it could not repair still fails the PR's own checks.
+    run_logged([cfg.nixd_exe, "fix", "hashes", "--auto-apply"], check=False)
 
-    if path:
-        pkgs2path = nix_eval_dict(cfg.nix_exe, f"{cfg.flake}#{path}")
-        # Tolerate build failures — fix-hashes runs next and may resolve them.
-        uncached = build_uncached(
-            cfg.nix_exe, cfg.flake, cache, pkgs2path, cfg.max_workers, check=False
-        )
-        run_fix_hashes = bool(uncached)
-
-    if run_fix_hashes:
-        run_logged([cfg.nixd_exe, "fix", "hashes", "--auto-apply"])
-
-        if commit:
-            commit_pkgs(cfg.git_exe, "chore(deps/pkgs): hashing")
+    if commit:
+        commit_pkgs(cfg.git_exe, "chore(deps/pkgs): hashing")
 
 
 @app.command(
@@ -508,17 +489,11 @@ def eval_versions(
     Evaluates the `versions` output, which forces only each version and so
     realizes nothing (unlike the manifest).
     """
-    out = subprocess_stdout(
-        nix_argv(
-            nix_exe,
-            "eval",
-            "--impure",
-            "--json",
-            *update_scripts_args(update_scripts_nix, "versions", attr_path),
-        )
+    return nix_eval_json(
+        nix_exe,
+        "--impure",
+        *update_scripts_args(update_scripts_nix, "versions", attr_path),
     )
-
-    return json.loads(out)
 
 
 def revert_pkgs(git_exe: str, scripts: Iterable[UpdateScript]) -> None:
