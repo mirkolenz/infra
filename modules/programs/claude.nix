@@ -19,7 +19,7 @@
         settings = {
           autoMemoryEnabled = false;
           cleanupPeriodDays = 30;
-          effortLevel = "xhigh";
+          effortLevel = "high";
           enableAllProjectMcpServers = true;
           forceLoginMethod = "claudeai";
           includeCoAuthoredBy = false;

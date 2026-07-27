@@ -16,8 +16,8 @@
         # https://developers.openai.com/codex/config-schema.json
         settings = {
           model = "gpt-5.6-sol";
-          model_reasoning_effort = "xhigh";
-          plan_mode_reasoning_effort = "xhigh";
+          model_reasoning_effort = "high";
+          plan_mode_reasoning_effort = "high";
           approval_policy = "on-request";
           approvals_reviewer = "auto_review";
           file_opener = "none";

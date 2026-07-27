@@ -7,7 +7,7 @@
     "use_modifier_to_send": false,
     "play_sound_when_agent_done": "always",
     "default_model": {
-      "effort": "xhigh",
+      "effort": "high",
       "enable_thinking": true,
       "provider": "zed.dev",
       "model": "claude-sonnet-5",
