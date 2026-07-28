@@ -39,6 +39,13 @@ class Config:
     hash_path: str | None
     update_path: str | None
     max_workers: int
+    is_worktree: bool
+
+    def require_worktree(self) -> None:
+        """Refuse to edit a checkout that is not the flake we were resolved from."""
+        if not self.is_worktree:
+            typer.echo("Not this flake's working copy; run from a checkout.", err=True)
+            raise typer.Exit(1)
 
 
 def subprocess_stdout(cmd: list[str]) -> str:
@@ -195,7 +202,7 @@ def main(
     update_path: Annotated[str | None, typer.Option()] = None,
     max_workers: Annotated[int, typer.Option()] = 8,
 ):
-    ctx.obj = Config(**ctx.params)
+    ctx.obj = Config(**ctx.params, is_worktree=is_worktree_of(flake))
     if ctx.invoked_subcommand is None:
         build_config(ctx)
 
@@ -282,22 +289,25 @@ def replace_github_ref(gh_exe: str, match: re.Match[str]) -> str:
     return f'url = "github:{owner}/{repo}/{latest}"'
 
 
-def require_worktree(flake: str) -> None:
-    """Refuse to edit a checkout that is not the flake we were resolved from.
+def is_worktree_of(flake: str) -> bool:
+    """Whether the cwd is the working copy of the flake we were resolved from.
 
-    `nix run github:mirkolenz/infra -- update-…` would otherwise rewrite whatever
-    repo happens to be the cwd. `flake` is a store snapshot of our own source, so
-    its flake.nix matches the one here exactly when this is its working copy —
-    dirty included, since `nix run .` snapshots uncommitted edits too.
+    `nix run github:mirkolenz/infra -- update-…` must not rewrite whatever repo
+    happens to be the cwd. `flake` is a store snapshot of our own source, so its
+    flake.nix matches the one here exactly when this is its working copy — dirty
+    included, since `nix run .` snapshots uncommitted edits too.
+
+    Answering this is only sound before we edit anything, which is why `main`
+    settles it once at startup: `update-flake` rewrites flake.nix, so asking
+    again afterwards compares against a snapshot our own bump just made stale.
     """
     target = Path("flake.nix")
     source = Path(flake) / "flake.nix"
 
-    if not target.is_file() or (
-        source.is_file() and source.read_bytes() != target.read_bytes()
-    ):
-        typer.echo("Not this flake's working copy; run from a checkout.", err=True)
-        raise typer.Exit(1)
+    if not target.is_file():
+        return False
+
+    return not source.is_file() or source.read_bytes() == target.read_bytes()
 
 
 def commit_pkgs(git_exe: str, message: str) -> None:
@@ -321,7 +331,7 @@ def update_flake(
 ):
     """Update flake.nix github inputs and lockfile; refresh pinned hashes."""
     cfg: Config = ctx.obj
-    require_worktree(cfg.flake)
+    cfg.require_worktree()
     flake_file = Path("flake.nix")
     content = flake_file.read_text()
     new_content = GITHUB_SEMVER_REF.sub(
@@ -535,7 +545,7 @@ def update_pkgs(
 ):
     """Run each package's `passthru.updateScript` to refresh sources, in parallel."""
     cfg: Config = ctx.obj
-    require_worktree(cfg.flake)
+    cfg.require_worktree()
 
     if cfg.update_path is None or cfg.update_scripts_nix is None:
         typer.echo(
