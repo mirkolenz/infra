@@ -405,16 +405,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1785258194,
-        "narHash": "sha256-WEyzBhkqh/B4NZD8tKoRkQGrw/85xVCftFyRamlMaYg=",
+        "lastModified": 1785399617,
+        "narHash": "sha256-D44pemBZWaJV4VTVoTaa79p2BMNeJMGadPlSOvTCum8=",
         "owner": "mistralai",
         "repo": "mistral-vibe",
-        "rev": "8b4bcd0b8e1d4c59d3fdc2d2282dbf00a8615583",
+        "rev": "99a6efa9ca1fb48671adebe0f6f5d931945bd8c9",
         "type": "github"
       },
       "original": {
         "owner": "mistralai",
-        "ref": "v2.23.1",
+        "ref": "v2.23.2",
         "repo": "mistral-vibe",
         "type": "github"
       }
@@ -447,11 +447,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1784500460,
-        "narHash": "sha256-UvORnAxTRHax7RG74W8Z2t4GvIkX6AjJ5kk0QlwZomo=",
+        "lastModified": 1785389976,
+        "narHash": "sha256-0tLW8Ff5yt8AH97jw4ZpFJ0OCJ122zIlgWGDmOfU/VU=",
         "owner": "nix-darwin",
         "repo": "nix-darwin",
-        "rev": "57a3171f94705599a2499248ca5758d5eb47c0e0",
+        "rev": "15abb8c98f336cd8bd840d71059adebabe60bf04",
         "type": "github"
       },
       "original": {
@@ -582,11 +582,11 @@
     },
     "nixpkgs-linux-stable": {
       "locked": {
-        "lastModified": 1785133411,
-        "narHash": "sha256-7S1XAczkWGQbntnS7lEDlvgyq4jYfTWBLv25CkTv7W0=",
-        "rev": "2f5a153c270b70cb0f8c11f46d96d6d3bc39f4e3",
+        "lastModified": 1785386831,
+        "narHash": "sha256-xQPrEWR75P2lZ/p9pAzIeMd4PtkckDLj6ojo+tWjZQw=",
+        "rev": "21ea275a7c46aef9d4d6ddc962e6d562e9d94183",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixos/26.05/nixos-26.05.6282.2f5a153c270b/nixexprs.tar.zst"
+        "url": "https://releases.nixos.org/nixos/26.05/nixos-26.05.6503.21ea275a7c46/nixexprs.tar.zst"
       },
       "original": {
         "type": "tarball",
