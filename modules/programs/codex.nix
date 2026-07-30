@@ -57,12 +57,12 @@
                 "github.com" = "allow";
                 "api.github.com" = "allow";
                 "raw.githubusercontent.com" = "allow";
-                "pypi.org" = "allow";
-                "files.pythonhosted.org" = "allow";
+                # "pypi.org" = "allow";
+                # "files.pythonhosted.org" = "allow";
                 "huggingface.co" = "allow";
-                "registry.npmjs.org" = "allow";
-                "api.npmjs.org" = "allow";
-                "ui.shadcn.com" = "allow";
+                # "registry.npmjs.org" = "allow";
+                # "api.npmjs.org" = "allow";
+                # "ui.shadcn.com" = "allow";
               };
               unix_sockets = {
                 ${lib'.nixDaemonSocket pkgs.stdenv} = "allow";

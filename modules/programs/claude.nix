@@ -44,12 +44,12 @@
                 "github.com"
                 "api.github.com"
                 "raw.githubusercontent.com"
-                "pypi.org"
-                "files.pythonhosted.org"
+                # "pypi.org"
+                # "files.pythonhosted.org"
                 "huggingface.co"
-                "registry.npmjs.org"
-                "api.npmjs.org"
-                "ui.shadcn.com"
+                # "registry.npmjs.org"
+                # "api.npmjs.org"
+                # "ui.shadcn.com"
               ];
             };
             # absolute paths need // prefix, otherwise they are treated as relative to the project root
