@@ -1,7 +1,6 @@
 [
   {
     "bindings": {
-      "alt-shift-f": "text_finder::Toggle",
       "cmd-alt-n": "agent::NewTerminalThread",
       "cmd-r": "workspace::Reload",
       "cmd-shift-g": ["task::Spawn", { "task_name": "git" }],
