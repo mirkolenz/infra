@@ -4,3 +4,4 @@ result-*
 *.log
 .vscode/
 .zed/
+__pycache__
