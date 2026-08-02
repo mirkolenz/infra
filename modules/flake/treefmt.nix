@@ -33,6 +33,8 @@
           ];
         };
         programs.nixfmt.package = pkgs.nixfmt-rs;
+        programs.ruff-check.package = pkgs.ruff-bin;
+        programs.ruff-format.package = pkgs.ruff-bin;
       };
       packages.treefmt-nix = config.treefmt.build.wrapper;
     };
