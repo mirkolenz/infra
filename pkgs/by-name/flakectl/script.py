@@ -50,7 +50,7 @@ class Config:
 
 def subprocess_stdout(cmd: list[str]) -> str:
     """Capture `cmd`'s stdout; on failure echo its stderr and exit with its status."""
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
 
     if result.returncode:
         typer.echo(result.stderr.rstrip(), err=True)
@@ -73,7 +73,7 @@ def run_logged(cmd: list[str], *, check: bool = True) -> None:
 
     typer.echo(shlex.join([Path(head).name, *tail]), err=True)
 
-    if (returncode := subprocess.run(cmd).returncode) and check:
+    if (returncode := subprocess.run(cmd, check=False).returncode) and check:
         raise typer.Exit(returncode)
 
 
@@ -115,6 +115,7 @@ def path_in_cache(nix_exe: str, cache: str, path: str) -> bool:
                 nix_exe, "path-info", "--store", cache, "--substituters", "", path
             ),
             capture_output=True,
+            check=False,
         ).returncode
         == 0
     )
@@ -136,7 +137,9 @@ def cached_paths(
     # Probe reachability first: otherwise an unreachable cache reads as every
     # path missing and silently rebuilds everything instead of failing loudly.
     if subprocess.run(
-        nix_argv(nix_exe, "store", "info", "--store", cache), capture_output=True
+        nix_argv(nix_exe, "store", "info", "--store", cache),
+        capture_output=True,
+        check=False,
     ).returncode:
         typer.echo(f"Cache {cache} is unreachable.", err=True)
         raise typer.Exit(1)
@@ -264,6 +267,7 @@ def get_latest_release(gh_exe: str, owner: str, repo: str) -> str | None:
         [gh_exe, "api", f"repos/{owner}/{repo}/releases/latest", "--jq", ".tag_name"],
         capture_output=True,
         text=True,
+        check=False,
     )
 
     if result.returncode != 0:
@@ -463,7 +467,7 @@ class UpdateScript:
 
     def run(self) -> subprocess.CompletedProcess[str]:
         """Run the updateScript, inheriting cwd (repo root) and PATH."""
-        return subprocess.run(self.argv, capture_output=True, text=True)
+        return subprocess.run(self.argv, capture_output=True, text=True, check=False)
 
 
 def update_scripts_args(
