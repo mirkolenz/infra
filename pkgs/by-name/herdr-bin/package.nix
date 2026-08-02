@@ -25,6 +25,6 @@ mkGitHubBinary {
 
   meta = {
     description = "Agent multiplexer that lives in your terminal";
-    license = lib.licenses.agpl3Only;
+    license = lib.licenses.asl20;
   };
 }
