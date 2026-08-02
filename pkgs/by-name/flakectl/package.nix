@@ -6,6 +6,7 @@
   gh,
   git,
   determinate-nix,
+  mkpasswd,
   darwin-rebuild,
   nixos-rebuild-ng,
   home-manager,
@@ -21,6 +22,8 @@ let
       "--git-exe=${lib.getExe git}"
       "--add-flag"
       "--gh-exe=${lib.getExe gh}"
+      "--add-flag"
+      "--mkpasswd-exe=${lib.getExe mkpasswd}"
       "--add-flag"
       "--update-scripts-nix=${./update-scripts.nix}"
       "--add-flag"

@@ -72,8 +72,7 @@ nix run github:mirkolenz/infra#disko -- MACHINE_NAME --mode destroy,format,mount
 # generate hardware config and verify /mnt/etc/nixos/hardware-configuration.nix is in sync with the flake
 nixos-generate-config --no-filesystems --root /mnt
 # set up user passwords
-bash -c 'umask 022 && mkdir -p /mnt/etc/nixos/secrets'
-bash -c 'umask 077 && mkpasswd -m yescrypt > /mnt/etc/nixos/secrets/USER.passwd'
+nix run github:mirkolenz/infra -- passwd /mnt/etc/nixos/secrets/USER.passwd
 # install the system
 nix run github:mirkolenz/infra#nixos-install -- MACHINE_NAME
 ```
@@ -285,9 +284,10 @@ sudo podman run --rm --subuidname=$USER ubuntu cat /proc/self/uid_map
 
 ### Password Hashing
 
+Prompts for a password and writes its yescrypt hash to the given `users.users.*.hashedPasswordFile`.
+
 ```shell
-sudo bash -c 'umask 022 && mkdir -p /etc/nixos/secrets'
-sudo bash -c 'umask 077 && mkpasswd -m yescrypt > /etc/nixos/secrets/USER.passwd'
+sudo nix run github:mirkolenz/infra -- passwd /etc/nixos/secrets/USER.passwd
 ```
 
 ### Zellij Web Tokens

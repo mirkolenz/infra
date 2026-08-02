@@ -5,6 +5,7 @@ import json
 import os
 import re
 import shlex
+import shutil
 import subprocess
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
@@ -30,6 +31,7 @@ class Config:
     gh_exe: str
     update_scripts_nix: str | None
     nixd_exe: str
+    mkpasswd_exe: str
     darwin_builder: str
     linux_builder: str
     home_builder: str
@@ -48,9 +50,11 @@ class Config:
             raise typer.Exit(1)
 
 
-def subprocess_stdout(cmd: list[str]) -> str:
+def subprocess_stdout(cmd: list[str], stdin: str | None = None) -> str:
     """Capture `cmd`'s stdout; on failure echo its stderr and exit with its status."""
-    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    result = subprocess.run(
+        cmd, input=stdin, capture_output=True, text=True, check=False
+    )
 
     if result.returncode:
         typer.echo(result.stderr.rstrip(), err=True)
@@ -194,6 +198,7 @@ def main(
     gh_exe: Annotated[str, typer.Option()] = "gh",
     update_scripts_nix: Annotated[str | None, typer.Option()] = None,
     nixd_exe: Annotated[str, typer.Option()] = "determinate-nixd",
+    mkpasswd_exe: Annotated[str, typer.Option()] = "mkpasswd",
     darwin_builder: Annotated[str, typer.Option()] = "darwin-rebuild",
     linux_builder: Annotated[str, typer.Option()] = "nixos-rebuild",
     home_builder: Annotated[str, typer.Option()] = "home-manager",
@@ -259,6 +264,53 @@ def build_config(
     cmd.extend(ctx.args)
 
     run_logged(cmd)
+
+
+def set_root_owned(path: Path, mode: int) -> None:
+    """Hand `path` to root with `mode`, out of reach of every other user."""
+    path.chmod(mode)
+    shutil.chown(path, 0, 0)
+
+
+@app.command("passwd")
+def passwd(ctx: typer.Context, file: Annotated[Path, typer.Argument()]):
+    """Hash a prompted password into `file`, for `users.users.*.hashedPasswordFile`.
+
+    Takes the path verbatim, so the same command serves a running system and an
+    installer target under /mnt.
+    """
+    cfg: Config = ctx.obj
+
+    # Checked up front rather than left to the chown: nobody should type a
+    # password only to be told afterwards that it could not be stored.
+    if os.geteuid() != 0:
+        typer.echo("passwd must run as root.", err=True)
+        raise typer.Exit(1)
+
+    password = typer.prompt("New password", hide_input=True, confirmation_prompt=True)
+
+    if not password:
+        typer.echo("No password supplied.", err=True)
+        raise typer.Exit(1)
+
+    # Hand the password over on stdin; argv is world-readable via /proc.
+    hashed = subprocess_stdout(
+        [cfg.mkpasswd_exe, "--method=yescrypt", "--stdin"], password
+    )
+    # Create missing ancestors one at a time: mkdir's mode is masked by the
+    # caller's umask, and a setgid parent would hand the new directory its group.
+    for directory in reversed(file.parents):
+        if not directory.is_dir():
+            directory.mkdir()
+            set_root_owned(directory, 0o755)
+
+    # Settle ownership while the file is still empty. Running as root only covers
+    # a file we create here; chown is what stops an existing one, say from an
+    # /etc/nixos owned by the user, holding the hash as theirs.
+    file.touch()
+    set_root_owned(file, 0o600)
+    file.write_text(f"{hashed}\n")
+    typer.echo(f"Wrote {file}, rebuild the configuration to apply.", err=True)
 
 
 def get_latest_release(gh_exe: str, owner: str, repo: str) -> str | None:
@@ -480,7 +532,7 @@ def update_scripts_args(
         output,
         "--argstr",
         "root",
-        os.getcwd(),
+        str(Path.cwd()),
         "--argstr",
         "path",
         attr_path,
