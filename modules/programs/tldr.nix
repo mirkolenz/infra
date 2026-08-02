@@ -11,7 +11,7 @@
         tlrc
       ];
       services.tldr-update = {
-        enable = false; # todo: broken on darwin
+        enable = true;
         package = pkgs.tlrc;
       };
     };
