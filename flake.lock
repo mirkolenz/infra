@@ -582,11 +582,11 @@
     },
     "nixpkgs-linux-stable": {
       "locked": {
-        "lastModified": 1785491804,
-        "narHash": "sha256-GGQER+O/plhJCG35JVsKYVwI8qtOKR7UB4E3e8DBKmQ=",
-        "rev": "5b4f72e1705a63aace42900610c4db82cb4af0ec",
+        "lastModified": 1785599192,
+        "narHash": "sha256-sTZnq3+3EKM1708T/icNNHH2t596/bu1jolSuj6UBbc=",
+        "rev": "6d65bfc1bcef2ef39a239d38e577e92a89fb0f07",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixos/26.05/nixos-26.05.6603.5b4f72e1705a/nixexprs.tar.zst"
+        "url": "https://releases.nixos.org/nixos/26.05/nixos-26.05.6693.6d65bfc1bcef/nixexprs.tar.zst"
       },
       "original": {
         "type": "tarball",
@@ -1070,11 +1070,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1785650543,
-        "narHash": "sha256-u2VtHkzueezRNZIfn0HVA2WCZtSt3VKusAjhaPWvDl4=",
+        "lastModified": 1785689597,
+        "narHash": "sha256-WF3eenopWI9tvwcEhDsgEp2T46QFWw7ttEGefokLEZ0=",
         "owner": "vicinaehq",
         "repo": "extensions",
-        "rev": "7b5905d08a2c9fda456b2e66894ba3e17997a6cb",
+        "rev": "37724bc3f2bcdf9f273bb160359cf22f453b5ef6",
         "type": "github"
       },
       "original": {
