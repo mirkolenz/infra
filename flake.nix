@@ -44,11 +44,11 @@
       };
     };
     herdr = {
-      url = "github:ogulcancelik/herdr/v0.7.5";
+      url = "github:ogulcancelik/herdr/v0.8.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     hermes-agent = {
-      url = "github:nousresearch/hermes-agent/v2026.7.30";
+      url = "github:nousresearch/hermes-agent/v2026.8.3";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -63,7 +63,7 @@
     };
     import-tree.url = "github:denful/import-tree";
     mistral-vibe = {
-      url = "github:mistralai/mistral-vibe/v2.23.2";
+      url = "github:mistralai/mistral-vibe/v2.23.3";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         pyproject-nix.follows = "pyproject-nix";
