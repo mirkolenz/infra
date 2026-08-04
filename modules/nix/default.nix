@@ -2,26 +2,29 @@
 # determinate hookup and the secrets include. The settings attrsets themselves
 # live in settings.nix.
 {
-  flake.modules.nixos.base = {
-    nix = {
-      channel.enable = false;
-      extraOptions = ''
-        !include nix.secrets.conf
-      '';
-      gc = {
-        automatic = true;
-        options = "--delete-older-than 7d";
+  flake.modules.nixos.base =
+    { lib, pkgs, ... }:
+    {
+      nix = {
+        package = lib.mkForce pkgs.determinate-nix;
+        channel.enable = false;
+        extraOptions = ''
+          !include nix.secrets.conf
+        '';
+        gc = {
+          automatic = true;
+          options = "--delete-older-than 7d";
+        };
+        optimise = {
+          automatic = true;
+        };
       };
-      optimise = {
-        automatic = true;
+      # we do this ourselves
+      nixpkgs.flake = {
+        setFlakeRegistry = false;
+        setNixPath = false;
       };
     };
-    # we do this ourselves
-    nixpkgs.flake = {
-      setFlakeRegistry = false;
-      setNixPath = false;
-    };
-  };
 
   flake.modules.darwin.base = {
     # https://github.com/DeterminateSystems/determinate/blob/main/modules/nix-darwin/default.nix

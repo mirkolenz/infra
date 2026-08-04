@@ -11,6 +11,7 @@ let
     inherit system;
     config = self.nixpkgsConfig;
   };
+  detnix = inputs.determinate.inputs.nix.packages."${system}".default;
 in
 {
   nixpkgs = import inputs.nixpkgs nixpkgsArgs;
@@ -26,5 +27,10 @@ in
   }) nixpkgsArgs;
 
   inherit (self.packages.${system}) treefmt-nix;
-  determinate-nix = inputs.determinate.inputs.nix.packages."${system}".default;
+  determinate-nix = detnix // {
+    out = removeAttrs detnix.out [
+      "doc"
+      "man"
+    ];
+  };
 }
