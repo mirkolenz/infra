@@ -29,10 +29,10 @@
           tui = "fullscreen";
           sandbox = {
             enabled = true;
-            allowLocalBinding = true;
             allowUnsandboxedCommands = true;
             enableWeakerNetworkIsolation = true;
             network = {
+              allowLocalBinding = true;
               allowUnixSockets = [
                 (lib'.nixDaemonSocket pkgs.stdenv)
               ]
@@ -55,14 +55,14 @@
             # absolute paths need // prefix, otherwise they are treated as relative to the project root
             filesystem = {
               allowWrite = [
-                "/${config.home.homeDirectory}/.npm"
-                "/${config.home.homeDirectory}/Library/Caches"
-                "/${config.xdg.cacheHome}"
-                "/${config.xdg.configHome}/.wrangler/logs"
+                "${config.home.homeDirectory}/.npm"
+                "${config.home.homeDirectory}/Library/Caches"
+                "${config.xdg.cacheHome}"
+                "${config.xdg.configHome}/.wrangler/logs"
               ]
               # orb stores logs, sockets, and state here and reads them on every call, darwin only
               ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
-                "/${config.home.homeDirectory}/.orbstack"
+                "${config.home.homeDirectory}/.orbstack"
               ];
               # denyRead = [
               #   ".env*"
