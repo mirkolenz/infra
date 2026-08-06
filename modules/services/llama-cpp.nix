@@ -17,7 +17,6 @@
           mmap = false;
           n-gpu-layers = "all";
           parallel = 1;
-          reasoning = "on";
           sleep-idle-seconds = -1;
           # keep-sorted end
         };
