@@ -132,7 +132,8 @@ Then sync the configs and apply any manual steps.
 nix run .#mirkos-macbook-rsync -- USER@HOST
 ```
 
-To extend the script with additional files, add an entry to the `entries` list in `mirkos-macbook-rsync.nix`.
+The files themselves live in `system.build.remoteConfig` (see `modules/hosts/mirkos-macbook/remote-config.nix`), a `~`-rooted tree that the script builds on demand.
+To extend it with additional files, add an entry to the `files` attribute set there.
 
 ### Uninstallation
 

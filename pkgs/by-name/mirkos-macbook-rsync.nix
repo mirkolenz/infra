@@ -1,68 +1,19 @@
 {
   lib,
-  pkgs,
   writeShellApplication,
   rsync,
-  inputs,
-  darwinConfig ? inputs.self.darwinConfigurations.mirkos-macbook,
+  self,
 }:
 let
-  cfg = darwinConfig.config;
-  hmCfg = cfg.home-manager.users.${cfg.system.primaryUser};
-
-  # `target` on home.file/xdg.configFile submodules is normalized to a path
-  # relative to homeDirectory, so the file's attrname only appears once.
-  mkHmFileEntry = label: file: {
-    name = label;
-    inherit (file) source;
-    target = "~/${file.target}";
-  };
-
-  brewfile = pkgs.writeText "Brewfile" cfg.homebrew.brewfile;
-  brewfileTarget = "~/.config/homebrew/Brewfile";
-  brewBundleCmd = "brew bundle --file=${brewfileTarget}";
-
-  # Zed rewrites its JSON config at runtime, so it lives outside home.file; copy
-  # the source files straight from this flake to the standard XDG location.
-  zedDir = ../../modules/programs/zed;
-  zedEntries = map (name: {
-    name = "Zed ${name}";
-    source = builtins.path {
-      path = zedDir + "/${name}";
-      name = "zed-${name}";
-    };
-    target = "~/.config/zed/${name}";
-  }) (lib.filter (lib.hasSuffix ".json") (lib.attrNames (builtins.readDir zedDir)));
-
-  entries = [
-    (mkHmFileEntry "Ghostty config" hmCfg.xdg.configFile."ghostty/config")
-    (mkHmFileEntry "SSH config" hmCfg.home.file.".ssh/config")
-    {
-      name = "Homebrew bundle";
-      source = brewfile;
-      target = brewfileTarget;
-    }
-  ]
-  ++ zedEntries;
-
-  copyCommands = lib.concatMapStringsSep "\n" (
-    e:
-    "copy_file ${lib.escapeShellArg e.name} ${lib.escapeShellArg e.source} ${lib.escapeShellArg e.target}"
-  ) entries;
-
-  # macOS ships rsync 2.6.9 (no --mkpath), so create parent dirs in one shot
-  # before any transfer. Targets are well-known `~/...` paths from this flake.
-  remoteParents = lib.unique (map (e: dirOf e.target) entries);
+  brewBundleCmd = "brew bundle --file=~/.config/homebrew/Brewfile";
 in
 writeShellApplication {
   name = "mirkos-macbook-rsync";
-  # Intentionally do not pin `openssh` here: the script targets macOS hosts,
-  # where the system /usr/bin/ssh is required because user SSH configs use
-  # the Apple-only `UseKeychain` option that upstream OpenSSH rejects.
+  # Intentionally do not pin `nix` or `openssh` here: `nix` has to match the
+  # local daemon, and the script targets macOS hosts, where the system
+  # /usr/bin/ssh is required because user SSH configs use the Apple-only
+  # `UseKeychain` option that upstream OpenSSH rejects.
   runtimeInputs = [ rsync ];
-  excludeShellChecks = [
-    "SC2088" # leading `~` in dst is passed as a literal string; the remote shell expands it
-  ];
   text = ''
     if [[ $# -ne 1 ]]; then
       cat <<'USAGE' >&2
@@ -78,15 +29,17 @@ writeShellApplication {
 
     remote=$1
 
-    copy_file() {
-      local label=$1 src=$2 dst=$3
-      printf '==> %s -> %s:%s\n' "$label" "$remote" "$dst" >&2
-      rsync --rsh=ssh --copy-links --human-readable --chmod=u=rw,go= -- "$src" "$remote:$dst"
-    }
+    # Built on demand so that this script stays cheap to evaluate: nothing here
+    # forces an evaluation of the darwin configuration.
+    src=$(nix build --no-link --print-out-paths \
+      ${lib.escapeShellArg "${self}#darwinConfigurations.mirkos-macbook.config.system.build.remoteConfig"})
 
-    ssh "$remote" mkdir -p ${lib.concatStringsSep " " remoteParents}
-
-    ${copyCommands}
+    # macOS ships rsync 2.6.9, but --chmod is applied by the sending side, so the
+    # modern local rsync handles it; a recursive transfer also creates the remote
+    # parent directories without the (unsupported) --mkpath. Without --perms the
+    # modes apply to newly created entries only, leaving the remote home
+    # directory and any pre-existing directory untouched.
+    rsync --rsh=ssh --recursive --copy-links --verbose --chmod=D755,F600 -- "$src/" "$remote:"
 
     cat <<EOF
 
