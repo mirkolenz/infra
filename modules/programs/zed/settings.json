@@ -55,7 +55,7 @@
     // keep-sorted end
   },
   "auto_signature_help": true,
-  "base_keymap": "VSCode",
+  "base_keymap": "Zed",
   "buffer_font_family": "JetBrainsMono Nerd Font",
   "buffer_font_size": 13,
   "code_lens": "on",
