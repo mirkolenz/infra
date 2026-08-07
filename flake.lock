@@ -360,11 +360,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1785958398,
-        "narHash": "sha256-5r/JgsoNMTx+qIh83WkxpujEKBR7PF5ssnh5vYCuSAw=",
+        "lastModified": 1786031233,
+        "narHash": "sha256-TIDlLTLI1/pB7IqgjzcKQjpODQsZE2oII4XGG9B6KjI=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "a7c70cc290290f373f50cd820403833d250459ac",
+        "rev": "7834e82588860aaf780cec1366524456a70898d7",
         "type": "github"
       },
       "original": {
@@ -582,11 +582,11 @@
     },
     "nixpkgs-linux-stable": {
       "locked": {
-        "lastModified": 1785858998,
-        "narHash": "sha256-JNJY0nz1CZwZGvB9F6Rq+YSPPz0rItOYNcqUcd5M/NU=",
-        "rev": "04607e1165ac22c5fde6dcc54c9e0b3c0487c555",
+        "lastModified": 1785989512,
+        "narHash": "sha256-YKf+KVM0TRpWlYxu3TZt6wXaCcuT0JoFjrylyM4dNEE=",
+        "rev": "445d861c6d31b4af0c79d8d4be2331f762a361d7",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixos/26.05/nixos-26.05.6916.04607e1165ac/nixexprs.tar.zst"
+        "url": "https://releases.nixos.org/nixos/26.05/nixos-26.05.7006.445d861c6d31/nixexprs.tar.zst"
       },
       "original": {
         "type": "tarball",
@@ -595,11 +595,11 @@
     },
     "nixpkgs-linux-unstable": {
       "locked": {
-        "lastModified": 1785828668,
-        "narHash": "sha256-VFlH/0nM6kkWQox9IaTqx2eCT3pmkr8bB7iVZ1bkaLs=",
-        "rev": "e72e4f299401a3689d4b3d5fc6496b11db7064eb",
+        "lastModified": 1785967620,
+        "narHash": "sha256-929m7iW8q2uv3mZHNwY8Um6XKj99rbIcZsWS9cT1vaI=",
+        "rev": "b7c2ada94fe99c15b0dbcf4d11fd7850b957a436",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1047536.e72e4f299401/nixexprs.tar.zst"
+        "url": "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1048607.b7c2ada94fe9/nixexprs.tar.zst"
       },
       "original": {
         "type": "tarball",
@@ -772,11 +772,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1784591072,
-        "narHash": "sha256-zP/WaDxrRu8GANZM61+V2LT/7ycEEdoyLWn7M6WzU7M=",
+        "lastModified": 1786031528,
+        "narHash": "sha256-cROiHKO3UbIKqF5FG5NikvydzlfIj4EcR1Cty9qOVt4=",
         "owner": "pyproject-nix",
         "repo": "pyproject.nix",
-        "rev": "e3b599ca2e7fcf93d4edf65d7f19bbf6491724f3",
+        "rev": "1b1485546d85f6f6c7aadb10c4923dbc09633263",
         "type": "github"
       },
       "original": {
@@ -1022,11 +1022,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1785277507,
-        "narHash": "sha256-9Tq3UDX2hD/aveW/HvkBlAmEwJTOlY5HQXJM+L5BGmE=",
+        "lastModified": 1786026603,
+        "narHash": "sha256-payw8w/aqR/Vr7LvDp14jxa5egFrZN7g8INsPzn7rN0=",
         "owner": "pyproject-nix",
         "repo": "uv2nix",
-        "rev": "5a836d395cbf5fc22670eb98dd4aa4fc4d406977",
+        "rev": "0dfa8388dc855b1774f509725d8ea6806291571d",
         "type": "github"
       },
       "original": {
