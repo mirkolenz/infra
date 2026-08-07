@@ -157,14 +157,6 @@
         };
       });
 
-    disableHydra =
-      pkg:
-      pkg.overrideAttrs (old: {
-        meta = (old.meta or { }) // {
-          hydraPlatforms = [ ];
-        };
-      });
-
     # import every `final: prev: -> attrset` overlay fragment in `dir` and merge them at the top level
     importOverlays =
       dir: final: prev:
