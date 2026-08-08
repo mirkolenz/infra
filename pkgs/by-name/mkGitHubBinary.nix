@@ -50,7 +50,8 @@ lib.extendMkDerivation {
 
       release = lib.importJSON file;
 
-      # Assets can be an attrset or a function of version.
+      # Assets can be an attrset or a function of version, mapping each system
+      # to a single asset name or a list of them.
       resolvedAssets = if lib.isFunction assets then assets finalAttrs.version else assets;
 
       # Evaluate assets with a sentinel version to obtain name templates.
@@ -58,7 +59,7 @@ lib.extendMkDerivation {
       # exact name matching against the release assets.
       sentinel = "__NIXPKGS_VERSION__";
       sentinelAssets = if lib.isFunction assets then assets sentinel else assets;
-      sentinelAssetNames = lib.toJSON (lib.attrValues sentinelAssets);
+      sentinelAssetNames = lib.toJSON (lib.flatten (lib.attrValues sentinelAssets));
 
       jqVersionExpr = lib.concatStrings [
         ".tag_name"
@@ -66,7 +67,11 @@ lib.extendMkDerivation {
         (lib.optionalString (versionSuffix != "") " | rtrimstr(\"${versionSuffix}\")")
       ];
 
-      assetName = resolvedAssets.${stdenv.hostPlatform.system};
+      assetNames = lib.toList resolvedAssets.${stdenv.hostPlatform.system};
+
+      # Binaries can be a list of names, or an attrset mapping each installed
+      # name to its path in the unpacked sources when the two differ.
+      binaryPaths = if lib.isList binaries then lib.genAttrs binaries lib.id else binaries;
     in
     {
       inherit pname;
@@ -75,10 +80,13 @@ lib.extendMkDerivation {
         (lib.removeSuffix versionSuffix)
       ];
 
-      src = fetchurl {
-        url = "https://github.com/${owner}/${repo}/releases/download/${release.tag_name}/${assetName}";
-        hash = release.assets.${assetName}.digest;
-      };
+      srcs = map (
+        name:
+        fetchurl {
+          url = "https://github.com/${owner}/${repo}/releases/download/${release.tag_name}/${name}";
+          hash = release.assets.${name}.digest;
+        }
+      ) assetNames;
 
       dontConfigure = true;
       dontBuild = true;
@@ -93,8 +101,9 @@ lib.extendMkDerivation {
       installPhase = ''
         runHook preInstall
 
-        ${lib.optionalString (binaries != [ ]) "installBin ${toString binaries}"}
-
+        ${lib.concatLines (
+          lib.mapAttrsToList (name: path: ''install -Dm755 "${path}" "$out/bin/${name}"'') binaryPaths
+        )}
         runHook postInstall
       '';
 

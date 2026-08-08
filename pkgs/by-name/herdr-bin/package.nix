@@ -14,11 +14,10 @@ mkGitHubBinary {
   };
   versionPrefix = "v";
 
-  dontUnpack = true;
+  sourceRoot = ".";
 
-  preInstall = ''
-    cp $src herdr
-  '';
+  # The asset is the bare executable, so it only needs its final name.
+  unpackCmd = ''cp "$curSrc" herdr'';
 
   nativeInstallCheckInputs = [ versionCheckHook ];
   doInstallCheck = true;

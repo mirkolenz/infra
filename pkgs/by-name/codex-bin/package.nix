@@ -1,39 +1,34 @@
 {
   lib,
   stdenv,
-  openssl,
-  libcap,
-  zlib,
   versionCheckHook,
   mkGitHubBinary,
 }:
 let
-  inherit (stdenv.hostPlatform) system;
   platforms = {
     x86_64-linux = "x86_64-unknown-linux-musl";
     aarch64-linux = "aarch64-unknown-linux-musl";
     aarch64-darwin = "aarch64-apple-darwin";
   };
+  platform = platforms.${stdenv.hostPlatform.system};
+  # codex discovers its helpers next to its own executable, so they all live in $out/bin.
+  programs = [
+    "codex"
+    "codex-app-server"
+    "codex-code-mode-host"
+    "codex-responses-api-proxy"
+  ];
 in
 mkGitHubBinary {
   owner = "openai";
   repo = "codex";
   file = ./release.json;
-  assets = lib.mapAttrs (_: plat: "codex-${plat}.tar.gz") platforms;
+  assets = lib.mapAttrs (_: plat: map (bin: "${bin}-${plat}.tar.gz") programs) platforms;
   versionPrefix = "rust-v";
+  # Each tarball holds a single platform-suffixed executable.
+  binaries = lib.genAttrs programs (bin: "${bin}-${platform}");
 
   sourceRoot = ".";
-
-  buildInputs = lib.optionals stdenv.hostPlatform.isElf [
-    stdenv.cc.cc
-    openssl
-    libcap
-    zlib
-  ];
-
-  preInstall = ''
-    mv codex-${platforms.${system}} codex
-  '';
 
   installShellCompletionPhase = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
     installShellCompletion --cmd codex \
