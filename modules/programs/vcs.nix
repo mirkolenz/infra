@@ -357,13 +357,14 @@
               order = "default";
               showGraph = "never";
             };
-            # https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md
-            pagers = [
+            # https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_DiffRenderers.md
+            diffRenderers = [
               {
-                pager = "delta --paging=never --width={{columnWidth}} --hyperlinks-file-link-format=\"lazygit-edit://{path}:{line}\"";
+                command = "delta --paging=never --width={{columnWidth}} --hyperlinks-file-link-format=\"lazygit-edit://{path}:{line}\"";
               }
               {
-                externalDiffCommand = "difft --color=always --display=inline";
+                command = "difft --color=always --display=inline";
+                type = "extDiff";
               }
             ];
           };
