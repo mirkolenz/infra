@@ -6,7 +6,8 @@
   ...
 }:
 let
-  flake = builtins.getFlake ("git+file://" + toString ./.);
+  # `shallow=1` skips `revCount`, which a shallow clone cannot provide.
+  flake = builtins.getFlake ("git+file://" + toString ./. + "?shallow=1");
   # Import `./pkgs` directly rather than the flake's store-copied
   # `overlays.default`, so `meta.position` stays in the working tree and
   # updateScripts can edit package files in place.
