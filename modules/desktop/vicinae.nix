@@ -23,12 +23,10 @@
     lib.mkIf config.custom.features.graphical.enable {
       programs.vicinae = {
         enable = true;
-        package = if pkgs.stdenv.isDarwin then pkgs.writeShellScriptBin "vicinae" "true" else pkgs.vicinae;
+        # package = if pkgs.stdenv.isDarwin then pkgs.writeShellScriptBin "vicinae" "true" else pkgs.vicinae;
 
-        systemd = {
-          enable = true;
-          autoStart = true;
-        };
+        systemd.enable = true;
+        launchd.enable = false;
 
         extensions =
           (with vicinaeExtensions; [
