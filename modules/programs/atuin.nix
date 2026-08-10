@@ -3,21 +3,25 @@
     { ... }:
     {
       programs.atuin = {
-        enable = false;
+        enable = true;
+        daemon.enable = true;
         flags = [
-          "--disable-up-arrow"
+          # "--disable-up-arrow"
           # "--disable-ctrl-r"
         ];
-        # https://docs.atuin.sh/configuration/config/
+        # https://docs.atuin.sh/latest/configuration/config/
         settings = {
-          auto_sync = true;
+          # keep-sorted start
+          enter_accept = true;
+          inline_height = 0;
+          inline_height_shell_up_key_binding = 10;
+          keymap_mode = "vim-insert";
+          search_mode = "fuzzy";
+          sync_address = "https://atuin.lenz.casa";
           sync_frequency = "1h";
           update_check = false;
-          search_mode = "fuzzy";
-          enter_accept = true;
-          keymap_mode = "vim-insert";
-          sync.records = true;
-          dotfiles.enabled = false;
+          workspaces = true;
+          # keep-sorted end
         };
       };
     };
