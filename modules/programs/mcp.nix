@@ -17,11 +17,11 @@
           };
         };
       };
-      # Claude bundles MCP servers into the generated "claude-code-home-manager" plugin,
+      # Claude bundles MCP servers into the generated "hm" plugin,
       # so its tools are namespaced as plugin_<plugin>_<server>; auto-allow them here to
       # keep all MCP approval config in one place (merges with the claude.nix allow list)
       programs.claude-code.settings.permissions.allow = [
-        "mcp__plugin_claude-code-home-manager_nixos"
+        "mcp__plugin_hm_nixos"
       ];
     };
 }
