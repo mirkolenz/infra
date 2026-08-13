@@ -69,6 +69,22 @@
               #   "*secret*"
               # ];
             };
+            credentials = {
+              # the default read policy still grants ssh keys, so deny them explicitly
+              files = [
+                {
+                  path = "${config.home.homeDirectory}/.ssh";
+                  mode = "deny";
+                }
+              ];
+              # drop the agent socket so ssh cannot authenticate via a forwarded agent
+              envVars = [
+                {
+                  name = "SSH_AUTH_SOCK";
+                  mode = "deny";
+                }
+              ];
+            };
           };
           extraKnownMarketplaces = {
             claude-plugins-official = {

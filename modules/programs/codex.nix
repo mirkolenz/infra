@@ -45,6 +45,8 @@
               "${config.xdg.configHome}/git" = "read";
               "${config.xdg.configHome}/uv" = "read";
               "${config.xdg.configHome}/.wrangler/logs" = "write";
+              # deny wins over the read granted by :workspace, keeping ssh keys unreadable
+              "${config.home.homeDirectory}/.ssh" = "deny";
             }
             # orb stores logs, sockets, and state here and reads them on every call, darwin only
             // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
@@ -82,6 +84,8 @@
             hide_rate_limit_model_nudge = true;
           };
           shell_environment_policy = {
+            # drop the agent socket so ssh cannot authenticate via a forwarded agent
+            filters.SSH_AUTH_SOCK = "exclude";
             set = {
               ASTRO_TELEMETRY_DISABLED = "1";
               # determinate-nix spawns a sentry crashpad_handler that cannot register its
