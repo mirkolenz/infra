@@ -9,7 +9,7 @@
     lib.mkIf config.custom.features.graphical.enable {
       programs.ghostty = {
         enable = true;
-        package = if pkgs.stdenv.isDarwin then null else pkgs.ghostty;
+        package = if pkgs.stdenv.hostPlatform.isDarwin then null else pkgs.ghostty;
         # https://ghostty.org/docs/config/reference
         settings = {
           auto-update = "download";
@@ -17,7 +17,7 @@
           background-blur = false;
           cursor-click-to-move = true;
           font-family = "JetBrainsMono Nerd Font";
-          font-size = if pkgs.stdenv.isDarwin then 13 else 11;
+          font-size = if pkgs.stdenv.hostPlatform.isDarwin then 13 else 11;
           font-thicken = true;
           macos-titlebar-style = "tabs";
           notify-on-command-finish = "unfocused";

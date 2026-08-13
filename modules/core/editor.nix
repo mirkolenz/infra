@@ -32,7 +32,7 @@ in
       home.sessionVariables = {
         EDITOR = "nvim";
         VISUAL =
-          if pkgs.stdenv.isDarwin then
+          if pkgs.stdenv.hostPlatform.isDarwin then
             "zed --wait"
           else if config.programs.zed-editor.enable then
             "zeditor --wait"

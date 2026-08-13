@@ -10,7 +10,7 @@
     lib.mkIf config.custom.features.graphical.enable {
       programs.zed-editor.enable = false;
 
-      home.packages = lib.mkIf pkgs.stdenv.isLinux [
+      home.packages = lib.mkIf pkgs.stdenv.hostPlatform.isLinux [
         pkgs.zed-editor
       ];
 
@@ -32,7 +32,7 @@
             ];
       };
 
-      home.shellAliases = lib.mkIf pkgs.stdenv.isLinux {
+      home.shellAliases = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
         zed = "zeditor";
       };
     };

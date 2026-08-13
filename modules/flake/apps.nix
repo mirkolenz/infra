@@ -32,7 +32,7 @@
           doCheck = false;
         } (lib.readFile "${inputs.nixos-hardware}/apple/t2/pkgs/linux-t2/update-patches.py");
       }
-      // lib.optionalAttrs pkgs.stdenv.isLinux {
+      // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
         disko.program = pkgs.writeShellScriptBin "disko" /* bash */ ''
           name="$1"
           shift

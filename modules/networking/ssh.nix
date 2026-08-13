@@ -80,7 +80,7 @@ in
       programs.ssh = {
         enable = true;
         enableDefaultConfig = false;
-        includes = lib.mkIf pkgs.stdenv.isDarwin [
+        includes = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin [
           "${config.home.homeDirectory}/.orbstack/ssh/config"
         ];
         settings = {

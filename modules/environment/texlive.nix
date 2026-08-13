@@ -7,7 +7,7 @@
       ...
     }:
     # https://tug.org/texlive/scripts-sys-user.html
-    lib.mkIf pkgs.stdenv.isDarwin {
+    lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
       custom.texlive = {
         enable = true;
         bibliographyPath = "${config.home.homeDirectory}/developer/mirkolenz/bibliography";

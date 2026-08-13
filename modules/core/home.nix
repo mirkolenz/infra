@@ -65,7 +65,7 @@ in
           config = nixpkgsConfig;
           overlays = [ overlays.default ];
         };
-        targets.genericLinux.enable = lib.mkDefault pkgs.stdenv.isLinux;
+        targets.genericLinux.enable = lib.mkDefault pkgs.stdenv.hostPlatform.isLinux;
       }
     )
   ];

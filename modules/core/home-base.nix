@@ -17,7 +17,7 @@
         stateVersion = config.custom.stateVersions.home;
         username = config.custom.user.login;
         homeDirectory =
-          if pkgs.stdenv.isDarwin then
+          if pkgs.stdenv.hostPlatform.isDarwin then
             "/Users/${config.custom.user.login}"
           else
             "/home/${config.custom.user.login}";
