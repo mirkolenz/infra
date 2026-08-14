@@ -13,7 +13,7 @@
         generateCompletions = true;
         functions.fish_greeting.body = ''
           if set -q SSH_CONNECTION
-            ${lib.getExe config.programs.macchina.package}
+            ${lib.getExe config.programs.fastfetch.package}
           end
         '';
       };
