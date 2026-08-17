@@ -7,17 +7,22 @@
       modelsPreset = {
         "*" = rec {
           # keep-sorted start
+          agent = true;
           cache-ram = 0; # unified memory
           cache-type-k = "q8_0";
           cache-type-v = "q8_0";
           ctx-size = 256 * 1024 * parallel;
+          fit = "off";
           flash-attn = "on";
           kv-unified = false;
           mlock = true;
           mmap = false;
           n-gpu-layers = "all";
           parallel = 1;
+          reasoning-preserve = true;
           sleep-idle-seconds = -1;
+          spec-draft-type-k = "q8_0";
+          spec-draft-type-v = "q8_0";
           # keep-sorted end
         };
         # https://unsloth.ai/docs/models/gemma-4/qat
@@ -47,10 +52,12 @@
           top-p = 0.95;
           # keep-sorted end
         };
-        "qwen3.6-27b" = {
+        "qwen3.8-27b" = {
           # keep-sorted start
-          hf-repo = "unsloth/Qwen3.6-27B-GGUF:UD-Q4_K_XL";
+          hf-repo = "unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_XL";
           min-p = 0.0;
+          spec-default = true;
+          spec-type = "draft-mtp";
           temperature = 1.0;
           top-k = 20;
           top-p = 0.95;
