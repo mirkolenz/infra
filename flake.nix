@@ -48,7 +48,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     hermes-agent = {
-      url = "github:nousresearch/hermes-agent/v2026.8.13";
+      url = "github:nousresearch/hermes-agent/v2026.8.16";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -144,7 +144,7 @@
       };
     };
     vicinae = {
-      url = "github:vicinaehq/vicinae/v0.25.0";
+      url = "github:vicinaehq/vicinae/v0.26.0";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.soulver-cpp.inputs.nixpkgs.follows = "nixpkgs";
     };
