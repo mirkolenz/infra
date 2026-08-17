@@ -515,11 +515,11 @@
     },
     "nixpkgs-darwin-stable": {
       "locked": {
-        "lastModified": 1786527240,
-        "narHash": "sha256-XiCcCQ8PoMGI82/drSNrbYQ0HwcdgG7xQ+wLIuxg5Wo=",
-        "rev": "e0c84f9d0ad137f076dc957494f5b39885597d4f",
+        "lastModified": 1786920013,
+        "narHash": "sha256-pZqBmBBjVeaxmFGe1bwfyaN9PyGg8KKEelN/UCw3gEg=",
+        "rev": "33da5f36e599b50aa7dbbfacb718254423b18354",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixpkgs/26.05-darwin/nixpkgs-darwin-26.05pre1011813.e0c84f9d0ad1/nixexprs.tar.zst"
+        "url": "https://releases.nixos.org/nixpkgs/26.05-darwin/nixpkgs-darwin-26.05pre1012102.33da5f36e599/nixexprs.tar.zst"
       },
       "original": {
         "type": "tarball",
@@ -544,11 +544,11 @@
     },
     "nixpkgs-linux-stable": {
       "locked": {
-        "lastModified": 1786711500,
-        "narHash": "sha256-mB6w7h+UsvxLf3PY6U3hSDVWCfmn2Q6VtSw5JugbeY0=",
-        "rev": "02e08985a27c65ffd33d434eeb2e660a2e4dc84d",
+        "lastModified": 1786943417,
+        "narHash": "sha256-eVWN0FVPJSK7wgm9SxzFwd6FNRWoJN2oAe3M6MbpZ8U=",
+        "rev": "0dd31db7e6dbf9ce05697c4545f6fe01accec994",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixos/26.05/nixos-26.05.7675.02e08985a27c/nixexprs.tar.zst"
+        "url": "https://releases.nixos.org/nixos/26.05/nixos-26.05.7813.0dd31db7e6db/nixexprs.tar.zst"
       },
       "original": {
         "type": "tarball",
@@ -693,11 +693,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1785730568,
-        "narHash": "sha256-NjSPsgjJ7MSpBtTkUcmNhRe6AFZ96+zsca2M8YuQi8Y=",
+        "lastModified": 1786936886,
+        "narHash": "sha256-8SFyOdmcG6Nsh/JzlH812lTI/v+ur06fpQhj/acNn8k=",
         "owner": "pyproject-nix",
         "repo": "build-system-pkgs",
-        "rev": "90fde00db3687922d39d95fc591475fd0bbbcd72",
+        "rev": "90ffdeee1a4929b231913df067448cd9803d3e07",
         "type": "github"
       },
       "original": {
