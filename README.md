@@ -244,6 +244,13 @@ Add the following to `/etc/nix/nix.secrets.conf`:
 access-tokens = github.com=github_pat_XXX
 ```
 
+Set permissions as follows:
+
+```shell
+sudo chown root /etc/nix/nix.secrets.conf
+sudo chmod 640 /etc/nix/nix.secrets.conf
+```
+
 ### Image Building
 
 If building for another architecture on NixOS:
