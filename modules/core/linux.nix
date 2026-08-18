@@ -63,7 +63,7 @@
         allowReboot = true;
         runGarbageCollection = true;
         rebootWindow = {
-          lower = "03:30";
+          lower = "04:00";
           upper = "05:00";
         };
         # only unattended on always-on hosts
