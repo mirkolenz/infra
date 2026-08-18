@@ -185,12 +185,10 @@ sudo /nix/nix-installer uninstall
 
 - Install [Better BibTeX](https://github.com/retorquere/zotero-better-bibtex/releases)
 - Install [Open PDF](https://github.com/retorquere/zotero-open-pdf/releases)
-- `Settings > General > Customize Filename Format > {{ creators max="1" case="hyphen" }}-{{ year }}-{{ title truncate="50" case="hyphen" }}`
-- `Settings General > Reader > Tabs > Creator - Title - Year`
+- `Settings > General > File Renaming > {{ creators max="1" case="hyphen" }}-{{ year }}-{{ title truncate="50" case="hyphen" }}`
+- `Settings General > Reader > Tabs > Creator - Year - Title`
 - `Settings > Export > Item Format > Better BibTeX Citation Key Quick Copy`
-- `Settings > Export > Note Format > Markdown + Rich Text`
 - `Settings > Better BibTeX > Citation Key Format > auth.capitalize + year + shorttitle(3,3)`
-- `Settings > Better BibTeX > Citation Key Format > Automatic Export > Delay > 10 seconds`
 - `Settings > Better BibTeX > Fields > Omit > file, keywords`
 
 </details>
