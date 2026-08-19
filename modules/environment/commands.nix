@@ -290,6 +290,18 @@
           shift
           exec fontforge -c "Open(\"$source\"); Generate(\"$target\");" "$@"
         '';
+        wget-mirror = /* bash */ ''
+          exec ${lib.getExe pkgs.wget} \
+            --mirror \
+            --convert-links \
+            --adjust-extension \
+            --page-requisites \
+            --no-parent \
+            --wait=1 \
+            --random-wait \
+            --user-agent="Mozilla/5.0" \
+            "$@"
+        '';
         gh-prs = /* bash */ ''
           if [ "$#" -lt 1 ]; then
             echo "Usage: $0 SELECT [GH_SEARCH_ARGS...]" >&2
