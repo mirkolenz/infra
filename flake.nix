@@ -53,7 +53,7 @@
     };
     import-tree.url = "github:denful/import-tree";
     mistral-vibe = {
-      url = "github:mistralai/mistral-vibe/v2.24.1";
+      url = "github:mistralai/mistral-vibe/v2.24.2";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         pyproject-nix.follows = "pyproject-nix";
@@ -89,7 +89,7 @@
       };
     };
     opnix = {
-      url = "github:brizzbuzz/opnix/v0.10.1";
+      url = "github:brizzbuzz/opnix/v0.11.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     plasma-manager = {
