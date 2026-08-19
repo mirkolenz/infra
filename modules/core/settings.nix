@@ -1,10 +1,10 @@
 {
   flake.modules.darwin.default = {
     system.defaults = {
+      CustomSystemPreferences = { };
       CustomUserPreferences = {
         NSGlobalDomain = {
           NSCloseAlwaysConfirmsChanges = false;
-          AppleSpacesSwitchOnActivate = true;
         };
         "com.apple.Music" = {
           userWantsPlaybackNotifications = false;
@@ -16,13 +16,22 @@
           SmartQuotes = false;
           RichText = false;
         };
-        "com.apple.spaces" = {
-          "spans-displays" = false;
-        };
-        "com.apple.menuextra.clock" = {
-          DateFormat = "EEE d MMM HH:mm:ss";
-          FlashDateSeparators = false;
-        };
+      };
+      ActivityMonitor = {
+        IconType = 0;
+        OpenMainWindow = true;
+        ShowCategory = 100;
+        SortColumn = null;
+        SortDirection = null;
+      };
+      controlcenter = {
+        AirDrop = null;
+        BatteryShowPercentage = null;
+        Bluetooth = null;
+        Display = null;
+        FocusModes = null;
+        NowPlaying = null;
+        Sound = null;
       };
       dock = {
         appswitcher-all-displays = true;
@@ -33,15 +42,23 @@
         enable-spring-load-actions-on-all-items = false;
         expose-animation-duration = 0.2;
         expose-group-apps = false;
+        largesize = 96;
         launchanim = true;
+        magnification = false;
         mineffect = "genie";
         minimize-to-application = false;
         mouse-over-hilite-stack = true;
         mru-spaces = false;
         orientation = "bottom";
+        scroll-to-open = false;
         show-process-indicators = true;
         show-recents = true;
+        showAppExposeGestureEnabled = true;
+        showDesktopGestureEnabled = false;
         showhidden = true;
+        showLaunchpadGestureEnabled = false;
+        showMissionControlGestureEnabled = true;
+        slow-motion-allowed = false;
         static-only = false;
         tilesize = 48;
         wvous-bl-corner = 1;
@@ -80,25 +97,43 @@
           "/System/Applications/Utilities/Activity Monitor.app"
           "/System/Applications/System Settings.app"
         ];
-        # persistent-others = [ "${userHome}/Downloads/" ];
+        persistent-others = null;
       };
       finder = {
+        _FXEnableColumnAutoSizing = false;
         _FXShowPosixPathInTitle = false;
         _FXSortFoldersFirst = true;
+        _FXSortFoldersFirstOnDesktop = true;
         AppleShowAllExtensions = true;
         AppleShowAllFiles = false;
         CreateDesktop = true;
         FXDefaultSearchScope = "SCcf";
         FXEnableExtensionChangeWarning = false;
         FXPreferredViewStyle = "clmv";
+        FXRemoveOldTrashItems = false;
+        NewWindowTarget = "Home";
+        NewWindowTargetPath = null;
         QuitMenuItem = false;
+        ShowExternalHardDrivesOnDesktop = false;
+        ShowHardDrivesOnDesktop = false;
+        ShowMountedServersOnDesktop = false;
         ShowPathbar = true;
+        ShowRemovableMediaOnDesktop = false;
         ShowStatusBar = false;
+      };
+      hitoolbox = {
+        AppleFnUsageType = "Show Emoji & Symbols";
+      };
+      iCal = {
+        "first day of week" = "System Setting";
+        "TimeZone support enabled" = false;
+        CalendarSidebarShown = true;
       };
       loginwindow = {
         autoLoginUser = null;
         DisableConsoleAccess = false;
         GuestEnabled = false;
+        HideUserAvatarAndName = false;
         LoginwindowText = null;
         PowerOffDisabledWhileLoggedIn = false;
         RestartDisabled = false;
@@ -111,12 +146,28 @@
       magicmouse = {
         MouseButtonMode = "TwoButton";
       };
+      menuExtraClock = {
+        FlashDateSeparators = false;
+        IsAnalog = false;
+        Show24Hour = true;
+        ShowAMPM = false;
+        ShowDate = 1;
+        ShowDayOfMonth = true;
+        ShowDayOfWeek = true;
+        ShowSeconds = true;
+      };
       screencapture = {
         disable-shadow = true;
+        include-date = true;
         location = "~/Downloads";
+        save-selections = true;
         show-thumbnail = true;
-        type = "png";
         target = "file";
+        type = "png";
+      };
+      screensaver = {
+        askForPassword = false;
+        askForPasswordDelay = null;
       };
       smb = {
         NetBIOSName = null;
@@ -126,20 +177,35 @@
         spans-displays = false;
       };
       trackpad = {
+        ActuateDetents = true;
         ActuationStrength = 0;
         Clicking = true;
+        DragLock = false;
         Dragging = true;
         FirstClickThreshold = 0;
+        ForceSuppressed = null;
         SecondClickThreshold = 0;
+        TrackpadCornerSecondaryClick = 0;
+        TrackpadFourFingerHorizSwipeGesture = 2;
+        TrackpadFourFingerPinchGesture = 2;
+        TrackpadFourFingerVertSwipeGesture = 2;
+        TrackpadMomentumScroll = true;
+        TrackpadPinch = true;
         TrackpadRightClick = true;
+        TrackpadRotate = true;
         TrackpadThreeFingerDrag = true;
+        TrackpadThreeFingerHorizSwipeGesture = 0;
         TrackpadThreeFingerTapGesture = 0;
+        TrackpadThreeFingerVertSwipeGesture = 0;
+        TrackpadTwoFingerDoubleTapGesture = true;
+        TrackpadTwoFingerFromRightEdgeSwipeGesture = 0;
       };
       universalaccess = {
         closeViewScrollWheelToggle = false;
         closeViewZoomFollowsFocus = false;
-        reduceTransparency = false;
         mouseDriverCursorSize = 1.0;
+        reduceMotion = false;
+        reduceTransparency = false;
       };
       SoftwareUpdate = {
         AutomaticallyInstallMacOSUpdates = true;
@@ -152,6 +218,9 @@
         AutoHide = false;
         EnableStandardClickToShowDesktop = false;
         EnableTiledWindowMargins = false;
+        EnableTilingByEdgeDrag = true;
+        EnableTilingOptionAccelerator = true;
+        EnableTopTilingByEdgeDrag = true;
         GloballyEnabled = false;
         HideDesktop = false;
         StageManagerHideWidgets = false;
@@ -179,12 +248,14 @@
         AppleEnableSwipeNavigateWithScrolls = true;
         AppleFontSmoothing = null;
         AppleICUForce24HourTime = true;
+        AppleIconAppearanceTheme = "RegularAutomatic";
         AppleInterfaceStyle = "Dark";
         AppleInterfaceStyleSwitchesAutomatically = false;
         AppleKeyboardUIMode = null;
         AppleMeasurementUnits = "Centimeters";
         AppleMetricUnits = 1;
         ApplePressAndHoldEnabled = false;
+        AppleReduceDesktopTinting = false;
         AppleScrollerPagingBehavior = true;
         AppleShowAllExtensions = true;
         AppleShowAllFiles = false;
@@ -196,6 +267,7 @@
         KeyRepeat = 2; # slider values: 120, 90, 60, 30, 12, 6, 2
         NSAutomaticCapitalizationEnabled = false;
         NSAutomaticDashSubstitutionEnabled = false;
+        NSAutomaticInlinePredictionEnabled = true;
         NSAutomaticPeriodSubstitutionEnabled = false;
         NSAutomaticQuoteSubstitutionEnabled = false;
         NSAutomaticSpellingCorrectionEnabled = false;
@@ -205,10 +277,13 @@
         NSNavPanelExpandedStateForSaveMode = true;
         NSNavPanelExpandedStateForSaveMode2 = true;
         NSScrollAnimationEnabled = true;
+        NSStatusItemSelectionPadding = null;
+        NSStatusItemSpacing = null;
         NSTableViewDefaultSizeMode = 2;
         NSTextShowsControlCharacters = false;
         NSUseAnimatedFocusRing = true;
         NSWindowResizeTime = 2.0e-2;
+        NSWindowShouldDragOnGesture = false;
         PMPrintingExpandedStateForPrint = true;
         PMPrintingExpandedStateForPrint2 = true;
       };
