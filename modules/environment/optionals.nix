@@ -32,6 +32,7 @@
         mu-repo
         cc2538-bsl
         imagemagick
+        vtracer
         pngquant
         poppler-utils
         pstoedit
