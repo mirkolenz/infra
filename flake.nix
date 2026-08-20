@@ -44,7 +44,7 @@
       };
     };
     herdr = {
-      url = "github:ogulcancelik/herdr/v0.8.0";
+      url = "github:ogulcancelik/herdr/v0.8.2";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     home-manager = {
