@@ -24,6 +24,7 @@
           forceLoginMethod = "claudeai";
           includeCoAuthoredBy = false;
           includeGitInstructions = false;
+          outputStyle = "concise";
           skipAutoPermissionPrompt = true;
           spinnerTipsEnabled = false;
           tui = "fullscreen";
