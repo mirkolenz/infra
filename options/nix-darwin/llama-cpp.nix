@@ -106,8 +106,8 @@ in
         HOME = cfg.home;
         LLAMA_CACHE = cfg.cache;
       };
-      serviceConfig = {
-        ProgramArguments = [
+      command = lib.escapeShellArgs (
+        [
           (lib.getExe' cfg.package "llama-server")
         ]
         ++ lib.cli.toCommandLine (optionName: {
@@ -115,10 +115,12 @@ in
           sep = null;
           explicitBool = false;
           formatArg = lib.generators.mkValueStringDefault { };
-        }) cfg.settings;
+        }) cfg.settings
+      );
+      serviceConfig = {
         KeepAlive = true;
         RunAtLoad = true;
-        ExitTimeOut = 90;
+        ExitTimeOut = 60;
         ThrottleInterval = 10;
         UserName = "_llamacpp";
         GroupName = "_llamacpp";
