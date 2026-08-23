@@ -2,6 +2,8 @@
   // keep-sorted start block=yes
   "agent": {
     "sidebar_side": "left",
+    "default_width": 640,
+    "default_height": 320,
     "flexible": true,
     "dock": "left",
     "use_modifier_to_send": false,
@@ -10,11 +12,12 @@
       "effort": "high",
       "enable_thinking": true,
       "provider": "zed.dev",
-      "model": "claude-sonnet-5",
+      "model": "gpt-5.6-sol",
       "speed": "standard"
     },
-    "default_width": 640,
-    "default_height": 320
+    "sandbox_permissions": {
+      "allow_unsandboxed": false
+    }
   },
   // ls -l "$HOME/Library/Application Support/Zed/extensions/installed/"
   "auto_install_extensions": {
