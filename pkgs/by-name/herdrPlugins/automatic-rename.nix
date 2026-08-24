@@ -36,6 +36,13 @@ mkHerdrPlugin (finalAttrs: {
     jq
   ];
 
+  # the build sandbox has no /usr/bin/env, which the tests use both in their
+  # shebangs and to start the engine
+  postPatch = ''
+    substituteInPlace tests/*.sh tests/mocks/* \
+      --replace-quiet "/usr/bin/env bash" "${lib.getExe bashNonInteractive}"
+  '';
+
   nativeCheckInputs = [ jq ];
   doCheck = true;
   checkPhase = ''
