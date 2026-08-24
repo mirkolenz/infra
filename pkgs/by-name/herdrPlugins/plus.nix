@@ -4,7 +4,7 @@
   buildGoModule,
   fetchFromGitHub,
   nix-update-script,
-  git,
+  gitMinimal,
 }:
 mkHerdrPlugin (finalAttrs: {
   pname = "herdr-plus";
@@ -22,14 +22,14 @@ mkHerdrPlugin (finalAttrs: {
     inherit (finalAttrs) pname version src;
     vendorHash = "sha256-im2gPhLarMf1w/8rhxbOe9EhUdvseffukT9tqU4EEXI=";
     subPackages = [ "." ];
-    nativeCheckInputs = [ git ];
+    nativeCheckInputs = [ gitMinimal ];
     meta.mainProgram = "herdr-plus";
   };
   # every action, pane, and event runs the binary directly, so there is no script
   # entry point to wrap
   binaryPath = "bin/herdr-plus";
 
-  runtimeInputs = [ git ];
+  runtimeInputs = [ gitMinimal ];
 
   passthru.updateScript = nix-update-script {
     extraArgs = [

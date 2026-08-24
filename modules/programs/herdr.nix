@@ -1,57 +1,33 @@
 {
   flake.modules.homeManager.default =
     {
+      lib,
       pkgs,
       config,
       ...
     }:
     let
-      # Open a new focused herdr tab and run the given command in it, labelling
-      # the tab after the command's program name. (herdr has no single-command
-      # equivalent, so we create the tab and run in its root pane in two steps.)
-      htab = pkgs.writeShellApplication {
-        name = "htab";
-        runtimeInputs = [
-          config.programs.herdr.package
-          pkgs.jq
-        ];
-        text = ''
-          pane_id="$(herdr tab create --label "$1" --focus | jq -r '.result.root_pane.pane_id')"
-          exec herdr pane run "$pane_id" "$*"
-        '';
-      };
-
       inherit (pkgs) herdrPlugins;
 
       plugins = with herdrPlugins; [
+        automatic-rename
         file-viewer
         plus
         reviewr
+        sessionizer
       ];
 
-      # Same tabs as the zellij `ide` layout. herdr-plus lays this into every
-      # worktree workspace, since `repo = "*"` matches any repository.
-      defaultLayout = {
-        repo = "*";
-        tabs = [
-          {
-            name = "edit";
-            command = "nvim";
-          }
-          {
-            name = "files";
-            command = "yazi";
-          }
-          {
-            name = "git";
-            command = "lazygit";
-          }
-          { name = "shell"; }
-        ];
-      };
+      mkSessionizerTabs = lib.mapAttrs (
+        label: command: {
+          inherit label;
+          panes = [ { inherit command; } ];
+        }
+      );
     in
     {
-      home.packages = [ htab ];
+      programs.fish.interactiveShellInit = ''
+        source ${herdrPlugins.automatic-rename.root}/shell/hook.fish
+      '';
 
       # herdr replaces every cached field from the manifest when it reads this
       # registry, so only the paths and the enabled flag matter here. Installing
@@ -59,7 +35,7 @@
       # which `force` then takes back on the next activation.
       xdg.configFile."herdr/plugins.json" = {
         force = true;
-        source = (pkgs.formats.json { }).generate "herdr-plugins.json" (
+        source = pkgs.writers.writeJSON "herdr-plugins.json" (
           map (plugin: {
             plugin_id = plugin.pluginId;
             name = plugin.pname;
@@ -71,11 +47,30 @@
         );
       };
 
-      # herdr points the plugin at this managed config dir, which takes precedence
-      # over the ~/.config/herdr-plus the binary falls back to outside herdr.
-      xdg.configFile."herdr/plugins/config/${herdrPlugins.plus.pluginId}/worktrees/default.toml".source =
-        (pkgs.formats.toml { }).generate "herdr-plus-default-layout.toml"
-          defaultLayout;
+      # Sessionizer discovers repositories below each owner directory.
+      # This fallback provides a consistent four-tab project workspace.
+      # A repository can replace it with its own .sessionizer/config.toml.
+      xdg.configFile."herdr/plugins/config/${herdrPlugins.sessionizer.pluginId}/config.toml".source =
+        pkgs.writers.writeTOML "herdr-sessionizer.toml"
+          {
+            projects = {
+              roots = [ "${config.home.homeDirectory}/Developer/*" ];
+              git_only = true;
+              depth = 1;
+            };
+            layout.focus = "edit";
+            tabs = mkSessionizerTabs {
+              edit = "nvim";
+              files = "yazi";
+              git = "lazygit";
+              shell = "";
+            };
+          };
+
+      xdg.configFile."herdr-automatic-rename/config.sh".text = ''
+        AUTO_INDEX=0
+        SHOW_PROGRAM_ARGS=1
+      '';
 
       programs.herdr = {
         enable = true;
@@ -93,26 +88,7 @@
             prefix = "ctrl+b";
             # tmux-style jump back to the previously focused pane (across tabs/workspaces).
             last_pane = "prefix+;";
-            # Reuse the htab command via a background shell to open the command in a new tab.
             command = [
-              {
-                key = "prefix+alt+g";
-                type = "shell";
-                command = "htab lazygit";
-                description = "lazygit in a new tab";
-              }
-              {
-                key = "prefix+alt+e";
-                type = "shell";
-                command = "htab nvim";
-                description = "nvim in a new tab";
-              }
-              {
-                key = "prefix+alt+y";
-                type = "shell";
-                command = "htab yabai";
-                description = "yabai in a new tab";
-              }
               {
                 key = "prefix+alt+f";
                 type = "plugin_action";
@@ -128,8 +104,14 @@
               {
                 key = "prefix+alt+p";
                 type = "plugin_action";
-                command = "${herdrPlugins.plus.pluginId}.projects";
+                command = "${herdrPlugins.sessionizer.pluginId}.open";
                 description = "open a project workspace";
+              }
+              {
+                key = "prefix+alt+w";
+                type = "plugin_action";
+                command = "${herdrPlugins.sessionizer.pluginId}.worktree-open";
+                description = "open a worktree workspace";
               }
             ];
           };
@@ -141,7 +123,7 @@
             };
             sound.enabled = false;
             show_agent_labels_on_pane_borders = true;
-            prompt_new_tab_name = true;
+            prompt_new_tab_name = false;
             prompt_new_workspace_name = true;
           };
           session = {

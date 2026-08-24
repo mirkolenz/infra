@@ -4,9 +4,10 @@
   rustPlatform,
   fetchFromGitHub,
   nix-update-script,
+  bashNonInteractive,
   bat,
   delta,
-  git,
+  gitMinimal,
   glow,
 }:
 mkHerdrPlugin (finalAttrs: {
@@ -26,7 +27,7 @@ mkHerdrPlugin (finalAttrs: {
     cargoHash = "sha256-17cHnKylDkRIVErgN6kDd70ZkGQy+V3GK0m0Ntg1R3E=";
     # the integration tests drive a pty and expect a herdr server
     cargoTestFlags = [ "--lib" ];
-    nativeCheckInputs = [ git ];
+    nativeCheckInputs = [ gitMinimal ];
     # the viewer looks for its glow style next to the executable, so it has to
     # ship with the binary rather than in the plugin root the wrapper hides
     postInstall = ''
@@ -35,7 +36,8 @@ mkHerdrPlugin (finalAttrs: {
     meta.mainProgram = "herdr-file-viewer";
   };
   binaryPath = "target/release/herdr-file-viewer";
-  entrypoints = [
+  interpreters = [ bashNonInteractive ];
+  pluginFiles = [
     "scripts/open-file-viewer.sh"
     "scripts/open-file-viewer-tab.sh"
   ];
@@ -44,7 +46,7 @@ mkHerdrPlugin (finalAttrs: {
   runtimeInputs = [
     bat
     delta
-    git
+    gitMinimal
     glow
   ];
   # the version is pinned in-tree, so the viewer's own release check is noise

@@ -4,7 +4,8 @@
   rustPlatform,
   fetchFromGitHub,
   nix-update-script,
-  git,
+  bashNonInteractive,
+  gitMinimal,
   jq,
 }:
 mkHerdrPlugin (finalAttrs: {
@@ -24,14 +25,15 @@ mkHerdrPlugin (finalAttrs: {
     cargoHash = "sha256-Ef+jPqPCBt1f4XzT+2rTF2oGKd6jWJ6VHf5GRhuBR0g=";
     # the integration tests run the plugin entry points against a git checkout
     cargoTestFlags = [ "--lib" ];
-    nativeCheckInputs = [ git ];
+    nativeCheckInputs = [ gitMinimal ];
     meta.mainProgram = "herdr-reviewr";
   };
   binaryPath = "bin/herdr-reviewr";
-  entrypoints = [ "herdr/pane.sh" ];
+  interpreters = [ bashNonInteractive ];
+  pluginFiles = [ "herdr/pane.sh" ];
 
   runtimeInputs = [
-    git
+    gitMinimal
     jq
   ];
 
