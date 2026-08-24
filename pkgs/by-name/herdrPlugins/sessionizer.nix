@@ -41,7 +41,7 @@ mkHerdrPlugin (finalAttrs: {
 
   nativeCheckInputs = [ bun ];
   doCheck = true;
-  preCheck = ''ln -s ${finalAttrs.passthru.nodeModules} node_modules'';
+  preCheck = "ln -s ${finalAttrs.passthru.nodeModules} node_modules";
   # upstream's `test` script skips the integration tests, which drive fzf against
   # a live herdr session
   checkPhase = ''
