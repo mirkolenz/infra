@@ -103,6 +103,7 @@
             git-pull-request-merge-method = "squash";
             mac-menu-bar-enabled = false;
             open-in-target-preferences.global = "zed";
+            composerPlainTextMode = true;
             enabled-reasoning-efforts = [
               "low"
               "medium"
