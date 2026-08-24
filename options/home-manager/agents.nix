@@ -2,6 +2,7 @@
   lib,
   lib',
   config,
+  pkgs,
   ...
 }:
 let
@@ -9,13 +10,18 @@ let
 
   # https://agentskills.io/specification
   skillModule =
-    { name, ... }:
+    { name, config, ... }:
     {
       options = {
         name = lib.mkOption {
           type = lib.types.strMatching "[a-z0-9]+(-[a-z0-9]+)*";
           default = name;
           description = "Skill identifier; defaults to the attribute name and must match the skill directory name.";
+        };
+        dir = lib.mkOption {
+          type = lib.types.path;
+          default = pkgs.writeTextDir "SKILL.md" (mkSkillMd config);
+          description = "Complete skill directory, generated from the remaining options by default.";
         };
         description = lib.mkOption {
           type = lib.types.str;
@@ -43,11 +49,6 @@ let
           type = lib.types.lines;
           description = "Markdown body of `SKILL.md` following the generated frontmatter.";
         };
-        files = lib.mkOption {
-          type = lib.types.attrsOf lib.types.lines;
-          default = { };
-          description = "Additional text files relative to the skill root, e.g. `references/REFERENCE.md` or `scripts/run.sh`.";
-        };
       };
     };
 
@@ -66,16 +67,13 @@ let
       // lib.optionalAttrs (skill.metadata != { }) { inherit (skill) metadata; };
     };
 
-  mkSkillFiles =
+  mkSkills =
     prefix:
-    lib.concatMapAttrs (
+    lib.mapAttrs' (
       dir: skill:
-      {
-        "${prefix}/${dir}/SKILL.md".text = mkSkillMd skill;
+      lib.nameValuePair "${prefix}/${dir}" {
+        source = skill.dir;
       }
-      // lib.mapAttrs' (
-        file: content: lib.nameValuePair "${prefix}/${dir}/${file}" { text = content; }
-      ) skill.files
     ) cfg.skills;
 in
 {
@@ -114,13 +112,13 @@ in
       })
       (lib.mkIf (cfg.skills != { }) {
         xdg.configFile = lib.mergeAttrsList (
-          map mkSkillFiles [
+          map mkSkills [
             "agents/skills" # amp
             "opencode/skills"
           ]
         );
         home.file = lib.mergeAttrsList (
-          map mkSkillFiles [
+          map mkSkills [
             ".claude/skills"
             ".agents/skills" # codex
             ".gemini/skills"
