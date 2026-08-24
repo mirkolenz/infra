@@ -1,41 +1,41 @@
 {
-  "tag_name": "rust-v0.149.0",
+  "tag_name": "rust-v0.149.1",
   "assets": {
     "codex-aarch64-apple-darwin.tar.gz": {
-      "digest": "sha256:0cef4f9629af7b6bcc4b4de2adb63337d1e77a00a811e66281da5356e3e74fc6"
+      "digest": "sha256:ed60f475c6dda6044c2c00fd7f33273cc3f3f98900ccd1204bfdf2fe935f3405"
     },
     "codex-app-server-aarch64-apple-darwin.tar.gz": {
-      "digest": "sha256:35892a576ec29edbbb766cfba002c57c7beea479c6c21715a134cab4a7352032"
+      "digest": "sha256:23500f566f25e675c11de5327c57a6ca9ba109ac213f4e1f9585588c060c9d88"
     },
     "codex-code-mode-host-aarch64-apple-darwin.tar.gz": {
-      "digest": "sha256:ed6a6a089c50e727ef1f0642ee7c0611ba611d76d72029316a0513be91bfb244"
+      "digest": "sha256:aae1c0c9459700a2e897adadd647351140ae7933ad73bd8d3af6505c69a4f3fd"
     },
     "codex-responses-api-proxy-aarch64-apple-darwin.tar.gz": {
-      "digest": "sha256:4dcd80d5fe04f3c7cc3e18d0106c49c3940a281e3f540f6ef2c394c8f0067ff4"
+      "digest": "sha256:5c3e0d653d61af8b8d6d57e7978ded534b777b32a54f33a2c35848fdd65b686d"
     },
     "codex-aarch64-unknown-linux-musl.tar.gz": {
-      "digest": "sha256:1cc3eb4c2fbab048c8afae0bebb1e54745f88d91e5249a448765d34a2a2ba9bb"
+      "digest": "sha256:14df6802e39a956de994e844b90d51d8254bcc8057b6e66f0f3e3b8f7e2da5b0"
     },
     "codex-app-server-aarch64-unknown-linux-musl.tar.gz": {
-      "digest": "sha256:ab91c737ff50e5e1187582ffa316ba8b5341c250657c5c5d678a88b6dc7f4f71"
+      "digest": "sha256:1c2747edfa83619006c5c2a59cc5e92bf95c184d821fdca29cdbb3c2a1fbbaed"
     },
     "codex-code-mode-host-aarch64-unknown-linux-musl.tar.gz": {
-      "digest": "sha256:abf4a9a308d2c42e6fbb04a77704ac509c82cea5aa079848365be3fb65474b22"
+      "digest": "sha256:962e029df772b53cb977a0204ec4284d0c693207a25a491106e8294aae8dfa04"
     },
     "codex-responses-api-proxy-aarch64-unknown-linux-musl.tar.gz": {
-      "digest": "sha256:42d35b3b39ab569460c798595ef41263784b658e4fe626fde311c1e0d0058d45"
+      "digest": "sha256:8e970f9528d675cc5a29e3bd2b6f38cc63591b8356032aea344badcc5617d58e"
     },
     "codex-x86_64-unknown-linux-musl.tar.gz": {
-      "digest": "sha256:7368b2055ed02157fea2695bb9f5af3ee7b0e40c5a3bebc81dfc596704244cfd"
+      "digest": "sha256:e24fb784c7d71140d67afb620f56e9137496cf7f6c9e19217fa3666dcf306278"
     },
     "codex-app-server-x86_64-unknown-linux-musl.tar.gz": {
-      "digest": "sha256:93b7b3969983901d5e94e8126c1aaaa4229a8eec7086d9d09e4ebbabdd812128"
+      "digest": "sha256:f014c146b7cabb8b5240df6c22ee6762df694ae65a00f345e1de79560189ecb1"
     },
     "codex-code-mode-host-x86_64-unknown-linux-musl.tar.gz": {
-      "digest": "sha256:3600a45ac2b09fe3c995f4f49860131fea388b46c409c82a0266fc4d0342a04c"
+      "digest": "sha256:62fa2c3e5d4bc58720bd72b2ee2ab8636e1aaa9d8236ddae41a1cce628b59aeb"
     },
     "codex-responses-api-proxy-x86_64-unknown-linux-musl.tar.gz": {
-      "digest": "sha256:1a18da430ecd2bacd006a46d47ddc824dbbb6c26bc8f180f175389ccb843a09e"
+      "digest": "sha256:0057dbb9ac8c52e7e0afa92df3765a53bac8caee7a81175901d3fb2383f51cb3"
     }
   }
 }
