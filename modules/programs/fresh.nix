@@ -71,6 +71,7 @@
           };
           file_explorer = {
             show_hidden = true;
+            show_gitignored = true;
           };
           editor = {
             completion_popup_auto_show = true;
