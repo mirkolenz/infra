@@ -1,7 +1,6 @@
 {
   flake.modules.homeManager.default =
     {
-      lib,
       pkgs,
       config,
       ...
@@ -16,13 +15,6 @@
         reviewr
         sessionizer
       ];
-
-      mkSessionizerTabs = lib.mapAttrs (
-        label: command: {
-          inherit label;
-          panes = [ { inherit command; } ];
-        }
-      );
     in
     {
       programs.fish.interactiveShellInit = ''
@@ -48,7 +40,7 @@
       };
 
       # Sessionizer discovers repositories below each owner directory.
-      # This fallback provides a consistent four-tab project workspace.
+      # This fallback provides a consistent project workspace.
       # A repository can replace it with its own .sessionizer/config.toml.
       xdg.configFile."herdr/plugins/config/${herdrPlugins.sessionizer.pluginId}/config.toml".source =
         pkgs.writers.writeTOML "herdr-sessionizer.toml"
@@ -58,18 +50,18 @@
               git_only = true;
               depth = 1;
             };
-            layout.focus = "edit";
-            tabs = mkSessionizerTabs {
-              edit = "nvim";
-              files = "yazi";
-              git = "lazygit";
-              shell = "";
-            };
           };
 
+      # https://github.com/qu8n/herdr-automatic-rename/blob/main/config.example.sh
       xdg.configFile."herdr-automatic-rename/config.sh".text = ''
         AUTO_INDEX=0
-        SHOW_PROGRAM_ARGS=1
+        SHOW_PROGRAM_ARGS=0
+        AGENT_TITLES=0
+        ICONS_ENABLED=1
+        ICON_FALLBACK='󰆍'
+        ICON_MAP=(
+          "fresh=󰏫"
+        )
       '';
 
       programs.herdr = {
@@ -90,25 +82,19 @@
             last_pane = "prefix+;";
             command = [
               {
-                key = "prefix+alt+f";
-                type = "plugin_action";
-                command = "${herdrPlugins.file-viewer.pluginId}.open-file-viewer";
-                description = "file viewer beside the current pane";
-              }
-              {
-                key = "prefix+alt+r";
+                key = "prefix+ctrl+r";
                 type = "plugin_action";
                 command = "${herdrPlugins.reviewr.pluginId}.toggle";
                 description = "review the agent's diff";
               }
               {
-                key = "prefix+alt+p";
+                key = "prefix+ctrl+p";
                 type = "plugin_action";
                 command = "${herdrPlugins.sessionizer.pluginId}.open";
                 description = "open a project workspace";
               }
               {
-                key = "prefix+alt+w";
+                key = "prefix+ctrl+w";
                 type = "plugin_action";
                 command = "${herdrPlugins.sessionizer.pluginId}.worktree-open";
                 description = "open a worktree workspace";
