@@ -184,7 +184,6 @@
           diff = {
             algorithm = "histogram";
             colorMoved = "default";
-            mnemonicPrefix = true;
             renames = true;
             guitool = "vscode";
           };
