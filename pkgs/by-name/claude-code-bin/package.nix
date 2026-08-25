@@ -12,6 +12,7 @@
   socat,
   procps,
   ripgrep,
+  alsa-lib,
   updateChannel ? "latest",
   manifestFile ? ./manifest.json,
 }:
@@ -56,6 +57,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       --set DISABLE_INSTALLATION_CHECKS 1 \
       --set-default FORCE_AUTOUPDATE_PLUGINS 1 \
       --set USE_BUILTIN_RIPGREP 0 \
+      ${lib.optionalString stdenvNoCC.hostPlatform.isLinux "--prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ alsa-lib ]}"} \
       --prefix PATH : ${
         lib.makeBinPath (
           [
