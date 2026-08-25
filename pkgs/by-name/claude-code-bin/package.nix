@@ -8,6 +8,7 @@
   makeBinaryWrapper,
   installShellFiles,
   writeScript,
+  zstd,
   bubblewrap,
   socat,
   procps,
@@ -31,27 +32,30 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   version = manifest.version or "unstable";
 
   src = fetchurl {
-    url = "${baseUrl}/${finalAttrs.version}/${platform}/claude";
+    url = "${baseUrl}/${finalAttrs.version}/${platform}/claude.zst";
     sha256 = manifest.platforms.${platform}.checksum;
   };
 
-  dontUnpack = true;
+  unpackCmd = "unzstd $curSrc -o claude";
+  sourceRoot = ".";
+
   dontBuild = true;
   __noChroot = stdenvNoCC.hostPlatform.isDarwin;
-
   # otherwise the bun runtime is executed instead of the binary (on linux)
   dontStrip = true;
 
   nativeBuildInputs = [
     installShellFiles
     makeBinaryWrapper
+    zstd
   ]
   ++ lib.optionals stdenvNoCC.hostPlatform.isElf [ autoPatchelfHook ];
 
   installPhase = ''
     runHook preInstall
 
-    installBin $src
+    installBin claude
+
     wrapProgram $out/bin/claude \
       --set DISABLE_AUTOUPDATER 1 \
       --set DISABLE_INSTALLATION_CHECKS 1 \
@@ -95,8 +99,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     # https://claude.ai/install.sh
     version="$(curl -fsSL "${baseUrl}/${updateChannel}")"
+
     manifest="$(
-      curl -fsSL "${baseUrl}/$version/manifest.json" \
+      curl -fsSL "${baseUrl}/$version/manifest.zst.json" \
       | jq '{
         version,
         platforms: .platforms | with_entries(
@@ -107,6 +112,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
           }
         )
       }'
+
     )"
     echo "$manifest" > "${toString manifestFile}"
   '';
