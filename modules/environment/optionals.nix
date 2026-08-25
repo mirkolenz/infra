@@ -90,9 +90,15 @@
         clippy
         rust-analyzer
         # language servers
+        bash-language-server
         copilot-language-server
+        docker-language-server
         jdt-language-server
+        marksman
+        texlab
         tombi
+        vscode-langservers-extracted
+        yaml-language-server
         # my own packages
         makejinja
       ];

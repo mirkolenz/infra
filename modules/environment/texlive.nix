@@ -58,7 +58,6 @@
         bibtexbrowser.bibtex2cff
         ltex-ls-plus
         tectonic
-        texlab
       ];
     };
 }
