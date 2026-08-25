@@ -58,7 +58,14 @@
         settings = {
           theme = "builtin://dark";
           check_for_updates = false;
-          active_keybinding_map = "vscode";
+          keybindings = [
+            {
+              key = "o";
+              modifiers = [ "ctrl" ];
+              action = "quick_open_files";
+              when = "global";
+            }
+          ];
           file_browser = {
             show_hidden = true;
           };
