@@ -50,5 +50,9 @@ in
           uid = 1000;
           genericLinux = false;
         };
+        "mlenz@loki" = {
+          system = "x86_64-linux";
+          uid = 1000;
+        };
       };
 }
