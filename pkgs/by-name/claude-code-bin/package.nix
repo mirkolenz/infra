@@ -26,14 +26,15 @@ let
     aarch64-darwin = "darwin-arm64";
   };
   platform = platforms.${stdenvNoCC.hostPlatform.system};
+  platformManifest = manifest.platforms.${platform};
 in
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "claude-code";
   version = manifest.version or "unstable";
 
   src = fetchurl {
-    url = "${baseUrl}/${finalAttrs.version}/${platform}/claude.zst";
-    sha256 = manifest.platforms.${platform}.checksum;
+    url = "${baseUrl}/${finalAttrs.version}/${platform}/${platformManifest.binary}";
+    sha256 = platformManifest.checksum;
   };
 
   unpackCmd = "unzstd $curSrc -o claude";
@@ -108,11 +109,10 @@ stdenvNoCC.mkDerivation (finalAttrs: {
           select(.key | test("^(darwin|linux)-(x64|arm64)$"))
           | {
             key,
-            value: { checksum: .value.checksum }
+            value: { binary: .value.binary, checksum: .value.checksum }
           }
         )
       }'
-
     )"
     echo "$manifest" > "${toString manifestFile}"
   '';
@@ -121,7 +121,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     description = "Agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster";
     homepage = "https://github.com/anthropics/claude-code";
     downloadPage = "https://claude.com/product/claude-code";
-    changelog = "https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md";
+    changelog = "https://github.com/anthropics/claude-code/blob/v${finalAttrs.version}/CHANGELOG.md";
     license = lib.licenses.unfree;
     maintainers = with lib.maintainers; [ mirkolenz ];
     sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
