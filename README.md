@@ -107,24 +107,18 @@ nix run github:mirkolenz/infra#nixos-install -- MACHINE_NAME
 3. [Install Nix](https://docs.determinate.systems)
 4. Sign into the App Store
 5. Enable Full Disk Access for terminal application
+6. Sign into 1Password and enable `Settings > Developer > Use the SSH agent`
 
 ```shell
 sudo nix run github:mirkolenz/infra
 sudo reboot
-# Add ssh key to keychain
-ssh-add --apple-use-keychain ~/.ssh/id_ed25519
 ```
 
 ### Sync Configs to a Mac without Nix
 
 For Macs that should not have Nix installed, the `mirkos-macbook-rsync` package copies a curated set of configuration files (Ghostty, SSH client, Homebrew bundle) from this flake to the remote machine via rsync over SSH.
 The list of files and the `brew bundle` invocation are derived directly from `darwinConfigurations.mirkos-macbook`, so they stay in sync with the nix-darwin configuration.
-
-Before running, make sure SSH key-based login to the remote works.
-
-```shell
-ssh-copy-id -i "$HOME/.ssh/id_ed25519.pub" "USER@MACHINE_NAME"
-```
+Before running, make sure SSH key-based login to the remote works, see [SSH Key Deployment](#ssh-key-deployment).
 
 Then sync the configs and apply any manual steps.
 
@@ -222,10 +216,9 @@ node_modules
 
 ## Home-Manger Standalone
 
-_Note:_ Reconnect via SSH after installing nix.
+_Note:_ Authorize your key as described in [SSH Key Deployment](#ssh-key-deployment) and reconnect via SSH after installing nix.
 
 ```shell
-ssh-copy-id -i "$HOME/.ssh/id_ed25519.pub" "USER@MACHINE_NAME"
 sudo /nix/var/nix/profiles/default/bin/nix upgrade-nix
 nix run github:mirkolenz/infra
 sudo usermod -s $(which fish) "$USER"
@@ -306,4 +299,17 @@ zellij web --create-token
 
 ```shell
 ssh-keygen -t ed25519 -a 128 -C "USER@HOST" -f ~/.ssh/id_ed25519
+```
+
+### SSH Key Deployment
+
+Keys live in 1Password (vault `Mirko`) and are offered by its SSH agent, so the private key never exists as a file.
+Long-lived keys additionally belong in `custom.user.sshKeys` (see `modules/core/identity.nix`) and in the agent config (see `modules/programs/op.nix`).
+
+Since `ssh-copy-id` expects a local key file, copy the public key in 1Password and add it to the remote machine by hand instead.
+The following command logs in with the account password and opens the file in vim, where the key is pasted on its own line.
+`-t` allocates the terminal vim needs and `umask` makes both the directory and the file private.
+
+```shell
+ssh -t "USER@MACHINE_NAME" "umask 077; mkdir -p ~/.ssh; vim ~/.ssh/authorized_keys"
 ```
