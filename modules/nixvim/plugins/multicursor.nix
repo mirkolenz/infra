@@ -7,51 +7,30 @@
       ...
     }:
     {
-      plugins.multicursor-nvim = {
-        enable = true;
-        keymapsLayer = [
-          # Select a different cursor as the main one
-          {
-            key = "<left>";
-            mode = [
-              "n"
-              "x"
-            ];
-            action = "prevCursor";
-          }
-          {
-            key = "<right>";
-            mode = [
-              "n"
-              "x"
-            ];
-            action = "nextCursor";
-          }
-          # Delete the main cursor
-          {
-            key = "<leader>x";
-            mode = [
-              "n"
-              "x"
-            ];
-            action = "deleteCursor";
-          }
-          {
-            # Enable and clear cursors using escape
-            key = "<esc>";
-            mode = "n";
-            action = lib.nixvim.mkRaw /* lua */ ''
-              mc = require('multicursor-nvim')
+      plugins.multicursor.enable = true;
+      # The upstream module only wraps `setup()`, so the keymap layer is registered by hand.
+      # It must run after the plugin setup, hence `extraConfigLuaPost`.
+      extraConfigLuaPost = lib.mkIf config.plugins.multicursor.enable /* lua */ ''
+        do
+          local mc = require("multicursor-nvim")
+          mc.addKeymapLayer(function(layerSet)
+            -- Select a different cursor as the main one
+            layerSet({ "n", "x" }, "<left>", mc.prevCursor)
+            layerSet({ "n", "x" }, "<right>", mc.nextCursor)
+            -- Delete the main cursor
+            layerSet({ "n", "x" }, "<leader>x", mc.deleteCursor)
+            -- Enable and clear cursors using escape
+            layerSet("n", "<esc>", function()
               if not mc.cursorsEnabled() then
                 mc.enableCursors()
               else
                 mc.clearCursors()
               end
-            '';
-          }
-        ];
-      };
-      keymaps = lib.mkIf config.plugins.multicursor-nvim.enable (
+            end)
+          end)
+        end
+      '';
+      keymaps = lib.mkIf config.plugins.multicursor.enable (
         lib'.mkVimKeymaps
           {
             prefix = "require('multicursor-nvim').";
