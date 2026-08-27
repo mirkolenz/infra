@@ -1034,11 +1034,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1787761067,
-        "narHash": "sha256-KBRVNDbSsowp2BnkfVns3K16kol9Z74Nfnb+5c1GhLI=",
+        "lastModified": 1787836065,
+        "narHash": "sha256-q5oXhm0izagCPMGFuRdeVIDliekR9rY3kIK1oLvAZFo=",
         "owner": "vicinaehq",
         "repo": "extensions",
-        "rev": "8497cf7ad7f1cb64eb395acb8d514ee6ab673670",
+        "rev": "cfdc62c4754281b63b035e8e048c8fe77fda12bb",
         "type": "github"
       },
       "original": {
