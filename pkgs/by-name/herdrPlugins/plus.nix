@@ -8,14 +8,14 @@
 }:
 mkHerdrPlugin (finalAttrs: {
   pname = "herdr-plus";
-  version = "0.1.23";
+  version = "0.1.24";
   pluginId = "cloudmanic.herdr-plus";
 
   src = fetchFromGitHub {
     owner = "cloudmanic";
     repo = "herdr-plus";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-QGmJAU0dTEd58/CEJZohMBM9ibLYbQL4mh0gg4VSJSY=";
+    hash = "sha256-2NnPlZSPBoZa22A02q/FQLm1a7+FH/tCzALZSpP5rkQ=";
   };
 
   binary = buildGoModule {
