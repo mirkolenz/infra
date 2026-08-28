@@ -60,6 +60,10 @@
         html2markdown
         zapp
         restic-browser
+        # pdf
+        tdf
+        # fancy-cat # currently broken
+        pdf-cli
         # nix
         nixd
         nixf-diagnose
