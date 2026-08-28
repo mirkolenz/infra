@@ -77,7 +77,7 @@
             new_cwd = "follow";
           };
           keys = {
-            prefix = "ctrl+b";
+            prefix = "ctrl+space";
             # tmux-style jump back to the previously focused pane (across tabs/workspaces).
             last_pane = "prefix+;";
             command = [
@@ -102,18 +102,24 @@
             ];
           };
           ui = {
+            copy_on_select = false;
+            right_click_passthrough_modifier = "ctrl";
             toast = {
               delivery = "terminal";
+              delay_seconds = 0;
               herdr.position = "bottom-right";
               clipboard.position = "bottom-right";
             };
             sound.enabled = false;
-            show_agent_labels_on_pane_borders = true;
             prompt_new_tab_name = false;
-            prompt_new_workspace_name = true;
+            prompt_new_workspace_name = false;
+            window_title = "herdr: {workspace}";
           };
           session = {
             resume_agents_on_restore = false;
+          };
+          experimental = {
+            kitty_graphics = true;
           };
         };
       };
