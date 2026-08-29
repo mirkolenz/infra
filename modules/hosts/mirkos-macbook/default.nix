@@ -1,12 +1,14 @@
 { config, lib, ... }:
 {
-  configurations.darwin.mirkos-macbook.module = {
-    imports = [ config.flake.modules.darwin.default ];
-    networking.computerName = "Mirkos MacBook";
-    nixpkgs.hostPlatform = "aarch64-darwin";
-    custom.features = {
-      graphical.enable = lib.mkDefault true;
-      extras.enable = lib.mkDefault true;
+  configurations.darwin.mirkos-macbook = {
+    system = "aarch64-darwin";
+    module = {
+      imports = [ config.flake.modules.darwin.default ];
+      networking.computerName = "Mirkos MacBook";
+      custom.features = {
+        graphical.enable = lib.mkDefault true;
+        extras.enable = lib.mkDefault true;
+      };
     };
   };
 }

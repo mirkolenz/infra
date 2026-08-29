@@ -7,8 +7,10 @@
 #                and the mlenz identity values.
 #   linux      - default + Cosmic (Linux desktop specialisation).
 #   darwin     - default + macOS specialisation.
-#   standalone - base + own nixpkgs wrapper, combined with a linux/darwin bucket
-#                by the home builder; behaviour lives in home-standalone.nix.
+#   standalone - base + the foreign-distro tweaks, combined with a linux/darwin
+#                bucket by the home builder; behaviour lives in home-standalone.nix.
+#                Its package set is forced in by the builder, so nothing here
+#                may set `nixpkgs.config` or `nixpkgs.overlays`.
 # base accesses osConfig via the @-pattern so home-manager does not intercept it
 # and force a recursive lookup when it is absent (standalone).
 {
@@ -18,7 +20,7 @@
   ...
 }:
 let
-  inherit (config.flake) modules nixpkgsConfig overlays;
+  inherit (config.flake) modules;
 in
 {
   flake.modules.homeManager.base =
@@ -56,17 +58,5 @@ in
     modules.homeManager.default
   ];
 
-  flake.modules.homeManager.standalone.imports = [
-    modules.homeManager.base
-    (
-      { pkgs, lib, ... }:
-      {
-        nixpkgs = {
-          config = nixpkgsConfig;
-          overlays = [ overlays.default ];
-        };
-        targets.genericLinux.enable = lib.mkDefault pkgs.stdenv.hostPlatform.isLinux;
-      }
-    )
-  ];
+  flake.modules.homeManager.standalone.imports = [ modules.homeManager.base ];
 }

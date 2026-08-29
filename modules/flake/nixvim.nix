@@ -15,12 +15,7 @@ let
         config.flake.modules.nixvim.default
         {
           _file = ./nixvim.nix;
-          nixpkgs = {
-            hostPlatform = system;
-            config = config.flake.nixpkgsConfig;
-            overlays = [ config.flake.overlays.default ];
-            source = inputs.nixpkgs;
-          };
+          nixpkgs.pkgs = config.pkgsFor.${system};
           custom.features = features;
         }
       ];

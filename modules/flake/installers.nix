@@ -16,10 +16,9 @@ let
       modules = [
         extraModule
         modules.nixos.installer
-        {
-          _file = ./installers.nix;
-          nixpkgs.hostPlatform = system;
-        }
+        # private instance: `profiles/installation-device.nix`, pulled in by the
+        # ISO image, defines `nixpkgs.overlays`.
+        config.ownPkgsModuleFor.${system}
       ];
     };
 

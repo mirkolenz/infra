@@ -1,12 +1,11 @@
 { config, ... }:
 let
   inherit (config.flake.modules) nixos;
-  module = system: {
+  module = {
     imports = [
       nixos.default
       nixos.parallels
     ];
-    nixpkgs.hostPlatform = system;
   };
 in
 {
@@ -29,7 +28,13 @@ in
   };
 
   configurations.nixos = {
-    parallels.module = module "aarch64-linux";
-    parallels-intel.module = module "x86_64-linux";
+    parallels = {
+      inherit module;
+      system = "aarch64-linux";
+    };
+    parallels-intel = {
+      inherit module;
+      system = "x86_64-linux";
+    };
   };
 }

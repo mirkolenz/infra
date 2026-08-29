@@ -1,5 +1,4 @@
 {
-  inputs,
   self,
   ...
 }:
@@ -24,11 +23,6 @@
       );
     in
     {
-      _module.args.pkgs = import inputs.nixpkgs {
-        inherit system;
-        config = self.nixpkgsConfig;
-        overlays = [ self.overlays.default ];
-      };
       packages = exports;
       checks = lib.filterAttrs (name: value: isHydraTarget value) exports;
       legacyPackages = { inherit (pkgs) custom; };

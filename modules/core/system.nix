@@ -1,7 +1,10 @@
 # Wires the nixos/darwin buckets: the `_module.args` bridge (inputs + lib'
-# sourced from the flake-parts closure), nixpkgs/overlay, shared home-manager
-# settings, upstream input modules, option declarations, and the composite
-# default/children/installer variants on top of the bases.
+# sourced from the flake-parts closure), shared home-manager settings, upstream
+# input modules, option declarations, and the composite default/children/installer
+# variants on top of the bases.
+# The package set comes from the configuration builders (see
+# options/flake-parts/nixpkgs.nix), so no bucket may set `nixpkgs.config`
+# or `nixpkgs.overlays`.
 {
   inputs,
   config,
@@ -13,10 +16,6 @@ let
   systemShared = {
     _module.args = {
       inherit inputs lib';
-    };
-    nixpkgs = {
-      config = config.flake.nixpkgsConfig;
-      overlays = [ config.flake.overlays.default ];
     };
     home-manager = {
       backupFileExtension = "backup";
@@ -61,10 +60,6 @@ in
     {
       _module.args = {
         inherit inputs lib';
-      };
-      nixpkgs = {
-        config = config.flake.nixpkgsConfig;
-        overlays = [ config.flake.overlays.default ];
       };
     }
     inputs.determinate.nixosModules.default

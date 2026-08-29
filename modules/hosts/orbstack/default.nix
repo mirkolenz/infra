@@ -1,12 +1,11 @@
 { config, ... }:
 let
   inherit (config.flake.modules) nixos;
-  module = system: {
+  module = {
     imports = [
       nixos.default
       nixos.orbstack
     ];
-    nixpkgs.hostPlatform = system;
   };
 in
 {
@@ -37,7 +36,13 @@ in
     };
 
   configurations.nixos = {
-    orbstack.module = module "aarch64-linux";
-    orbstack-intel.module = module "x86_64-linux";
+    orbstack = {
+      inherit module;
+      system = "aarch64-linux";
+    };
+    orbstack-intel = {
+      inherit module;
+      system = "x86_64-linux";
+    };
   };
 }

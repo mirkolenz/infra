@@ -12,34 +12,36 @@ let
   inherit (config.flake.modules) nixos;
 in
 {
-  configurations.nixos.citrix.module =
-    { modulesPath, ... }:
-    {
-      imports = [
-        nixos.default
-        # Cloud-style image: an ext4 root + ESP labelled by disk-image.nix, with
-        # boot.growPartition and root autoResize so the filesystem expands to
-        # fill whatever disk Citrix assigns. Also exposes system.build.image and
-        # enables systemd-boot (image.efiSupport defaults to true).
-        (modulesPath + "/virtualisation/disk-image.nix")
-      ];
-      nixpkgs.hostPlatform = "x86_64-linux";
+  configurations.nixos.citrix = {
+    system = "x86_64-linux";
+    module =
+      { modulesPath, ... }:
+      {
+        imports = [
+          nixos.default
+          # Cloud-style image: an ext4 root + ESP labelled by disk-image.nix, with
+          # boot.growPartition and root autoResize so the filesystem expands to
+          # fill whatever disk Citrix assigns. Also exposes system.build.image and
+          # enables systemd-boot (image.efiSupport defaults to true).
+          (modulesPath + "/virtualisation/disk-image.nix")
+        ];
 
-      custom.features.unattended.enable = true;
+        custom.features.unattended.enable = true;
 
-      # Compact intermediate; diskSize defaults to "auto" so the artifact stays
-      # small and the root grows on first boot. Converted to a fixed VHD by
-      # system.build.image-vhd (see image.nix).
-      image = {
-        format = "qcow2";
-        baseName = "citrix";
+        # Compact intermediate; diskSize defaults to "auto" so the artifact stays
+        # small and the root grows on first boot. Converted to a fixed VHD by
+        # system.build.image-vhd (see image.nix).
+        image = {
+          format = "qcow2";
+          baseName = "citrix";
+        };
+
+        boot.loader.efi.canTouchEfiVariables = true;
+
+        # XenServer VM Tools: report the VM's IP and OS to XenCenter and allow clean
+        # shutdown, reboot and suspend from the hypervisor. Mounts xenfs on
+        # /proc/xen. The PV drivers themselves are already in the kernel.
+        services.xe-guest-utilities.enable = true;
       };
-
-      boot.loader.efi.canTouchEfiVariables = true;
-
-      # XenServer VM Tools: report the VM's IP and OS to XenCenter and allow clean
-      # shutdown, reboot and suspend from the hypervisor. Mounts xenfs on
-      # /proc/xen. The PV drivers themselves are already in the kernel.
-      services.xe-guest-utilities.enable = true;
-    };
+  };
 }
