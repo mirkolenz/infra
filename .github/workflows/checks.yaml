@@ -9,7 +9,8 @@ concurrency:
   cancel-in-progress: true
 # keep job names in sync: https://github.com/mirkolenz/infra/settings/rules/3352950
 jobs:
-  check-eval:
+  # Formatting is platform-independent, so it runs once rather than per system.
+  check-fmt:
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
@@ -17,19 +18,40 @@ jobs:
         with:
           extra-conf: |
             accept-flake-config = true
-            cores = 0
-            eval-cores = 1
             log-lines = 200
-            max-jobs = 1
       - uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: mirkolenz
           authToken: ${{ secrets.CACHIX_TOKEN }}
       - run: nix fmt -- --ci
-      - if: ${{ !cancelled() }}
-        run: nix flake check --no-build --show-trace
-  check-systems:
-    name: check-${{ matrix.system }}
+  # Evaluation is platform-independent (no import-from-derivation), so every
+  # system is evaluated on the x86_64 runner. Separate from the builds so a check
+  # bounded at minutes is not buried behind one that can run for hours.
+  check-eval:
+    name: check-eval-${{ matrix.system }}
+    runs-on: ubuntu-26.04
+    strategy:
+      fail-fast: false
+      matrix:
+        system:
+          - aarch64-darwin
+          - aarch64-linux
+          - x86_64-linux
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: DeterminateSystems/determinate-nix-action@4eea0b33e3d1f02ecfe37cf16e7204c424009606 # v3
+        with:
+          extra-conf: |
+            accept-flake-config = true
+            eval-cores = 0
+            log-lines = 200
+      # Covers apps, devShells, packages, checks and overlays, and through the
+      # `eval-*` checks every configuration; see options/flake-parts/eval-checks.nix
+      # for why the configuration outputs alone are not enough. `--system`
+      # selects which system it reports on.
+      - run: nix flake check --no-build --system ${{ matrix.system }} --show-trace
+  check-build:
+    name: check-build-${{ matrix.system }}
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
