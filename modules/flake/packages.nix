@@ -25,6 +25,6 @@
     {
       packages = exports;
       checks = lib.filterAttrs (name: value: isHydraTarget value) exports;
-      legacyPackages = { inherit (pkgs) custom; };
+      legacyPackages = pkgs;
     };
 }
