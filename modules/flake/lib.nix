@@ -14,9 +14,6 @@
       }:
       inputs."${name}-${os}-${channel}" or inputs.${name};
     systemOs = system: lib.last (lib.splitString "-" system);
-    systemArch = system: lib.head (lib.splitString "-" system);
-    # compare two lists irrespective of order
-    setEqual = list1: list2: (lib.naturalSort list1) == (lib.naturalSort list2);
     # return [ path ] if it exists, otherwise [ ]
     optionalPath = path: if builtins.pathExists path then [ path ] else [ ];
     # resolved nix daemon socket path as a sandbox sees it after symlink resolution.
