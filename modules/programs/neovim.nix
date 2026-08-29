@@ -1,25 +1,31 @@
-# Neovim (nixvim) integration into home-manager. The nixvim modules receive
-# inputs/lib' through the bridge baked into flake.modules.nixvim.default, so the
-# former submoduleWith/specialArgs workaround is no longer needed.
+# Neovim (nixvim) integration into home-manager. Every home installs the shared
+# build for its system and profile (see modules/flake/nixvim.nix); nixvim's own
+# home-manager wrapper would re-evaluate the module tree once per home.
+# That build is self-contained (`wrapRc`), so nothing is written to ~/.config/nvim.
 { config, ... }:
 let
-  nixvimDefault = config.flake.modules.nixvim.default;
+  inherit (config) nixvimFor;
 in
 {
   flake.modules.homeManager.default =
-    { config, lib, ... }:
     {
-      programs.nixvim = {
-        enable = true;
-        nixpkgs.useGlobalPackages = true;
-        imports = [ nixvimDefault ];
-        custom.features.extras.enable = config.custom.features.extras.enable;
-      };
+      config,
+      pkgs,
+      lib,
+      ...
+    }:
+    let
+      profile = if config.custom.features.extras.enable then "default" else "minimal";
+      package = nixvimFor.${pkgs.stdenv.hostPlatform.system}.${profile}.config.build.package;
+    in
+    {
+      home.packages = [ package ];
+
       programs.neovide = lib.mkIf config.custom.features.graphical.enable {
         enable = true;
         settings = {
           fork = true;
-          neovim-bin = lib.getExe config.programs.nixvim.build.package;
+          neovim-bin = lib.getExe package;
           no-multigrid = true;
         };
       };

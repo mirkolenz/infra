@@ -1,50 +1,52 @@
-# Builds nixvimConfigurations (default + minimal) from flake.modules.nixvim.default.
+# The flake's only nixvim constructor: one evaluation per system and profile,
+# shared by every home (see modules/programs/neovim.nix) and by `perSystem`.
+# Adding a variant is one entry in `profiles`; it becomes `packages.nixvim-<name>`.
 {
   inputs,
+  lib,
   config,
   ...
 }:
 let
-  mkNixvim =
-    {
-      system,
-      features,
-    }:
-    inputs.nixvim.lib.evalNixvim {
-      modules = [
-        config.flake.modules.nixvim.default
-        {
-          _file = ./nixvim.nix;
-          nixpkgs.pkgs = config.pkgsFor.${system};
-          custom.features = features;
-        }
-      ];
-    };
+  profiles = {
+    default.extras.enable = true;
+    minimal.extras.enable = false;
+  };
 in
 {
-  nixvim = {
-    packages = {
+  options.nixvimFor = lib.mkOption {
+    type = lib.types.lazyAttrsOf lib.types.raw;
+    readOnly = true;
+    description = "Shared nixvim configurations keyed by system, one per profile.";
+  };
+
+  config = {
+    nixvimFor = lib.genAttrs config.systems (
+      system:
+      lib.mapAttrs (
+        _: features:
+        inputs.nixvim.lib.evalNixvim {
+          modules = [
+            config.flake.modules.nixvim.default
+            {
+              _file = ./nixvim.nix;
+              nixpkgs.pkgs = config.pkgsFor.${system};
+              custom.features = features;
+            }
+          ];
+        }
+      ) profiles
+    );
+
+    nixvim.packages = {
       enable = true;
       nameFunction = name: "nixvim-${name}";
     };
-    checks = {
-      enable = false;
-      nameFunction = name: "nixvim-${name}";
-    };
-  };
 
-  perSystem =
-    { system, ... }:
-    {
-      nixvimConfigurations = {
-        default = mkNixvim {
-          inherit system;
-          features.extras.enable = true;
-        };
-        minimal = mkNixvim {
-          inherit system;
-          features.extras.enable = false;
-        };
+    perSystem =
+      { system, ... }:
+      {
+        nixvimConfigurations = config.nixvimFor.${system};
       };
-    };
+  };
 }
