@@ -1,8 +1,17 @@
 # Installer ISO base (formerly system/linux-installer/default.nix).
 {
   flake.modules.nixos.installer =
-    { config, pkgs, ... }:
     {
+      config,
+      modulesPath,
+      pkgs,
+      ...
+    }:
+    {
+      # Declares `system.installer.channel.enable`: the bucket imports no
+      # installation-CD profile, so the option does not otherwise exist.
+      imports = [ "${modulesPath}/installer/cd-dvd/channel.nix" ];
+
       services.openssh.enable = true;
 
       users = {
