@@ -20,11 +20,7 @@ in
     name = "nixpkgs";
     channel = "stable";
   }) nixpkgsArgs;
-  unstable = import (lib'.systemInput {
-    inherit inputs os;
-    name = "nixpkgs";
-    channel = "unstable";
-  }) nixpkgsArgs;
+  unstable = import (lib'.nixpkgsInput { inherit inputs system; }) nixpkgsArgs;
 
   inherit (self.packages.${system}) treefmt-nix;
   determinate-nix = detnix // {
