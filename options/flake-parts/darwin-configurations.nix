@@ -41,4 +41,13 @@
       ];
     }
   ) config.configurations.darwin;
+
+  config.evalTargets = lib.mapAttrs' (
+    name:
+    { system, ... }:
+    lib.nameValuePair "darwin/${name}" {
+      inherit system;
+      drvPath = config.flake.darwinConfigurations.${name}.config.system.build.toplevel.drvPath;
+    }
+  ) config.configurations.darwin;
 }

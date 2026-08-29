@@ -40,4 +40,13 @@
       ];
     }
   ) config.configurations.home;
+
+  config.evalTargets = lib.mapAttrs' (
+    name:
+    { system, ... }:
+    lib.nameValuePair "home/${name}" {
+      inherit system;
+      drvPath = config.flake.homeConfigurations.${name}.activationPackage.drvPath;
+    }
+  ) config.configurations.home;
 }

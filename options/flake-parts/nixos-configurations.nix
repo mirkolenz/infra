@@ -59,4 +59,13 @@
       ];
     }
   ) config.configurations.nixos;
+
+  config.evalTargets = lib.mapAttrs' (
+    name:
+    { system, ... }:
+    lib.nameValuePair "nixos/${name}" {
+      inherit system;
+      drvPath = config.flake.nixosConfigurations.${name}.config.system.build.toplevel.drvPath;
+    }
+  ) config.configurations.nixos;
 }
