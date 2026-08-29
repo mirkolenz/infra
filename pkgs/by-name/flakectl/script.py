@@ -86,6 +86,15 @@ def nix_argv(nix_exe: str, *args: str) -> list[str]:
     return [nix_exe, *NIX_FLAGS, *args]
 
 
+def flake_ref(flake: str, attr_path: str, name: str) -> str:
+    """Installable for `name` within `attr_path`.
+
+    The name is quoted so a dot in it stays one attribute, and keeping
+    `attr_path` builds what was evaluated rather than a same-named
+    `packages.<system>`."""
+    return f'{flake}#{attr_path}."{name}"'
+
+
 def nix_eval_json(nix_exe: str, *args: str) -> Any:
     """Evaluate a nix expression to JSON and parse it."""
     return json.loads(subprocess_stdout(nix_argv(nix_exe, "eval", "--json", *args)))
@@ -159,6 +168,7 @@ def cached_paths(
 def build_uncached(
     nix_exe: str,
     flake: str,
+    attr_path: str,
     cache: str | None,
     pkgs2path: dict[str, str],
     max_workers: int,
@@ -179,7 +189,7 @@ def build_uncached(
         f"Building {len(uncached)} uncached package(s): {', '.join(uncached)}.",
         err=True,
     )
-    refs = [f'{flake}#"{name}"' for name in uncached]
+    refs = [flake_ref(flake, attr_path, name) for name in uncached]
     run_logged(nix_argv(nix_exe, "build", *refs, *extra))
 
 
@@ -253,7 +263,7 @@ def build_config(
 
     if cfg.impure_attr:
         is_impure = nix_eval_json(
-            cfg.nix_exe, f'{cfg.flake}#{attr}."{name}".{cfg.impure_attr}'
+            cfg.nix_exe, f"{flake_ref(cfg.flake, attr, name)}.{cfg.impure_attr}"
         )
 
     cmd: list[str] = [builder, operation, "--flake", f"{cfg.flake}#{name}"]
@@ -432,7 +442,7 @@ def update_flake(
         # what gives it anything to do and its failure is the point. `.` re-resolves
         # the working tree; `cfg.flake` predates the lockfile rewritten above.
         hashed = nix_eval_dict(cfg.nix_exe, f".#{cfg.hash_path}")
-        refs = [f'.#"{name}"' for name in hashed]
+        refs = [flake_ref(".", cfg.hash_path, name) for name in hashed]
         run_logged(nix_argv(cfg.nix_exe, "build", "--no-link", *refs), check=False)
 
     # Non-zero also means "nothing to fix".
@@ -477,7 +487,9 @@ def build_pkgs(
     if dry_run:
         raise typer.Exit(0)
 
-    build_uncached(cfg.nix_exe, cfg.flake, cache, pkgs2path, cfg.max_workers, ctx.args)
+    build_uncached(
+        cfg.nix_exe, cfg.flake, path, cache, pkgs2path, cfg.max_workers, ctx.args
+    )
 
 
 @dataclass(frozen=True, slots=True)
