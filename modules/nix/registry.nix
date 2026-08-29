@@ -1,27 +1,28 @@
-# Pins the flake registry (self, nixpkgs, stable, unstable, pkgs) per platform
-# so `nix` commands resolve the same inputs the configuration was built from.
+# Pins the flake registry (nixpkgs, stable, unstable, pkgs) per platform so `nix`
+# commands resolve the same inputs the configuration was built from.
 # Applied to nixos, darwin and standalone home-manager.
+# Deliberately no entry for this flake itself: pinning it would put `self.outPath`
+# into every system closure, so any commit would change every host's derivation.
 { inputs, lib', ... }:
 let
-  mkRegistry = os: {
-    cfg.flake = inputs.self;
-    nixpkgs.flake = inputs.nixpkgs;
-    stable.flake = lib'.systemInput {
-      inherit inputs os;
-      channel = "stable";
-      name = "nixpkgs";
+  mkRegistry =
+    os:
+    let
+      channelFlake =
+        channel:
+        lib'.systemInput {
+          inherit inputs os channel;
+          name = "nixpkgs";
+        };
+      unstable = channelFlake "unstable";
+    in
+    {
+      nixpkgs.flake = inputs.nixpkgs;
+      stable.flake = channelFlake "stable";
+      unstable.flake = unstable;
+      # alias for the channel the configuration itself is built from
+      pkgs.flake = unstable;
     };
-    unstable.flake = lib'.systemInput {
-      inherit inputs os;
-      channel = "unstable";
-      name = "nixpkgs";
-    };
-    pkgs.flake = lib'.systemInput {
-      inherit inputs os;
-      channel = "unstable";
-      name = "nixpkgs";
-    };
-  };
 in
 {
   flake.modules.nixos.base.nix.registry = mkRegistry "linux";

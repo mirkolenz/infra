@@ -253,13 +253,13 @@
         nixbuild-shell = /* bash */ ''
           exec rlwrap ssh eu.nixbuild.net shell
         '';
+        # Resolves the flake from the working directory, so run it in a checkout.
         nixrepl = /* bash */ ''
           exec nix repl --expr 'rec {
             self = builtins.getFlake ("git+file://" + toString ./.);
-            cfg = builtins.getFlake "cfg";
             pkgs = import <pkgs> {
-              overlays = [ cfg.overlays.default ];
-              config = cfg.nixpkgsConfig;
+              overlays = [ self.overlays.default ];
+              config = self.nixpkgsConfig;
             };
             lib = pkgs.lib;
           }' "$@"
