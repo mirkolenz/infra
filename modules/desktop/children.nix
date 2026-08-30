@@ -40,6 +40,13 @@
           icon = "web-browser";
           categories = [ "Education" ];
         })
+        (makeDesktopItem {
+          name = "antolin";
+          desktopName = "Antolin";
+          exec = "firefox https://antolin.westermann.de";
+          icon = "web-browser";
+          categories = [ "Education" ];
+        })
       ];
     };
 }

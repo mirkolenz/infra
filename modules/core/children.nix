@@ -5,6 +5,7 @@ let
   allowedSites = [
     "https://scratch.mit.edu/*"
     "https://*.scratch.mit.edu/*"
+    "https://antolin.westermann.de"
   ];
 in
 {
