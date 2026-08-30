@@ -15,6 +15,7 @@
         gapplin = 768053424;
         home-assistant = 1099568401;
         keka = 470158793;
+        meeting-owl = 1219076447;
         mela = 1568924476;
         microsoft-excel = 462058435;
         microsoft-onedrive = 823766827;
