@@ -22,10 +22,10 @@ in
 
         custom.features.unattended.enable = true;
 
-        hardware.raspberry-pi."4" = {
-          # https://github.com/NixOS/nixos-hardware/blob/master/raspberry-pi/4/poe-plus-hat.nix
-          poe-plus-hat.enable = true;
-        };
+        # PoE+ HAT fan control at the overlay defaults; `board-type=0x11` is the Pi 4B.
+        hardware.raspberry-pi.configtxt.deviceTreeOverlays."board-type=0x11" = [
+          { rpi-poe-plus = { }; }
+        ];
 
         services.tailscale = {
           extraSetFlags = [
