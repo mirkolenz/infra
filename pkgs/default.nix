@@ -7,11 +7,25 @@ final: prev:
 let
   inherit (prev) lib;
 
+  byNameDir = toString ./by-name;
+
+  # a by-name file that builds on a nixpkgs package inherits its meta.position along with its
+  # update script, which would then edit the nixpkgs source instead of ours
+  keepLocalUpdateScripts = lib.mapAttrsRecursiveCond (value: !lib.isDerivation value) (
+    _: value:
+    if lib.isDerivation value && !lib.hasPrefix byNameDir (value.meta.position or "") then
+      lib'.disableUpdateScript value
+    else
+      value
+  );
+
   # callPackage-style packages from ./by-name; subdirectories form nested scopes (e.g. vimPlugins)
-  byName = lib.packagesFromDirectoryRecursive {
-    inherit (final) callPackage;
-    directory = ./by-name;
-  };
+  byName = keepLocalUpdateScripts (
+    lib.packagesFromDirectoryRecursive {
+      inherit (final) callPackage;
+      directory = ./by-name;
+    }
+  );
   # a subdirectory is a scope only when it has no package.nix (matching packagesFromDirectoryRecursive)
   scopeNames = lib.attrNames (
     lib.filterAttrs (

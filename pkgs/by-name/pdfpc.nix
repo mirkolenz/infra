@@ -31,10 +31,6 @@ prev.pdfpc.overrideAttrs (oldAttrs: {
       export GDK_PIXBUF_MODULE_FILE=$cacheDir/loaders.cache
     '';
 
-  passthru = oldAttrs.passthru // {
-    updateScript = null;
-  };
-
   meta = oldAttrs.meta // {
     hydraPlatforms = lib.platforms.darwin;
   };
