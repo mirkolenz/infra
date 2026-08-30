@@ -2,19 +2,41 @@
   flake.modules.homeManager.default =
     {
       pkgs,
+      lib,
       config,
       ...
     }:
     let
       inherit (pkgs) herdrPlugins;
+      inherit (config.custom) projectsPath;
 
       plugins = with herdrPlugins; [
         automatic-rename
         file-viewer
         plus
         reviewr
-        sessionizer
       ];
+
+      # Repositories are checked out as <owner>/<repo>, putting `.git` three levels below the root.
+      # `worktree open` focuses the repository's workspace when one exists and otherwise creates a
+      # worktree-backed one, which is what the `open_worktree` binding operates on.
+      projectPicker = pkgs.writeShellApplication {
+        name = "herdr-project-picker";
+        runtimeInputs = [
+          config.programs.herdr.package
+          pkgs.fd
+          pkgs.fzf
+        ];
+        text = ''
+          repo=$(
+            fd --hidden --no-ignore --type d --max-depth 3 --glob .git \
+              --base-directory "${projectsPath}" --format '{//}' \
+              | fzf --prompt 'project> '
+          ) || exit 0
+
+          herdr worktree open --cwd "${projectsPath}/$repo" --path "${projectsPath}/$repo" --focus
+        '';
+      };
     in
     {
       programs.fish.interactiveShellInit = ''
@@ -38,19 +60,6 @@
           }) plugins
         );
       };
-
-      # Sessionizer discovers repositories below each owner directory.
-      # This fallback provides a consistent project workspace.
-      # A repository can replace it with its own .sessionizer/config.toml.
-      xdg.configFile."herdr/plugins/config/${herdrPlugins.sessionizer.pluginId}/config.toml".source =
-        pkgs.writers.writeTOML "herdr-sessionizer.toml"
-          {
-            projects = {
-              roots = [ "${config.home.homeDirectory}/Developer/*" ];
-              git_only = true;
-              depth = 1;
-            };
-          };
 
       # https://github.com/qu8n/herdr-automatic-rename/blob/main/config.example.sh
       xdg.configFile."herdr-automatic-rename/config.sh".text = ''
@@ -80,6 +89,9 @@
             prefix = "ctrl+space";
             # tmux-style jump back to the previously focused pane (across tabs/workspaces).
             last_pane = "prefix+;";
+            # Built-in worktree picker, scoped to the focused workspace's repository rather
+            # than to every project root the way the sessionizer action was.
+            open_worktree = "prefix+ctrl+w";
             command = [
               {
                 key = "prefix+ctrl+r";
@@ -89,15 +101,11 @@
               }
               {
                 key = "prefix+ctrl+p";
-                type = "plugin_action";
-                command = "${herdrPlugins.sessionizer.pluginId}.open";
+                type = "popup";
+                command = lib.getExe projectPicker;
                 description = "open a project workspace";
-              }
-              {
-                key = "prefix+ctrl+w";
-                type = "plugin_action";
-                command = "${herdrPlugins.sessionizer.pluginId}.worktree-open";
-                description = "open a worktree workspace";
+                width = "60%";
+                height = "60%";
               }
             ];
           };
