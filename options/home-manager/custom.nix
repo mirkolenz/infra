@@ -1,23 +1,10 @@
-{
-  lib,
-  config,
-  pkgs,
-  ...
-}:
+{ lib, config, ... }:
 {
   options.custom = {
     projectsPath = lib.mkOption {
       type = lib.types.path;
-      default =
-        if pkgs.stdenv.hostPlatform.isDarwin then
-          "${config.home.homeDirectory}/Developer"
-        else
-          "${config.home.homeDirectory}/Projects";
-      description = ''
-        Directory holding checked out repositories, grouped by owner.
-        Follows the Developer directory on darwin and XDG_PROJECTS_DIR,
-        added in xdg-user-dirs 0.20, everywhere else.
-      '';
+      default = "${config.home.homeDirectory}/${config.custom.projectsDir}";
+      description = "Absolute path to custom.projectsDir on the machine.";
     };
 
     configPath = lib.mkOption {

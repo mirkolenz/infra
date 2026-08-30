@@ -69,7 +69,7 @@
             }
             {
               key = "<leader>fp";
-              action = ''picker.projects({ dev = { "~/dev", "~/Developer" }, patterns = { ".git", "flake.nix" } })'';
+              action = ''picker.projects({ dev = { "~/${config.custom.projectsDir}" }, patterns = { ".git", "flake.nix" } })'';
               options.desc = "Projects";
             }
             {
