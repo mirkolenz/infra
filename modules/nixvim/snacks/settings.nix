@@ -24,7 +24,22 @@
           enabled = true;
           timeout = 5000;
         };
-        picker.enabled = true;
+        picker = {
+          enabled = true;
+          # Dotfiles are part of a project, gitignored files are not. The
+          # explorer is the exception, it mirrors the whole working tree
+          # except for the git directory itself.
+          sources = {
+            explorer = {
+              hidden = true;
+              ignored = true;
+              exclude = [ ".git" ];
+            };
+            files.hidden = true;
+            grep.hidden = true;
+            grep_word.hidden = true;
+          };
+        };
         quickfile.enabled = true;
         rename.enabled = true;
         scope.enabled = true;
