@@ -102,7 +102,7 @@
           };
         };
         programs = {
-          cosmic-applibrary = {
+          cosmic-app-library = {
             enable = true;
             settings.groups = [ ];
           };
