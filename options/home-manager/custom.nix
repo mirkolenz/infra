@@ -1,9 +1,28 @@
-{ lib, config, ... }:
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
 {
   options.custom = {
+    projectsPath = lib.mkOption {
+      type = lib.types.path;
+      default =
+        if pkgs.stdenv.hostPlatform.isDarwin then
+          "${config.home.homeDirectory}/Developer"
+        else
+          "${config.home.homeDirectory}/Projects";
+      description = ''
+        Directory holding checked out repositories, grouped by owner.
+        Follows the Developer directory on darwin and XDG_PROJECTS_DIR,
+        added in xdg-user-dirs 0.20, everywhere else.
+      '';
+    };
+
     configPath = lib.mkOption {
       type = lib.types.path;
-      default = "${config.home.homeDirectory}/developer/mirkolenz/infra";
+      default = "${config.custom.projectsPath}/mirkolenz/infra";
       description = "Path to the nix config on the machine.";
     };
 

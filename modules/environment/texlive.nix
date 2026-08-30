@@ -10,7 +10,7 @@
     lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
       custom.texlive = {
         enable = true;
-        bibliographyPath = "${config.home.homeDirectory}/developer/mirkolenz/bibliography";
+        bibliographyPath = "${config.custom.projectsPath}/mirkolenz/bibliography";
         texmfPath = "${config.home.homeDirectory}/texmf";
         latexmkrc = /* perl */ ''
           # 1: pdflatex
