@@ -7,9 +7,9 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-# keep job names in sync: https://github.com/mirkolenz/infra/settings/rules/3352950
+# The branch rule requires only the aggregate `check-all` job:
+# https://github.com/mirkolenz/infra/settings/rules/3352950
 jobs:
-  # Formatting is platform-independent, so it runs once rather than per system.
   check-fmt:
     runs-on: ubuntu-26.04
     steps:
@@ -24,9 +24,6 @@ jobs:
           name: mirkolenz
           authToken: ${{ secrets.CACHIX_TOKEN }}
       - run: nix fmt -- --ci
-  # Evaluation is platform-independent (no import-from-derivation), so every
-  # system is evaluated on the x86_64 runner. Separate from the builds so a check
-  # bounded at minutes is not buried behind one that can run for hours.
   check-eval:
     name: check-eval-${{ matrix.system }}
     runs-on: ubuntu-26.04
@@ -45,10 +42,6 @@ jobs:
             accept-flake-config = true
             eval-cores = 0
             log-lines = 200
-      # Covers apps, devShells, packages, checks and overlays, and through the
-      # `eval-*` checks every configuration; see options/flake-parts/eval-checks.nix
-      # for why the configuration outputs alone are not enough. `--system`
-      # selects which system it reports on.
       - run: nix flake check --no-build --system ${{ matrix.system }} --show-trace
   check-build:
     name: check-build-${{ matrix.system }}
@@ -83,3 +76,14 @@ jobs:
           name: mirkolenz
           authToken: ${{ secrets.CACHIX_TOKEN }}
       - run: nix run . -- build-pkgs --show-trace
+  check-all:
+    needs:
+      - check-fmt
+      - check-eval
+      - check-build
+    runs-on: ubuntu-slim
+    if: always()
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: for result in $RESULTS; do [[ "$result" == success ]] || exit 1; done
