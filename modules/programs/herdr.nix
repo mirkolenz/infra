@@ -61,6 +61,14 @@
         );
       };
 
+      # https://github.com/persiyanov/herdr-reviewr#configuration
+      # The pane is bound to `prefix+ctrl+r` below, so it does not need to claim a
+      # split of every worktree workspace as it is created.
+      xdg.configFile."herdr/plugins/config/${herdrPlugins.reviewr.pluginId}/config.toml".source =
+        (pkgs.formats.toml { }).generate "herdr-reviewr.toml" {
+          auto_open = false;
+        };
+
       # https://github.com/qu8n/herdr-automatic-rename/blob/main/config.example.sh
       xdg.configFile."herdr-automatic-rename/config.sh".text = ''
         AUTO_INDEX=0
