@@ -12,8 +12,8 @@
         package = if pkgs.stdenv.hostPlatform.isDarwin then null else pkgs.ghostty;
         # https://ghostty.org/docs/config/reference
         settings = {
-          auto-update = "download";
-          auto-update-channel = "stable";
+          auto-update = if pkgs.stdenv.hostPlatform.isDarwin then "download" else "off";
+          auto-update-channel = "tip";
           background-blur = false;
           cursor-click-to-move = true;
           font-family = "JetBrainsMono Nerd Font";
