@@ -106,10 +106,10 @@
             toast = {
               delivery = "terminal";
               delay_seconds = 0;
-              herdr.position = "bottom-right";
-              clipboard.position = "bottom-right";
+              clipboard.enabled = false;
             };
             sound.enabled = false;
+            confirm_close = false;
             prompt_new_tab_name = false;
             prompt_new_workspace_name = false;
             window_title = "herdr: {workspace}";
