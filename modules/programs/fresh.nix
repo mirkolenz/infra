@@ -65,6 +65,12 @@
               action = "quick_open_files";
               when = "global";
             }
+            {
+              key = "a";
+              modifiers = [ "ctrl" ];
+              action = "select_all";
+              when = "normal";
+            }
           ];
           file_browser = {
             show_hidden = true;
