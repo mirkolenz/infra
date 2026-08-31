@@ -7,15 +7,8 @@
       ...
     }:
     let
-      inherit (pkgs) herdrPlugins;
+      inherit (config.programs.herdr) plugins;
       inherit (config.custom) projectsPath;
-
-      plugins = with herdrPlugins; [
-        automatic-rename
-        file-viewer
-        plus
-        reviewr
-      ];
 
       # Repositories are checked out as <owner>/<repo>, putting `.git` three levels below the root.
       # `worktree open` focuses the repository's workspace when one exists and otherwise creates a
@@ -40,35 +33,11 @@
     in
     {
       programs.fish.interactiveShellInit = ''
-        source ${herdrPlugins.automatic-rename.root}/shell/hook.fish
+        source ${plugins.automatic-rename.package.root}/shell/hook.fish
       '';
 
-      # herdr replaces every cached field from the manifest when it reads this
-      # registry, so only the paths and the enabled flag matter here. Installing
-      # or toggling a plugin through herdr rewrites the file over the symlink,
-      # which `force` then takes back on the next activation.
-      xdg.configFile."herdr/plugins.json" = {
-        force = true;
-        source = pkgs.writers.writeJSON "herdr-plugins.json" (
-          map (plugin: {
-            plugin_id = plugin.pluginId;
-            name = plugin.pname;
-            inherit (plugin) version;
-            plugin_root = plugin.root;
-            manifest_path = plugin.manifest;
-            enabled = true;
-          }) plugins
-        );
-      };
-
-      # https://github.com/persiyanov/herdr-reviewr#configuration
-      # The pane is bound to `prefix+ctrl+r` below, so it does not need to claim a
-      # split of every worktree workspace as it is created.
-      xdg.configFile."herdr/plugins/config/${herdrPlugins.reviewr.pluginId}/config.toml".source =
-        (pkgs.formats.toml { }).generate "herdr-reviewr.toml" {
-          auto_open = false;
-        };
-
+      # The shell hooks are sourced by fish rather than spawned by herdr, so they never see
+      # `$HERDR_PLUGIN_CONFIG_DIR` and the plugin reads this fixed path instead.
       # https://github.com/qu8n/herdr-automatic-rename/blob/main/config.example.sh
       xdg.configFile."herdr-automatic-rename/config.sh".text = ''
         AUTO_INDEX=0
@@ -84,6 +53,20 @@
       programs.herdr = {
         enable = true;
         package = pkgs.herdr-bin;
+
+        plugins = {
+          automatic-rename.enable = true;
+          file-viewer.enable = true;
+          plus.enable = true;
+          reviewr = {
+            enable = true;
+            # The pane is bound to `prefix+ctrl+r` below, so it does not need to claim a
+            # split of every worktree workspace as it is created.
+            # https://github.com/persiyanov/herdr-reviewr#configuration
+            settings.auto_open = false;
+          };
+        };
+
         # https://herdr.dev/docs/configuration/
         settings = {
           onboarding = false;
@@ -104,7 +87,7 @@
               {
                 key = "prefix+ctrl+r";
                 type = "plugin_action";
-                command = "${herdrPlugins.reviewr.pluginId}.toggle";
+                command = "${plugins.reviewr.name}.toggle";
                 description = "review the agent's diff";
               }
               {
