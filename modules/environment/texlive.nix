@@ -7,7 +7,7 @@
       ...
     }:
     # https://tug.org/texlive/scripts-sys-user.html
-    lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
+    lib.mkIf config.custom.features.extras.enable {
       custom.texlive = {
         enable = true;
         bibliographyPath = "${config.custom.projectsPath}/mirkolenz/bibliography";
@@ -37,8 +37,9 @@
           # force bibtex
           $bibtex_use = 2;
 
-          # system-specific
-          $pdf_previewer = "skim %S";
+          # No previewer, mirroring the typst setup: run `tdf main.pdf` in a second
+          # pane, it reloads whenever latexmk rewrites the PDF.
+          $view = 'none';
         '';
         acronymPresets = {
           short = {

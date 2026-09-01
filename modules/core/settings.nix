@@ -168,7 +168,6 @@
           "/Applications/OrbStack.app"
           "/Applications/Zotero.app"
           "/Applications/PDF Expert.app"
-          "/Applications/Skim.app"
           "/Applications/Microsoft Word.app"
           "/Applications/Microsoft Excel.app"
           "/Applications/Microsoft PowerPoint.app"

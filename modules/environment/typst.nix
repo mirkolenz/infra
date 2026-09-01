@@ -12,9 +12,11 @@
         typstyle
         tinymist
       ];
+      # No `--open`: typst spawns the viewer detached, which a terminal UI cannot take over.
+      # Preview with `tdf out.pdf` in a second pane, it reloads whenever the PDF changes.
       home.shellAliases = {
-        typc = "typst compile --root . --open skim";
-        typw = "typst watch --root . --open skim";
+        typc = "typst compile --root .";
+        typw = "typst watch --root .";
       };
     };
 }

@@ -1,6 +1,7 @@
--- Inline multi-page PDF preview. snacks.image draws the page over the kitty
--- graphics protocol, so it works over SSH on Linux without Skim, zathura, or
--- any other GUI viewer.
+-- Inline multi-page PDF preview. Neovim's terminal cannot render the kitty
+-- graphics protocol, so `tdf` (the viewer used everywhere else) is unusable in
+-- a :terminal split; snacks.image instead draws the page over the protocol
+-- directly onto the host terminal, which also works over SSH.
 --
 -- snacks renders a specific page natively (a "file.pdf#page=N" source), but it
 -- caches converted images by path with no mtime check, so re-rendering the same

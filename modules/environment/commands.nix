@@ -208,9 +208,6 @@
           shift
           exec nix profile "$command" --profile /nix/var/nix/profiles/system "$@"
         '';
-        skim = /* bash */ ''
-          exec open -g -a Skim "$@"
-        '';
         prefetch-attr = /* bash */ ''
           if [ "$#" -lt 1 ]; then
             echo "Usage: $0 NIX_FLAKE_ATTR [NIX_PREFETCH_ARGS...]" >&2

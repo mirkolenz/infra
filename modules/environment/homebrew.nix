@@ -37,7 +37,6 @@
         "raycast"
         "rode-central"
         "signal"
-        "skim"
         "soundsource"
         "stats"
         "steermouse"

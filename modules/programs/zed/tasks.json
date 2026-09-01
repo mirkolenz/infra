@@ -66,7 +66,7 @@
   {
     "label": "typst-watch",
     "command": "typst",
-    "args": ["watch", "--root", ".", "--open", "skim", "$ZED_RELATIVE_FILE"],
+    "args": ["watch", "--root", ".", "$ZED_RELATIVE_FILE"],
     "hide": "never",
     "reveal": "no_focus",
     "show_command": false,
@@ -78,7 +78,7 @@
   {
     "label": "typst-compile",
     "command": "typst",
-    "args": ["compile", "--root", ".", "--open", "skim", "$ZED_RELATIVE_FILE"],
+    "args": ["compile", "--root", ".", "$ZED_RELATIVE_FILE"],
     "hide": "never",
     "reveal": "no_focus",
     "show_command": false,

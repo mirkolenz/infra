@@ -332,20 +332,10 @@
             "labelReferences": false,
             "maxLength": 32
           },
-          // https://github.com/latex-lsp/texlab/wiki/Previewing
-          // https://github.com/rzukic/zed-latex/blob/main/src/texlab_workspace_config/preview_presets.rs
-          // displayline -h
-          "forwardSearch": {
-            "executable": "displayline",
-            "args": ["-r", "-g", "%l", "%p", "%f"]
-          },
-          // "forwardSearch": {
-          //   "executable": "zathura",
-          //   "args": ["--synctex-forward", "%l:1:%f", "-x", "zed %%{input}:%%{line}", "%p"]
-          // },
+          // No forwardSearch: tdf is the PDF viewer and has no synctex support.
           "build": {
             "onSave": false,
-            "forwardSearchAfter": true
+            "forwardSearchAfter": false
           }
         }
       }
