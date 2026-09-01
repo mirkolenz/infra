@@ -79,9 +79,11 @@
         # Claude Code built-in prompts, reflowed to one sentence per line.
         # To refresh after an upgrade, ask Claude to re-extract them from its own
         # bundle using the anchors below, then diff against the text here.
+        # Keep the descriptions free of proactive triggers: upstream ships these as
+        # slash commands, so its wording invites unprompted use.
         skills.smpl = {
           # /simplify. Anchor: `4 cleanup agents in parallel`.
-          description = "Review the changed code for reuse, simplification, efficiency, and altitude cleanups, then apply the fixes. Quality only, it does not hunt for bugs. Use after writing or editing code, or when the user asks to simplify, clean up, or refactor a change.";
+          description = "Reviews the changed code for reuse, simplification, efficiency, and altitude cleanups, then apply the fixes. Quality only, it does not hunt for bugs. Use when the user asks to simplify, clean up, or refactor a change.";
           text = /* markdown */ ''
             You are improving the quality of the changed code, not hunting for bugs.
             Review it for reuse, simplification, efficiency, and altitude issues, then fix what you find.
@@ -135,7 +137,7 @@
         };
         skills.rvw = {
           # /code-review, xhigh effort on Opus 5. Anchor: `10 inline angles`.
-          description = "Review the current diff, or a PR number, branch, or path target, for correctness bugs plus reuse, simplification, efficiency, altitude, and convention cleanups, then report the findings. Use before shipping a change, or when the user asks to review code or a pull request.";
+          description = "Reviews the current diff, or a PR number, branch, or path target, for correctness bugs plus reuse, simplification, efficiency, altitude, and convention cleanups, then report the findings. Use when the user asks to review code or a pull request.";
           text = /* markdown */ ''
             You are reviewing for **recall** at extra-high effort: catch every real bug.
             At this level, catching real bugs matters more than avoiding false positives, because a missed bug ships.
