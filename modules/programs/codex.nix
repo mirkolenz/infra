@@ -79,6 +79,7 @@
             notifications = true;
             vim_mode_default = false;
             alternate_screen = "auto";
+            show_tooltips = false;
           };
           notice = {
             hide_rate_limit_model_nudge = true;
