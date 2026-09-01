@@ -344,7 +344,7 @@
             skipNoStagedFilesWarning = true;
             skipRewordInEditorWarning = false;
             skipStashWarning = false;
-            splitDiff = "always";
+            splitDiff = "auto";
             useHunkModeInStagingView = true;
           };
           git = {
