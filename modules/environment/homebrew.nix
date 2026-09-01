@@ -141,6 +141,7 @@
         onActivation = {
           autoUpdate = true;
           upgrade = true;
+          cleanup = "uninstall";
           extraEnv = {
             HOMEBREW_NO_ENV_HINTS = "1";
           };
