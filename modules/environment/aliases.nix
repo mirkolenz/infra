@@ -37,6 +37,7 @@
           mcp-inspector = [ "@modelcontextprotocol/inspector" ];
           shadcn = [ "shadcn" ];
           ccusage = [ "ccusage" ];
+          cyclonedx-npm = [ "@cyclonedx/cyclonedx-npm" ];
         })
         ++ (lib.mapAttrsToList mkPythonApp {
           arguebuf = [ "arguebuf[cli]" ];
