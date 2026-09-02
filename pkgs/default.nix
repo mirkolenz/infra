@@ -32,10 +32,23 @@ let
       name: type: type == "directory" && !lib.pathExists (./by-name + "/${name}/package.nix")
     ) (lib.readDir ./by-name)
   );
+  # `<prefix>-<name>` naming shared by the two flattening mechanisms below
+  flattenPrefixed = lib.concatMapAttrs (
+    prefix: lib.mapAttrs' (name: lib.nameValuePair "${prefix}-${name}")
+  );
+
   scopes = lib.getAttrs scopeNames byName;
-  flattenedScopes = lib.concatMapAttrs (
-    scopeName: lib.mapAttrs' (drvName: lib.nameValuePair "${scopeName}-${drvName}")
-  ) scopes;
+  flattenedScopes = flattenPrefixed scopes;
+
+  # dependencies vendored by a package via `passthru.vendored` (e.g. python libraries missing from
+  # nixpkgs) are exposed flat as well, so that CI builds them and their update scripts run
+  flattenedVendored = keepLocalUpdateScripts (
+    flattenPrefixed (
+      lib.mapAttrs (_: pkg: pkg.vendored or { }) (
+        lib.filterAttrs (_: lib.isDerivation) (byName // flattenedScopes)
+      )
+    )
+  );
 
   # overlay-style fragments from ./overrides, each `final: prev: -> attrset`
   # these shadow nixpkgs packages, so their update scripts would target the wrong source
@@ -43,7 +56,9 @@ let
 
   custom = {
     # flat derivations exposed via flake.packages and built in CI
-    flattenedPackages = lib.filterAttrs (_: lib.isDerivation) (byName // flattenedScopes // overrides);
+    flattenedPackages = lib.filterAttrs (_: lib.isDerivation) (
+      byName // flattenedScopes // flattenedVendored // overrides
+    );
     # derivations with an in-tree hash, built by `update-flake` so it can fix them
     hashedPackages = {
       inherit (final) caddy-custom;

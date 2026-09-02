@@ -1,0 +1,60 @@
+--- a/release/app/package-lock.json
++++ b/release/app/package-lock.json
+@@ -1591,9 +1591,9 @@
+       }
+     },
+     "node_modules/node-addon-api": {
+-      "version": "4.3.0",
+-      "resolved": "https://registry.npmjs.org/node-addon-api/-/node-addon-api-4.3.0.tgz",
+-      "integrity": "sha512-73sE9+3UaLYYFmDsFZnqCInzPyh3MqIwZO9cw58yIqAZhONrrabrYyYe3TuIqtIiOuTXVhsGau8hcrhhwSsDIQ=="
++      "version": "7.1.1",
++      "resolved": "https://registry.npmjs.org/node-addon-api/-/node-addon-api-7.1.1.tgz",
++      "integrity": "sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ=="
+     },
+     "node_modules/node-fetch": {
+       "version": "2.6.7",
+@@ -2331,7 +2331,7 @@
+       "hasInstallScript": true,
+       "dependencies": {
+         "@mapbox/node-pre-gyp": "^1.0.0",
+-        "node-addon-api": "^4.2.0",
++        "node-addon-api": "^7.1.1",
+         "tar": "^6.1.11"
+       },
+       "optionalDependencies": {
+@@ -3754,9 +3754,9 @@
+       "integrity": "sha512-dBpDMdxv9Irdq66304OLfEmQ9tbNRFnFTuZiLo+bD+r332bBmMJ8GBLXklIXXgxd3+v9+KUnZaUR5PJMa75Gsg=="
+     },
+     "node-addon-api": {
+-      "version": "4.3.0",
+-      "resolved": "https://registry.npmjs.org/node-addon-api/-/node-addon-api-4.3.0.tgz",
+-      "integrity": "sha512-73sE9+3UaLYYFmDsFZnqCInzPyh3MqIwZO9cw58yIqAZhONrrabrYyYe3TuIqtIiOuTXVhsGau8hcrhhwSsDIQ=="
++      "version": "7.1.1",
++      "resolved": "https://registry.npmjs.org/node-addon-api/-/node-addon-api-7.1.1.tgz",
++      "integrity": "sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ=="
+     },
+     "node-fetch": {
+       "version": "2.6.7",
+@@ -4293,7 +4293,7 @@
+       "integrity": "sha512-olYkWoKFVNSSSQNvxVUfjiVbz3YtBwTJj+mfV5zpHmqW3sELx2Cf4QCdirMelhM5Zh+KDVaKgQHqCxrqiWHybw==",
+       "requires": {
+         "@mapbox/node-pre-gyp": "^1.0.0",
+-        "node-addon-api": "^4.2.0",
++        "node-addon-api": "^7.1.1",
+         "node-gyp": "8.x",
+         "tar": "^6.1.11"
+       }
+--- a/release/app/package.json
++++ b/release/app/package.json
+@@ -14,6 +14,11 @@
+     "postinstall": "npm run electron-rebuild && npm run link-modules",
+     "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts"
+   },
++  "overrides": {
++    "sqlite3": {
++      "node-addon-api": "^7.1.1"
++    }
++  },
+   "dependencies": {
+     "@cyclonedx/cyclonedx-library": "^9.4.1",
+     "flexsearch": "^0.8.151",

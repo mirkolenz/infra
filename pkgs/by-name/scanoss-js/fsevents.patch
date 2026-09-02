@@ -1,0 +1,12 @@
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -1296,9 +1296,6 @@
+       },
+       "engines": {
+         "node": ">= 8.10.0"
+-      },
+-      "optionalDependencies": {
+-        "fsevents": "~2.3.2"
+       }
+     },
+     "node_modules/chownr": {
