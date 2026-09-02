@@ -123,6 +123,7 @@
           permissions = {
             defaultMode = "auto";
             disableBypassPermissionsMode = "disable";
+            blockReadsOutsideWorkingDirectories = false;
             allow = [
               "WebFetch"
               "WebSearch"
