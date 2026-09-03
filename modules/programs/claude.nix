@@ -121,7 +121,7 @@
           permissions = {
             defaultMode = "auto";
             disableBypassPermissionsMode = "disable";
-            blockReadsOutsideWorkingDirectories = true;
+            blockReadsOutsideWorkingDirectories = false;
             allow = [
               "Read(//nix/**)"
             ];
