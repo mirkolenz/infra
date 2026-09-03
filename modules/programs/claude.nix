@@ -10,16 +10,12 @@
     let
       knownMarketplaces = {
         claude-plugins-official = {
-          source = {
-            source = "github";
-            repo = "anthropics/claude-plugins-official";
-          };
+          source = "github";
+          repo = "anthropics/claude-plugins-official";
         };
         openai-codex = {
-          source = {
-            source = "github";
-            repo = "openai/codex-plugin-cc";
-          };
+          source = "github";
+          repo = "openai/codex-plugin-cc";
         };
       };
     in
@@ -101,8 +97,8 @@
               ];
             };
           };
-          strictKnownMarketplaces = knownMarketplaces;
-          extraKnownMarketplaces = knownMarketplaces;
+          strictKnownMarketplaces = lib.attrValues knownMarketplaces;
+          extraKnownMarketplaces = lib.mapAttrs (_name: source: { inherit source; }) knownMarketplaces;
           enabledPlugins = {
             "code-simplifier@claude-plugins-official" = true;
             "feature-dev@claude-plugins-official" = true;
