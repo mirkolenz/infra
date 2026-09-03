@@ -8,7 +8,9 @@
   electron,
   makeDesktopItem,
   makeBinaryWrapper,
+  nodejs,
   python3,
+  removeReferencesTo,
   nix-update-script,
 }:
 buildNpmPackage (finalAttrs: {
@@ -55,6 +57,7 @@ buildNpmPackage (finalAttrs: {
     copyDesktopItems
     makeBinaryWrapper
     python3
+    removeReferencesTo
   ];
 
   env = {
@@ -68,6 +71,15 @@ buildNpmPackage (finalAttrs: {
   preBuild = ''
     rm -rf "$TMPDIR/cache"
     npmRoot=release/app npmDeps=${finalAttrs.appNpmDeps} npmConfigHook
+
+    # electron-builder packages this tree as it is, so the node-gyp toolchain, the build tree left
+    # next to the native module and the store paths that `npmConfigHook` patched into the shebangs
+    # of the executables it holds would land in the asar and pin node and python at runtime
+    rm -rf \
+      release/app/node_modules/node-gyp \
+      release/app/node_modules/sqlite3/build-tmp-napi-v6
+    find release/app/node_modules -type f -executable \
+      -exec remove-references-to -t ${nodejs} {} +
   '';
 
   postBuild = ''
@@ -92,14 +104,14 @@ buildNpmPackage (finalAttrs: {
       if stdenv.hostPlatform.isDarwin then
         ''
           mkdir -p "$out/Applications"
-          cp -r "release/build/mac"*/*.app "$out/Applications"
+          mv "release/build/mac"*/*.app "$out/Applications"
           makeBinaryWrapper "$out/Applications/SCANOSS SBOM Workbench.app/Contents/MacOS/SCANOSS SBOM Workbench" \
             "$out/bin/sbom-workbench"
         ''
       else
         ''
           mkdir -p "$out/share/sbom-workbench"
-          cp -r release/build/linux*unpacked/{locales,resources{,.pak}} "$out/share/sbom-workbench"
+          mv release/build/linux*unpacked/{locales,resources{,.pak}} "$out/share/sbom-workbench"
 
           makeBinaryWrapper ${lib.getExe electron} "$out/bin/sbom-workbench" \
             --add-flags "$out/share/sbom-workbench/resources/app.asar" \
@@ -124,6 +136,11 @@ buildNpmPackage (finalAttrs: {
       icon = "sbom-workbench";
       categories = [ "Development" ];
     })
+  ];
+
+  disallowedReferences = [
+    nodejs
+    python3
   ];
 
   passthru.updateScript = nix-update-script { };
