@@ -41,9 +41,14 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
       - uses: wimpysworld/nothing-but-nix@687c797a730352432950c707ab493fcc951818d7 # v10
+      # renaming these trees is instant where deleting them takes minutes, so the delete is
+      # detached and drains while Nix installs
       - name: reclaim disk space
         if: runner.os == 'macOS'
-        run: sudo rm -rf /Applications/Xcode*.app /Library/Developer
+        run: |
+          sudo mkdir -p /private/tmp/trash
+          sudo mv /Applications/Xcode*.app /Library/Developer /private/tmp/trash/
+          sudo rm -rf /private/tmp/trash &
       - uses: DeterminateSystems/determinate-nix-action@4eea0b33e3d1f02ecfe37cf16e7204c424009606 # v3
         with:
           extra-conf: |
