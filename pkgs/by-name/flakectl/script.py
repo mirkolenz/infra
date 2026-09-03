@@ -7,7 +7,7 @@ import re
 import shlex
 import shutil
 import subprocess
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, Any
@@ -21,6 +21,24 @@ NIX_FLAGS = ["--extra-experimental-features", "nix-command flakes"]
 GITHUB_SEMVER_REF = re.compile(
     r'url = "github:(?P<owner>[^/"]+)/(?P<repo>[^/"]+)/(?P<ref>[^/"]*\d+\.\d+\.\d+[^/"]*)"'
 )
+
+
+# `nix eval --json` collapses any attrset carrying an `outPath` down to that one
+# string, so the two paths have to travel under names of our own.
+TARGET_APPLY = "builtins.mapAttrs (_: drv: { drv = drv.drvPath; out = drv.outPath; })"
+
+
+@dataclass(frozen=True, slots=True)
+class BuildTarget:
+    """A flake attribute resolved to the two store paths a build needs."""
+
+    drv_path: str
+    out_path: str
+
+    @property
+    def installable(self) -> str:
+        """Address the store derivation, so that building needs no evaluator."""
+        return f"{self.drv_path}^*"
 
 
 @dataclass(frozen=True, slots=True)
@@ -117,6 +135,32 @@ def nix_eval_dict(nix_exe: str, *args: str) -> dict[str, str]:
     return entries
 
 
+def nix_eval_targets(nix_exe: str, installable: str) -> dict[str, BuildTarget]:
+    """Evaluate `installable` and assert it returns `{name: derivation}`.
+
+    One evaluation yields both paths a build needs: the output path answers
+    whether the cache already holds it, and the derivation path lets the build
+    itself skip evaluating altogether."""
+    entries = nix_eval_json(nix_exe, installable, "--apply", TARGET_APPLY)
+
+    if not isinstance(entries, dict) or not all(
+        isinstance(entry, dict)
+        and isinstance(entry.get("drv"), str)
+        and isinstance(entry.get("out"), str)
+        for entry in entries.values()
+    ):
+        typer.echo(
+            f"nix eval {installable} did not return an attrset of derivations",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    return {
+        name: BuildTarget(drv_path=entry["drv"], out_path=entry["out"])
+        for name, entry in entries.items()
+    }
+
+
 def path_in_cache(nix_exe: str, cache: str, path: str) -> bool:
     """Whether `path` is present in the binary `cache` itself.
 
@@ -167,29 +211,29 @@ def cached_paths(
 
 def build_uncached(
     nix_exe: str,
-    flake: str,
-    attr_path: str,
     cache: str | None,
-    pkgs2path: dict[str, str],
+    targets: Mapping[str, BuildTarget],
     max_workers: int,
     extra: Sequence[str] = (),
 ) -> None:
-    """Build any of `pkgs2path` not yet present in `cache`."""
+    """Build any of `targets` not yet present in `cache`."""
     if cache:
-        cached = cached_paths(nix_exe, cache, pkgs2path.values(), max_workers)
-        uncached = [name for name, path in pkgs2path.items() if path not in cached]
+        cached = cached_paths(
+            nix_exe, cache, (t.out_path for t in targets.values()), max_workers
+        )
+        uncached = {name: t for name, t in targets.items() if t.out_path not in cached}
     else:
-        uncached = list(pkgs2path.keys())
+        uncached = dict(targets)
 
     if not uncached:
-        typer.echo(f"All {len(pkgs2path)} package(s) available from {cache}.", err=True)
+        typer.echo(f"All {len(targets)} package(s) available from {cache}.", err=True)
         return
 
     typer.echo(
         f"Building {len(uncached)} uncached package(s): {', '.join(uncached)}.",
         err=True,
     )
-    refs = [flake_ref(flake, attr_path, name) for name in uncached]
+    refs = [t.installable for t in uncached.values()]
     run_logged(nix_argv(nix_exe, "build", *refs, *extra))
 
 
@@ -472,24 +516,21 @@ def build_pkgs(
         raise typer.Exit(1)
 
     typer.echo("Discovering packages...", err=True)
-    pkgs2path = nix_eval_dict(cfg.nix_exe, f"{cfg.flake}#{path}")
+    targets = nix_eval_targets(cfg.nix_exe, f"{cfg.flake}#{path}")
 
-    if not pkgs2path:
+    if not targets:
         typer.echo(f"Found no packages in {cfg.flake}#{path}.", err=True)
         raise typer.Exit(0)
 
     typer.echo(
-        f"Found {len(pkgs2path)} packages in {cfg.flake}#{path}: "
-        f"{', '.join(pkgs2path.keys())}.",
+        f"Found {len(targets)} packages in {cfg.flake}#{path}: {', '.join(targets)}.",
         err=True,
     )
 
     if dry_run:
         raise typer.Exit(0)
 
-    build_uncached(
-        cfg.nix_exe, cfg.flake, path, cache, pkgs2path, cfg.max_workers, ctx.args
-    )
+    build_uncached(cfg.nix_exe, cache, targets, cfg.max_workers, ctx.args)
 
 
 @dataclass(frozen=True, slots=True)
