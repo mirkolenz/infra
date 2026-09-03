@@ -57,5 +57,6 @@ writeShellApplication {
     description = "Copy mirkos-macbook configs (Ghostty, SSH, Homebrew bundle) to a remote macOS host";
     mainProgram = "mirkos-macbook-rsync";
     platforms = lib.platforms.darwin;
+    hydraPlatforms = [ ];
   };
 }
