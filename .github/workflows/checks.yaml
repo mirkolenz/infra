@@ -55,7 +55,7 @@ jobs:
             accept-flake-config = true
             build-dir = /nix/build
             cores = 0
-            eval-cores = 1
+            eval-cores = 0
             fallback = true
             keep-going = true
             log-lines = 200
@@ -64,7 +64,8 @@ jobs:
         with:
           name: mirkolenz
           authToken: ${{ secrets.CACHIX_TOKEN }}
-      - run: nix flake check --show-trace
+      - run: nix flake check --no-build --show-trace
+      - run: nix run . -- build-pkgs --show-trace
         timeout-minutes: 45
   check-all:
     needs:
