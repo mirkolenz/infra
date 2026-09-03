@@ -54,7 +54,12 @@ let
   # every fragment sees the preceding ones in its `prev`, so hotfixes come last and apply on top
   # of the packages the other fragments define.
   # these shadow nixpkgs packages, so their update scripts would target the wrong source
-  overrides = lib.mapAttrs (_: lib'.disableUpdateScript) (
+  # fragments may also define non-derivation values such as `pythonPackagesExtensions`
+  disableUpdateScripts = lib.mapAttrs (
+    _: value: if lib.isDerivation value then lib'.disableUpdateScript value else value
+  );
+
+  overrides = disableUpdateScripts (
     lib'.importOverlays [
       ./overrides/inputs.nix
       ./overrides/determinate.nix
