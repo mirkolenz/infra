@@ -81,7 +81,7 @@ def subprocess_stdout(cmd: list[str], stdin: str | None = None) -> str:
     return result.stdout.strip()
 
 
-def run_logged(cmd: list[str], *, check: bool = True) -> None:
+def run_logged(cmd: list[str], *, check: bool = True) -> int:
     """Log `cmd` (basename argv0, leading NIX_FLAGS elided) then run it.
 
     Failure exits with `cmd`'s own status rather than raising: `cmd` reported it
@@ -95,8 +95,12 @@ def run_logged(cmd: list[str], *, check: bool = True) -> None:
 
     typer.echo(shlex.join([Path(head).name, *tail]), err=True)
 
-    if (returncode := subprocess.run(cmd, check=False).returncode) and check:
+    returncode = subprocess.run(cmd, check=False).returncode
+
+    if returncode and check:
         raise typer.Exit(returncode)
+
+    return returncode
 
 
 def nix_argv(nix_exe: str, *args: str) -> list[str]:
@@ -233,8 +237,19 @@ def build_uncached(
         f"Building {len(uncached)} uncached package(s): {', '.join(uncached)}.",
         err=True,
     )
-    refs = [t.installable for t in uncached.values()]
-    run_logged(nix_argv(nix_exe, "build", *refs, *extra))
+    failures = []
+
+    # Separate builds release each target's temporary GC roots before the next one.
+    for name, target in uncached.items():
+        if run_logged(
+            nix_argv(nix_exe, "build", "--no-link", target.installable, *extra),
+            check=False,
+        ):
+            failures.append(name)
+
+    if failures:
+        typer.echo(f"Failed to build: {', '.join(failures)}.", err=True)
+        raise typer.Exit(1)
 
 
 app = typer.Typer(
