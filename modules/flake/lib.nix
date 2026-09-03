@@ -164,15 +164,8 @@
         };
       });
 
-    # import every `final: prev: -> attrset` overlay fragment in `dir` and merge them at the top level
-    importOverlays =
-      dir: final: prev:
-      let
-        filterPath =
-          name: type:
-          !lib.hasPrefix "_" name && type == "regular" && lib.hasSuffix ".nix" name && name != "default.nix";
-        files = builtins.attrNames (lib.filterAttrs filterPath (builtins.readDir dir));
-      in
-      lib.mergeAttrsList (map (name: import (dir + "/${name}") final prev) files);
+    # import and compose `final: prev: -> attrset` overlay fragments in the given order,
+    # so that each fragment sees the preceding ones in its `prev`
+    importOverlays = paths: lib.composeManyExtensions (map import paths);
   };
 }

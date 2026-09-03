@@ -50,9 +50,17 @@ let
     )
   );
 
-  # overlay-style fragments from ./overrides, each `final: prev: -> attrset`
+  # overlay-style fragments, each `final: prev: -> attrset`, composed in the order listed below:
+  # every fragment sees the preceding ones in its `prev`, so hotfixes come last and apply on top
+  # of the packages the other fragments define.
   # these shadow nixpkgs packages, so their update scripts would target the wrong source
-  overrides = lib.mapAttrs (_: lib'.disableUpdateScript) (lib'.importOverlays ./overrides final prev);
+  overrides = lib.mapAttrs (_: lib'.disableUpdateScript) (
+    lib'.importOverlays [
+      ./overrides/inputs.nix
+      ./overrides/determinate.nix
+      ./overrides/hotfixes.nix
+    ] final prev
+  );
 
   custom = {
     # flat derivations exposed via flake.packages and built in CI
