@@ -37,7 +37,7 @@
             # them, :minimal read access, and write to :tmpdir and :slash_tmp (/tmp).
             extends = ":workspace";
             filesystem = {
-              "/nix" = "write";
+              "/nix" = "read";
               "${config.home.homeDirectory}/.npm" = "write";
               "${config.home.homeDirectory}/Library/Caches" = "write";
               "${config.xdg.cacheHome}" = "write";
@@ -61,7 +61,7 @@
                 "raw.githubusercontent.com" = "allow";
                 # "pypi.org" = "allow";
                 # "files.pythonhosted.org" = "allow";
-                "huggingface.co" = "allow";
+                # "huggingface.co" = "allow";
                 # "registry.npmjs.org" = "allow";
                 # "api.npmjs.org" = "allow";
                 # "ui.shadcn.com" = "allow";
@@ -114,10 +114,6 @@
               "max"
             ];
           };
-          # sandbox_mode = "workspace-write";
-          # sandbox_workspace_write = {
-          #   network_access = true;
-          # };
         };
       };
       # Codex writes trust decisions back to config.toml, which fails on a read-only

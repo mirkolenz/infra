@@ -7,11 +7,24 @@
       lib',
       ...
     }:
+    let
+      knownMarketplaces = {
+        claude-plugins-official = {
+          source = {
+            source = "github";
+            repo = "anthropics/claude-plugins-official";
+          };
+        };
+        openai-codex = {
+          source = {
+            source = "github";
+            repo = "openai/codex-plugin-cc";
+          };
+        };
+      };
+    in
     lib.mkIf config.custom.features.extras.enable {
-      # https://code.claude.com/docs/en/permissions
-      # https://code.claude.com/docs/en/sandboxing
-      # https://code.claude.com/docs/en/settings
-      # https://www.schemastore.org/claude-code-settings.json
+      # https://code.claude.com/docs/en/settings-reference
       programs.claude-code = {
         enable = true;
         package = pkgs.claude-code-bin;
@@ -34,6 +47,7 @@
             enableWeakerNetworkIsolation = true;
             network = {
               allowLocalBinding = true;
+              strictAllowlist = true;
               allowUnixSockets = [
                 (lib'.nixDaemonSocket pkgs.stdenv)
               ]
@@ -47,7 +61,7 @@
                 "raw.githubusercontent.com"
                 # "pypi.org"
                 # "files.pythonhosted.org"
-                "huggingface.co"
+                # "huggingface.co"
                 # "registry.npmjs.org"
                 # "api.npmjs.org"
                 # "ui.shadcn.com"
@@ -87,20 +101,8 @@
               ];
             };
           };
-          extraKnownMarketplaces = {
-            claude-plugins-official = {
-              source = {
-                source = "github";
-                repo = "anthropics/claude-plugins-official";
-              };
-            };
-            openai-codex = {
-              source = {
-                source = "github";
-                repo = "openai/codex-plugin-cc";
-              };
-            };
-          };
+          strictKnownMarketplaces = knownMarketplaces;
+          extraKnownMarketplaces = knownMarketplaces;
           enabledPlugins = {
             "code-simplifier@claude-plugins-official" = true;
             "feature-dev@claude-plugins-official" = true;
@@ -123,11 +125,9 @@
           permissions = {
             defaultMode = "auto";
             disableBypassPermissionsMode = "disable";
-            blockReadsOutsideWorkingDirectories = false;
+            blockReadsOutsideWorkingDirectories = true;
             allow = [
-              "WebFetch"
-              "WebSearch"
-              "Edit(//nix/**/*)"
+              "Read(//nix/**)"
             ];
             deny = [ ];
             ask = [ ];

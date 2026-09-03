@@ -25,45 +25,16 @@
           disable_welcome_banner_animation = true;
           # Permission values: "always" | "ask" | "never" (vibe/core/tools/base.py::ToolPermission).
           # Each tool's full config schema lives at vibe/core/tools/builtins/<name>.py::*Config.
+          # Only tools whose upstream default differs are listed. bash keeps its ASK
+          # default and upstream's own read-only allowlist, which setting `allowlist`
+          # here would replace rather than extend.
           tools = {
-            ask_user_question.permission = "always";
-            grep.permission = "always";
-            read_file.permission = "always";
             search_replace.permission = "always";
-            skill.permission = "always";
-            task.permission = "ask";
-            todo.permission = "always";
+            # web_fetch and web_search ignore allowlist/denylist/sensitive_patterns,
+            # so the flat permission level is the only available gate.
             web_fetch.permission = "always";
             web_search.permission = "always";
             write_file.permission = "always";
-            bash = {
-              permission = "ask";
-              allowlist = [
-                "cat"
-                "cd"
-                "echo"
-                "file"
-                "find"
-                "gh"
-                "git diff"
-                "git log"
-                "git status"
-                "grep"
-                "head"
-                "jq"
-                "ls"
-                "nix"
-                "pwd"
-                "rg"
-                "stat"
-                "tail"
-                "tree"
-                "uname"
-                "wc"
-                "which"
-                "whoami"
-              ];
-            };
           };
         };
       };
