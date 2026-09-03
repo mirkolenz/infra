@@ -28,7 +28,7 @@ mkGitHubBinary {
     writableTmpDirAsHomeHook
   ];
 
-  __noChroot = stdenvNoCC.isDarwin;
+  __noChroot = stdenvNoCC.hostPlatform.isDarwin;
 
   # otherwise the bun runtime is executed instead of the binary (on linux)
   dontStrip = true;
