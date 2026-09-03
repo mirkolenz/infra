@@ -42,5 +42,6 @@ rustPlatform.buildRustPackage (finalAttrs: {
     license = lib.licenses.agpl3Only;
     maintainers = with lib.maintainers; [ mirkolenz ];
     mainProgram = "zuban";
+    hydraPlatforms = [ ];
   };
 })
