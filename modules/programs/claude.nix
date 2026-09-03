@@ -63,7 +63,6 @@
                 # "ui.shadcn.com"
               ];
             };
-            # absolute paths need // prefix, otherwise they are treated as relative to the project root
             filesystem = {
               allowWrite = [
                 "${config.home.homeDirectory}/.npm"
@@ -81,13 +80,7 @@
               # ];
             };
             credentials = {
-              # the default read policy still grants ssh keys, so deny them explicitly
-              files = [
-                {
-                  path = "${config.home.homeDirectory}/.ssh";
-                  mode = "deny";
-                }
-              ];
+              # ssh keys are blocked via permissions.deny, which also covers the built-in tools
               # drop the agent socket so ssh cannot authenticate via a forwarded agent
               envVars = [
                 {
@@ -118,6 +111,7 @@
             baseRef = "head";
             symlinkDirectories = [ ];
           };
+          # absolute paths need // prefix, otherwise they are treated as relative to the project root
           permissions = {
             defaultMode = "auto";
             disableBypassPermissionsMode = "disable";
@@ -125,7 +119,11 @@
             allow = [
               "Read(//nix/**)"
             ];
-            deny = [ ];
+            # read deny rules cover the built-in tools and are merged into the sandbox boundary,
+            # so a single rule blocks both claude itself and any subprocess it spawns
+            deny = [
+              "Read(~/.ssh/**)"
+            ];
             ask = [ ];
           };
           statusLine = lib.mkIf (lib.versionAtLeast config.programs.starship.package.version "1.25.0") {
