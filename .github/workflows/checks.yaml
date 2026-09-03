@@ -60,6 +60,8 @@ jobs:
             keep-going = true
             log-lines = 200
             max-jobs = 1
+            max-free = 6G
+            min-free = 2G
       - uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: mirkolenz
