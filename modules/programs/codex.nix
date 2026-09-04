@@ -7,12 +7,6 @@
       pkgs,
       ...
     }:
-    let
-      codexHomes = [
-        ".codex"
-        ".codex-api"
-      ];
-    in
     lib.mkIf config.custom.features.extras.enable {
       programs.codex = {
         enable = true;
@@ -126,19 +120,10 @@
       # writable copy of the generated config; trust resets on each activation.
       home.file.".codex/config.toml".enable = lib.mkForce false;
 
-      # Codex keeps auth.json, history and sessions inside CODEX_HOME, so a second
-      # home is the only way to hold a chatgpt login and an api-key login at once.
-      # Both homes receive the same generated config, leaving only state divergent.
-      home.file.".codex-api/AGENTS.md".text = config.programs.agents.instructions.text;
-
-      home.activation.setupCodexFiles = lib'.mkMutableFiles {
+      home.activation.setupCodexFiles = lib'.mkMutableFile {
         inherit config;
-        files = map (dir: {
-          source = config.home.file.".codex/config.toml".source;
-          target = "${config.home.homeDirectory}/${dir}/config.toml";
-        }) codexHomes;
+        source = config.home.file.".codex/config.toml".source;
+        target = "${config.home.homeDirectory}/.codex/config.toml";
       };
-
-      home.shellAliases.codex-api = "env CODEX_HOME=${config.home.homeDirectory}/.codex-api codex";
     };
 }
