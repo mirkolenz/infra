@@ -53,7 +53,7 @@
     };
     import-tree.url = "github:denful/import-tree";
     mistral-vibe = {
-      url = "github:mistralai/mistral-vibe/v2.24.5";
+      url = "github:mistralai/mistral-vibe/v2.25.0";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         pyproject-nix.follows = "pyproject-nix";
