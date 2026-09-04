@@ -10,7 +10,7 @@ concurrency:
 # The branch rule requires only the aggregate `check-all` job:
 # https://github.com/mirkolenz/infra/settings/rules/3352950
 jobs:
-  check-fmt:
+  check-eval:
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
@@ -24,6 +24,7 @@ jobs:
           name: mirkolenz
           authToken: ${{ secrets.CACHIX_TOKEN }}
       - run: nix fmt -- --ci
+      - run: nix flake check --no-build --show-trace
   check-system:
     name: check-${{ matrix.system }}
     runs-on: ${{ matrix.runner }}
@@ -66,11 +67,10 @@ jobs:
         with:
           name: mirkolenz
           authToken: ${{ secrets.CACHIX_TOKEN }}
-      - run: nix flake check --no-build --show-trace
       - run: nix run . -- build-pkgs --show-trace
   check-all:
     needs:
-      - check-fmt
+      - check-eval
       - check-system
     runs-on: ubuntu-slim
     if: always()

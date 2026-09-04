@@ -24,7 +24,7 @@
     in
     {
       packages = exports;
-      checks = lib.filterAttrs (name: value: isHydraTarget value) exports;
+      checks = lib.filterAttrs (_: isHydraTarget) exports;
       legacyPackages = pkgs;
     };
 }
