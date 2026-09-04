@@ -2,8 +2,8 @@
 # including the SSH host entry the builder connects through.
 {
   flake.modules.darwin.default =
-    { config, ... }:
-    {
+    { config, lib, ... }:
+    lib.mkIf false {
       # https://github.com/LnL7/nix-darwin/blob/master/modules/nix/linux-builder.nix
       # The ServerAliveInterval and IPQoS settings have been found to make remote builds more reliable,
       # especially if there are long silent periods with no logs emitted by a build.
