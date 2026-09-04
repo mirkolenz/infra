@@ -237,19 +237,8 @@ def build_uncached(
         f"Building {len(uncached)} uncached package(s): {', '.join(uncached)}.",
         err=True,
     )
-    failures = []
-
-    # Separate builds release each target's temporary GC roots before the next one.
-    for name, target in uncached.items():
-        if run_logged(
-            nix_argv(nix_exe, "build", "--no-link", target.installable, *extra),
-            check=False,
-        ):
-            failures.append(name)
-
-    if failures:
-        typer.echo(f"Failed to build: {', '.join(failures)}.", err=True)
-        raise typer.Exit(1)
+    refs = [target.installable for target in uncached.values()]
+    run_logged(nix_argv(nix_exe, "build", "--no-link", *refs, *extra))
 
 
 app = typer.Typer(
