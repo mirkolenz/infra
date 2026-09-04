@@ -60,9 +60,15 @@ let
         }
       // {
         # nixpkgs disabled this pure python dependency on darwin in a 2022 treewide sweep that
-        # marked 120 packages at once (65db3b17); its own test suite passes there today
+        # marked 120 packages at once (65db3b17).
+        # Its memory test assumes linux ru_maxrss units and writes hundreds of gigabytes on macos.
         # todo: send upstream, then drop this once nixpkgs unmarks it
-        jsonstreams = lib.addMetaAttrs { broken = false; } prev.jsonstreams;
+        jsonstreams = prev.jsonstreams.overrideAttrs (old: {
+          doInstallCheck = false;
+          meta = old.meta // {
+            broken = false;
+          };
+        });
       }
     )
   );
