@@ -30,7 +30,6 @@
           cleanupPeriodDays = 30;
           effortLevel = "high";
           enableAllProjectMcpServers = true;
-          forceLoginMethod = "claudeai";
           includeCoAuthoredBy = false;
           includeGitInstructions = false;
           outputStyle = "concise";
