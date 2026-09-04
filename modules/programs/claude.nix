@@ -46,11 +46,11 @@
               strictAllowlist = true;
               allowUnixSockets = [
                 (lib'.nixDaemonSocket pkgs.stdenv)
-              ]
-              # orb talks to the OrbStack daemon over the sockets under this dir, darwin only
-              ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
-                "${config.home.homeDirectory}/.orbstack/run"
               ];
+              # orb talks to the OrbStack daemon over the sockets under this dir, darwin only
+              # ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
+              #   "${config.home.homeDirectory}/.orbstack/run"
+              # ];
               allowedDomains = [
                 "github.com"
                 "api.github.com"
@@ -69,11 +69,11 @@
                 "${config.home.homeDirectory}/Library/Caches"
                 "${config.xdg.cacheHome}"
                 "${config.xdg.configHome}/.wrangler/logs"
-              ]
-              # orb stores logs, sockets, and state here and reads them on every call, darwin only
-              ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
-                "${config.home.homeDirectory}/.orbstack"
               ];
+              # orb stores logs, sockets, and state here and reads them on every call, darwin only
+              # ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
+              #   "${config.home.homeDirectory}/.orbstack"
+              # ];
               # denyRead = [
               #   ".env*"
               #   "*secret*"

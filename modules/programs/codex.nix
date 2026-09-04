@@ -52,11 +52,11 @@
               "${config.xdg.configHome}/.wrangler/logs" = "write";
               # deny wins over the read granted by :workspace, keeping ssh keys unreadable
               "${config.home.homeDirectory}/.ssh" = "deny";
-            }
-            # orb stores logs, sockets, and state here and reads them on every call, darwin only
-            // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
-              "${config.home.homeDirectory}/.orbstack" = "write";
             };
+            # orb stores logs, sockets, and state here and reads them on every call, darwin only
+            # // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+            #   "${config.home.homeDirectory}/.orbstack" = "write";
+            # };
             network = {
               enabled = true;
               allow_local_binding = true;
@@ -73,11 +73,11 @@
               };
               unix_sockets = {
                 ${lib'.nixDaemonSocket pkgs.stdenv} = "allow";
-              }
-              # orb talks to the OrbStack daemon over the sockets under this dir, darwin only
-              // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
-                "${config.home.homeDirectory}/.orbstack/run" = "allow";
               };
+              # orb talks to the OrbStack daemon over the sockets under this dir, darwin only
+              # // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+              #   "${config.home.homeDirectory}/.orbstack/run" = "allow";
+              # };
             };
           };
           tui = {
