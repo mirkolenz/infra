@@ -20,10 +20,8 @@
   config.perSystem =
     { system, ... }:
     {
-      checks = builtins.deepSeq (
-        lib.mapAttrs (_: target: target.drvPath) (
-          lib.filterAttrs (_: target: target.system == system) config.evalTargets
-        )
-      ) { };
+      checks = builtins.deepSeq (lib.mapAttrs (_: target: target.drvPath) (
+        lib.filterAttrs (_: target: target.system == system) config.evalTargets
+      )) { };
     };
 }
