@@ -183,20 +183,18 @@
         '';
         # https://polylux.dev/book/external/pdfpc.html
         # https://touying-typ.github.io/docs/external/pdfpc
-        touying2pdfpc = /* bash */ ''
-          if [ "$#" -lt 2 ]; then
+        typst2pdfpc = /* bash */ ''
+          if [ "$#" -lt 1 ]; then
             echo "Usage: $0 FILENAME [TYPST_ARGS...]" >&2
             exit 1
           fi
 
-          filename="$1"
+          filename="''${1%.typ}"
           shift
 
-          typst query \
-            --root . \
-            "./$filename.typ" \
-            --field value \
-            --one "<pdfpc-file>" \
+          typst eval "$@" --root . \
+            'query(<pdfpc-file>).first().value' \
+            --in "./$filename.typ" \
             > "./$filename.pdfpc"
         '';
         nixos-profile = /* bash */ ''
