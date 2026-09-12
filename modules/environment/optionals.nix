@@ -13,6 +13,9 @@
       home.sessionVariables = {
         RUST_SRC_PATH = pkgs.rustPlatform.rustLibSrc;
       };
+      home.shellAliases = {
+        tdf = "${lib.getExe pkgs.tdf} --fullscreen";
+      };
       programs = {
         go.enable = true;
         gradle.enable = true;
@@ -64,7 +67,7 @@
         md-tui
         glow
         # pdf
-        tdf
+        # tdf # used via alias
         # fancy-cat # currently broken
         pdf-cli
         # nix
