@@ -17,6 +17,16 @@ final: prev:
     '';
   });
 
+  # src/test/file_caps_test.c interposes fgetxattr()/fsetxattr() to mock the security.capability
+  # xattr. With a shared libc the test definitions simply win over the libc ones, but linking the
+  # test statically pulls musl's xattr.lo out of libc.a (cap-ng.c needs fremovexattr from it) and
+  # the linker then sees two definitions of each. Skip the test suite for static builds.
+  # https://github.com/stevegrubb/libcap-ng/issues/85
+  # https://github.com/NixOS/nixpkgs/pull/562812
+  libcap_ng = prev.libcap_ng.overrideAttrs {
+    doCheck = !prev.stdenv.hostPlatform.isStatic;
+  };
+
 })
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
 })
