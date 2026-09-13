@@ -15,21 +15,9 @@
         # https://developers.openai.com/codex/config-reference
         # https://developers.openai.com/codex/config-schema.json
         settings = {
-          model = "gpt-6-astra";
-          model_reasoning_effort = "low";
-          # The counterpart to Claude's `allowUnsandboxedCommands = false`:
-          # `sandbox_approval` covers the `with_additional_permissions` and
-          # `require_escalated` requests, so refusing it means the agent can
-          # neither run a command outside the sandbox nor ask to. Only the
-          # granular form can express that; `on-request` always permits the
-          # request and `never` would suppress every prompt.
-          #
-          # Granular is a variant of its own rather than a refinement of
-          # `on-request`, so every flow is spelled out: the three the schema
-          # requires, plus the two that would otherwise default to rejecting
-          # unseen. `true` surfaces the prompt, `false` rejects it without
-          # asking. How closely this reproduces `on-request` for the other four
-          # is not something the schema states.
+          model = "gpt-5.66-sol";
+          model_reasoning_effort = "high";
+          # counterpart to Claude's `allowUnsandboxedCommands = false`
           approval_policy.granular = {
             sandbox_approval = false;
             mcp_elicitations = true;
