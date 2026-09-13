@@ -31,7 +31,7 @@
           effortLevel = "high";
           enableAllProjectMcpServers = true;
           includeGitInstructions = true;
-          outputStyle = "concise";
+          outputStyle = "Concise";
           skipAutoPermissionPrompt = true;
           spinnerTipsEnabled = false;
           tui = "fullscreen";
