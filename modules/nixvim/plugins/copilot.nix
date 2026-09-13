@@ -101,7 +101,7 @@
         };
       };
       plugins.copilot-lua = {
-        enable = true;
+        enable = false;
         settings = {
           filetypes = {
             "*" = true;
