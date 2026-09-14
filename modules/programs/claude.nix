@@ -114,6 +114,8 @@
             # better results, but too many tokens
             # ANTHROPIC_DEFAULT_HAIKU_MODEL = "sonnet";
             ENABLE_CLAUDEAI_MCP_SERVERS = false;
+            # suppresses the in-session rating/feedback survey popup
+            CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = true;
             ASTRO_TELEMETRY_DISABLED = true;
             # determinate-nix spawns a sentry crashpad_handler that cannot register its
             # mach bootstrap port inside the sandbox, so disable it to avoid stderr noise
