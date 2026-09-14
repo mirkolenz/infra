@@ -52,6 +52,18 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     import-tree.url = "github:denful/import-tree";
+    makejinja = {
+      url = "github:mirkolenz/makejinja/v2";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-parts.follows = "flake-parts";
+        flocken.follows = "flocken";
+        treefmt-nix.follows = "treefmt-nix";
+        pyproject-nix.follows = "pyproject-nix";
+        uv2nix.follows = "uv2nix";
+        pyproject-build-systems.follows = "pyproject-build-systems";
+      };
+    };
     mistral-vibe = {
       url = "github:mistralai/mistral-vibe/v2.25.4";
       inputs = {

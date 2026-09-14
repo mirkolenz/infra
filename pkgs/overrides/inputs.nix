@@ -10,6 +10,7 @@ in
   cosmic-manager = fromInput "cosmic-manager" "cosmic-manager";
   disko = fromInput "disko" "disko";
   disko-install = fromInput "disko" "disko-install";
+  makejinja = fromInput "makejinja" "makejinja";
   mistral-vibe = dontDistribute (fromInput "mistral-vibe" "default");
   opnix = fromInput "opnix" "default";
   vicinae = dontDistribute (fromInput "vicinae" "default");
