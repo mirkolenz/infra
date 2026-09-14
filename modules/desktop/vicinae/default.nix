@@ -14,6 +14,7 @@
       pkgs,
       config,
       inputs,
+      osConfig,
       ...
     }:
     let
@@ -59,11 +60,13 @@
 
       programs.vicinae = {
         enable = true;
-        # package =
-        #   if pkgs.stdenv.hostPlatform.isDarwin then
-        #     pkgs.writeShellScriptBin "vicinae" "true"
-        #   else
-        #     pkgs.vicinae;
+        package =
+          if pkgs.stdenv.hostPlatform.isDarwin && osConfig ? homebrew then
+            pkgs.writeShellScriptBin "vicinae" ''
+              exec ${osConfig.homebrew.prefix}/bin/vicinae "$@"
+            ''
+          else
+            pkgs.vicinae;
 
         systemd.enable = true;
         launchd.enable = false;
