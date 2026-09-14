@@ -376,11 +376,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789368991,
-        "narHash": "sha256-wFxJtJHCU29nSgGVABCEzyUXp5peNaWweege6jECLXk=",
+        "lastModified": 1789372497,
+        "narHash": "sha256-V6Xa+akL2sQlfdbIzpm77El7jgeWuPXgVwNLfExutVA=",
         "owner": "mirkolenz",
         "repo": "makejinja",
-        "rev": "666af5d15084d4512e511bfedc10724f1402e680",
+        "rev": "3d14aaf5badb6f381930b0cd6429cfda46b1bd7d",
         "type": "github"
       },
       "original": {
