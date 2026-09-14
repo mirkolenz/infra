@@ -84,7 +84,7 @@
           tui = {
             notifications = true;
             vim_mode_default = false;
-            alternate_screen = "auto";
+            alternate_screen = "always";
             show_tooltips = false;
           };
           notice = {
