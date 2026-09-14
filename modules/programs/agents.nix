@@ -16,7 +16,7 @@
           - Always pick modern solutions over legacy ones and don't care about compatibility to old hardware or software.
           - Always fix pre-existing errors and issues in the code and do not triage whether they were introduced by you.
           - Do not run formatters or auto-fixing linters automatically, only when explicitly needed.
-          - In plain text files, write exactly one sentence per line: txt, md, tex, typ, rst, ...
+          - When writing plain text files (not in plain text outputs shown to the user), use one newline to separate sentences and two newlines to separate paragraphs: txt, md, tex, typ, rst, ...
           - Don't add prefixes such as `uvx` or `npx` to commands in backticks in these instructions, use them verbatim.
           - Read-only git operations are allowed, but never use writing git operations such as `git commit` or `git push` and leave them to the user.
           - Use dependency constraints with only the first significant version number, e.g. ^1 for 1.2.3 and ^0.1 for 0.1.2, relying on lockfiles for exact versions.
