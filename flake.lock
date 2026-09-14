@@ -1064,16 +1064,16 @@
         "systems": "systems_6"
       },
       "locked": {
-        "lastModified": 1788447093,
-        "narHash": "sha256-zRvJ9/LVAIoW2qKveqD6WSdr0jDypPrbQdw1aatRS70=",
+        "lastModified": 1789407197,
+        "narHash": "sha256-m7RvTlO9e3HULKxDFEY7YZrBTpSxIc93VMzChhkGHGY=",
         "owner": "vicinaehq",
         "repo": "vicinae",
-        "rev": "8113e08aff57a2fc122194c066f460f40812e2e3",
+        "rev": "48c7c4e176329f86c2aeb1e48be12dc8b9b55389",
         "type": "github"
       },
       "original": {
         "owner": "vicinaehq",
-        "ref": "v0.28.1",
+        "ref": "v0.28.2",
         "repo": "vicinae",
         "type": "github"
       }
