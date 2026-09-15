@@ -39,11 +39,10 @@ linux_7_2.override (
     # Mirrors the upstream extra_config, which is not derivable from the patches:
     # most symbols here are mainline ones the patch set never mentions.
     # Check it for new entries whenever kernel.json is bumped.
-    # https://github.com/t2linux/linux-t2-patches/blob/main/extra_config
-    #
     # DRM_KUNIT_TEST is the one entry left out: upstream carries it to pull in
     # DRM_GEM_SHMEM_HELPER for the then out-of-tree appletbdrm, which selects
     # that itself since being upstreamed, and nixpkgs sets KUNIT = no anyway.
+    # https://github.com/t2linux/linux-t2-patches/blob/main/extra_config
     structuredExtraConfig = with lib.kernel; {
       APFS_FS = module;
       APPLE_GMUX = module;
@@ -58,20 +57,10 @@ linux_7_2.override (
       HID_APPLETB_KBD = module;
       HID_MAGICMOUSE = module;
       HID_SENSOR_ALS = module;
-      I2C = yes;
-      MEDIA_ANALOG_TV_SUPPORT = yes;
-      MEDIA_CAMERA_SUPPORT = yes;
-      MEDIA_DIGITAL_TV_SUPPORT = yes;
-      MEDIA_PLATFORM_SUPPORT = yes;
-      MEDIA_RADIO_SUPPORT = yes;
-      MEDIA_SDR_SUPPORT = yes;
-      MEDIA_SUPPORT = yes;
-      MEDIA_TEST_SUPPORT = yes;
       SENSORS_APPLESMC = module;
       SND_PCM = module;
       STAGING = yes;
       T2BCE_AUDIO = module;
-      T2BCE_AVE = module;
       T2BCE_CORE = module;
       T2BCE_DMA = module;
       T2BCE_VHCI = module;

@@ -1,13 +1,17 @@
 {
-  "base_url": "https://raw.githubusercontent.com/t2linux/linux-t2-patches/429917fba34b3cabc095f179ae1aed4063ca9b32/",
+  "base_url": "https://raw.githubusercontent.com/t2linux/linux-t2-patches/1ed4126844013f7e6fb3c8b0347cf0c5d6f99ffa/",
   "patches": [
     {
       "name": "1001-Add-t2bce-driver-stack.patch",
-      "hash": "sha256-8Pd/LTIaxT4cuaM6bo83jSxoUqwl1+TcrFZXvw2Z1+w="
+      "hash": "sha256-UgE9AyACg4bMnCQC99QQeHLuBlAElfOcnilGsTkKBOs="
     },
     {
       "name": "1002-Integrate-t2bce-driver-stack.patch",
-      "hash": "sha256-rUxwBWIawBbjUhzLhmV5eJ/JyAVeirfhDM55+lLEGps="
+      "hash": "sha256-+/bq+ojxUMmtwqtT/BzpP7uqwJ2bFcz55bjtOp+hHi8="
+    },
+    {
+      "name": "1003-t2bce-do-not-manually-delete-the-managed-device-link.patch",
+      "hash": "sha256-YEJb5joHnFQb4Qw4Up3VlFTytvz3oIRPZynmRqWdcX8="
     },
     {
       "name": "2008-i915-4-lane-quirk-for-mbp15-1.patch",
@@ -92,10 +96,6 @@
     {
       "name": "9001-ACPI-x86-Apple-T2-systems-need-early-CPU-offlining.patch",
       "hash": "sha256-camFPvnBQMErjVrbsdPPfsbyy59w0e0iPkVR1Juzv8o="
-    },
-    {
-      "name": "9002-Bluetooth-hci_event-strip-Broadcom-vendor-bits-from-adv-type.patch",
-      "hash": "sha256-oikMBjD4gyqTs351q7nTz6lI6rJqOe1/LfxpHAieEOs="
     }
   ]
 }
