@@ -23,6 +23,7 @@
       showmode = false;
       signcolumn = "yes";
       smartcase = true;
+      softtabstop = -1; # follow shiftwidth
       spell = true;
       spelllang = "en_us,de_de";
       spelloptions = "camel";
