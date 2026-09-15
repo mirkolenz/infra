@@ -26,6 +26,7 @@
           - When wrapping comments to fit within a certain line width, break lines at periods or commas to avoid breaking up clauses and sentences.
           - Exec `gh` to interact with GitHub, not `curl` or a built-in web fetch tool.
           - I use `fish` as my login shell, not `bash` or `zsh`, so make sure to use the correct syntax when running shell commands.
+          - Never create, update, or delete an AGENTS.md file, they are maintained solely by humans.
 
           ## Python
 
