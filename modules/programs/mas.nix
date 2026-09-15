@@ -1,7 +1,7 @@
 {
   flake.modules.darwin.default = {
     programs.mas = {
-      enable = true;
+      enable = false;
       update = true;
       cleanup = true;
       # mas list
