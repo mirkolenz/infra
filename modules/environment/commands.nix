@@ -340,6 +340,43 @@
 
           xargs -I {} gh pr merge {} "$mergeArg" --delete-branch --auto <<<"$urls"
         '';
+        ffmpeg2web = ''
+          if [ "$#" -lt 1 ]; then
+            echo "Usage: $0 INPUT_FILE [FFMPEG_ARGS...]" >&2
+            exit 1
+          fi
+
+          input="$1"
+          shift
+
+          ffmpeg -i "$input" \
+            -vf "scale='min(1920,iw)':-2:flags=lanczos" \
+            -c:v libx264 \
+            -preset veryslow \
+            -profile:v high \
+            -pix_fmt yuv420p \
+            -c:a aac \
+            -b:a 128k \
+            -ac 2 \
+            -movflags \
+            +faststart \
+            "$@"
+        '';
+        ffmpeg2poster = ''
+          if [ "$#" -lt 1 ]; then
+            echo "Usage: $0 INPUT_FILE [FFMPEG_ARGS...]" >&2
+            exit 1
+          fi
+
+          input="$1"
+          shift
+
+          ffmpeg -i "$input" \
+            -vf "scale='min(1920,iw)':-2:flags=lanczos" \
+            -frames:v 1 \
+            -q:v 2 \
+            "$@"
+        '';
       };
     };
 }
