@@ -22,6 +22,7 @@ mkZellijPlugin (finalAttrs: {
   meta = {
     description = "Zellij plugin to quickly switch to project sessions";
     homepage = "https://github.com/laperlej/zellij-sessionizer";
+    changelog = "https://github.com/laperlej/zellij-sessionizer/releases/tag/${finalAttrs.src.tag}";
     license = lib.licenses.mit;
   };
 })

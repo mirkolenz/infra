@@ -26,7 +26,7 @@ buildPythonPackage (finalAttrs: {
   meta = {
     description = "Simple JavaScript interpreter for Python";
     homepage = "https://github.com/amol-/dukpy";
-    changelog = "https://github.com/amol-/dukpy/releases/tag/${finalAttrs.version}";
+    changelog = "https://github.com/amol-/dukpy/releases/tag/${finalAttrs.src.tag}";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ mirkolenz ];
     mainProgram = "dukpy";

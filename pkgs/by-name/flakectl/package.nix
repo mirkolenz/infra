@@ -46,4 +46,10 @@ flakectl.overrideAttrs (prev: {
         exec ${lib.getExe flakectl} ${lib.cli.toCommandLineShellGNU { } flags} "$@"
       '';
   };
+
+  meta = prev.meta // {
+    description = "Build, deploy, and update the hosts and packages of this flake";
+    homepage = "https://github.com/mirkolenz/infra";
+    maintainers = with lib.maintainers; [ mirkolenz ];
+  };
 })

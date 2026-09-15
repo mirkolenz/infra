@@ -47,7 +47,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   meta = {
     description = "Beautiful publication lists with bibtex and PHP";
     homepage = "https://www.monperrus.net/martin/bibtexbrowser/";
-    downloadPage = "https://github.com/monperrus/bibtexbrowser/releases/tag/latest";
     maintainers = with lib.maintainers; [ mirkolenz ];
     platforms = lib.platforms.all;
   };

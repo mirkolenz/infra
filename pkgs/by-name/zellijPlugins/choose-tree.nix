@@ -22,6 +22,7 @@ mkZellijPlugin (finalAttrs: {
   meta = {
     description = "Zellij plugin to quickly switch between sessions";
     homepage = "https://github.com/laperlej/zellij-choose-tree";
+    changelog = "https://github.com/laperlej/zellij-choose-tree/releases/tag/${finalAttrs.src.tag}";
     license = lib.licenses.mit;
   };
 })

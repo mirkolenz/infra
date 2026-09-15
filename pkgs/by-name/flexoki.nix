@@ -37,8 +37,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   meta = {
     description = "An inky color scheme for prose and code";
     homepage = "https://github.com/kepano/flexoki";
-    changelog = "https://github.com/kepano/flexoki/releases";
-    downloadPage = "https://github.com/kepano/flexoki/releases/tag/${finalAttrs.version}";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ mirkolenz ];
   };

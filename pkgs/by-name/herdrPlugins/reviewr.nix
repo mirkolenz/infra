@@ -47,6 +47,7 @@ mkHerdrPlugin (finalAttrs: {
   meta = {
     description = "Code review sidebar for herdr that sends line comments back to the agent";
     homepage = "https://github.com/persiyanov/herdr-reviewr";
+    changelog = "https://github.com/persiyanov/herdr-reviewr/releases/tag/${finalAttrs.src.tag}";
     license = lib.licenses.mit;
   };
 })

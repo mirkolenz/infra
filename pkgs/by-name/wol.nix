@@ -55,8 +55,7 @@ buildGoModule (finalAttrs: {
   meta = {
     description = "Wake up your devices with a single command or click, a Wake-On-LAN tool that works via CLI and web interface";
     homepage = "https://github.com/Trugamr/wol";
-    changelog = "https://github.com/Trugamr/wol/releases";
-    downloadPage = "https://github.com/Trugamr/wol/releases/tag/v${finalAttrs.version}";
+    changelog = "https://github.com/Trugamr/wol/releases/tag/${finalAttrs.src.tag}";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ mirkolenz ];
     mainProgram = "wol";

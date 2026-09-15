@@ -14,7 +14,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
   src = fetchFromGitHub {
     owner = "zubanls";
     repo = "zuban";
-    rev = "v${finalAttrs.version}";
+    tag = "v${finalAttrs.version}";
     hash = "sha256-0OoMDWt5lGqfuwxQwNTDhaJ33PDMrP6TXmHs0upGvfQ=";
     fetchSubmodules = true;
   };
@@ -39,6 +39,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
   meta = {
     description = "Python Type Checker / Language Server";
     homepage = "https://github.com/zubanls/zuban";
+    changelog = "https://github.com/zubanls/zuban/releases/tag/${finalAttrs.src.tag}";
     license = lib.licenses.agpl3Only;
     maintainers = with lib.maintainers; [ mirkolenz ];
     mainProgram = "zuban";

@@ -1,4 +1,3 @@
-# https://hub.docker.com/r/brutella/hkknx
 {
   lib,
   cacert,
@@ -36,6 +35,9 @@ dockerTools.streamLayeredImage {
     };
   };
   meta = {
+    description = "Container image serving the HomeKit Bridge for KNX";
+    homepage = "https://hub.docker.com/r/brutella/hkknx";
+    inherit (hkknx-bin.meta) license;
     maintainers = with lib.maintainers; [ mirkolenz ];
     platforms = lib.platforms.linux;
   };

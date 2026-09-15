@@ -1,4 +1,5 @@
 {
+  lib,
   vimUtils,
   fetchFromGitHub,
   nix-update-script,
@@ -9,10 +10,13 @@ vimUtils.buildVimPlugin rec {
   src = fetchFromGitHub {
     owner = "zbirenbaum";
     repo = "copilot.lua";
-    rev = "v${version}";
+    tag = "v${version}";
     hash = "sha256-RYi+Ofn+kqXkw8z2f1avH62MMLqVyIIDJaYBCMt/fBw=";
   };
-  meta.homepage = "https://github.com/zbirenbaum/copilot.lua/";
+  meta = {
+    homepage = "https://github.com/zbirenbaum/copilot.lua";
+    maintainers = with lib.maintainers; [ mirkolenz ];
+  };
   passthru.updateScript = nix-update-script { };
   strictDeps = true;
 }

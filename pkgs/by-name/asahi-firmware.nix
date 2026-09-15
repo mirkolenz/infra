@@ -52,8 +52,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   meta = {
     description = "Asahi Linux scripts that rename Apple's Broadcom firmware for brcmfmac and hci_bcm4377";
     homepage = "https://github.com/AsahiLinux/asahi-installer";
-    changelog = "https://github.com/AsahiLinux/asahi-installer/releases";
-    downloadPage = "https://github.com/AsahiLinux/asahi-installer/releases/tag/v${finalAttrs.version}";
+    # upstream tags its versions but publishes no releases, so there is nothing to link a changelog to
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ mirkolenz ];
     # Only ever used on a T2 Mac, so keep it out of CI.

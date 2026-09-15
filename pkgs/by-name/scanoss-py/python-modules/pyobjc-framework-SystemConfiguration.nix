@@ -36,6 +36,7 @@ buildPythonPackage {
   meta = {
     description = "PyObjC wrappers for the SystemConfiguration framework on macOS";
     homepage = "https://github.com/ronaldoussoren/pyobjc";
+    changelog = "https://github.com/ronaldoussoren/pyobjc/releases/tag/v${pyobjc-core.version}";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ mirkolenz ];
     platforms = lib.platforms.darwin;

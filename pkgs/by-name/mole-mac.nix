@@ -54,6 +54,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   meta = {
     description = "Deep clean and optimize your Mac";
     homepage = "https://github.com/tw93/Mole";
+    changelog = "https://github.com/tw93/Mole/releases/tag/${finalAttrs.src.tag}";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ mirkolenz ];
     mainProgram = "mole";

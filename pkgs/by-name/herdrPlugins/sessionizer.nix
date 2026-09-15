@@ -104,7 +104,7 @@ mkHerdrPlugin (finalAttrs: {
   meta = {
     description = "Fuzzy project and worktree launcher for herdr";
     homepage = "https://github.com/andrewchng/herdr-sessionizer";
-    changelog = "https://github.com/andrewchng/herdr-sessionizer/releases/tag/v${finalAttrs.version}";
+    changelog = "https://github.com/andrewchng/herdr-sessionizer/releases/tag/${finalAttrs.src.tag}";
     license = lib.licenses.mit;
   };
 })

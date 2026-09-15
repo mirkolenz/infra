@@ -142,8 +142,7 @@ lib.extendMkDerivation {
 
       meta = {
         homepage = "https://github.com/${owner}/${repo}";
-        changelog = "https://github.com/${owner}/${repo}/releases";
-        downloadPage = "https://github.com/${owner}/${repo}/releases/tag/${release.tag_name}";
+        changelog = "https://github.com/${owner}/${repo}/releases/tag/${release.tag_name}";
         maintainers = with lib.maintainers; [ mirkolenz ];
         sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
         mainProgram = finalAttrs.pname;

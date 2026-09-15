@@ -58,7 +58,7 @@ mkHerdrPlugin (finalAttrs: {
   meta = {
     description = "Automatic tab naming and navigation labels for herdr";
     homepage = "https://github.com/qu8n/herdr-automatic-rename";
-    changelog = "https://github.com/qu8n/herdr-automatic-rename/releases/tag/v${finalAttrs.version}";
+    changelog = "https://github.com/qu8n/herdr-automatic-rename/releases/tag/${finalAttrs.src.tag}";
     license = lib.licenses.mit;
   };
 })

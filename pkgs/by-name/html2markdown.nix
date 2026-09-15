@@ -39,6 +39,7 @@ buildGoModule (finalAttrs: {
   meta = {
     description = "Convert HTML to Markdown. Even works with entire websites and can be extended through rules";
     homepage = "https://github.com/JohannesKaufmann/html-to-markdown";
+    changelog = "https://github.com/JohannesKaufmann/html-to-markdown/releases/tag/${finalAttrs.src.tag}";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ mirkolenz ];
     mainProgram = "html2markdown";

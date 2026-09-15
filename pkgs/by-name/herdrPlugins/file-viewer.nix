@@ -66,6 +66,7 @@ mkHerdrPlugin (finalAttrs: {
   meta = {
     description = "Git-aware, read-only file viewer for herdr";
     homepage = "https://github.com/smarzban/herdr-file-viewer";
+    changelog = "https://github.com/smarzban/herdr-file-viewer/releases/tag/${finalAttrs.src.tag}";
     license = lib.licenses.mit;
   };
 })
