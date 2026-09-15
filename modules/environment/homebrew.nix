@@ -134,7 +134,7 @@
     in
     {
       homebrew = {
-        enable = true;
+        enable = false;
         enableBashIntegration = true;
         enableZshIntegration = true;
         enableFishIntegration = true;
