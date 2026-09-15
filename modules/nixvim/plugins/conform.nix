@@ -51,7 +51,7 @@
             // lib.genAttrs ruff (_: pkgs.ruff-bin)
           );
           formatters_by_ft = {
-            # keep-sorted start
+            # keep-sorted start block=yes
             astro = {
               __unkeyed-1 = "oxlint";
               lsp_format = "last";
