@@ -13,6 +13,7 @@
       nvim-autopairs.enable = true;
       persistence.enable = true;
       quicker.enable = true;
+      schemastore.enable = true;
       web-devicons.enable = true;
     };
   };

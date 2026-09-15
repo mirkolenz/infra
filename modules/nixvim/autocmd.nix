@@ -3,25 +3,9 @@
     { lib, ... }:
     {
       autoGroups = {
-        autoformat = { };
         autodir = { };
       };
       autoCmd = [
-        {
-          callback = lib.nixvim.mkRaw /* lua */ ''
-            function(args)
-              vim.lsp.buf.format({
-                async = false,
-                bufnr = args.buf,
-                timeout_ms = 1000,
-              })
-            end
-          '';
-          event = "BufWritePre";
-          pattern = "*";
-          group = "autoformat";
-          desc = "Format buffer using LSP";
-        }
         {
           callback = lib.nixvim.mkRaw /* lua */ ''
             function()

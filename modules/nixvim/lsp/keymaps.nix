@@ -2,15 +2,6 @@
   flake.modules.nixvim.default = {
     lsp.keymaps = [
       {
-        key = "<leader>bf";
-        mode = [
-          "n"
-          "x"
-        ];
-        lspBufAction = "format";
-        options.desc = "Format buffer";
-      }
-      {
         key = "g.";
         mode = [
           "n"

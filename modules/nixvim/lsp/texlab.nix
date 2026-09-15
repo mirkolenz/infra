@@ -3,8 +3,6 @@
     lsp.servers.texlab = {
       enable = true;
       config.settings.texlab = {
-        bibtexFormatter = "tex-fmt";
-        latexFormatter = "tex-fmt";
         inlayHints = {
           labelDefinitions = false;
           labelReferences = false;

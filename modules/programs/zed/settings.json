@@ -79,14 +79,13 @@
     "disabled_globs": ["*.env", "*secret*"],
     "mode": "eager",
     "allow_data_collection": "no",
-    "ollama": {
-      "max_output_tokens": 16,
-      "model": "qwen2.5-coder:7b"
-    },
+    // Served by the local llama.cpp instance (services.llama-cpp, port 18000);
+    // `model` must name one of its presets. No ollama block: that service is
+    // explicitly disabled in favour of llama.cpp.
     "open_ai_compatible_api": {
-      "api_url": "http://127.0.0.1/v1:18000",
+      "api_url": "http://localhost:18000/v1",
       "max_output_tokens": 16,
-      "model": "qwen2.5-coder:7b"
+      "model": "qwen3.6-35b-a3b"
     },
     "copilot": {
       "enable_next_edit_suggestions": false
@@ -133,7 +132,7 @@
     "Astro": {
       "formatter": [
         { "code_action": "source.fixAll.oxc" },
-        { "language_server": { "name": "oxfmt" } }
+        { "language_server": { "name": "astro-language-server" } }
       ]
     },
     "BibTeX": {
@@ -174,6 +173,20 @@
     "LaTeX": {
       "soft_wrap": "editor_width",
       "formatter": { "language_server": { "name": "texlab" } }
+    },
+    "Lua": {
+      "formatter": {
+        "external": {
+          "command": "stylua",
+          "arguments": [
+            "--search-parent-directories",
+            "--respect-ignores",
+            "--stdin-filepath",
+            "{buffer_path}",
+            "-"
+          ]
+        }
+      }
     },
     "MDX": {
       "soft_wrap": "editor_width",
@@ -276,6 +289,11 @@
             "Spaces": false
           }
         }
+      }
+    },
+    "lua-language-server": {
+      "binary": {
+        "path": "/etc/profiles/per-user/mlenz/bin/lua-language-server"
       }
     },
     "mdx-analyzer": {

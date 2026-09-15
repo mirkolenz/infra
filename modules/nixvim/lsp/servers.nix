@@ -6,12 +6,13 @@
       servers = {
         # keep-sorted start
         astro.enable = true;
-        bashls.enable = true;
         buf_ls.enable = true;
         cssls.enable = true;
         docker_language_server.enable = true;
         gopls.enable = true;
+        html.enable = true;
         java_language_server.enable = true;
+        jsonls.enable = true;
         lemminx.enable = true;
         marksman.enable = true;
         phpactor.enable = true;
