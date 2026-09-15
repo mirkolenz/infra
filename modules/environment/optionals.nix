@@ -58,7 +58,6 @@
         jsonfmt
         caddy
         mailpit
-        copilot-cli-bin
         zapp
         restic-browser
         todoist-cli
@@ -99,7 +98,6 @@
         rust-analyzer
         # language servers
         bash-language-server
-        copilot-language-server
         docker-language-server
         jdt-language-server
         marksman

@@ -8,7 +8,6 @@
         astro.enable = true;
         bashls.enable = true;
         buf_ls.enable = true;
-        copilot.enable = true;
         cssls.enable = true;
         docker_language_server.enable = true;
         gopls.enable = true;
