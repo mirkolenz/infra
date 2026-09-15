@@ -622,19 +622,36 @@ def discover_update_scripts(
     }
 
 
-def eval_versions(
-    nix_exe: str, update_scripts_nix: str, attr_path: str
-) -> dict[str, str]:
-    """Current `{key: version}` for every updateScript package under `attr_path`.
+@dataclass(frozen=True, slots=True)
+class PackageMeta:
+    """A package's version and changelog (see update-scripts.nix)."""
 
-    Evaluates the `versions` output, which forces only each version and so
-    realizes nothing (unlike the manifest).
+    version: str
+    changelog: str | None
+
+
+def eval_metadata(
+    nix_exe: str, update_scripts_nix: str, attr_path: str
+) -> dict[str, PackageMeta]:
+    """Current metadata for every updateScript package under `attr_path`.
+
+    Evaluates the `metadata` output, which forces only each version and
+    changelog and so realizes nothing (unlike the manifest).
     """
-    return nix_eval_json(
+    entries = nix_eval_json(
         nix_exe,
         "--impure",
-        *update_scripts_args(update_scripts_nix, "versions", attr_path),
+        *update_scripts_args(update_scripts_nix, "metadata", attr_path),
     )
+
+    return {key: PackageMeta(**fields) for key, fields in entries.items()}
+
+
+def format_bump(key: str, old_version: str, meta: PackageMeta) -> str:
+    """One commit-body line, linked to the changelog where the package has one."""
+    bump = f"{key}: {old_version} -> {meta.version}"
+
+    return f"- [{bump}]({meta.changelog})" if meta.changelog else f"- {bump}"
 
 
 def revert_pkgs(git_exe: str, scripts: Iterable[UpdateScript]) -> None:
@@ -718,19 +735,16 @@ def update_pkgs(
 
     if commit:
         # List every version bump in the commit body (sorted), à la `nix flake update`.
-        new = eval_versions(cfg.nix_exe, cfg.update_scripts_nix, cfg.update_path)
-        bumps = sorted(
-            (key, s.old_version, new[key])
-            for key, s in scripts.items()
-            if key in succeeded and key in new and s.old_version != new[key]
-        )
+        updated = eval_metadata(cfg.nix_exe, cfg.update_scripts_nix, cfg.update_path)
+        bumps = [
+            format_bump(key, scripts[key].old_version, updated[key])
+            for key in sorted(succeeded & updated.keys())
+            if scripts[key].old_version != updated[key].version
+        ]
         message = "chore(deps/pkgs): update"
 
         if bumps:
-            summary = "\n".join(
-                f"- {key}: {old} -> {new_version}" for key, old, new_version in bumps
-            )
-            message += f"\n\nPackage updates:\n\n{summary}"
+            message += "\n\nPackage updates:\n\n" + "\n".join(bumps)
 
         commit_pkgs(cfg.git_exe, message)
 

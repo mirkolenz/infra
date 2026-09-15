@@ -15,12 +15,17 @@ let
   withScript = lib.filterAttrs (
     _: pkg: lib.isDerivation pkg && (pkg.updateScript or null) != null
   ) packages;
+  # Keys match the Python `PackageMeta` dataclass for direct instantiation.
+  packageMeta = lib.mapAttrs (_: pkg: {
+    version = lib.getVersion pkg;
+    changelog = pkg.meta.changelog or null;
+  }) withScript;
   # Keys match the Python `UpdateScript` dataclass for direct instantiation.
   updateScripts = lib.mapAttrs (key: pkg: {
     attr_path = pkg.updateScript.attrPath or "${path}.${key}";
     inherit (pkg) name;
     pname = lib.getName pkg;
-    old_version = lib.getVersion pkg;
+    old_version = packageMeta.${key}.version;
     position = pkg.meta.position or null;
     command = map toString (lib.toList (pkg.updateScript.command or pkg.updateScript));
   }) withScript;
@@ -34,6 +39,6 @@ in
   # flakectl reads the metadata back from this JSON.
   manifest = pkgs.writeText "flakectl-update-scripts.json" (lib.toJSON updateScripts);
   # Evaluated (not built) for the post-update commit summary: forces only each
-  # package's version, so it realizes nothing.
-  versions = lib.mapAttrs (_: entry: entry.old_version) updateScripts;
+  # package's version and changelog, so it realizes nothing.
+  metadata = packageMeta;
 }
