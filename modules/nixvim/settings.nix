@@ -15,7 +15,7 @@
       laststatus = 3;
       linebreak = true;
       # `wait:0` replaces `hit-enter`, which no longer applies under ui2.
-      messagesopt ="history:500,wait:0,progress:c,maxheight:50,pager:<CR>,timeout:4000";
+      messagesopt = "history:500,wait:0,progress:c,maxheight:50,pager:<CR>,timeout:4000";
       mouse = "a";
       number = true;
       relativenumber = true;
