@@ -1,14 +1,14 @@
 {
-  "tag_name": "v0.9.0",
+  "tag_name": "v0.9.1",
   "assets": {
     "herdr-macos-aarch64": {
-      "digest": "sha256:32b53df09872628059c789a69f02a6b8e29e14ddf26711421f3463f70c1aef17"
+      "digest": "sha256:5fc7a7e7adfaca56fa80aa89dcb025693357268dab8285b9ce2d08a2313c89de"
     },
     "herdr-linux-aarch64": {
-      "digest": "sha256:9c8db20fb7e7427b138d5367113f1621ffd319f2f65d6f009e2594029115f0d2"
+      "digest": "sha256:f4ccf4de745f2cb9a39a983e9ba3703dad50ec2a58dea83026ceab721bbd8d9e"
     },
     "herdr-linux-x86_64": {
-      "digest": "sha256:4fa1a01158dd8043da92d31b270780b0dcc10603038d9b61cac4d81ab63fb71f"
+      "digest": "sha256:2a02fed16beb651ef006e1d43f048f652ca4dc58ad053cd2d44450563d5c54b7"
     }
   }
 }
