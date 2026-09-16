@@ -12,19 +12,19 @@
 }:
 mkHerdrPlugin (finalAttrs: {
   pname = "herdr-file-viewer";
-  version = "1.16.0";
+  version = "1.17.0";
   pluginId = "herdr-file-viewer";
 
   src = fetchFromGitHub {
     owner = "smarzban";
     repo = "herdr-file-viewer";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-2vI98QRm6vXDe8IkJBPAqFsQH86zX1oJVwCaoOVYrQs=";
+    hash = "sha256-warJjHWUZnboze2LgbfM7ZH5SiYen9L2aSBn60iBK3A=";
   };
 
   binary = rustPlatform.buildRustPackage {
     inherit (finalAttrs) pname version src;
-    cargoHash = "sha256-17cHnKylDkRIVErgN6kDd70ZkGQy+V3GK0m0Ntg1R3E=";
+    cargoHash = "sha256-dwrC2J8DmTSsB74wfzB3lehLzCwjWO5KwxQECvWZc8o=";
     # the integration tests drive a pty and expect a herdr server
     cargoTestFlags = [ "--lib" ];
     nativeCheckInputs = [ gitMinimal ];
