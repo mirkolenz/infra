@@ -8,8 +8,8 @@
           labelReferences = false;
           maxLength = 32;
         };
-        # Build explicitly via <leader>tb; preview the PDF inline with snacks.image
-        # (see documents.nix) instead of forwarding to an external GUI viewer.
+        # Build explicitly via <leader>tb; preview the PDF inline with vim.ui.img
+        # (see ../lua/pdf-preview.lua) instead of forwarding to a GUI viewer.
         build.onSave = false;
       };
     };

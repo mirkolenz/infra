@@ -271,21 +271,22 @@
               action = "picker.lsp_declarations()";
               options.desc = "Goto Declaration";
             }
+            # `gr` itself must stay unmapped, or the gra and grn defaults become
+            # unreachable.
             {
-              key = "gr";
+              key = "grr";
               action = "picker.lsp_references()";
-              options.nowait = true;
               options.desc = "References";
             }
             {
-              key = "gI";
+              key = "gri";
               action = "picker.lsp_implementations()";
               options.desc = "Goto Implementation";
             }
             {
-              key = "gy";
+              key = "grt";
               action = "picker.lsp_type_definitions()";
-              options.desc = "Goto T[y]pe Definition";
+              options.desc = "Goto Type Definition";
             }
             {
               key = "gai";

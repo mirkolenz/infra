@@ -13,10 +13,7 @@
         gh.enabled = true;
         git.enabled = true;
         gitbrowse.enabled = true;
-        image = {
-          enabled = true;
-          doc.enabled = false;
-        };
+        image.enabled = false; # superseded by vim.ui.img, see ../lua/pdf-preview.lua
         indent.enabled = true;
         input.enabled = true;
         lazygit = {

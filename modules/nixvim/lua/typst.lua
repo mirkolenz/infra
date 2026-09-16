@@ -57,7 +57,7 @@ local function typst_watch()
   vim.notify("typst watch started", vim.log.levels.INFO)
 
   vim.api.nvim_create_autocmd("BufUnload", {
-    buffer = buf,
+    buf = buf,
     once = true,
     callback = function()
       kill_watch(buf)

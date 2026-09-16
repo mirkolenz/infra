@@ -10,9 +10,9 @@
       extraFiles = {
         "plugin/pdf-preview.lua".source = ./pdf-preview.lua;
         "plugin/typst.lua".source = ./typst.lua;
+        "plugin/ui2.lua".source = ./ui2.lua;
       };
       extraPackages = with pkgs; [
-        imagemagick # snacks.image rendering backend
         poppler-utils # pdftoppm + pdfinfo for the paged PDF preview
         typst-bin # typst compile / watch
       ];

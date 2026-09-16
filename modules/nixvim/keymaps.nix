@@ -94,27 +94,28 @@
         action = ":noautocmd<Space>";
         options.desc = "Run without autocommands";
       }
-      # Use <C-[hjkl]> to switch between windows
+      # Use <M-[hjkl]> to switch between windows: <C-l> is a default mapping and
+      # <C-h> is <BS> on terminals that do not distinguish them.
       {
-        key = "<C-h>";
+        key = "<M-h>";
         mode = "n";
         action = "<C-w>h";
         options.desc = "Switch to window on the left";
       }
       {
-        key = "<C-j>";
+        key = "<M-j>";
         mode = "n";
         action = "<C-w>j";
         options.desc = "Switch to window below";
       }
       {
-        key = "<C-k>";
+        key = "<M-k>";
         mode = "n";
         action = "<C-w>k";
         options.desc = "Switch to window above";
       }
       {
-        key = "<C-l>";
+        key = "<M-l>";
         mode = "n";
         action = "<C-w>l";
         options.desc = "Switch to window on the right";
