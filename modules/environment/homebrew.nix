@@ -134,15 +134,15 @@
     in
     {
       homebrew = {
-        enable = false;
+        enable = true;
         enableBashIntegration = true;
         enableZshIntegration = true;
         enableFishIntegration = true;
         global.autoUpdate = true;
         onActivation = {
-          autoUpdate = true;
-          upgrade = true;
-          cleanup = "uninstall";
+          autoUpdate = false;
+          upgrade = false;
+          cleanup = "none";
           extraEnv = {
             HOMEBREW_NO_ENV_HINTS = "1";
           };
