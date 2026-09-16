@@ -12,6 +12,7 @@ in
   disko-install = fromInput "disko" "disko-install";
   makejinja = fromInput "makejinja" "makejinja";
   mistral-vibe = dontDistribute (fromInput "mistral-vibe" "default");
+  neovim-unwrapped = fromInput "neovim-nightly-overlay" "default";
   opnix = fromInput "opnix" "default";
   vicinae = dontDistribute (fromInput "vicinae" "default");
 }
