@@ -1,9 +1,9 @@
 {
   flake.modules.darwin.default = {
     programs.mas = {
-      enable = false;
-      update = true;
-      cleanup = true;
+      enable = true;
+      update = false;
+      cleanup = false;
       # mas list
       packages = {
         # keep-sorted start
