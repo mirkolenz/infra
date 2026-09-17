@@ -22,7 +22,7 @@ in
       home.packages = [ package ];
 
       programs.neovide = lib.mkIf config.custom.features.graphical.enable {
-        enable = true;
+        enable = false;
         settings = {
           fork = true;
           neovim-bin = lib.getExe package;
