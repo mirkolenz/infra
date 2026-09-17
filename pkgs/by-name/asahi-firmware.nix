@@ -8,13 +8,13 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "asahi-firmware";
-  version = "0.9.1";
+  version = "0.9.2";
 
   src = fetchFromGitHub {
     owner = "AsahiLinux";
     repo = "asahi-installer";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-IbGH5pn65XL7tIbvwYLk1GLjjnp7wI1DV/4e94cySCc=";
+    hash = "sha256-q+J3/q7SP9KSkoyrL9uvI4wGls/16CUXxMFcUaz+ytM=";
   };
 
   nativeBuildInputs = [ makeWrapper ];
