@@ -19,12 +19,26 @@ in
           nixos.default
           nixos.apple-t2
           "${inputs.nixos-hardware}/apple"
-          "${inputs.nixos-hardware}/common/cpu/intel/coffee-lake/cpu-only.nix"
+          # Not `cpu-only`: the GPU half brings the VA-API and compute drivers
+          # for the Intel graphics, which nothing else configures, and it sets
+          # the same `i915.enable_guc=2` KaiT2en asks for.
+          "${inputs.nixos-hardware}/common/cpu/intel/coffee-lake"
           "${inputs.nixos-hardware}/common/pc/laptop"
           "${inputs.nixos-hardware}/common/pc/ssd"
         ];
 
-        custom.apple-t2.firmware.enable = true;
+        custom.apple-t2 = {
+          firmware.enable = true;
+          # Parks the discrete GPU, which on this model otherwise trips CATERR.
+          hybridGraphics.enable = true;
+          touchid.enable = true;
+          ave.enable = true;
+        };
+
+        # The Intel GPU module loads i915 from the initrd, which would put a
+        # display driver in front of `t2gmux` before it has assigned the panel.
+        # Nothing in stage 1 needs a console that early.
+        hardware.intelgpu.loadInInitrd = false;
         custom.features = {
           graphical.desktopManager = "gnome";
           extras.enable = true;

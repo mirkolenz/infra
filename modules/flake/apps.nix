@@ -1,7 +1,6 @@
 {
   lib,
   self,
-  inputs,
   ...
 }:
 {
@@ -27,10 +26,6 @@
         neovide.program = pkgs.writeShellScriptBin "neovide" /* bash */ ''
           ${lib.getExe pkgs.neovide} --neovim-bin ${lib.getExe config.packages.nixvim-default} "$@"
         '';
-        t2-updater.program = pkgs.writers.writePython3Bin "t2-updater" {
-          libraries = with pkgs.python3Packages; [ requests ];
-          doCheck = false;
-        } (lib.readFile "${inputs.nixos-hardware}/apple/t2/pkgs/linux-t2/update-patches.py");
       }
       // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
         disko.program = pkgs.writeShellScriptBin "disko" /* bash */ ''

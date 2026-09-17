@@ -1,11 +1,8 @@
-# Downloads a macOS recovery image from Apple at build time. The blobs end up in
-# the nix store, which needs `allowUnfree`, so this is the fallback for machines
-# whose own macOS install is gone.
-#
-# Stays inline rather than moving to pkgs/by-name: it is an override of a
-# derivation nixos-hardware builds inside a VM, and `vmTools.runInLinuxVM`
-# yields something with `overrideDerivation` but no `overrideAttrs`, which the
-# by-name update-script guard needs.
+# Downloads a macOS recovery image at build time, for machines whose own macOS
+# install is gone. The blobs land in the store, so this needs `allowUnfree`.
+# Stays inline rather than moving to pkgs/by-name: `vmTools.runInLinuxVM` yields
+# something with `overrideDerivation` but no `overrideAttrs`, which the by-name
+# update-script guard needs.
 # https://wiki.t2linux.org/guides/wifi-bluetooth/ (method 5)
 {
   flake.modules.nixos.apple-t2 =
@@ -25,15 +22,13 @@
           { };
 
       firmware = pkgs.callPackage "${inputs.nixos-hardware}/apple/t2/pkgs/brcm-firmware" {
-        # Only selects one of the `boards` entries upstream knows about; both it
-        # and the resulting version are replaced below.
+        # Only selects a `boards` entry, and is replaced below along with it.
         version = "sonoma";
       };
 
       version = "tahoe";
 
-      # mkDerivation computes name and version before the override applies, so
-      # both have to be set directly instead of through the argument above.
+      # Name and version are computed before the override applies.
       patchedFirmware = firmware.overrideDerivation (_old: {
         inherit version;
         name = "brcm-firmware-${version}";

@@ -26,15 +26,6 @@ let
       # https://github.com/t2linux/nixos-t2-iso/blob/main/nix/t2-iso-minimal.nix
       installer-apple-t2 = {
         imports = [ modules.nixos.apple-t2 ];
-
-        # The patched kernel is in no binary cache, and a missing output cannot be
-        # substituted on its own, so anything that builds an out-of-tree module
-        # against it during the installation triggers a full kernel rebuild.
-        # Shipping the `dev` output guards against that, at the cost of 255 MiB in
-        # the image, and only as long as the installed system resolves to the very
-        # same kernel as the ISO. To enable, prefix this module with
-        # `{ config, ... }:` and uncomment:
-        # system.extraDependencies = [ config.boot.kernelPackages.kernel.dev ];
       };
     };
     aarch64-linux = {

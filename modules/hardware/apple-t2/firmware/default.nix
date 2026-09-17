@@ -1,8 +1,6 @@
-# Wi-Fi and Bluetooth firmware for the Broadcom chip of T2 Macs.
-# There is no free firmware for these parts and Apple does not allow
-# redistribution, so it has to come out of a macOS image either way. The two
-# ways of getting at one are independent, and live in `macos.nix` and
-# `recovery.nix` respectively.
+# Wi-Fi and Bluetooth firmware for the Broadcom chip of T2 Macs. There is no
+# free firmware and Apple does not allow redistribution, so it has to come out
+# of a macOS image, either the installed one or a downloaded recovery image.
 {
   flake.modules.nixos.apple-t2 =
     { lib, ... }:

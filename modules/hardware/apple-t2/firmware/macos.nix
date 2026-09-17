@@ -12,17 +12,15 @@
     let
       cfg = config.custom.apple-t2.firmware;
 
-      # The kernel searches /lib/firmware unconditionally, which is what makes a
-      # runtime drop-off work at all: `firmware_class.path`, the mechanism
-      # `hardware.firmware` drives, can only ever point into the store.
+      # The kernel searches this unconditionally, while `hardware.firmware` can
+      # only ever point into the store.
       firmwareRoot = "/lib/firmware";
 
       extract = pkgs.writeShellApplication {
         name = "apple-t2-firmware";
         runtimeInputs = [
-          # `get-wifi` and `get-bluetooth`, which map Apple's per-board layout
-          # onto the names the drivers ask for, including the clm_blob that
-          # carries the 5GHz channel list.
+          # `get-wifi` and `get-bluetooth`, mapping Apple's per-board layout
+          # onto the names the drivers ask for.
           pkgs.asahi-firmware
           pkgs.coreutils
           pkgs.gnutar
@@ -37,9 +35,7 @@
 
           modprobe apfs
 
-          # Neither coordinate is fixed: a Mac can carry more than one APFS
-          # container, and the firmware sits on the system volume, whose index
-          # within a container varies. Probe both until the tree turns up.
+          # Neither coordinate is fixed, so probe both until the tree turns up.
           while read -r container; do
             for index in {0..5}; do
               mount -t apfs -o "ro,vol=$index" "$container" "$work/macos" 2>/dev/null || continue
@@ -66,8 +62,7 @@
           get-wifi "$work/boards" "$work/wifi"
           get-bluetooth "$firmware/bluetooth" "$work/bluetooth"
 
-          # Both tarballs are rooted at brcm/ and use hardlinks for the files
-          # Apple ships more than once, so unpack rather than copy.
+          # Both are rooted at brcm/ and hardlink their duplicates.
           mkdir -p ${firmwareRoot}
           for kind in wifi bluetooth; do
             tar -xf "$work/$kind/firmware.tar" -C ${firmwareRoot}
@@ -81,19 +76,15 @@
       systemd.services.apple-t2-firmware = {
         description = "Extract Broadcom firmware from the macOS install";
         wantedBy = [ "multi-user.target" ];
-        # Later boots find the blobs directly, so this runs on the first. The
-        # condition names the directory the run creates rather than a file
-        # within it, so a board that ships no `.trx` cannot leave the unit
-        # firing, and reloading the drivers, on every single boot.
+        # Names the directory the run creates rather than a file within it, so
+        # a board shipping no `.trx` cannot leave this firing on every boot.
         unitConfig.ConditionPathExists = "!${firmwareRoot}/brcm";
         serviceConfig = {
           Type = "oneshot";
           ExecStart = lib.getExe extract;
           # Firmware landing after the drivers probed does nothing until they
-          # are asked again. `brcmfmac` pulls in a per-vendor module and that
-          # one holds a reference on it, so unloading the core alone only ever
-          # reports the device as busy and the blobs sit unused until a reboot.
-          # `brcmfmac` requests the vendor module again on its own.
+          # are asked again, and the per-vendor module holds a reference that
+          # makes unloading the core alone report the device as busy.
           ExecStartPost = map (args: "-${pkgs.kmod}/bin/modprobe ${args}") [
             "-r brcmfmac_wcc"
             "-r brcmfmac"

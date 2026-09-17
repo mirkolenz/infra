@@ -1,7 +1,5 @@
-# Speaker/microphone support for the t2bce audio driver.
-# The driver exposes a plain ALSA device, so the profiles shipped by t2bce are
-# merged into the default ALSA UCM configuration.
-# https://github.com/deqrocks/t2bce/tree/main/t2bce_audio-alsa-ucm-conf
+# Speaker and microphone support for the t2bce audio driver: KaiT2en supplies
+# both the use case profiles and the DSP graphs the internal speakers need.
 {
   flake.modules.nixos.apple-t2 =
     {
@@ -11,25 +9,32 @@
       ...
     }:
     let
-      ucm2Dir = "${config.custom.apple-t2.audio.package}/share/alsa/ucm2";
-      # Systemd services do not inherit environment.variables, so the audio
-      # daemons have to be told about the patched configuration explicitly.
+      ucm2Dir = "${pkgs.kait2en.ucm}/share/alsa/ucm2";
+      # Systemd services do not inherit `environment.variables`.
       # https://github.com/nix-community/nixos-apple-silicon/blob/66d8dd2c27f99bd5420c99938b60695aac1785c4/apple-silicon-support/modules/sound/default.nix#L46
       audioServices = lib.genAttrs [ "pipewire" "pipewire-pulse" "wireplumber" ] (_: {
         environment.ALSA_CONFIG_UCM2 = ucm2Dir;
       });
     in
     {
-      # nix build .#packages.x86_64-linux.alsa-ucm-conf-t2bce
-      options.custom.apple-t2.audio.package = lib.mkPackageOption pkgs "alsa-ucm-conf-t2bce" { };
+      # nix build .#packages.x86_64-linux.kait2en-ucm
+      # nix build .#packages.x86_64-linux.kait2en-dsp
+      environment.variables.ALSA_CONFIG_UCM2 = ucm2Dir;
 
-      config = {
-        environment.variables.ALSA_CONFIG_UCM2 = ucm2Dir;
+      # Renames the ALSA card after the DMI model, which is how the graphs
+      # below find their machine.
+      services.udev.packages = [ pkgs.kait2en.dsp ];
 
-        systemd = lib.mkIf config.services.pipewire.enable {
-          services = audioServices;
-          user.services = audioServices;
-        };
+      systemd = lib.mkIf config.services.pipewire.enable {
+        services = audioServices;
+        user.services = audioServices;
+      };
+
+      # The quantum is a pipewire fragment, the filter definitions a
+      # wireplumber one.
+      services.pipewire = lib.mkIf config.services.pipewire.enable {
+        configPackages = [ pkgs.kait2en.dsp ];
+        wireplumber.configPackages = [ pkgs.kait2en.dsp ];
       };
     };
 }
