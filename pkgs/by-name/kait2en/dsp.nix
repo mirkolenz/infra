@@ -42,13 +42,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   strictDeps = true;
   __structuredAttrs = true;
 
-  meta = {
+  meta = kait2en.commonMeta // {
     description = "Speaker DSP profiles for the Apple T2 audio driver";
-    homepage = "https://github.com/kaiT2en/KaiT2en-Fedora";
-    license = lib.licenses.gpl3Plus;
-    maintainers = with lib.maintainers; [ mirkolenz ];
-    platforms = lib.platforms.linux;
-    # Only used on a T2 Mac, and a bump rebuilds the whole tree.
-    hydraPlatforms = [ ];
   };
 })

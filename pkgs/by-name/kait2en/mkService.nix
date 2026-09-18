@@ -27,14 +27,6 @@ lib.extendMkDerivation {
 
       __structuredAttrs = true;
 
-      meta = {
-        homepage = "https://github.com/kaiT2en/KaiT2en-Fedora";
-        license = lib.licenses.gpl3Plus;
-        maintainers = with lib.maintainers; [ mirkolenz ];
-        platforms = [ "x86_64-linux" ];
-        # Only used on a T2 Mac, and a bump rebuilds the whole tree.
-        hydraPlatforms = [ ];
-      }
-      // meta;
+      meta = kait2en.commonMeta // meta;
     };
 }

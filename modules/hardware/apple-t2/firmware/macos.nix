@@ -73,6 +73,10 @@
     # To pick up a macOS upgrade:
     #   rm -rf ${firmwareRoot}/brcm && systemctl start apple-t2-firmware
     lib.mkIf (cfg.enable && cfg.source == "macos") {
+      # KaiT2en carries no APFS driver, and the extraction below mounts the
+      # macOS volume. Nothing else on a T2 has a use for it.
+      boot.extraModulePackages = [ config.boot.kernelPackages.apfs ];
+
       systemd.services.apple-t2-firmware = {
         description = "Extract Broadcom firmware from the macOS install";
         wantedBy = [ "multi-user.target" ];

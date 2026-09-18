@@ -1,6 +1,6 @@
 # The internal CDC-NCM link Touch ID, the journal and AVE reach the T2 over.
 # It does not survive suspend, which `pkgs/by-name/kait2en/ncm.nix` works around.
-# The profile and the suspend unit below follow upstream's, which cannot be
+# The profile and the sleep commands below follow upstream's, which cannot be
 # installed as files because they name Fedora paths.
 # Derived from KaiT2en, (C) 2026 André Eikmeyer, GPL-3.0-or-later (LICENSING.md).
 # https://github.com/kaiT2en/KaiT2en-Fedora/tree/main/t2-services/shared/integration
@@ -25,6 +25,9 @@
       };
 
       ncm = lib.getExe pkgs.kait2en.ncm;
+
+      # The net device tagged below, matched on the USB ids `t2-ncm-sleep` uses.
+      bridgeDevice = "dev-t2bridge.device";
     in
     {
       options.custom.apple-t2.bridge = {
@@ -73,6 +76,10 @@
         (lib.mkIf cfg.enable {
           environment.systemPackages = [ pkgs.kait2en.journal ];
 
+          services.udev.extraRules = ''
+            SUBSYSTEM=="net", SUBSYSTEMS=="usb", ATTRS{idVendor}=="05ac", ATTRS{idProduct}=="8233", TAG+="systemd", ENV{SYSTEMD_ALIAS}="/dev/t2bridge"
+          '';
+
           networking.networkmanager = {
             # The link re-enumerates on every resume, and NetworkManager would
             # accumulate a fresh generic profile each time.
@@ -95,34 +102,55 @@
 
           systemd.services =
             lib.genAttrs cfg.services (_: {
-              wantedBy = [ "multi-user.target" ];
-              wants = [ "network-online.target" ];
+              # Started by the link rather than `network-online.target`, which
+              # would hold every boot behind `NetworkManager-wait-online` for up
+              # to 60s, waiting on every other profile too. Not `bindsTo`: the
+              # AVE sleep hook needs a live daemon while the link is unbound.
+              wantedBy = [ bridgeDevice ];
               after = [
+                bridgeDevice
                 "NetworkManager.service"
-                "network-online.target"
               ];
-              serviceConfig.Restart = "on-failure";
+              # The device exists before NetworkManager has addressed it, so the
+              # first attempts lose that race. Ten starts back off over ~3min,
+              # then stop until the next resume requests the unit again. The
+              # window only has to outlast those three minutes. Not `infinity`,
+              # which counts successful starts and would strand it after ten.
+              unitConfig = {
+                StartLimitIntervalSec = 600;
+                StartLimitBurst = 10;
+              };
+              serviceConfig = {
+                Restart = "on-failure";
+                RestartSec = 1;
+                RestartSteps = 5;
+                RestartMaxDelaySec = 30;
+              };
             })
             // {
-              t2-services-suspend = {
-                description = "Apple T2 bridge link suspend and resume";
-                before = [ "sleep.target" ];
+              # Runs the transition below, both halves of it through nmcli.
+              # Rebinding retries the address for 20 rounds and then gives the
+              # AVE hook 125s of its own, past the 90s systemd would allow.
+              sleep-actions = {
                 after = [ "NetworkManager.service" ];
-                wantedBy = [ "sleep.target" ];
-                unitConfig.StopWhenUnneeded = true;
-                environment.T2_HOOK_DIR = "${hooks}/libexec/kait2en/sleep.d";
                 serviceConfig = {
-                  Type = "oneshot";
-                  RemainAfterExit = true;
-                  # Binding the link back is the slow half, and this is what
-                  # upstream allows for it.
                   TimeoutStartSec = 180;
                   TimeoutStopSec = 300;
-                  ExecStart = "${ncm} pre";
-                  ExecStop = "${ncm} post";
                 };
               };
             };
+
+          # Down last and back first, so the rest of the transition still has
+          # the link. `t2-ncm-sleep` runs the `T2_HOOK_DIR` hooks itself, at the
+          # point in its own sequence where the sessions have to close.
+          powerManagement = {
+            powerDownCommands = lib.mkAfter ''
+              T2_HOOK_DIR=${hooks}/libexec/kait2en/sleep.d ${ncm} pre
+            '';
+            resumeCommands = lib.mkBefore ''
+              T2_HOOK_DIR=${hooks}/libexec/kait2en/sleep.d ${ncm} post
+            '';
+          };
         })
       ];
     };

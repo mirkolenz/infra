@@ -17,9 +17,17 @@
     let
       cfg = config.custom.apple-t2.touchid;
 
-      # fprintd and the daemon meet here, so both units declare its directory.
+      # fprintd and the daemon meet here, so both units have to declare it
+      # identically for the handshake to work.
       runtimeDirectory = "t2-touchid";
       socket = "/run/${runtimeDirectory}/fprint.sock";
+
+      # Whoever can write to the socket authenticates.
+      runtimeDirectoryConfig = {
+        RuntimeDirectory = runtimeDirectory;
+        RuntimeDirectoryMode = "0700";
+        RuntimeDirectoryPreserve = true;
+      };
     in
     {
       options.custom.apple-t2.touchid.enable = lib.mkEnableOption "the Apple T2 Touch ID sensor";
@@ -48,16 +56,12 @@
               # Ownership only, the finger is still required at every login.
               "--bind-user ${config.custom.user.login}"
             ];
-            RestartSec = 5;
-            # Whoever can write to the socket authenticates.
-            RuntimeDirectory = runtimeDirectory;
-            RuntimeDirectoryMode = "0700";
-            RuntimeDirectoryPreserve = true;
             NoNewPrivileges = true;
             ProtectSystem = "strict";
             ProtectHome = true;
             PrivateTmp = true;
-          };
+          }
+          // runtimeDirectoryConfig;
         };
 
         # Otherwise the virtual device stays advertised and every sudo waits
@@ -69,10 +73,8 @@
           environment.FP_VIRTUAL_DEVICE_STORAGE = socket;
           serviceConfig = {
             ReadWritePaths = [ "/run/${runtimeDirectory}" ];
-            RuntimeDirectory = runtimeDirectory;
-            RuntimeDirectoryMode = "0700";
-            RuntimeDirectoryPreserve = true;
-          };
+          }
+          // runtimeDirectoryConfig;
         };
       };
     };

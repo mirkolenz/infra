@@ -21,6 +21,9 @@ The last four talk to the T2 over its internal CDC-NCM link, which
 
 `ncm` and `suspend` are upstream bash helpers rather than builds, and share
 `mkScript.nix`.
+`installScript.nix` holds the three steps that install one, since the sleep hook
+`ave` ships needs them too without being a `mkScript` build.
+`commonMeta.nix` carries the `meta` fields every package in the scope shares.
 
 `modules.nix` holds the single revision every package is built from, and the
 others take `src` and `version` back off it.
@@ -91,14 +94,18 @@ Nothing else has to be reviewed routinely.
 
 - New components outside the four arrays, such as the daemons under
   `t2-services` or the GTK applications under `apps`.
+- `initcallBlacklist`, which has no upstream counterpart: it names the built-in
+  symbols a blacklist cannot reach, so a nixpkgs kernel config turning one of
+  those from `=y` into `=m` makes it stale.
 - Kernel arguments upstream applies conditionally, currently `amdgpu.aspm=1`
   (set in `modules/hardware/apple-t2/default.nix`) and the GPU runtime PM patch
   set under `patches/runtime`, which upstream only builds for MacBookPro15,1.
 - Layout changes in the UCM, DSP or t2-services trees, which surface as a build
   failure in the package that reads them instead.
-- Renamed drivers. `tiny-dfr` finds the Touch Bar by driver name, so
-  `modules/hardware/apple-t2/touchbar.nix` restates its udev rules for `t2bdrm`
-  and `t2tb_backlight`.
+- Renamed drivers, except in `tiny-dfr`, which finds the Touch Bar by driver
+  name: `modules/hardware/apple-t2/touchbar.nix` adds `t2bdrm` and
+  `t2tb_backlight` to its udev rules with `--replace-fail`, so a rename on
+  either side fails that build instead.
 
 Upstream rejects issues and pull requests they believe were written by an AI, so
 anything reported there has to be written by hand.

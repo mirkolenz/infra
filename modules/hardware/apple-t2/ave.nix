@@ -30,7 +30,6 @@
           description = "Apple T2 AVE service";
           serviceConfig = {
             ExecStart = "${lib.getExe pkgs.kait2en.ave} daemon";
-            RestartSec = 2;
             UMask = "0007";
           };
         };

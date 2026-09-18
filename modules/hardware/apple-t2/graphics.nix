@@ -40,6 +40,13 @@
           active() { awk -F: '$3 == "+" { print $2; exit }' ${switch}; }
           powered() { awk -F: '$2 == "DIS" { print $4; exit }' ${switch}; }
 
+          # The sleep halves share one `set -e` script with the link and radio
+          # transitions, so they must not write a switcheroo node that is not
+          # there. The boot unit states the same as `ConditionPathExists`.
+          case "''${1-}" in
+            park | pre-sleep | post-sleep) [ -e ${switch} ] || exit 0 ;;
+          esac
+
           case "''${1-}" in
             boot-gpu)
               [ -e ${bootGpu} ] || exit 0
@@ -96,10 +103,11 @@
         };
 
         # A powered-down dGPU does not come back from S3, so it goes up for the
-        # transition and down again once the machine is awake.
+        # transition and down again once awake. Outermost of the three pairs,
+        # so the rest of them run with the card settled.
         powerManagement = {
-          powerDownCommands = "${lib.getExe dgpu} pre-sleep";
-          resumeCommands = "${lib.getExe dgpu} post-sleep";
+          powerDownCommands = lib.mkBefore "${lib.getExe dgpu} pre-sleep";
+          resumeCommands = lib.mkAfter "${lib.getExe dgpu} post-sleep";
         };
       };
     };

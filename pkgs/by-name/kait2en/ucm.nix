@@ -9,6 +9,12 @@
   alsa-ucm-conf,
 }:
 let
+  # Only the join is published, so it carries the stock tree's license too.
+  meta = kait2en.commonMeta // {
+    description = "ALSA UCM configuration extended with the Apple T2 audio profiles";
+    license = lib.toList alsa-ucm-conf.meta.license ++ [ lib.licenses.gpl3Plus ];
+  };
+
   profiles = stdenvNoCC.mkDerivation {
     pname = "kait2en-ucm";
     inherit (kait2en.modules) version src;
@@ -30,28 +36,18 @@ let
     strictDeps = true;
     __structuredAttrs = true;
 
-    meta = {
+    # Configuration rather than a kernel module, despite sitting under `modules/`.
+    meta = kait2en.commonMeta // {
       description = "Apple T2 audio profiles for ALSA UCM";
-      homepage = "https://github.com/kaiT2en/KaiT2en-Fedora";
-      # Configuration rather than a kernel module, despite sitting under
-      # `modules/`. Only the join below also carries the stock tree.
-      license = lib.licenses.gpl3Plus;
-      maintainers = with lib.maintainers; [ mirkolenz ];
-      inherit (alsa-ucm-conf.meta) platforms;
-      # Only used on a T2 Mac, and a bump rebuilds the whole tree.
-      hydraPlatforms = [ ];
     };
   };
 in
 # KaiT2en only adds directories of its own, so the two trees merge cleanly.
 symlinkJoin {
   inherit (profiles) pname version;
+  inherit meta;
   paths = [
     alsa-ucm-conf
     profiles
   ];
-  meta = profiles.meta // {
-    description = "ALSA UCM configuration extended with the Apple T2 audio profiles";
-    license = lib.toList alsa-ucm-conf.meta.license ++ [ lib.licenses.gpl3Plus ];
-  };
 }

@@ -3,7 +3,6 @@
   stdenvNoCC,
   kait2en,
   makeWrapper,
-  runtimeShell,
 }:
 # Upstream bash helpers, installed rather than built: they need a shebang
 # rewrite and a PATH that a sleep transition does not provide.
@@ -35,11 +34,11 @@ lib.extendMkDerivation {
       installPhase = ''
         runHook preInstall
 
-        install -Dm555 ${script} ${program}
-        substituteInPlace ${program} \
-          --replace-fail '#!/usr/bin/env bash' '#!${runtimeShell}'
-        wrapProgram ${program} --prefix PATH : ${lib.makeBinPath runtimeInputs}
-
+        ${kait2en.installScript {
+          src = script;
+          dest = program;
+          inherit runtimeInputs;
+        }}
         ${kait2en.installLicenses finalAttrs.pname}
 
         runHook postInstall
@@ -48,14 +47,6 @@ lib.extendMkDerivation {
       strictDeps = true;
       __structuredAttrs = true;
 
-      meta = {
-        homepage = "https://github.com/kaiT2en/KaiT2en-Fedora";
-        license = lib.licenses.gpl3Plus;
-        maintainers = with lib.maintainers; [ mirkolenz ];
-        platforms = lib.platforms.linux;
-        # Only used on a T2 Mac, and a bump rebuilds the whole tree.
-        hydraPlatforms = [ ];
-      }
-      // meta;
+      meta = kait2en.commonMeta // meta;
     };
 }

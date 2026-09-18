@@ -16,25 +16,29 @@
         environment.ALSA_CONFIG_UCM2 = ucm2Dir;
       });
     in
-    {
-      # nix build .#packages.x86_64-linux.kait2en-ucm
-      # nix build .#packages.x86_64-linux.kait2en-dsp
-      environment.variables.ALSA_CONFIG_UCM2 = ucm2Dir;
+    lib.mkMerge [
+      {
+        # nix build .#packages.x86_64-linux.kait2en-ucm
+        # nix build .#packages.x86_64-linux.kait2en-dsp
+        environment.variables.ALSA_CONFIG_UCM2 = ucm2Dir;
 
-      # Renames the ALSA card after the DMI model, which is how the graphs
-      # below find their machine.
-      services.udev.packages = [ pkgs.kait2en.dsp ];
+        # Renames the ALSA card after the DMI model, which is how the graphs
+        # below find their machine.
+        services.udev.packages = [ pkgs.kait2en.dsp ];
+      }
 
-      systemd = lib.mkIf config.services.pipewire.enable {
-        services = audioServices;
-        user.services = audioServices;
-      };
+      (lib.mkIf config.services.pipewire.enable {
+        systemd = {
+          services = audioServices;
+          user.services = audioServices;
+        };
 
-      # The quantum is a pipewire fragment, the filter definitions a
-      # wireplumber one.
-      services.pipewire = lib.mkIf config.services.pipewire.enable {
-        configPackages = [ pkgs.kait2en.dsp ];
-        wireplumber.configPackages = [ pkgs.kait2en.dsp ];
-      };
-    };
+        # The quantum is a pipewire fragment, the filter definitions a
+        # wireplumber one.
+        services.pipewire = {
+          configPackages = [ pkgs.kait2en.dsp ];
+          wireplumber.configPackages = [ pkgs.kait2en.dsp ];
+        };
+      })
+    ];
 }

@@ -54,6 +54,13 @@ let
     "apple_gmux"
   ];
 
+  # The built-in counterparts of `replacedModules`: a driver compiled into the
+  # kernel is past every blacklist, so it is stopped at its initcall instead.
+  initcallBlacklist = [
+    "cmos_init"
+    "magicmouse_driver_init"
+  ];
+
   kernelParams = [
     # The t2bce stack needs the IOMMU, audio and suspend need it passed through,
     # and `pm_async=off` serialises the resume ordering the T2 depends on.
@@ -160,7 +167,8 @@ stdenv.mkDerivation {
         return
       fi
 
-      tar -xOf ${kernel.src} "linux-${kernel.version}/$source" \
+      # `--occurrence=1` stops at the match instead of scanning the whole tree.
+      tar -xOf ${kernel.src} --occurrence=1 "linux-${kernel.version}/$source" \
         > "modules/t2bce_stack/$module"
       printf 'obj-m += %s\n' "''${module%.c}.o" >> modules/t2bce_stack/Makefile
     }
@@ -204,10 +212,13 @@ stdenv.mkDerivation {
   passthru = {
     inherit
       earlyModules
+      initcallBlacklist
       kernel
       kernelParams
       replacedModules
       ;
+    # The set itself, so the NixOS module does not instantiate a second one.
+    linuxPackages = linuxPackages_latest;
     # `nix-update -s` moves the pin, then refreshes each `cargoHash` against it
     # in the same process. Separate update scripts would race.
     inherit (kait2en)
@@ -228,9 +239,8 @@ stdenv.mkDerivation {
   strictDeps = true;
   __structuredAttrs = true;
 
-  meta = {
+  meta = kait2en.commonMeta // {
     description = "Out-of-tree kernel drivers for Macs with an Apple T2 security chip";
-    homepage = "https://github.com/kaiT2en/KaiT2en-Fedora";
     # The drivers keep the SPDX header of the kernel file they forked, which is
     # GPL-2.0-only for some and GPL-2.0-or-later for others. The t2bce stack has
     # no header and declares `MODULE_LICENSE("GPL")`, meaning or-later.
@@ -238,10 +248,5 @@ stdenv.mkDerivation {
       gpl2Only
       gpl2Plus
     ];
-    maintainers = with lib.maintainers; [ mirkolenz ];
-    # T2 Macs are Intel only.
-    platforms = [ "x86_64-linux" ];
-    # Only used on a T2 Mac, and a bump rebuilds the whole tree.
-    hydraPlatforms = [ ];
   };
 }

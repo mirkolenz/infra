@@ -1,15 +1,26 @@
 # tiny-dfr finds the Touch Bar display and its backlight by the driver names of
-# the in-tree modules KaiT2en replaces, so those two rules are restated here.
-# Its remaining rules match on hardware names and still apply.
-# From tiny-dfr, (C) The Asahi Linux Contributors, Apache-2.0 OR MIT.
-# https://github.com/AsahiLinux/tiny-dfr/blob/master/etc/udev/rules.d/99-touchbar-tiny-dfr.rules
+# the in-tree modules KaiT2en replaces, so the new names go into its own rules
+# rather than into a second copy beside them. `--replace-fail` catches a rename
+# on either side, and the package's `udevCheckHook` parses the result.
 {
   flake.modules.nixos.apple-t2 =
-    { config, lib, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     lib.mkIf config.hardware.apple.touchBar.enable {
-      services.udev.extraRules = ''
-        SUBSYSTEM=="drm", KERNEL=="card[0-9]*", DRIVERS=="t2bdrm", TAG+="systemd", ENV{SYSTEMD_ALIAS}="/dev/tiny_dfr_display", TAG-="master-of-seat", ENV{ID_SEAT}="seat-touchbar"
-        SUBSYSTEM=="backlight", KERNEL=="t2tb_backlight", DRIVERS=="t2touchbar_bl", TAG+="systemd", ENV{SYSTEMD_ALIAS}="/dev/tiny_dfr_backlight"
-      '';
+      hardware.apple.touchBar.package = pkgs.tiny-dfr.overrideAttrs (old: {
+        postInstall = old.postInstall + ''
+          rules=$out/lib/udev/rules.d
+          substituteInPlace $rules/99-touchbar-tiny-dfr.rules \
+            --replace-fail 'DRIVERS=="adp|appletbdrm"' 'DRIVERS=="adp|appletbdrm|t2bdrm"' \
+            --replace-fail 'KERNEL=="appletb_backlight", DRIVERS=="hid-appletb-bl"' \
+              'KERNEL=="appletb_backlight|t2tb_backlight", DRIVERS=="hid-appletb-bl|t2touchbar_bl"'
+          substituteInPlace $rules/99-touchbar-seat.rules \
+            --replace-fail 'DRIVERS=="adp|appletbdrm"' 'DRIVERS=="adp|appletbdrm|t2bdrm"'
+        '';
+      });
     };
 }
