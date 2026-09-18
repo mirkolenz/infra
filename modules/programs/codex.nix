@@ -43,6 +43,9 @@
             # them, :minimal read access, and write to :tmpdir and :slash_tmp (/tmp).
             extends = ":workspace";
             filesystem = {
+              ":workspace_roots" = {
+                ".git" = "write";
+              };
               "/nix" = "read";
               "${config.home.homeDirectory}/.npm" = "write";
               "${config.home.homeDirectory}/Library/Caches" = "write";
