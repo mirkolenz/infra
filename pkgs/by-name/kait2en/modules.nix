@@ -104,13 +104,13 @@ stdenv.mkDerivation {
 
   # The pin every package here is built from. It cannot live in a file of its
   # own: `nix-update` writes to wherever `meta.position` points.
-  version = "0-unstable-2026-09-17";
+  version = "0.1.12-unstable-2026-09-17";
 
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";
-    rev = "47c1c749088413106644a05bc26f15333de9e273";
-    hash = "sha256-11/8Z0H7/fSXk9OE0nGt9TDchkMafKJQz5knhm5C/+4=";
+    rev = "de39c1e39cfef9f7b9a663430fc62f949e50bd74";
+    hash = "sha256-arKYF37i4y6xZjB88l21DLugjQWtkLu2o1aqEW2ZOuI=";
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies;
