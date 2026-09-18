@@ -65,7 +65,7 @@
       };
     };
     mistral-vibe = {
-      url = "github:mistralai/mistral-vibe/v2.25.4";
+      url = "github:mistralai/mistral-vibe/v2.25.5";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         pyproject-nix.follows = "pyproject-nix";
