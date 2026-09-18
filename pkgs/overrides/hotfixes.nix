@@ -1,5 +1,10 @@
 final: prev:
-{ }
+{
+  # texlive 2025 bundles latexminted 0.6.0, whose argparse subclass rejects the `color` keyword
+  # that python 3.14 forwards to `add_parser()`. Fixed upstream in latexminted 0.7.0, which only
+  # ships with texlive 2026. https://github.com/NixOS/nixpkgs/issues/542483
+  texlive = prev.texlive.override { python3 = final.python313; };
+}
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
 
   # tests/chip.c's setup_bad_chip() hands setup_chip() a pointer to a copy of chip_bad living in
