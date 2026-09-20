@@ -4,8 +4,12 @@
       config,
       pkgs,
       lib,
+      lib',
       ...
     }:
+    let
+      agents = config.programs.agents;
+    in
     lib.mkIf config.custom.features.extras.enable {
       programs.mistral-vibe = {
         enable = false;
@@ -38,5 +42,16 @@
           };
         };
       };
+      # Vibe reads its global context from `VIBE_HOME/AGENTS.md` and user-level skills
+      # from `VIBE_HOME/skills`, neither of which its home-manager module can express
+      # yet, so both are wired the way the claude-code, codex, and opencode modules wire
+      # their own. `skills/` stays a real directory either way, which is what lets vibe
+      # write the entries of `vibe skill install` next to the managed ones.
+      home.file = lib.mkIf config.programs.mistral-vibe.enable (
+        {
+          ".vibe/AGENTS.md" = lib.mkIf (agents.context != "") (lib'.mkAgentFile agents.context);
+        }
+        // lib'.mkAgentSkills ".vibe/skills" agents.skills
+      );
     };
 }

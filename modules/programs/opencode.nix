@@ -16,6 +16,7 @@
         enable = true;
         package = pkgs.opencode-bin;
         enableMcpIntegration = true;
+        inherit (agents) context skills;
         # https://opencode.ai/docs/config/
         settings = {
           share = "disabled";

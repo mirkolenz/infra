@@ -9,9 +9,8 @@
     }:
     {
       programs.agents = {
-        enable = true;
-        instructions.source = ./AGENTS.md;
-        skills.source = lib.mkIf config.custom.features.extras.enable ./skills;
+        context = ./AGENTS.md;
+        skills = ./skills;
         sandbox = {
           allowedDomains = [
             "github.com"

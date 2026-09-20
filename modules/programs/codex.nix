@@ -15,6 +15,7 @@
         enable = true;
         package = pkgs.codex-bin;
         enableMcpIntegration = true;
+        inherit (agents) context skills;
         # https://developers.openai.com/codex/config-reference
         # https://developers.openai.com/codex/config-schema.json
         settings = {

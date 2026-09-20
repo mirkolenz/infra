@@ -98,6 +98,50 @@
         files = [ { inherit source target mode; } ];
       };
 
+    # `lib.hm.strings.isPathLike`, inlined because `lib.hm` only exists inside a
+    # home-manager evaluation: a value home-manager links rather than writes.
+    # https://github.com/nix-community/home-manager/blob/master/modules/lib/strings.nix
+    isPathLike =
+      content:
+      lib.isPath content
+      || lib.isDerivation content
+      || (lib.isString content && lib.hasPrefix "${builtins.storeDir}/" content);
+
+    # `home.file` entry for the value of an agent option that is either content or a
+    # file to link, the way the claude-code, codex, and opencode modules read theirs.
+    # https://github.com/nix-community/home-manager/blob/master/modules/programs/claude-code/lib.nix
+    mkAgentFile = content: if isPathLike content then { source = content; } else { text = content; };
+
+    # `home.file` entries placing the value of `programs.agents.skills` in `dir`. A
+    # directory is linked as a whole, an attribute set becomes one entry per skill,
+    # where a directory is again linked as a whole and everything else is the skill's
+    # `SKILL.md`. Both stay real directories, which lets an agent write its own skills
+    # next to the managed ones. A store path that is only a string is taken for a file,
+    # because telling it apart from a directory needs a builder, as upstream does it.
+    # https://github.com/nix-community/home-manager/blob/master/modules/programs/claude-code/lib.nix
+    mkAgentSkills =
+      dir: skills:
+      if isPathLike skills then
+        {
+          ${dir} = {
+            source = skills;
+            recursive = true;
+          };
+        }
+      else
+        lib.concatMapAttrs (
+          name: content:
+          if lib.isPath content && lib.pathIsDirectory content then
+            {
+              "${dir}/${name}" = {
+                source = content;
+                recursive = true;
+              };
+            }
+          else
+            { "${dir}/${name}/SKILL.md" = mkAgentFile content; }
+        ) skills;
+
     disableUpdateScript =
       pkg:
       pkg.overrideAttrs (old: {

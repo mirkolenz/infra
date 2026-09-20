@@ -32,6 +32,7 @@
         enable = true;
         package = pkgs.claude-code-bin;
         enableMcpIntegration = true;
+        inherit (agents) context skills;
         settings = {
           autoMemoryEnabled = false;
           cleanupPeriodDays = 30;

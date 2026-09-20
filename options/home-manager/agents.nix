@@ -1,51 +1,36 @@
 {
   lib,
-  config,
   ...
 }:
-let
-  cfg = config.programs.agents;
-
-  mkFiles = attrs: targets: lib.genAttrs targets (_: attrs);
-
-  instructions = mkFiles { source = cfg.instructions.source; };
-
-  # Linked file by file so each target stays a real directory. A single directory
-  # symlink would put every skill inside the store, and an entry another module adds
-  # next to them, such as the personal plugin that `programs.claude-code` generates,
-  # would then resolve outside $HOME.
-  skills = mkFiles {
-    source = cfg.skills.source;
-    recursive = true;
-  };
-in
 {
   meta.maintainers = with lib.maintainers; [ mirkolenz ];
 
+  # Shared agent configuration, read by the module of every agent that can express
+  # it. Nothing here writes a file on its own, so an agent whose home-manager module
+  # lacks the matching option stays unconfigured until it gains one.
   options.programs.agents = {
-    enable = lib.mkEnableOption "agents";
-
-    instructions.source = lib.mkOption {
-      type = lib.types.nullOr lib.types.path;
-      default = null;
+    context = lib.mkOption {
+      type = with lib.types; either lines path;
+      default = "";
       example = lib.literalExpression "./AGENTS.md";
-      description = "Path to a markdown file with shared instructions, deployed to every configured agent as AGENTS.md and its equivalents.";
+      description = "Shared instructions, either inline or as a markdown file, handed to every agent as its global context.";
     };
 
-    skills.source = lib.mkOption {
-      type = lib.types.nullOr lib.types.path;
-      default = null;
+    skills = lib.mkOption {
+      type = with lib.types; either (attrsOf (either lines path)) path;
+      default = { };
       example = lib.literalExpression "./skills";
       description = ''
-        Path to a directory of Agent Skills (https://agentskills.io/specification), holding
-        one directory per skill, each with its own `SKILL.md`, deployed to every configured
-        agent.
+        Agent Skills (https://agentskills.io/specification), handed to every agent,
+        either a directory holding one directory per skill or an attribute set keyed by
+        skill name. An attribute is a directory of its own, a single `SKILL.md`, or that
+        file's content inline.
       '';
     };
 
     sandbox = {
       allowedDomains = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
+        type = with lib.types; listOf str;
         default = [ ];
         example = [ "*.githubusercontent.com" ];
         description = ''
@@ -56,7 +41,7 @@ in
       };
 
       deniedDomains = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
+        type = with lib.types; listOf str;
         default = [ ];
         example = [ "pypi.org" ];
         description = ''
@@ -67,13 +52,13 @@ in
       };
 
       paths = lib.mkOption {
-        type = lib.types.attrsOf (
-          lib.types.enum [
+        type =
+          with lib.types;
+          attrsOf (enum [
             "read"
             "write"
             "deny"
-          ]
-        );
+          ]);
         default = { };
         example = {
           "/nix" = "read";
@@ -88,7 +73,7 @@ in
       };
 
       allowedUnixSockets = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
+        type = with lib.types; listOf str;
         default = [ ];
         description = ''
           Unix sockets reachable from a sandbox, given as the path a sandbox sees after
@@ -98,14 +83,14 @@ in
       };
 
       deniedEnvVars = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
+        type = with lib.types; listOf str;
         default = [ ];
         example = [ "SSH_AUTH_SOCK" ];
         description = "Variables stripped from the environment agents hand to a subprocess.";
       };
 
       sessionVariables = lib.mkOption {
-        type = lib.types.attrsOf lib.types.str;
+        type = with lib.types; attrsOf str;
         default = { };
         description = ''
           Variables set in the environment agents hand to a subprocess. Values are
@@ -115,34 +100,4 @@ in
       };
     };
   };
-
-  config = lib.mkIf cfg.enable (
-    lib.mkMerge [
-      (lib.mkIf (cfg.instructions.source != null) {
-        xdg.configFile = instructions [
-          "amp/AGENTS.md"
-          "crush/CRUSH.md"
-          "opencode/AGENTS.md"
-        ];
-        home.file = instructions [
-          ".claude/CLAUDE.md"
-          ".codex/AGENTS.md"
-          ".gemini/GEMINI.md"
-          ".vibe/AGENTS.md"
-        ];
-      })
-      (lib.mkIf (cfg.skills.source != null) {
-        xdg.configFile = skills [
-          "agents/skills" # amp
-          "opencode/skills"
-        ];
-        home.file = skills [
-          ".claude/skills"
-          ".agents/skills" # codex
-          ".gemini/skills"
-          ".vibe/skills"
-        ];
-      })
-    ]
-  );
 }
