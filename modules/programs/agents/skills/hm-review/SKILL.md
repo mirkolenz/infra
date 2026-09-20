@@ -1,5 +1,5 @@
 ---
-name: rvw
+name: hm-review
 description: |
   Reviews code for correctness bugs plus reuse, simplification, efficiency, altitude, and convention cleanups, then reports the findings.
   The argument names the target and defaults to uncommitted changes.
@@ -107,7 +107,7 @@ Let the same line be flagged twice for different reasons, whether by one agent o
 - Cross-file impact: whether a new precondition, return shape, exception, or ordering dependency breaks the callers, and the reverse for the callees.
   Wrappers such as caches, proxies and adapters are where this hides.
 - Cleanup: what the repository already has, complexity that is derivable or dead, wasted work, and fixes applied as special cases where the mechanism should generalize.
-  The `smpl` skill goes deeper on this.
+  The `hm-simplify` skill goes deeper on this.
 - Conventions: the code against AGENTS.md and its surroundings, naming the rule that is broken.
 
 ## Output

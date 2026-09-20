@@ -1,5 +1,5 @@
 ---
-name: lcns
+name: hm-license
 description: |
   Audits license, copyright, and patent compliance across first-party code and its dependencies.
   The argument names the target and defaults to uncommitted changes.

@@ -1,5 +1,5 @@
 ---
-name: smpl
+name: hm-simplify
 description: |
   Reviews code for reuse, simplification, efficiency, and altitude cleanups, then applies the fixes.
   Quality only, it does not hunt for bugs.
@@ -8,7 +8,7 @@ description: |
 ---
 
 Improve the quality of the code and apply the fixes.
-Correctness is what the `rvw` skill is for, so leave it alone here.
+Correctness is what the `hm-review` skill is for, so leave it alone here.
 
 ## Scope
 

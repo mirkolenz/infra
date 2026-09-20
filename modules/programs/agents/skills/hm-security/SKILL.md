@@ -1,5 +1,5 @@
 ---
-name: scrty
+name: hm-security
 description: |
   Audits security under the EU Cyber Resilience Act, covering first-party code, dependencies, and the shipped bill of materials.
   The argument names the target and defaults to uncommitted changes.

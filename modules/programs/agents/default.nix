@@ -20,7 +20,7 @@
             "*.nixos.org"
             "*.cachix.org"
             "*.flakehub.com"
-            # lgl skill
+            # hm-legal skill
             "eur-lex.europa.eu"
             "publications.europa.eu"
             "www.gesetze-im-internet.de"
