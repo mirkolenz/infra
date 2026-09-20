@@ -59,4 +59,15 @@ final: prev:
 })
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
 
+  # nixpkgs carries a separate vendorHash per platform for scorecard, and the darwin one went
+  # stale: the go module proxy no longer reproduces it, so the fixed-output go-modules derivation
+  # fails before the build starts. The linux hash still matches, which is why hydra only reports
+  # darwin failures. Pin the hash the current dependency set produces until nixpkgs rewrites it.
+  scorecard = prev.scorecard.overrideAttrs (
+    prevAttrs:
+    prev.lib.optionalAttrs (prevAttrs.version == "5.5.0") {
+      vendorHash = "sha256-0KKKZheDNRPLBWtwXgXXG+ixpESO+Gq1FsW83PldiVo=";
+    }
+  );
+
 })
