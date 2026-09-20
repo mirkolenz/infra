@@ -100,7 +100,15 @@ let
       ];
 
       passthru = {
-        updateScript = nix-update-script { };
+        # the version and src attributes the final derivation carries come from
+        # nixpkgs' haskell generic-builder, so nix-update would try to edit a store
+        # path unless it is pointed back at this file
+        updateScript = nix-update-script {
+          extraArgs = [
+            "--override-filename"
+            "pkgs/by-name/recht.nix"
+          ];
+        };
         vendored = {
           inherit blessings;
         };
