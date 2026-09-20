@@ -76,6 +76,11 @@
       { config, ... }:
       {
         options = {
+          source = lib.mkOption {
+            type = lib.types.nullOr lib.types.path;
+            default = null;
+            description = "Complete markdown file, including its own frontmatter, used verbatim instead of the structured options.";
+          };
           metadata = lib.mkOption {
             type =
               # https://github.com/NixOS/nixpkgs/blob/130323cfcfdfe3a28da4f9ca4593f053f07c7487/pkgs/pkgs-lib/formats.nix#L125C7-L141C19
