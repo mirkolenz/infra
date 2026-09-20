@@ -29,6 +29,15 @@
         options.desc = "Exit terminal mode";
       }
       {
+        key = "<leader>a";
+        mode = [
+          "n"
+          "x"
+        ];
+        action = "ggVG";
+        options.desc = "Select all";
+      }
+      {
         key = "<leader>p";
         mode = "x";
         action = ''"_dp'';
