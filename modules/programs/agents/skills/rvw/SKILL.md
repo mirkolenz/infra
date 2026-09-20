@@ -1,7 +1,18 @@
+---
+name: rvw
+description: |
+  Reviews code for correctness bugs plus reuse, simplification, efficiency, altitude, and convention cleanups, then reports the findings.
+  The argument names the target and defaults to uncommitted changes.
+  Use when the user asks to review code or a pull request.
+---
+
 Find the real bugs in the code under review, and say what breaks and how.
 Review for recall: a missed bug ships, so an uncertain finding costs less than a dropped one.
 
-@target.md
+## Target
+
+Read [references/target.md](references/target.md) first.
+It maps the argument to the target, defaulting to uncommitted changes, and says whether to work from a structured diff or from raw files.
 
 ## Scope
 

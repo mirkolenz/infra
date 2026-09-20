@@ -55,7 +55,26 @@
       };
     mkVimKeymaps = opts: values: map (mkVimKeymap opts) values;
 
-    # Render markdown with optional JSON frontmatter (a valid subset of YAML).
+    # Render a value as YAML, mappings and sequences in block style. The flow style
+    # `toJSON` emits is valid YAML, but strict parsers reject it, among them the one
+    # the Agent Skills reference implementation validates `SKILL.md` with. Scalars
+    # still go through `toJSON`, whose double-quoted form YAML reads back unchanged.
+    toYaml =
+      let
+        go =
+          indent: value:
+          if lib.isAttrs value && !lib.isDerivation value then
+            lib.concatMapStrings (name: "\n${indent}${name}:${go "${indent}  " value.${name}}") (
+              lib.attrNames value
+            )
+          else if lib.isList value then
+            lib.concatMapStrings (item: "\n${indent}-${go "${indent}  " item}") value
+          else
+            " ${lib.strings.toJSON value}";
+      in
+      value: lib.removePrefix "\n" (go "" value);
+
+    # Render markdown with optional YAML frontmatter.
     mkMarkdown =
       {
         metadata ? { },
@@ -66,7 +85,7 @@
       else
         ''
           ---
-          ${lib.strings.toJSON metadata}
+          ${toYaml metadata}
           ---
 
           ${body}
@@ -102,7 +121,7 @@
               in
               valueType;
             default = { };
-            description = "Frontmatter for the markdown file, written as JSON (a valid subset of YAML).";
+            description = "Frontmatter for the markdown file, rendered as block-style YAML.";
           };
           body = lib.mkOption {
             type = lib.types.lines;

@@ -1,7 +1,19 @@
+---
+name: smpl
+description: |
+  Reviews code for reuse, simplification, efficiency, and altitude cleanups, then applies the fixes.
+  Quality only, it does not hunt for bugs.
+  The argument names the target and defaults to uncommitted changes.
+  Use when the user asks to simplify, clean up, or refactor.
+---
+
 Improve the quality of the code and apply the fixes.
 Correctness is what the `rvw` skill is for, so leave it alone here.
 
-@target.md
+## Target
+
+Read [references/target.md](references/target.md) first.
+It maps the argument to the target, defaulting to uncommitted changes, and says whether to work from a structured diff or from raw files.
 
 ## Scope
 

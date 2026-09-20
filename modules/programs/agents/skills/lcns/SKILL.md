@@ -1,7 +1,18 @@
+---
+name: lcns
+description: |
+  Audits license, copyright, and patent compliance across first-party code and its dependencies.
+  The argument names the target and defaults to uncommitted changes.
+  Use when the user asks for a license audit, a compliance check, or an attribution review.
+---
+
 Judge whether the product may legally be distributed under the license it claims.
 Every finding cites tool output and names the obligation that is breached, and a command that could not run leaves the claim unproven.
 
-@target.md
+## Target
+
+Read [references/target.md](references/target.md) first.
+It maps the argument to the target, defaulting to uncommitted changes, and says whether to work from a structured diff or from raw files.
 
 ## Scope
 

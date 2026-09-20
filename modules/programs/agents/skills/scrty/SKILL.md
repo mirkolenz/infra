@@ -1,7 +1,18 @@
+---
+name: scrty
+description: |
+  Audits security under the EU Cyber Resilience Act, covering first-party code, dependencies, and the shipped bill of materials.
+  The argument names the target and defaults to uncommitted changes.
+  Use when the user asks for a security audit, a CRA review, or a vulnerability scan.
+---
+
 Judge a product against CRA Annex I, Part I (security properties) and Part II (vulnerability handling).
 Every finding cites tool output, never a guess, and a command that could not run is itself a gap in the evidence.
 
-@target.md
+## Target
+
+Read [references/target.md](references/target.md) first.
+It maps the argument to the target, defaulting to uncommitted changes, and says whether to work from a structured diff or from raw files.
 
 ## Scope
 

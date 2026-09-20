@@ -1,8 +1,19 @@
+---
+name: lgl
+description: |
+  Reviews documents and source code against German and EU law, covering data protection, the AI Act, the Cyber Resilience Act, contract terms, and copyright.
+  The argument names the target and defaults to uncommitted changes.
+  Use when the user asks for a legal or regulatory compliance review.
+---
+
 Review the target for legal compliance, over prose documents and over the code that implements what they promise.
 Every finding cites the norm it rests on, fetched from an official source in this session.
 A citation you did not fetch is a finding you must not make.
 
-@target.md
+## Target
+
+Read [references/target.md](references/target.md) first.
+It maps the argument to the target, defaulting to uncommitted changes, and says whether to work from a structured diff or from raw files.
 
 ## Scope
 

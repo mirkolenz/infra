@@ -1,4 +1,4 @@
-## Target
+# Target
 
 The argument names the target, defaulting to uncommitted changes.
 
