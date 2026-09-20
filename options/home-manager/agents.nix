@@ -80,10 +80,7 @@ let
   mkSkillAssertion = name: skill: {
     assertion =
       lib.isDerivation skill.source
-      || (
-        lib.pathExists "${skill.source}/SKILL.md"
-        && lib.hasInfix "\nname: ${name}\n" (lib.readFile "${skill.source}/SKILL.md")
-      );
+      || lib.hasInfix "\nname: ${name}\n" (lib.readFile (skill.source + "/SKILL.md"));
     message = "programs.agents.skills.${name}: source must be a directory whose SKILL.md declares `name: ${name}`.";
   };
 
