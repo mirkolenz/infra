@@ -6,11 +6,18 @@
 let
   cfg = config.programs.agents;
 
-  mkFiles =
-    source: targets:
-    lib.genAttrs targets (_: {
-      inherit source;
-    });
+  mkFiles = attrs: targets: lib.genAttrs targets (_: attrs);
+
+  instructions = mkFiles { source = cfg.instructions.source; };
+
+  # Linked file by file so each target stays a real directory. A single directory
+  # symlink would put every skill inside the store, and an entry another module adds
+  # next to them, such as the personal plugin that `programs.claude-code` generates,
+  # would then resolve outside $HOME.
+  skills = mkFiles {
+    source = cfg.skills.source;
+    recursive = true;
+  };
 in
 {
   meta.maintainers = with lib.maintainers; [ mirkolenz ];
@@ -112,12 +119,12 @@ in
   config = lib.mkIf cfg.enable (
     lib.mkMerge [
       (lib.mkIf (cfg.instructions.source != null) {
-        xdg.configFile = mkFiles cfg.instructions.source [
+        xdg.configFile = instructions [
           "amp/AGENTS.md"
           "crush/CRUSH.md"
           "opencode/AGENTS.md"
         ];
-        home.file = mkFiles cfg.instructions.source [
+        home.file = instructions [
           ".claude/CLAUDE.md"
           ".codex/AGENTS.md"
           ".gemini/GEMINI.md"
@@ -125,11 +132,11 @@ in
         ];
       })
       (lib.mkIf (cfg.skills.source != null) {
-        xdg.configFile = mkFiles cfg.skills.source [
+        xdg.configFile = skills [
           "agents/skills" # amp
           "opencode/skills"
         ];
-        home.file = mkFiles cfg.skills.source [
+        home.file = skills [
           ".claude/skills"
           ".agents/skills" # codex
           ".gemini/skills"
