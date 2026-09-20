@@ -77,9 +77,9 @@
           askalono
           licensee
           # compatibility and normalization
-          (python3Packages.toPythonApplication python3Packages.licomp-toolkit)
-          (python3Packages.toPythonApplication python3Packages.lookup-license)
-          (python3Packages.toPythonApplication python3Packages.foss-flame)
+          licomp-toolkit
+          lookup-license
+          foss-flame
           # snippet origin
           scanoss-py
           scanoss-js
