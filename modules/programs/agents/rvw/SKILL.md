@@ -1,9 +1,11 @@
 ---
 name: rvw
-description: Reviews the current diff, or a PR number, branch, or path target, for correctness bugs plus reuse, simplification, efficiency, altitude, and convention cleanups, then report the findings. Use when the user asks to review code or a pull request.
+description: |
+  Reviews the current diff, or a PR number, branch, or path target, for correctness bugs plus reuse, simplification, efficiency, altitude, and convention cleanups, then report the findings.
+  Use when the user asks to review code or a pull request.
 ---
 
-You are reviewing for **recall** at extra-high effort: catch every real bug.
+You are reviewing for recall at extra-high effort: catch every real bug.
 At this level, catching real bugs matters more than avoiding false positives, because a missed bug ships.
 Err on the side of surfacing.
 
@@ -75,14 +77,6 @@ Name the cheaper alternative.
 
 Check that each change is implemented at the right depth, not as a fragile bandaid.
 Special cases layered on shared infrastructure are a sign the fix is not deep enough, so prefer generalizing the underlying mechanism over adding special cases.
-
-### Conventions (CLAUDE.md)
-
-Find the CLAUDE.md files that govern the changed code: the user-level ~/.claude/CLAUDE.md, the repo-root CLAUDE.md, plus any CLAUDE.md or CLAUDE.local.md in a directory that is an ancestor of a changed file (a directory's CLAUDE.md only applies to files at or below it).
-Read each one that exists, then check the diff for clear violations of the rules they state.
-Only flag a violation when you can quote the exact rule and the exact line that breaks it, with no style preferences and no vague "spirit of the doc" inferences.
-In the finding, name the CLAUDE.md path and quote the rule so the report can cite it.
-If no CLAUDE.md applies, return nothing for this angle.
 
 ### Shape of cleanup candidates
 

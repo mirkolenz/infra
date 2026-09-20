@@ -1,6 +1,8 @@
 ---
 name: smpl
-description: Reviews the changed code for reuse, simplification, efficiency, and altitude cleanups, then apply the fixes. Quality only, it does not hunt for bugs. Use when the user asks to simplify, clean up, or refactor a change.
+description: |
+  Reviews the changed code for reuse, simplification, efficiency, and altitude cleanups, then apply the fixes.
+  Quality only, it does not hunt for bugs. Use when the user asks to simplify, clean up, or refactor a change.
 ---
 
 You are improving the quality of the changed code, not hunting for bugs.
