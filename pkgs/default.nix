@@ -52,7 +52,8 @@ let
 
   # overlay-style fragments, each `final: prev: -> attrset`, composed in the order listed below:
   # every fragment sees the preceding ones in its `prev`, so hotfixes come last and apply on top
-  # of the packages the other fragments define.
+  # of the packages the other fragments define. `ports.nix` carries long-lived platform ports,
+  # `hotfixes.nix` only bugs with an upstream fix to track.
   # these shadow nixpkgs packages, so their update scripts would target the wrong source
   # fragments may also define non-derivation values such as `pythonPackagesExtensions`
   disableUpdateScripts = lib.mapAttrs (
@@ -63,6 +64,7 @@ let
     lib'.importOverlays [
       ./overrides/inputs.nix
       ./overrides/determinate.nix
+      ./overrides/ports.nix
       ./overrides/hotfixes.nix
     ] final prev
   );

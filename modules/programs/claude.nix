@@ -63,6 +63,21 @@
                 "github.com"
                 "api.github.com"
                 "raw.githubusercontent.com"
+                # the `lgl` skill reads the consolidated texts: eurlex resolves through
+                # eur-lex and downloads Formex from CELLAR, recht reads the German corpus
+                "eur-lex.europa.eu"
+                "publications.europa.eu"
+                "www.gesetze-im-internet.de"
+                # codes of practice and Commission guidelines
+                "digital-strategy.ec.europa.eu"
+                # the newsroom redirects those pdfs go through
+                "ec.europa.eu"
+                # EDPB guidelines and opinions
+                "www.edpb.europa.eu"
+                # BSI technical guidelines such as TR-03183
+                "www.bsi.bund.de"
+                # CJEU judgments
+                "curia.europa.eu"
                 # "pypi.org"
                 # "files.pythonhosted.org"
                 # "huggingface.co"
@@ -114,6 +129,10 @@
             # better results, but too many tokens
             # ANTHROPIC_DEFAULT_HAIKU_MODEL = "sonnet";
             ENABLE_CLAUDEAI_MCP_SERVERS = false;
+            # subagents fan out, so they dominate token spend. This is the fallback only:
+            # a spawn call and an agent's own `model` frontmatter both still win, and
+            # CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1 would be what overrides them
+            CLAUDE_CODE_SUBAGENT_MODEL = "sonnet";
             # suppresses the in-session rating/feedback survey popup
             CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = true;
             ASTRO_TELEMETRY_DISABLED = true;

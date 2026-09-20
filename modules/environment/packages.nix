@@ -33,7 +33,6 @@
         icloudpd
         rlwrap
         wol
-        ast-grep
         stress-ng
         fuc
         # json parsing

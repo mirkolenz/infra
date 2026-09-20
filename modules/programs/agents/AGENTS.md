@@ -15,13 +15,17 @@
 - Never add prefixes such as `uvx` or `npx` to commands in backticks in these instructions, use them verbatim.
 - I use `fish` as my login shell, not `bash` or `zsh`, make sure to use the correct syntax when running shell commands.
 
+## Internet
+
+- Exec `xh` for ad-hoc HTTP requests, not `curl` or `wget`.
+- Exec `gh` to interact with GitHub, not a built-in web fetch tool.
+
 ## Git
 
 - Read-only operations are always allowed.
 - Write operations such as `git commit` need explicit user permission.
 - Remote operations such as `git push` are always forbidden.
 - Use conventional commit messages with a concise title and an empty body.
-- Exec `gh` to interact with GitHub, not `curl` or a built-in web fetch tool.
 
 ## Source Code Files
 

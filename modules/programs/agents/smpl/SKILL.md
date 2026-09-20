@@ -1,55 +1,102 @@
 ---
 name: smpl
 description: |
-  Reviews the changed code for reuse, simplification, efficiency, and altitude cleanups, then apply the fixes.
-  Quality only, it does not hunt for bugs. Use when the user asks to simplify, clean up, or refactor a change.
+  Reviews the changed code, or the whole codebase, for reuse, simplification, efficiency, and altitude cleanups, then apply the fixes.
+  Quality only, it does not hunt for bugs. Use when the user asks to simplify, clean up, or refactor.
 ---
 
-You are improving the quality of the changed code, not hunting for bugs.
-Review it for reuse, simplification, efficiency, and altitude issues, then fix what you find.
-Do not look for correctness bugs, that is what the `rvw` skill is for.
+Improve the quality of the code and apply the fixes.
+Correctness is what the `rvw` skill is for, so leave it alone here.
 
-## Argument
+## Scope
 
-This skill takes an optional argument naming the review target: a PR number, a branch name, or a file path.
-Without an argument, review the current diff.
+The argument picks the target, which may be a diff, a PR, a branch, a path, or the whole tree, and defaults to the current diff including the working tree.
+Over a whole tree the goal is accumulated cruft rather than what a change just introduced, so rank by duplication and complexity first, then split it along the repository's own units, meaning a module, package or crate rather than a file.
+A unit is the smallest thing a helper can be shared within, so splitting finer than that hides the duplication the sweep is looking for.
+Give each unit to exactly one agent, and say which parts nobody reached.
+Fix in small self-contained edits rather than one sweeping rewrite.
 
-## Phase 0: Gather the diff
+## Tools
 
-Run `git diff @{upstream}...HEAD` (or `git diff main...HEAD` / `git diff HEAD~1` if there is no upstream) to get the unified diff under review.
-If there are uncommitted changes, or the range diff is empty, also run `git diff HEAD` and include the working-tree changes in scope, since the review often runs before the commit.
-If a PR number, branch name, or file path was passed as an argument, review that target instead.
-Treat this diff as the review scope.
+These are installed.
+Decide per tool whether to run it yourself and pass the output on, or to name it in an agent's prompt and let the agent run it.
+Running it once is right when several angles read the same expensive output.
+Delegating is right when the output is bulky and only one angle consumes it, since it then never enters your context.
+Either way, run what the languages present call for and record what was skipped.
 
-## Phase 1: Review (4 cleanup agents in parallel)
+```sh
+# ripwire: the layout, so an agent knows where the shared helpers already live
+ripwire .
 
-Launch **4 independent review agents**, all in a single message so they run concurrently.
-Pass each agent the diff and one of the four angles below.
-Each returns its findings with `file`, `line`, a one-line `summary`, and the concrete cost (what is duplicated, wasted, or harder to maintain).
+# jscpd: duplication, which is what turns a reuse candidate into a measurement.
+# covers 220 languages but has no nix tokenizer, so judge nix duplication by reading
+jscpd --min-tokens 50 <scope>
 
-### Reuse
+# scc, lizard: complexity per file and per function, so effort goes where it pays
+scc
+lizard
 
-Flag new code that re-implements something the codebase already has.
-Grep shared/utility modules and files adjacent to the change, and name the existing helper to call instead.
+# rust-code-analysis-cli: cognitive complexity, halstead metrics, maintainability index.
+# the better signal when cyclomatic complexity looks fine but the code still does not read that way
+rust-code-analysis-cli -m -O json -p <path>
 
-### Simplification
+# ast-grep: whether a shape the code introduces already exists elsewhere
+ast-grep run --pattern '<shape>' <path>
 
-Flag unnecessary complexity the diff adds: redundant or derivable state, copy-paste with slight variation, deep nesting, dead code left behind.
-Name the simpler form that does the same job.
+# knip, oxlint: typescript files and exports nothing uses, and simpler idioms
+knip
+oxlint --type-aware --type-check
 
-### Efficiency
+# ruff: python idioms. these rule sets are ports of pyupgrade, refurb and perflint
+uv run ruff check --select UP,FURB,PERF
 
-Flag wasted work the diff introduces: redundant computation or repeated I/O, independent operations run sequentially, blocking work added to startup or hot paths.
-Also flag long-lived objects built from closures or captured environments, since they keep the entire enclosing scope alive for the object's lifetime (a memory leak when that scope holds large values), and prefer a class/struct that copies only the fields it needs.
-Name the cheaper alternative.
+# perflint: the loop-invariant work ruff's PERF does not cover
+perflint <path>
 
-### Altitude
+# vulture, deptry: python code nothing reaches, and dependencies nothing imports
+vulture <path>
+deptry .
 
-Check that each change is implemented at the right depth, not as a fragile bandaid.
-Special cases layered on shared infrastructure are a sign the fix is not deep enough, so prefer generalizing the underlying mechanism over adding special cases.
+# golangci-lint: the go linter, which bundles revive and the staticcheck unused checker
+golangci-lint run
 
-## Phase 2: Apply the fixes
+# statix, deadnix: nix antipatterns and bindings nothing references
+statix check
+deadnix
 
-Wait for all four agents to complete, dedup findings that point at the same line or mechanism, and fix each remaining one directly.
-Skip any finding whose fix would change intended behavior, require changes well outside the reviewed diff, or that you judge to be a false positive, and note the skip rather than arguing with it.
-Finish with a brief summary of what was fixed and what was skipped, or confirm the code was already clean.
+# clippy, cargo-machete: the rust linter, and dependencies read straight from the sources
+cargo clippy
+cargo machete
+
+# cargo-udeps: the same question answered by building, so only when machete is contested
+cargo udeps
+
+# typos, harper-cli: spelling and grammar in comments and docs
+typos
+harper-cli lint <file>
+
+# lychee: links that no longer resolve
+lychee .
+```
+
+## Angles
+
+Cover every angle below.
+How many agents that takes is yours to choose: give one agent several angles when they read the same material, since the cost is in reading it twice, not in the extra angle.
+Skip an angle whose subject the target does not contain, and say which and why, so a quiet gap never reads as a clean run.
+
+- Reuse: code that re-implements something the repository already has, naming the existing helper to call instead.
+  Every `jscpd` clone pair is a candidate, so judge which side should become the shared one.
+- Simplification: redundant or derivable state, copy-paste with slight variation, deep nesting, dead code left behind.
+  Name the simpler form that does the same job.
+- Efficiency: redundant computation, repeated I/O, independent work run sequentially, blocking work on a hot path.
+  Long-lived objects built from closures keep the whole enclosing scope alive, so prefer a struct holding the fields it needs.
+- Altitude: fixes applied as bandaids.
+  Special cases layered on shared infrastructure mean the change is too shallow, so name the mechanism to generalize instead.
+
+## Output
+
+A finding names a file and line, states what is duplicated, wasted, or harder to maintain, and gives the better form.
+Apply each fix directly.
+Skip a fix that would change intended behavior, reach well outside the scope, or that you judge a false positive, and say so rather than arguing with it.
+Close with what was fixed, what was skipped, and which angles did not run and why, since this skill is meant to be run repeatedly and a run is only comparable to the last one if its gaps are stated.

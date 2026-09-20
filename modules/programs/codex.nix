@@ -36,6 +36,10 @@
             generate_memories = false;
             use_memories = false;
           };
+          # the main session runs sol at high effort, spawned agents fall back to this
+          # unless the spawn call names a model. `default_subagent_reasoning_effort`
+          # sits beside it if the effort should drop too
+          agents.default_subagent_model = "gpt-5.6-terra";
           # https://developers.openai.com/codex/permissions
           default_permissions = "workspace-net";
           permissions.workspace-net = {
@@ -68,6 +72,21 @@
                 "github.com" = "allow";
                 "api.github.com" = "allow";
                 "raw.githubusercontent.com" = "allow";
+                # the `lgl` skill reads the consolidated texts: eurlex resolves through
+                # eur-lex and downloads Formex from CELLAR, recht reads the German corpus
+                "eur-lex.europa.eu" = "allow";
+                "publications.europa.eu" = "allow";
+                "www.gesetze-im-internet.de" = "allow";
+                # codes of practice and Commission guidelines
+                "digital-strategy.ec.europa.eu" = "allow";
+                # the newsroom redirects those pdfs go through
+                "ec.europa.eu" = "allow";
+                # EDPB guidelines and opinions
+                "www.edpb.europa.eu" = "allow";
+                # BSI technical guidelines such as TR-03183
+                "www.bsi.bund.de" = "allow";
+                # CJEU judgments
+                "curia.europa.eu" = "allow";
                 # "pypi.org" = "allow";
                 # "files.pythonhosted.org" = "allow";
                 # "huggingface.co" = "allow";

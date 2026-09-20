@@ -48,7 +48,6 @@
         llm
         ghostscript
         # janice
-        harper
         protobuf-language-server
         touying
         mcp-proxy
