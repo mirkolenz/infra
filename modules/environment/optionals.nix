@@ -61,6 +61,7 @@
         zapp
         restic-browser
         todoist-cli
+        ripwire
         # markdown
         html2markdown
         md-tui

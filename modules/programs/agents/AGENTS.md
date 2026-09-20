@@ -1,5 +1,6 @@
 ## General
 
+- Always answer in a concise/executive summary/tl;dr style, I will ask for things that need further details or explanations.
 - Always find the most simple, elegant, robust, reliable, and efficient solution to a problem and try to minimize the amount of code.
 - Always follow best practices and never introduce unnecessary complexity, hacky workarounds, or ugly shortcuts that may cause technical debt or maintenance issues in the future.
 - Identify shared patterns and abstractions between different parts of the code and refactor them into reusable functions to increase consistency and reduce duplication.
@@ -18,7 +19,8 @@
 
 - Read-only operations are always allowed.
 - Write operations such as `git commit` need explicit user permission.
-- Remove operations such as `git commit` are always forbidden.
+- Remote operations such as `git push` are always forbidden.
+- Use conventional commit messages with a concise title and an empty body.
 - Exec `gh` to interact with GitHub, not `curl` or a built-in web fetch tool.
 
 ## Source Code Files
@@ -26,6 +28,7 @@
 - Keep blocks such as if/while/for/try/match/return separated by blank lines from the surrounding code to improve readability.
 - When writing plain text, use one newline to separate sentences and two newlines to separate paragraphs: txt, md, tex, typ, rst, ...
 - Never run formatters or auto-fixing linters automatically, only when explicitly needed.
+- Exec `ripwire .` to orient yourself in a repository.
 
 ## Dependencies
 
