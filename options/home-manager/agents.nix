@@ -18,20 +18,21 @@ in
   options.programs.agents = {
     enable = lib.mkEnableOption "agents";
 
-    instructions = lib.mkOption {
+    instructions.source = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
       default = null;
       example = lib.literalExpression "./AGENTS.md";
-      description = "Markdown file with shared instructions, deployed to every configured agent as AGENTS.md and its equivalents.";
+      description = "Path to a markdown file with shared instructions, deployed to every configured agent as AGENTS.md and its equivalents.";
     };
 
-    skills = lib.mkOption {
+    skills.source = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
       default = null;
       example = lib.literalExpression "./skills";
       description = ''
-        Directory of Agent Skills (https://agentskills.io/specification) deployed to every
-        configured agent, holding one directory per skill, each with its own `SKILL.md`.
+        Path to a directory of Agent Skills (https://agentskills.io/specification), holding
+        one directory per skill, each with its own `SKILL.md`, deployed to every configured
+        agent.
       '';
     };
 
@@ -110,25 +111,25 @@ in
 
   config = lib.mkIf cfg.enable (
     lib.mkMerge [
-      (lib.mkIf (cfg.instructions != null) {
-        xdg.configFile = mkFiles cfg.instructions [
+      (lib.mkIf (cfg.instructions.source != null) {
+        xdg.configFile = mkFiles cfg.instructions.source [
           "amp/AGENTS.md"
           "crush/CRUSH.md"
           "opencode/AGENTS.md"
         ];
-        home.file = mkFiles cfg.instructions [
+        home.file = mkFiles cfg.instructions.source [
           ".claude/CLAUDE.md"
           ".codex/AGENTS.md"
           ".gemini/GEMINI.md"
           ".vibe/AGENTS.md"
         ];
       })
-      (lib.mkIf (cfg.skills != null) {
-        xdg.configFile = mkFiles cfg.skills [
+      (lib.mkIf (cfg.skills.source != null) {
+        xdg.configFile = mkFiles cfg.skills.source [
           "agents/skills" # amp
           "opencode/skills"
         ];
-        home.file = mkFiles cfg.skills [
+        home.file = mkFiles cfg.skills.source [
           ".claude/skills"
           ".agents/skills" # codex
           ".gemini/skills"

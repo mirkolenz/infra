@@ -10,7 +10,8 @@
     {
       programs.agents = {
         enable = true;
-        instructions = ./AGENTS.md;
+        instructions.source = ./AGENTS.md;
+        skills.source = lib.mkIf config.custom.features.extras.enable ./skills;
         sandbox = {
           allowedDomains = [
             "github.com"
@@ -86,8 +87,6 @@
             NIX_SENTRY_ENDPOINT = "";
           };
         };
-
-        skills = lib.mkIf config.custom.features.extras.enable ./skills;
       };
     };
 }
