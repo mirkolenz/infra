@@ -744,7 +744,7 @@ def update_pkgs(
         message = "chore(deps/pkgs): update"
 
         if bumps:
-            message += "\n\nPackage updates:\n\n" + "\n".join(bumps)
+            message += "\n\nPackage updates:\n\n" + "\n".join(bumps) + "\n"
 
         commit_pkgs(cfg.git_exe, message)
 
