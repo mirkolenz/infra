@@ -4,6 +4,7 @@
     opts = {
       autoindent = true;
       breakindent = true;
+      breakindentopt = "shift:2"; # indent wrapped lines by two spaces
       cmdheight = 0; # only really usable under ui2, see lua/ui2.lua
       confirm = true;
       cursorline = true;
