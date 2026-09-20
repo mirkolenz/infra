@@ -1,7 +1,8 @@
 ---
-name: lcns
+name: my-license
 description: |
-  Audits a repository for license, copyright, and patent violations across first-party code and its dependencies.
+  Audits license, copyright, and patent compliance across first-party code and its dependencies.
+  The argument names the target and defaults to uncommitted changes.
   Use when the user asks for a license audit, a compliance check, or an attribution review.
 ---
 
@@ -10,7 +11,7 @@ Every finding cites tool output and names the obligation that is breached, and a
 
 ## Scope
 
-The argument names the target, defaulting to the repository root.
+The argument names the target and defaults to uncommitted changes: a commit, a range, a branch or a pull request puts you in diff mode, a path or the whole tree in file mode.
 Fix the outbound license first from `LICENSE`, `REUSE.toml` and the package manifest, since every finding is judged against it.
 Both first-party code and every shipped dependency are in scope.
 

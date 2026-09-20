@@ -1,7 +1,8 @@
 ---
-name: rvw
+name: my-review
 description: |
-  Reviews the current diff, a PR number, branch, or path, or the whole codebase, for correctness bugs plus reuse, simplification, efficiency, altitude, and convention cleanups, then report the findings.
+  Reviews code for correctness bugs plus reuse, simplification, efficiency, altitude, and convention cleanups, then reports the findings.
+  The argument names the target and defaults to uncommitted changes.
   Use when the user asks to review code or a pull request.
 ---
 
@@ -10,8 +11,8 @@ Review for recall: a missed bug ships, so an uncertain finding costs less than a
 
 ## Scope
 
-The argument picks the target, which may be a diff, a PR, a branch, a path, or the whole tree, and defaults to the current diff including the working tree.
-A touched function is in scope as a whole, since the bug may sit in a line the diff left alone.
+The argument names the target and defaults to uncommitted changes: a commit, a range, a branch or a pull request puts you in diff mode, a path or the whole tree in file mode.
+In diff mode a touched function is in scope whole, since the bug may sit in an untouched line.
 Over a whole tree, rank by complexity and churn first, then split it along the repository's own units, meaning a module, package or crate rather than a file, so an agent sees a unit whole and can still follow a call across it.
 Give each unit to exactly one agent, and say which parts nobody reached.
 
@@ -106,7 +107,7 @@ Let the same line be flagged twice for different reasons, whether by one agent o
 - Cross-file impact: whether a new precondition, return shape, exception, or ordering dependency breaks the callers, and the reverse for the callees.
   Wrappers such as caches, proxies and adapters are where this hides.
 - Cleanup: what the repository already has, complexity that is derivable or dead, wasted work, and fixes applied as special cases where the mechanism should generalize.
-  The `smpl` skill goes deeper on this.
+  The `my-simplify` skill goes deeper on this.
 - Conventions: the code against AGENTS.md and its surroundings, naming the rule that is broken.
 
 ## Output

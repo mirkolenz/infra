@@ -1,17 +1,18 @@
 ---
-name: lgl
+name: my-legal
 description: |
-  Reviews a repository's documents and source code against German and EU law, covering data protection, the AI Act, the Cyber Resilience Act, contract terms, and copyright.
+  Reviews documents and source code against German and EU law, covering data protection, the AI Act, the Cyber Resilience Act, contract terms, and copyright.
+  The argument names the target and defaults to uncommitted changes.
   Use when the user asks for a legal or regulatory compliance review.
 ---
 
-Review a repository for legal compliance, over prose documents and over the code that implements what they promise.
+Review the target for legal compliance, over prose documents and over the code that implements what they promise.
 Every finding cites the norm it rests on, fetched from an official source in this session.
 A citation you did not fetch is a finding you must not make.
 
 ## Scope
 
-The argument names the target, defaulting to the repository root.
+The argument names the target and defaults to uncommitted changes: a commit, a range, a branch or a pull request puts you in diff mode, a path or the whole tree in file mode.
 Documents (`md`, `typ`, `tex`, `rst`, `txt`, `pdf`) and source carry different obligations, so treat them as two sets.
 Markup can hide a clause, so read documents as text with `pandoc`, and render with `typst compile` or `latexmk` where the output differs.
 A norm several angles rest on is worth fetching once and sharing, rather than each agent retrieving it again.
@@ -71,7 +72,7 @@ lychee .
 typos
 harper-cli lint <file>
 
-# the lcns skill owns licence detection and the compatibility verdict, so review what its
+# the my-license skill owns licence detection and the compatibility verdict, so review what its
 # findings mean in law rather than repeating them
 ```
 
@@ -167,7 +168,7 @@ Skip an angle whose subject the target does not contain, and say which and why, 
 - AI obligations: the system classified under the KI-VO, against Art 5 prohibited practices, the Annex III high-risk triggers, the Art 50 transparency duties for generated content, and the GPAI duties in Chapter V.
   State which application date binds, since the regulation phases in.
 - Product cybersecurity: the CRA and NIS2 duties that are documents rather than code, meaning the declaration of conformity, CE marking, Annex VII technical documentation and the Art 14 reporting path.
-  The `scrty` skill owns the scanning.
+  The `my-security` skill owns the scanning.
 - Contract terms: licences, terms of service and any AGB against BGB 305 to 310 and UWG.
   Apply the blue pencil test, since German AGB law allows no reduction to the permissible extent, so a clause survives only if the invalid part can be struck without rewriting the rest and a single overbroad limb voids the whole.
   Liability caps, unilateral change rights, and choice of law or venue a consumer contract cannot carry.

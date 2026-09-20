@@ -11,6 +11,7 @@
       programs.agents = {
         enable = true;
         instructions.source = ./AGENTS.md;
+        skills.source = lib.mkIf config.custom.features.extras.enable ./skills;
         sandbox = {
           allowedDomains = [
             "github.com"
@@ -20,7 +21,7 @@
             "*.nixos.org"
             "*.cachix.org"
             "*.flakehub.com"
-            # lgl skill
+            # my-legal skill
             "eur-lex.europa.eu"
             "publications.europa.eu"
             "www.gesetze-im-internet.de"
@@ -86,15 +87,6 @@
             NIX_SENTRY_ENDPOINT = "";
           };
         };
-
-        skills = lib.mkIf config.custom.features.extras.enable (
-          lib.concatMapAttrs (
-            name: _:
-            lib.optionalAttrs (lib.pathExists (./. + "/${name}/SKILL.md")) {
-              ${name}.source = ./. + "/${name}";
-            }
-          ) (lib.readDir ./.)
-        );
       };
     };
 }

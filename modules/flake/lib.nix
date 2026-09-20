@@ -55,69 +55,6 @@
       };
     mkVimKeymaps = opts: values: map (mkVimKeymap opts) values;
 
-    # Render markdown with optional JSON frontmatter (a valid subset of YAML).
-    mkMarkdown =
-      {
-        metadata ? { },
-        body ? "",
-      }:
-      if metadata == { } then
-        body
-      else
-        ''
-          ---
-          ${lib.strings.toJSON metadata}
-          ---
-
-          ${body}
-        '';
-
-    mdFormat = lib.types.submodule (
-      { config, ... }:
-      {
-        options = {
-          source = lib.mkOption {
-            type = lib.types.nullOr lib.types.path;
-            default = null;
-            description = "Complete markdown file, including its own frontmatter, used verbatim instead of the structured options.";
-          };
-          metadata = lib.mkOption {
-            type =
-              # https://github.com/NixOS/nixpkgs/blob/130323cfcfdfe3a28da4f9ca4593f053f07c7487/pkgs/pkgs-lib/formats.nix#L125C7-L141C19
-              with lib.types;
-              let
-                valueType =
-                  nullOr (oneOf [
-                    bool
-                    int
-                    float
-                    str
-                    path
-                    (attrsOf valueType)
-                    (listOf valueType)
-                  ])
-                  // {
-                    description = "JSON value";
-                  };
-              in
-              valueType;
-            default = { };
-            description = "Frontmatter for the markdown file, written as JSON (a valid subset of YAML).";
-          };
-          body = lib.mkOption {
-            type = lib.types.lines;
-            default = "";
-            description = "Markdown content for the file.";
-          };
-          text = lib.mkOption {
-            type = lib.types.str;
-            readOnly = true;
-          };
-        };
-        config.text = mkMarkdown { inherit (config) metadata body; };
-      }
-    );
-
     # Symlink a file to its live location in the checked-out config repo
     # (`config.custom.configPath`) rather than the read-only store, so edits take
     # effect without a rebuild. `value` is a path within this repo; its prefix

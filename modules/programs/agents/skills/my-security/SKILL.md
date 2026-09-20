@@ -1,7 +1,8 @@
 ---
-name: scrty
+name: my-security
 description: |
-  Audits a repository for security issues relevant under the EU Cyber Resilience Act, covering first-party code, dependencies, and the shipped bill of materials.
+  Audits security under the EU Cyber Resilience Act, covering first-party code, dependencies, and the shipped bill of materials.
+  The argument names the target and defaults to uncommitted changes.
   Use when the user asks for a security audit, a CRA review, or a vulnerability scan.
 ---
 
@@ -10,7 +11,7 @@ Every finding cites tool output, never a guess, and a command that could not run
 
 ## Scope
 
-The argument names the target, defaulting to the repository root.
+The argument names the target and defaults to uncommitted changes: a commit, a range, a branch or a pull request puts you in diff mode, a path or the whole tree in file mode.
 Both the first-party code and everything it ships are in scope, so the bill of materials is the starting artifact rather than an afterthought.
 
 ## Tools

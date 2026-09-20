@@ -1,96 +1,16 @@
 {
   lib,
-  lib',
   config,
-  pkgs,
   ...
 }:
 let
   cfg = config.programs.agents;
 
-  # https://agentskills.io/specification
-  skillModule =
-    { name, config, ... }:
-    {
-      options = {
-        name = lib.mkOption {
-          type = lib.types.strMatching "[a-z0-9]+(-[a-z0-9]+)*";
-          default = name;
-          description = "Skill identifier; defaults to the attribute name and must match the skill directory name.";
-        };
-        source = lib.mkOption {
-          type = lib.types.path;
-          default = pkgs.writeTextDir "SKILL.md" (mkSkillMd config);
-          description = "Skill directory holding `SKILL.md`; generated from the remaining options unless set to an existing directory.";
-        };
-        description = lib.mkOption {
-          type = lib.types.str;
-          description = "What the skill does and when to use it; loaded eagerly by agents to decide activation.";
-        };
-        license = lib.mkOption {
-          type = lib.types.nullOr lib.types.str;
-          default = null;
-        };
-        compatibility = lib.mkOption {
-          type = lib.types.nullOr lib.types.str;
-          default = null;
-          description = "Environment requirements; only set when the skill needs specific tools, packages, or network access.";
-        };
-        allowedTools = lib.mkOption {
-          type = lib.types.listOf lib.types.str;
-          default = [ ];
-          description = "Pre-approved tools, rendered as the experimental space-separated `allowed-tools` field.";
-        };
-        metadata = lib.mkOption {
-          type = lib.types.attrsOf lib.types.str;
-          default = { };
-        };
-        text = lib.mkOption {
-          type = lib.types.lines;
-          description = "Markdown body of `SKILL.md` following the generated frontmatter.";
-        };
-      };
-    };
-
-  mkSkillMd =
-    skill:
-    lib'.mkMarkdown {
-      body = skill.text;
-      metadata = {
-        inherit (skill) name description;
-      }
-      // lib.optionalAttrs (skill.license != null) { inherit (skill) license; }
-      // lib.optionalAttrs (skill.compatibility != null) { inherit (skill) compatibility; }
-      // lib.optionalAttrs (skill.allowedTools != [ ]) {
-        allowed-tools = lib.concatStringsSep " " skill.allowedTools;
-      }
-      // lib.optionalAttrs (skill.metadata != { }) { inherit (skill) metadata; };
-    };
-
-  mkSkills =
-    prefix:
-    lib.mapAttrs' (
-      name: skill: lib.nameValuePair "${prefix}/${name}" { inherit (skill) source; }
-    ) cfg.skills;
-
-  # A literal source ships its own frontmatter, so guard against the name it
-  # declares drifting from the directory the skill is deployed to. Generated
-  # sources are derivations, which cannot be read without import-from-derivation
-  # and whose frontmatter is rendered from `name` anyway.
-  mkSkillAssertion = name: skill: {
-    assertion =
-      lib.isDerivation skill.source
-      || lib.hasInfix "\nname: ${name}\n" (lib.readFile (skill.source + "/SKILL.md"));
-    message = "programs.agents.skills.${name}: source must be a directory whose SKILL.md declares `name: ${name}`.";
-  };
-
-  # A literal source is linked as is, structured instructions are rendered once
-  # and shared by every target.
-  instructionsFile.source =
-    if cfg.instructions.source != null then
-      cfg.instructions.source
-    else
-      pkgs.writeText "AGENTS.md" cfg.instructions.text;
+  mkFiles =
+    source: targets:
+    lib.genAttrs targets (_: {
+      inherit source;
+    });
 in
 {
   meta.maintainers = with lib.maintainers; [ mirkolenz ];
@@ -98,16 +18,22 @@ in
   options.programs.agents = {
     enable = lib.mkEnableOption "agents";
 
-    instructions = lib.mkOption {
-      type = lib.types.nullOr lib'.mdFormat;
+    instructions.source = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
       default = null;
-      description = "Shared instructions (AGENTS.md and equivalents) deployed to every configured agent.";
+      example = lib.literalExpression "./AGENTS.md";
+      description = "Path to a markdown file with shared instructions, deployed to every configured agent as AGENTS.md and its equivalents.";
     };
 
-    skills = lib.mkOption {
-      type = lib.types.attrsOf (lib.types.submodule skillModule);
-      default = { };
-      description = "Agent Skills (https://agentskills.io/specification) deployed to every configured agent.";
+    skills.source = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
+      default = null;
+      example = lib.literalExpression "./skills";
+      description = ''
+        Path to a directory of Agent Skills (https://agentskills.io/specification), holding
+        one directory per skill, each with its own `SKILL.md`, deployed to every configured
+        agent.
+      '';
     };
 
     sandbox = {
@@ -185,36 +111,30 @@ in
 
   config = lib.mkIf cfg.enable (
     lib.mkMerge [
-      (lib.mkIf (cfg.instructions != null) {
-        xdg.configFile = lib.genAttrs [
+      (lib.mkIf (cfg.instructions.source != null) {
+        xdg.configFile = mkFiles cfg.instructions.source [
           "amp/AGENTS.md"
           "crush/CRUSH.md"
           "opencode/AGENTS.md"
-        ] (_: instructionsFile);
-        home.file = lib.genAttrs [
+        ];
+        home.file = mkFiles cfg.instructions.source [
           ".claude/CLAUDE.md"
           ".codex/AGENTS.md"
           ".gemini/GEMINI.md"
           ".vibe/AGENTS.md"
-        ] (_: instructionsFile);
+        ];
       })
-      (lib.mkIf (cfg.skills != { }) {
-        assertions = lib.mapAttrsToList mkSkillAssertion cfg.skills;
-
-        xdg.configFile = lib.mergeAttrsList (
-          map mkSkills [
-            "agents/skills" # amp
-            "opencode/skills"
-          ]
-        );
-        home.file = lib.mergeAttrsList (
-          map mkSkills [
-            ".claude/skills"
-            ".agents/skills" # codex
-            ".gemini/skills"
-            ".vibe/skills"
-          ]
-        );
+      (lib.mkIf (cfg.skills.source != null) {
+        xdg.configFile = mkFiles cfg.skills.source [
+          "agents/skills" # amp
+          "opencode/skills"
+        ];
+        home.file = mkFiles cfg.skills.source [
+          ".claude/skills"
+          ".agents/skills" # codex
+          ".gemini/skills"
+          ".vibe/skills"
+        ];
       })
     ]
   );
