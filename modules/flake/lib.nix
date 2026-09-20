@@ -25,7 +25,7 @@
       };
     systemOs = system: lib.last (lib.splitString "-" system);
     # return [ path ] if it exists, otherwise [ ]
-    optionalPath = path: if builtins.pathExists path then [ path ] else [ ];
+    optionalPath = path: if lib.pathExists path then [ path ] else [ ];
     # resolved nix daemon socket path as a sandbox sees it after symlink resolution.
     # on darwin determinate-nixd symlinks the default /nix/var/nix/daemon-socket/socket
     # to /var/run/nix-daemon.socket, which the /var firmlink resolves to /private/var/run.

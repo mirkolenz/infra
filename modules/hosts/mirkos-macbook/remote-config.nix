@@ -22,7 +22,7 @@
         lib.optionalAttrs (lib.hasSuffix ".json" name) {
           ".config/zed/${name}" = zedDir + "/${name}";
         }
-      ) (builtins.readDir zedDir);
+      ) (lib.readDir zedDir);
     in
     {
       system.build.remoteConfig = pkgs.linkFarm "mirkos-macbook-remote-config" (

@@ -8,7 +8,7 @@
 let
   # dependencies missing from nixpkgs, added to the python scope so that they share the interpreter
   # and package set with the application itself
-  vendoredNames = map (lib.removeSuffix ".nix") (lib.attrNames (builtins.readDir ./python-modules));
+  vendoredNames = map (lib.removeSuffix ".nix") (lib.attrNames (lib.readDir ./python-modules));
   pythonPackages = python3Packages.overrideScope (
     final: _:
     lib.genAttrs vendoredNames (name: final.callPackage (./python-modules + "/${name}.nix") { })

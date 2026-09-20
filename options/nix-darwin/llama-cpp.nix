@@ -111,7 +111,7 @@ in
           (lib.getExe' cfg.package "llama-server")
         ]
         ++ lib.cli.toCommandLine (optionName: {
-          option = if builtins.stringLength optionName > 1 then "--${optionName}" else "-${optionName}";
+          option = if lib.stringLength optionName > 1 then "--${optionName}" else "-${optionName}";
           sep = null;
           explicitBool = false;
           formatArg = lib.generators.mkValueStringDefault { };
