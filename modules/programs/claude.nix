@@ -136,6 +136,13 @@
             # suppresses the in-session rating/feedback survey popup
             CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = true;
             ASTRO_TELEMETRY_DISABLED = true;
+            # node ships undici as the global `fetch`, which ignores http_proxy and
+            # https_proxy unless this is set. The sandbox routes every connection
+            # through such a proxy, so without it any node client that uses `fetch`,
+            # `eurlex` among them, fails with a bare "fetch failed".
+            # node parses this one as a flag value and accepts only "1",
+            # a boolean would render as "true" and be ignored.
+            NODE_USE_ENV_PROXY = "1";
             # determinate-nix spawns a sentry crashpad_handler that cannot register its
             # mach bootstrap port inside the sandbox, so disable it to avoid stderr noise
             NIX_SENTRY_ENDPOINT = "";
