@@ -4,6 +4,30 @@ final: prev:
   # that python 3.14 forwards to `add_parser()`. Fixed upstream in latexminted 0.7.0, which only
   # ships with texlive 2026. https://github.com/NixOS/nixpkgs/issues/542483
   texlive = prev.texlive.override { python3 = final.python313; };
+
+  # ripwire 0.5.0 only points the C toolchain at the wrapped ar/ranlib, so the C++ targets keep the
+  # host ones and fail to link on darwin. Backport the 0.6.1 bump, which sets the matching
+  # CMAKE_CXX_COMPILER_AR/RANLIB flags. https://github.com/NixOS/nixpkgs/pull/564985
+  ripwire = prev.ripwire.overrideAttrs (
+    finalAttrs: prevAttrs:
+    prev.lib.optionalAttrs (prevAttrs.version == "0.5.0") {
+      version = "0.6.1";
+
+      src = final.fetchFromGitHub {
+        owner = "redhat-et";
+        repo = "ripwire";
+        tag = "v${finalAttrs.version}";
+        hash = "sha256-2a4J9lS0rdJyhkXkpQSkFrSf+NsMyeI2mJJNIYvgA8Y=";
+      };
+
+      preConfigure =
+        (prevAttrs.preConfigure or "")
+        + prev.lib.optionalString prev.stdenv.hostPlatform.isDarwin ''
+          prependToVar cmakeFlags "-DCMAKE_CXX_COMPILER_AR=$(command -v $AR)"
+          prependToVar cmakeFlags "-DCMAKE_CXX_COMPILER_RANLIB=$(command -v $RANLIB)"
+        '';
+    }
+  );
 }
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
 
