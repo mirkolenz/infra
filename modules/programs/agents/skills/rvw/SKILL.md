@@ -9,13 +9,10 @@ description: |
 Find the real bugs in the code under review, and say what breaks and how.
 Review for recall: a missed bug ships, so an uncertain finding costs less than a dropped one.
 
-## Target
-
-Read [references/target.md](references/target.md) first.
-It maps the argument to the target, defaulting to uncommitted changes, and says whether to work from a structured diff or from raw files.
-
 ## Scope
 
+The argument names the target and defaults to uncommitted changes: read a commit, a range, a branch or a pull request as a diff, and a path or the whole tree as raw files.
+A touched function is in scope as a whole, since the bug may sit in a line the diff left alone.
 Over a whole tree, rank by complexity and churn first, then split it along the repository's own units, meaning a module, package or crate rather than a file, so an agent sees a unit whole and can still follow a call across it.
 Give each unit to exactly one agent, and say which parts nobody reached.
 

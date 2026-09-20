@@ -7,24 +7,10 @@
       pkgs,
       ...
     }:
-    let
-      # Skills share sections such as the target argument. The specification carries
-      # those in `references/`, read on demand through a path relative to the skill
-      # root, and a path leaving the skill directory is out of reach (gemini grants a
-      # skill its own directory and nothing else). So the shared references are
-      # written once here and copied into every skill.
-      skills = pkgs.runCommandLocal "agent-skills" { } ''
-        cp -r --no-preserve=mode ${./skills} $out
-        for skill in $out/*/; do
-          mkdir -p "$skill/references"
-          cp -r --no-preserve=mode ${./references}/. "$skill/references/"
-        done
-      '';
-    in
     {
       programs.agents = {
         enable = true;
-        instructions.source = ./AGENTS.md;
+        instructions = ./AGENTS.md;
         sandbox = {
           allowedDomains = [
             "github.com"
@@ -101,7 +87,7 @@
           };
         };
 
-        skills = lib.mkIf config.custom.features.extras.enable skills;
+        skills = lib.mkIf config.custom.features.extras.enable ./skills;
       };
     };
 }

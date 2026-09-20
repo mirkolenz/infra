@@ -10,13 +10,9 @@ Review the target for legal compliance, over prose documents and over the code t
 Every finding cites the norm it rests on, fetched from an official source in this session.
 A citation you did not fetch is a finding you must not make.
 
-## Target
-
-Read [references/target.md](references/target.md) first.
-It maps the argument to the target, defaulting to uncommitted changes, and says whether to work from a structured diff or from raw files.
-
 ## Scope
 
+The argument names the target and defaults to uncommitted changes: read a commit, a range, a branch or a pull request as a diff, and a path or the whole tree as raw files.
 Documents (`md`, `typ`, `tex`, `rst`, `txt`, `pdf`) and source carry different obligations, so treat them as two sets.
 Markup can hide a clause, so read documents as text with `pandoc`, and render with `typst compile` or `latexmk` where the output differs.
 A norm several angles rest on is worth fetching once and sharing, rather than each agent retrieving it again.

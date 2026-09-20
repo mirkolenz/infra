@@ -9,13 +9,9 @@ description: |
 Judge whether the product may legally be distributed under the license it claims.
 Every finding cites tool output and names the obligation that is breached, and a command that could not run leaves the claim unproven.
 
-## Target
-
-Read [references/target.md](references/target.md) first.
-It maps the argument to the target, defaulting to uncommitted changes, and says whether to work from a structured diff or from raw files.
-
 ## Scope
 
+The argument names the target and defaults to uncommitted changes: read a commit, a range, a branch or a pull request as a diff, and a path or the whole tree as raw files.
 Fix the outbound license first from `LICENSE`, `REUSE.toml` and the package manifest, since every finding is judged against it.
 Both first-party code and every shipped dependency are in scope.
 

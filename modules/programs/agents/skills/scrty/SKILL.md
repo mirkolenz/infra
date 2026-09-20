@@ -9,13 +9,9 @@ description: |
 Judge a product against CRA Annex I, Part I (security properties) and Part II (vulnerability handling).
 Every finding cites tool output, never a guess, and a command that could not run is itself a gap in the evidence.
 
-## Target
-
-Read [references/target.md](references/target.md) first.
-It maps the argument to the target, defaulting to uncommitted changes, and says whether to work from a structured diff or from raw files.
-
 ## Scope
 
+The argument names the target and defaults to uncommitted changes: read a commit, a range, a branch or a pull request as a diff, and a path or the whole tree as raw files.
 Both the first-party code and everything it ships are in scope, so the bill of materials is the starting artifact rather than an afterthought.
 
 ## Tools
