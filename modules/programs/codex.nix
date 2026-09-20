@@ -7,6 +7,9 @@
       pkgs,
       ...
     }:
+    let
+      agents = config.programs.agents;
+    in
     lib.mkIf config.custom.features.extras.enable {
       programs.codex = {
         enable = true;
@@ -50,57 +53,24 @@
               ":workspace_roots" = {
                 ".git" = "write";
               };
-              "/nix" = "read";
-              "${config.home.homeDirectory}/.npm" = "write";
-              "${config.home.homeDirectory}/Library/Caches" = "write";
-              "${config.xdg.cacheHome}" = "write";
+              # tool state codex reads that the other agents reach through their
+              # broader default read access
               "${config.xdg.configHome}/gh" = "read";
               "${config.xdg.configHome}/git" = "read";
               "${config.xdg.configHome}/uv" = "read";
-              "${config.xdg.configHome}/.wrangler/logs" = "write";
-              # deny wins over the read granted by :workspace, keeping ssh keys unreadable
-              "${config.home.homeDirectory}/.ssh" = "deny";
-            };
-            # orb stores logs, sockets, and state here and reads them on every call, darwin only
-            # // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
-            #   "${config.home.homeDirectory}/.orbstack" = "write";
-            # };
+            }
+            # deny wins over the read granted by :workspace, keeping ssh keys unreadable
+            // agents.sandbox.paths;
             network = {
               enabled = true;
               allow_local_binding = true;
-              domains = {
-                "github.com" = "allow";
-                "api.github.com" = "allow";
-                "raw.githubusercontent.com" = "allow";
-                # the `lgl` skill reads the consolidated texts: eurlex resolves through
-                # eur-lex and downloads Formex from CELLAR, recht reads the German corpus
-                "eur-lex.europa.eu" = "allow";
-                "publications.europa.eu" = "allow";
-                "www.gesetze-im-internet.de" = "allow";
-                # codes of practice and Commission guidelines
-                "digital-strategy.ec.europa.eu" = "allow";
-                # the newsroom redirects those pdfs go through
-                "ec.europa.eu" = "allow";
-                # EDPB guidelines and opinions
-                "www.edpb.europa.eu" = "allow";
-                # BSI technical guidelines such as TR-03183
-                "www.bsi.bund.de" = "allow";
-                # CJEU judgments
-                "curia.europa.eu" = "allow";
-                # "pypi.org" = "allow";
-                # "files.pythonhosted.org" = "allow";
-                # "huggingface.co" = "allow";
-                # "registry.npmjs.org" = "allow";
-                # "api.npmjs.org" = "allow";
-                # "ui.shadcn.com" = "allow";
-              };
-              unix_sockets = {
-                ${lib'.nixDaemonSocket pkgs.stdenv} = "allow";
-              };
-              # orb talks to the OrbStack daemon over the sockets under this dir, darwin only
-              # // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
-              #   "${config.home.homeDirectory}/.orbstack/run" = "allow";
-              # };
+              # Codex has no counterpart to claude's `strictAllowlist`: the one switch that
+              # would let it ask for a host beyond this list is `sandbox_approval`, which
+              # also reopens `require_escalated`, so the list stays the whole boundary.
+              domains =
+                lib.genAttrs agents.sandbox.allowedDomains (_: "allow")
+                // lib.genAttrs agents.sandbox.deniedDomains (_: "deny");
+              unix_sockets = lib.genAttrs agents.sandbox.allowedUnixSockets (_: "allow");
             };
           };
           tui = {
@@ -113,18 +83,8 @@
             hide_rate_limit_model_nudge = true;
           };
           shell_environment_policy = {
-            # Dropping SSH_AUTH_SOCK only removes an agent handed over through the
-            # environment, a forwarded one above all. It does not cover the 1Password
-            # agent, whose socket ssh takes from `IdentityAgent` in ssh_config, which
-            # overrides the variable; the unix_sockets allowlist above is what puts that
-            # out of reach. Kept for whenever an agent arrives by environment again.
-            filters.SSH_AUTH_SOCK = "exclude";
-            set = {
-              ASTRO_TELEMETRY_DISABLED = "1";
-              # determinate-nix spawns a sentry crashpad_handler that cannot register its
-              # mach bootstrap port inside the sandbox, so disable it to avoid stderr noise
-              NIX_SENTRY_ENDPOINT = "";
-            };
+            filters = lib.genAttrs agents.sandbox.deniedEnvVars (_: "exclude");
+            set = agents.sandbox.sessionVariables;
           };
           desktop = {
             followUpQueueMode = "queue";

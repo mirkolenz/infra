@@ -4,10 +4,17 @@
       config,
       pkgs,
       lib,
-      lib',
       ...
     }:
     let
+      agents = config.programs.agents;
+
+      pathsWith = access: lib.attrNames (lib.filterAttrs (_: a: a == access) agents.sandbox.paths);
+
+      # Absolute paths need the `//` prefix, otherwise a rule is read as relative
+      # to the project root.
+      mkReadRule = path: "Read(/${path}/**)";
+
       knownMarketplaces = {
         claude-plugins-official = {
           source = "github";
@@ -51,70 +58,24 @@
             enableWeakerNetworkIsolation = true;
             network = {
               allowLocalBinding = true;
-              strictAllowlist = true;
-              allowUnixSockets = [
-                (lib'.nixDaemonSocket pkgs.stdenv)
-              ];
-              # orb talks to the OrbStack daemon over the sockets under this dir, darwin only
-              # ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
-              #   "${config.home.homeDirectory}/.orbstack/run"
-              # ];
-              allowedDomains = [
-                "github.com"
-                "api.github.com"
-                "raw.githubusercontent.com"
-                # the `lgl` skill reads the consolidated texts: eurlex resolves through
-                # eur-lex and downloads Formex from CELLAR, recht reads the German corpus
-                "eur-lex.europa.eu"
-                "publications.europa.eu"
-                "www.gesetze-im-internet.de"
-                # codes of practice and Commission guidelines
-                "digital-strategy.ec.europa.eu"
-                # the newsroom redirects those pdfs go through
-                "ec.europa.eu"
-                # EDPB guidelines and opinions
-                "www.edpb.europa.eu"
-                # BSI technical guidelines such as TR-03183
-                "www.bsi.bund.de"
-                # CJEU judgments
-                "curia.europa.eu"
-                # "pypi.org"
-                # "files.pythonhosted.org"
-                # "huggingface.co"
-                # "registry.npmjs.org"
-                # "api.npmjs.org"
-                # "ui.shadcn.com"
-              ];
+              allowUnixSockets = agents.sandbox.allowedUnixSockets;
+              # `strictAllowlist` is deliberately unset: it would make this list the whole
+              # allowlist and have claude refuse the per-command host lists that auto mode
+              # sends through the classifier, turning every unforeseen host into a dead end.
+              inherit (agents.sandbox) allowedDomains deniedDomains;
             };
             filesystem = {
-              allowWrite = [
-                "${config.home.homeDirectory}/.npm"
-                "${config.home.homeDirectory}/Library/Caches"
-                "${config.xdg.cacheHome}"
-                "${config.xdg.configHome}/.wrangler/logs"
-              ];
-              # orb stores logs, sockets, and state here and reads them on every call, darwin only
-              # ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
-              #   "${config.home.homeDirectory}/.orbstack"
-              # ];
+              allowWrite = pathsWith "write";
               # denyRead = [
               #   ".env*"
               #   "*secret*"
               # ];
             };
             credentials = {
-              # ssh keys are blocked via permissions.deny, which also covers the built-in tools.
-              # Dropping SSH_AUTH_SOCK only removes an agent handed over through the
-              # environment, a forwarded one above all. It does not cover the 1Password
-              # agent, whose socket ssh takes from `IdentityAgent` in ssh_config, which
-              # overrides the variable; the unix socket allowlist above is what puts that
-              # out of reach. Kept for whenever an agent arrives by environment again.
-              envVars = [
-                {
-                  name = "SSH_AUTH_SOCK";
-                  mode = "deny";
-                }
-              ];
+              envVars = map (name: {
+                inherit name;
+                mode = "deny";
+              }) agents.sandbox.deniedEnvVars;
             };
           };
           strictKnownMarketplaces = lib.attrValues knownMarketplaces;
@@ -125,7 +86,7 @@
             "frontend-design@claude-plugins-official" = true;
             "codex@openai-codex" = true;
           };
-          env = {
+          env = agents.sandbox.sessionVariables // {
             # better results, but too many tokens
             # ANTHROPIC_DEFAULT_HAIKU_MODEL = "sonnet";
             ENABLE_CLAUDEAI_MCP_SERVERS = false;
@@ -135,7 +96,6 @@
             CLAUDE_CODE_SUBAGENT_MODEL = "sonnet";
             # suppresses the in-session rating/feedback survey popup
             CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = true;
-            ASTRO_TELEMETRY_DISABLED = true;
             # node ships undici as the global `fetch`, which ignores http_proxy and
             # https_proxy unless this is set. The sandbox routes every connection
             # through such a proxy, so without it any node client that uses `fetch`,
@@ -143,27 +103,20 @@
             # node parses this one as a flag value and accepts only "1",
             # a boolean would render as "true" and be ignored.
             NODE_USE_ENV_PROXY = "1";
-            # determinate-nix spawns a sentry crashpad_handler that cannot register its
-            # mach bootstrap port inside the sandbox, so disable it to avoid stderr noise
-            NIX_SENTRY_ENDPOINT = "";
           };
           worktree = {
             baseRef = "head";
             symlinkDirectories = [ ];
           };
-          # absolute paths need // prefix, otherwise they are treated as relative to the project root
           permissions = {
             defaultMode = "auto";
             disableBypassPermissionsMode = "disable";
             blockReadsOutsideWorkingDirectories = false;
-            allow = [
-              "Read(//nix/**)"
-            ];
+            # claude reads outside the workspace freely, so this only skips the prompt
+            allow = map mkReadRule (pathsWith "read");
             # read deny rules cover the built-in tools and are merged into the sandbox boundary,
             # so a single rule blocks both claude itself and any subprocess it spawns
-            deny = [
-              "Read(~/.ssh/**)"
-            ];
+            deny = map mkReadRule (pathsWith "deny");
             ask = [ ];
           };
           statusLine = lib.mkIf (lib.versionAtLeast config.programs.starship.package.version "1.25.0") {

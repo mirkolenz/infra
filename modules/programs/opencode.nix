@@ -6,6 +6,11 @@
       pkgs,
       ...
     }:
+    let
+      agents = config.programs.agents;
+
+      mkGlob = path: "${path}/**";
+    in
     lib.mkIf config.custom.features.extras.enable {
       programs.opencode = {
         enable = true;
@@ -36,18 +41,11 @@
           # everything else keeps the upstream defaults, which allow the workspace
           # tools and ask for anything outside it. within a tool the last matching
           # rule wins, so use lib.hm.dag.entryAfter when order matters.
-          permission.external_directory = {
-            "/nix/store/**" = "allow";
-            "${config.xdg.cacheHome}/**" = "allow";
-            "${config.home.homeDirectory}/.npm/**" = "allow";
-            # the ask default would only prompt, deny keeps the keys unreadable
-            "${config.home.homeDirectory}/.ssh/**" = "deny";
-          }
-          # orb stores logs, sockets, and state here and reads them on every call, darwin only
-          // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
-            "${config.home.homeDirectory}/Library/Caches/**" = "allow";
-            "${config.home.homeDirectory}/.orbstack/**" = "allow";
-          };
+          # opencode draws no line between reading and writing outside the workspace,
+          # and its ask default would only prompt, so deny is what keeps keys unreadable.
+          permission.external_directory = lib.mapAttrs' (
+            path: access: lib.nameValuePair (mkGlob path) (if access == "deny" then "deny" else "allow")
+          ) agents.sandbox.paths;
         };
       };
       home.sessionVariables = {
