@@ -1,5 +1,6 @@
 {
   lib,
+  stdenv,
   versionCheckHook,
   mkGitHubBinary,
 }:
@@ -16,6 +17,8 @@ mkGitHubBinary {
   versionPrefix = "v";
 
   sourceRoot = ".";
+
+  buildInputs = lib.optionals stdenv.hostPlatform.isElf [ stdenv.cc.cc ];
 
   nativeInstallCheckInputs = [ versionCheckHook ];
   doInstallCheck = true;
