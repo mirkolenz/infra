@@ -33,11 +33,12 @@ prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
         });
 
         # nixpkgs disabled this pure python dependency on darwin in a 2022 treewide sweep
-        # that marked 120 packages at once (65db3b17). Its memory test assumes linux
-        # ru_maxrss units and writes hundreds of gigabytes on macos.
+        # that marked 120 packages at once (65db3b17). Only test_memory_usage is at fault:
+        # it sizes its scratch file from ru_maxrss, which macos reports in bytes rather
+        # than kilobytes, so it fills the build volume and takes the doctests down with it.
         # todo: send upstream, then drop this once nixpkgs unmarks it
         jsonstreams = pyprev.jsonstreams.overridePythonAttrs (prevAttrs: {
-          doInstallCheck = false;
+          disabledTests = (prevAttrs.disabledTests or [ ]) ++ [ "test_memory_usage" ];
           meta = prevAttrs.meta // {
             broken = false;
           };
