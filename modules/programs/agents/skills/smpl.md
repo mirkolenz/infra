@@ -1,16 +1,10 @@
----
-name: smpl
-description: |
-  Reviews the changed code, or the whole codebase, for reuse, simplification, efficiency, and altitude cleanups, then apply the fixes.
-  Quality only, it does not hunt for bugs. Use when the user asks to simplify, clean up, or refactor.
----
-
 Improve the quality of the code and apply the fixes.
 Correctness is what the `rvw` skill is for, so leave it alone here.
 
+@target.md
+
 ## Scope
 
-The argument picks the target, which may be a diff, a PR, a branch, a path, or the whole tree, and defaults to the current diff including the working tree.
 Over a whole tree the goal is accumulated cruft rather than what a change just introduced, so rank by duplication and complexity first, then split it along the repository's own units, meaning a module, package or crate rather than a file.
 A unit is the smallest thing a helper can be shared within, so splitting finer than that hides the duplication the sweep is looking for.
 Give each unit to exactly one agent, and say which parts nobody reached.

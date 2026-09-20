@@ -7,6 +7,22 @@
       pkgs,
       ...
     }:
+    let
+      # Skills share sections such as the target argument, and no harness resolves a
+      # reference out of a `SKILL.md`: codex and opencode expand nothing, and gemini
+      # confines a skill to its own directory. So `@<file>` is substituted from
+      # `include/` here at evaluation time and every skill ships complete.
+      include = lib.mapAttrs' (
+        file: _: lib.nameValuePair "@${file}" (lib.trim (lib.readFile (./include + "/${file}")))
+      ) (lib.readDir ./include);
+
+      mkSkill = name: description: {
+        description = lib.trim description;
+        text = lib.replaceStrings (lib.attrNames include) (lib.attrValues include) (
+          lib.readFile (./skills + "/${name}.md")
+        );
+      };
+    in
     {
       programs.agents = {
         enable = true;
@@ -88,12 +104,34 @@
         };
 
         skills = lib.mkIf config.custom.features.extras.enable (
-          lib.concatMapAttrs (
-            name: _:
-            lib.optionalAttrs (lib.pathExists (./. + "/${name}/SKILL.md")) {
-              ${name}.source = ./. + "/${name}";
-            }
-          ) (lib.readDir ./.)
+          lib.mapAttrs mkSkill {
+            lcns = ''
+              Audits license, copyright, and patent compliance across first-party code and its dependencies.
+              The argument names the target and defaults to uncommitted changes.
+              Use when the user asks for a license audit, a compliance check, or an attribution review.
+            '';
+            lgl = ''
+              Reviews documents and source code against German and EU law, covering data protection, the AI Act, the Cyber Resilience Act, contract terms, and copyright.
+              The argument names the target and defaults to uncommitted changes.
+              Use when the user asks for a legal or regulatory compliance review.
+            '';
+            rvw = ''
+              Reviews code for correctness bugs plus reuse, simplification, efficiency, altitude, and convention cleanups, then reports the findings.
+              The argument names the target and defaults to uncommitted changes.
+              Use when the user asks to review code or a pull request.
+            '';
+            scrty = ''
+              Audits security under the EU Cyber Resilience Act, covering first-party code, dependencies, and the shipped bill of materials.
+              The argument names the target and defaults to uncommitted changes.
+              Use when the user asks for a security audit, a CRA review, or a vulnerability scan.
+            '';
+            smpl = ''
+              Reviews code for reuse, simplification, efficiency, and altitude cleanups, then applies the fixes.
+              Quality only, it does not hunt for bugs.
+              The argument names the target and defaults to uncommitted changes.
+              Use when the user asks to simplify, clean up, or refactor.
+            '';
+          }
         );
       };
     };

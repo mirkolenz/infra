@@ -1,17 +1,11 @@
----
-name: lgl
-description: |
-  Reviews a repository's documents and source code against German and EU law, covering data protection, the AI Act, the Cyber Resilience Act, contract terms, and copyright.
-  Use when the user asks for a legal or regulatory compliance review.
----
-
-Review a repository for legal compliance, over prose documents and over the code that implements what they promise.
+Review the target for legal compliance, over prose documents and over the code that implements what they promise.
 Every finding cites the norm it rests on, fetched from an official source in this session.
 A citation you did not fetch is a finding you must not make.
 
+@target.md
+
 ## Scope
 
-The argument names the target, defaulting to the repository root.
 Documents (`md`, `typ`, `tex`, `rst`, `txt`, `pdf`) and source carry different obligations, so treat them as two sets.
 Markup can hide a clause, so read documents as text with `pandoc`, and render with `typst compile` or `latexmk` where the output differs.
 A norm several angles rest on is worth fetching once and sharing, rather than each agent retrieving it again.

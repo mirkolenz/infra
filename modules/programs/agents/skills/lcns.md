@@ -1,16 +1,10 @@
----
-name: lcns
-description: |
-  Audits a repository for license, copyright, and patent violations across first-party code and its dependencies.
-  Use when the user asks for a license audit, a compliance check, or an attribution review.
----
-
 Judge whether the product may legally be distributed under the license it claims.
 Every finding cites tool output and names the obligation that is breached, and a command that could not run leaves the claim unproven.
 
+@target.md
+
 ## Scope
 
-The argument names the target, defaulting to the repository root.
 Fix the outbound license first from `LICENSE`, `REUSE.toml` and the package manifest, since every finding is judged against it.
 Both first-party code and every shipped dependency are in scope.
 

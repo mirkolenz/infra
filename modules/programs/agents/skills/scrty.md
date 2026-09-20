@@ -1,16 +1,10 @@
----
-name: scrty
-description: |
-  Audits a repository for security issues relevant under the EU Cyber Resilience Act, covering first-party code, dependencies, and the shipped bill of materials.
-  Use when the user asks for a security audit, a CRA review, or a vulnerability scan.
----
-
 Judge a product against CRA Annex I, Part I (security properties) and Part II (vulnerability handling).
 Every finding cites tool output, never a guess, and a command that could not run is itself a gap in the evidence.
 
+@target.md
+
 ## Scope
 
-The argument names the target, defaulting to the repository root.
 Both the first-party code and everything it ships are in scope, so the bill of materials is the starting artifact rather than an afterthought.
 
 ## Tools
