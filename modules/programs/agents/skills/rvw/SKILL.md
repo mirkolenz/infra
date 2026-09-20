@@ -11,8 +11,8 @@ Review for recall: a missed bug ships, so an uncertain finding costs less than a
 
 ## Scope
 
-The argument names the target and defaults to uncommitted changes: read a commit, a range, a branch or a pull request as a diff, and a path or the whole tree as raw files.
-A touched function is in scope as a whole, since the bug may sit in a line the diff left alone.
+The argument names the target and defaults to uncommitted changes: a commit, a range, a branch or a pull request puts you in diff mode, a path or the whole tree in file mode.
+In diff mode a touched function is in scope whole, since the bug may sit in an untouched line.
 Over a whole tree, rank by complexity and churn first, then split it along the repository's own units, meaning a module, package or crate rather than a file, so an agent sees a unit whole and can still follow a call across it.
 Give each unit to exactly one agent, and say which parts nobody reached.
 

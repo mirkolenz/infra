@@ -11,7 +11,7 @@ Every finding cites tool output, never a guess, and a command that could not run
 
 ## Scope
 
-The argument names the target and defaults to uncommitted changes: read a commit, a range, a branch or a pull request as a diff, and a path or the whole tree as raw files.
+The argument names the target and defaults to uncommitted changes: a commit, a range, a branch or a pull request puts you in diff mode, a path or the whole tree in file mode.
 Both the first-party code and everything it ships are in scope, so the bill of materials is the starting artifact rather than an afterthought.
 
 ## Tools

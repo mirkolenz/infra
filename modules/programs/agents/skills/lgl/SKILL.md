@@ -12,7 +12,7 @@ A citation you did not fetch is a finding you must not make.
 
 ## Scope
 
-The argument names the target and defaults to uncommitted changes: read a commit, a range, a branch or a pull request as a diff, and a path or the whole tree as raw files.
+The argument names the target and defaults to uncommitted changes: a commit, a range, a branch or a pull request puts you in diff mode, a path or the whole tree in file mode.
 Documents (`md`, `typ`, `tex`, `rst`, `txt`, `pdf`) and source carry different obligations, so treat them as two sets.
 Markup can hide a clause, so read documents as text with `pandoc`, and render with `typst compile` or `latexmk` where the output differs.
 A norm several angles rest on is worth fetching once and sharing, rather than each agent retrieving it again.

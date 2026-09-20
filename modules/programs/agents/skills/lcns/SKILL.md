@@ -11,7 +11,7 @@ Every finding cites tool output and names the obligation that is breached, and a
 
 ## Scope
 
-The argument names the target and defaults to uncommitted changes: read a commit, a range, a branch or a pull request as a diff, and a path or the whole tree as raw files.
+The argument names the target and defaults to uncommitted changes: a commit, a range, a branch or a pull request puts you in diff mode, a path or the whole tree in file mode.
 Fix the outbound license first from `LICENSE`, `REUSE.toml` and the package manifest, since every finding is judged against it.
 Both first-party code and every shipped dependency are in scope.
 

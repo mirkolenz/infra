@@ -12,7 +12,7 @@ Correctness is what the `rvw` skill is for, so leave it alone here.
 
 ## Scope
 
-The argument names the target and defaults to uncommitted changes: read a commit, a range, a branch or a pull request as a diff, and a path or the whole tree as raw files.
+The argument names the target and defaults to uncommitted changes: a commit, a range, a branch or a pull request puts you in diff mode, a path or the whole tree in file mode.
 Over a whole tree the goal is accumulated cruft rather than what a change just introduced, so rank by duplication and complexity first, then split it along the repository's own units, meaning a module, package or crate rather than a file.
 A unit is the smallest thing a helper can be shared within, so splitting finer than that hides the duplication the sweep is looking for.
 Give each unit to exactly one agent, and say which parts nobody reached.
