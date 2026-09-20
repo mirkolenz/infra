@@ -4,6 +4,7 @@
   mkGitHubBinary,
   makeBinaryWrapper,
   stdenv,
+  libxcb,
 }:
 mkGitHubBinary {
   owner = "badlogic";
@@ -18,7 +19,7 @@ mkGitHubBinary {
   versionPrefix = "v";
   binaries = [ ];
 
-  buildInputs = lib.optionals stdenv.hostPlatform.isElf [ stdenv.cc.cc ];
+  buildInputs = lib.optionals stdenv.hostPlatform.isElf [ libxcb ];
   nativeBuildInputs = [ makeBinaryWrapper ];
 
   # strip is not compatible with the bun runtime
