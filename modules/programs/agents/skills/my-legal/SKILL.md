@@ -1,5 +1,5 @@
 ---
-name: hm-legal
+name: my-legal
 description: |
   Reviews documents and source code against German and EU law, covering data protection, the AI Act, the Cyber Resilience Act, contract terms, and copyright.
   The argument names the target and defaults to uncommitted changes.
@@ -72,7 +72,7 @@ lychee .
 typos
 harper-cli lint <file>
 
-# the hm-license skill owns licence detection and the compatibility verdict, so review what its
+# the my-license skill owns licence detection and the compatibility verdict, so review what its
 # findings mean in law rather than repeating them
 ```
 
@@ -168,7 +168,7 @@ Skip an angle whose subject the target does not contain, and say which and why, 
 - AI obligations: the system classified under the KI-VO, against Art 5 prohibited practices, the Annex III high-risk triggers, the Art 50 transparency duties for generated content, and the GPAI duties in Chapter V.
   State which application date binds, since the regulation phases in.
 - Product cybersecurity: the CRA and NIS2 duties that are documents rather than code, meaning the declaration of conformity, CE marking, Annex VII technical documentation and the Art 14 reporting path.
-  The `hm-security` skill owns the scanning.
+  The `my-security` skill owns the scanning.
 - Contract terms: licences, terms of service and any AGB against BGB 305 to 310 and UWG.
   Apply the blue pencil test, since German AGB law allows no reduction to the permissible extent, so a clause survives only if the invalid part can be struck without rewriting the rest and a single overbroad limb voids the whole.
   Liability caps, unilateral change rights, and choice of law or venue a consumer contract cannot carry.
