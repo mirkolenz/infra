@@ -62,6 +62,8 @@
         restic-browser
         todoist-cli
         ripwire
+        harlequin
+        flow-control
         # markdown
         html2markdown
         md-tui
