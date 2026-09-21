@@ -11,7 +11,8 @@ Review for recall: a missed bug ships, so an uncertain finding costs less than a
 
 ## Scope
 
-The argument names the target and defaults to uncommitted changes: a commit, a range, a branch or a pull request puts you in diff mode, a path or the whole tree in file mode.
+The argument names the target and defaults to uncommitted changes.
+A commit, a range, a branch or a pull request is diff mode, and a path or the whole tree is file mode.
 In diff mode a touched function is in scope whole, since the bug may sit in an untouched line.
 Over a whole tree, rank by complexity and churn first, then split it along the repository's own units, meaning a module, package or crate rather than a file, so an agent sees a unit whole and can still follow a call across it.
 Give each unit to exactly one agent, and say which parts nobody reached.
@@ -34,9 +35,8 @@ git log --oneline -20
 # difft: structural diff, which separates a real change from reformatting
 GIT_EXTERNAL_DIFF=difft git diff
 
-# semgrep: rule-driven defects across languages.
-# it reports pseudonymous metrics whenever a config pulls from its server, so keep the flag
-semgrep --config auto --metrics=off
+# semgrep: rule-driven defects across languages
+semgrep --config auto
 
 # ast-grep: matches a syntax shape the rule sets miss
 ast-grep run --pattern '<shape>' <path>

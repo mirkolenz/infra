@@ -20,20 +20,30 @@
             "*.nixos.org"
             "*.cachix.org"
             "*.flakehub.com"
-            # my-legal skill
-            "eur-lex.europa.eu"
-            "publications.europa.eu"
+            # my-legal skill: EUR-Lex, CELLAR, the Commission guidance and the CJEU all sit
+            # under one domain, and the BSI technical guidelines under the federal one
+            "*.europa.eu"
             "www.gesetze-im-internet.de"
-            # codes of practice and Commission guidelines
-            "digital-strategy.ec.europa.eu"
-            # the newsroom redirects those pdfs go through
-            "ec.europa.eu"
-            # EDPB guidelines and opinions
-            "www.edpb.europa.eu"
-            # BSI technical guidelines such as TR-03183
-            "www.bsi.bund.de"
-            # CJEU judgments
-            "curia.europa.eu"
+            "*.bund.de"
+            # my-license skill: the scanoss knowledge base its snippet matching queries.
+            # it uploads winnowing fingerprints of the files, never their contents
+            "api.osskb.org"
+            # my-review, my-legal and my-security skills: the semgrep rule registry,
+            # which `--config auto` reads the rules from
+            "semgrep.dev"
+            # my-security skill: the advisory databases, all of them public read-only feeds.
+            # without these the scanners do not fail, they report a clean tree, which is worse
+            "*.anchore.io"
+            "*.osv.dev"
+            "osv-vulnerabilities.storage.googleapis.com"
+            "*.deps.dev"
+            "vuln.go.dev"
+            "*.nist.gov"
+            # the sigstore public-good instance, for verifying a release chain
+            "*.sigstore.dev"
+            # the trivy database, published as an image. its fallback is ghcr.io, which stays
+            # denied, so the mirror is what keeps trivy working without reopening that registry
+            "mirror.gcr.io"
           ];
           # Package registries, kept shut: an agent that pulls from one is running code
           # nobody reviewed. Denying beats omitting, because an omitted host is still one
@@ -61,6 +71,7 @@
             "${config.home.homeDirectory}/.npm" = "write";
             "${config.xdg.cacheHome}" = "write";
             "${config.xdg.configHome}/.wrangler/logs" = "write";
+            "${config.xdg.configHome}/.semgrep" = "write";
             "${config.home.homeDirectory}/.ssh" = "deny";
           }
           # orb would need "${config.home.homeDirectory}/.orbstack" here too

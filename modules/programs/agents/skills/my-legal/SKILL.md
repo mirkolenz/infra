@@ -1,7 +1,7 @@
 ---
 name: my-legal
 description: |
-  Reviews documents and source code against German and EU law, covering data protection, the AI Act, the Cyber Resilience Act, contract terms, and copyright.
+  Reviews documents and source code against German and EU law, covering data protection, the AI Act, regulatory cybersecurity duties, contract terms, publication duties, and the copyright and patent statutes behind a licensing question.
   The argument names the target and defaults to uncommitted changes.
   Use when the user asks for a legal or regulatory compliance review.
 ---
@@ -10,9 +10,14 @@ Review the target for legal compliance, over prose documents and over the code t
 Every finding cites the norm it rests on, fetched from an official source in this session.
 A citation you did not fetch is a finding you must not make.
 
+Licence compliance belongs to the `my-license` skill and vulnerability scanning to `my-security`, so read what they report rather than running their scans again.
+The statutes stay here, including copyright and patent law, because fetching a norm before citing it is what this skill is for.
+A question either of them hands over is one you answer from the norm.
+
 ## Scope
 
-The argument names the target and defaults to uncommitted changes: a commit, a range, a branch or a pull request puts you in diff mode, a path or the whole tree in file mode.
+The argument names the target and defaults to uncommitted changes.
+A commit, a range, a branch or a pull request is diff mode, and a path or the whole tree is file mode.
 Documents (`md`, `typ`, `tex`, `rst`, `txt`, `pdf`) and source carry different obligations, so treat them as two sets.
 Markup can hide a clause, so read documents as text with `pandoc`, and render with `typst compile` or `latexmk` where the output differs.
 A norm several angles rest on is worth fetching once and sharing, rather than each agent retrieving it again.
@@ -38,19 +43,14 @@ recht list                                    # the catalogue, and how to confir
 recht list BGB                                # a table of contents
 recht get BGB 823                             # one provision
 
-# bearer: traces which personal data flows where, the evidence a finding needs
-bearer scan .
+# bearer: traces which personal data flows where, the evidence a data protection finding needs.
+# the default report is the security one, which belongs to my-security, so name the other two
+bearer scan --report privacy .
+bearer scan --report dataflow .
 
-# semgrep, ast-grep: logging, telemetry, retention and consent handling.
-# semgrep reports pseudonymous metrics whenever a config pulls from its server, so keep the flag
-semgrep --config auto --metrics=off
+# semgrep, ast-grep: logging, telemetry, retention and consent handling
+semgrep --config auto
 ast-grep run --pattern '<shape>' <path>
-
-# kingfisher, gitleaks, trufflehog: personal data and credentials left in the history.
-# without --no-validate kingfisher sends each candidate credential to its issuer, so ask first
-kingfisher scan --no-validate .
-gitleaks detect
-trufflehog git file://.
 
 # xh: downloads the guidance under Starting points, which carries no CELEX and no cli reaches
 xh --download <url>
@@ -71,9 +71,6 @@ lychee .
 # typos, harper-cli: the wording defects that change what a clause means
 typos
 harper-cli lint <file>
-
-# the my-license skill owns licence detection and the compatibility verdict, so review what its
-# findings mean in law rather than repeating them
 ```
 
 ## Starting points
@@ -129,7 +126,9 @@ Confirm a German abbreviation with `recht list`, since the catalogue spelling is
 - DDG, Digitale-Dienste-Gesetz
   - 5, the Impressum, replacing TMG since 2024
 - UrhG, Urheberrechtsgesetz
-  - 44b text and data mining, 69a to 69g software
+  - 44b text and data mining, 69a to 69g software, 69b works created in employment
+- PatG, Patentgesetz
+  - 9, the acts a patent reserves to its proprietor, and 11 the exemptions
 - UWG, Gesetz gegen den unlauteren Wettbewerb
 - ProdHaftG, Produkthaftungsgesetz
   - until Directive (EU) 2024/2853 is transposed
@@ -152,7 +151,7 @@ They bind nobody, so cite the article they interpret and name the guidance as su
   - digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai
 - EDPB guidelines and opinions, in particular Opinion 28/2024 on AI models
   - edpb.europa.eu
-- BSI TR-03183, the profile `sbomqs --bsi` scores against
+- BSI TR-03183, the profile a bill of materials is scored against
   - bsi.bund.de
 - CJEU judgments, through `eurlex case-law <celex>` or curia.europa.eu
 
@@ -167,13 +166,16 @@ Skip an angle whose subject the target does not contain, and say which and why, 
   Personal data in logs, telemetry or fixtures is a finding.
 - AI obligations: the system classified under the KI-VO, against Art 5 prohibited practices, the Annex III high-risk triggers, the Art 50 transparency duties for generated content, and the GPAI duties in Chapter V.
   State which application date binds, since the regulation phases in.
+  The copyright policy under Art 53(1)(c) rests on the mining opt-out of DSM Art 4 and UrhG 44b, so say whether the source reserved it.
 - Product cybersecurity: the CRA and NIS2 duties that are documents rather than code, meaning the declaration of conformity, CE marking, Annex VII technical documentation and the Art 14 reporting path.
-  The `my-security` skill owns the scanning.
-- Contract terms: licences, terms of service and any AGB against BGB 305 to 310 and UWG.
+  The `my-security` skill owns the scanning, so read its findings as evidence for or against conformity.
+- Contract terms: terms of service and any AGB against BGB 305 to 310 and UWG.
   Apply the blue pencil test, since German AGB law allows no reduction to the permissible extent, so a clause survives only if the invalid part can be struck without rewriting the rest and a single overbroad limb voids the whole.
   Liability caps, unilateral change rights, and choice of law or venue a consumer contract cannot carry.
-- Publication duties and IP: the Impressum under DDG 5, the disclosures a website or app owes, trademark and naming use, and authorship under UrhG.
-  Third-party text, images or fonts with no licence to use them.
+- Publication duties: the Impressum under DDG 5, the disclosures a website or app owes, accessibility under the Barrierefreiheits-RL, and trademark and naming use.
+  A claim about a product that it does not keep is a UWG finding.
+- Handed-over questions: what `my-license` could not settle from the licence text, meaning protectability under UrhG 69a, authorship and employment under 69b, and whether a technique performs an act PatG 9 reserves.
+  Answer each from the norm and say which evidence the other skill supplied.
 
 ## Output
 

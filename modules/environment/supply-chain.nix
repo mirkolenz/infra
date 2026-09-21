@@ -17,18 +17,11 @@
           # generation and conversion
           syft
           cdxgen
-          # the extractor library behind osv-scanner, exposed as its own scanner: it reads
-          # far more ecosystems and also inspects images and layers
+          # the extractor library behind osv-scanner, exposed as its own scanner. syft and
+          # cdxgen read more lockfiles, so this one earns its place on images and layers
           osv-scalibr
-          sbom-tool
           cyclonedx-cli
           sbomnix
-          # language specific cyclonedx generators
-          # cyclonedx-npm is not packaged in nixpkgs since upstream ships no lockfile,
-          # so it is provided as an npx alias instead
-          cyclonedx-python
-          cyclonedx-gomod
-          cargo-cyclonedx
           # querying, assembling and scoring a document
           sbom-utility
           sbomasm
@@ -40,15 +33,13 @@
           grype
           trivy
           osv-scanner
-          osv-detector
           vulnix
           bomber-go
-          sbom-cve-check
           cve-bin-tool
           # ecosystem native advisory scanners, which resolve a vulnerable symbol
-          # rather than a vulnerable version and so report far fewer false positives
+          # rather than a vulnerable version and so report far fewer false positives.
+          # python is covered by `uv audit`, which ships with uv itself
           govulncheck
-          pip-audit
           cargo-audit
           # secrets, including the ones reachable only through git history
           # validates a hit against the live service, so a dead string stops outranking a
@@ -82,7 +73,6 @@
           foss-flame
           # snippet origin
           scanoss-py
-          scanoss-js
           # per ecosystem attribution and policy
           cargo-deny
           cargo-about
