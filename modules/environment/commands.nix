@@ -154,16 +154,26 @@
 
           exec tar -xzf "$source_path" "$@"
         '';
-        # https://github.com/typst/typst/discussions/404#discussioncomment-9456308
-        # https://stackoverflow.com/a/61677298
+        # Only raster images are touched, text and vector graphics pass through untouched.
+        # The distiller presets such as /ebook are avoided on purpose: they force a full
+        # sRGB color conversion of every object, which is both lossy and around 20x slower.
+        # https://ghostscript.readthedocs.io/en/latest/VectorDevices.html
         pdfcompress = /* bash */ ''
           if [ "$#" -lt 1 ]; then
             echo "Usage: $0 FILE [GHOSTSCRIPT_ARGS...]" >&2
+            echo "Env: PDFCOMPRESS_DPI (default 300), PDFCOMPRESS_QUALITY (default 1.5, 0.1 best to 3 worst)" >&2
             exit 1
           fi
 
           file="$1"
           shift
+
+          dpi="''${PDFCOMPRESS_DPI:-300}"
+          quality="''${PDFCOMPRESS_QUALITY:-1.5}"
+
+          # The JPEG quality factor has no command line switch and is only reachable
+          # through the PostScript distiller parameters evaluated by -c.
+          imagedict="<</QFactor $quality /Blend 1>>"
 
           tmpfile="$(mktemp)"
           trap 'rm -f "$tmpfile"' EXIT
@@ -171,26 +181,26 @@
           ${lib.getExe pkgs.ghostscript} \
             -dNOPAUSE -dQUIET -dBATCH -dSAFER \
             -sDEVICE=pdfwrite \
-            -dPDFSETTINGS=/ebook \
-            -dAutoRotatePages=/None \
             -dCompatibilityLevel=1.7 \
-            -dCompressFonts=true \
-            -dConvertCMYKImagesToRGB=true \
-            -dDetectDuplicateImages \
-            -dEmbedAllFonts=true \
-            -dOverPrint=/simulate \
-            -dSubsetFonts=true \
+            -dAutoRotatePages=/None \
+            -dDownsampleColorImages=true \
             -dColorImageDownsampleType=/Bicubic \
-            -dColorImageResolution=150 \
+            -dColorImageResolution="$dpi" \
+            -dDownsampleGrayImages=true \
             -dGrayImageDownsampleType=/Bicubic \
-            -dGrayImageResolution=150 \
-            -dMonoImageDownsampleType=/Bicubic \
-            -dMonoImageResolution=150 \
+            -dGrayImageResolution="$dpi" \
+            -dDownsampleMonoImages=true \
+            -dMonoImageResolution="$((dpi * 2))" \
             "$@" \
             -sOutputFile="$tmpfile" \
+            -c "<</ColorACSImageDict $imagedict /GrayACSImageDict $imagedict>> setdistillerparams" \
             -f "$file"
 
-          cat "$tmpfile" > "$file"
+          if [ "$(wc -c < "$tmpfile")" -lt "$(wc -c < "$file")" ]; then
+            cat "$tmpfile" > "$file"
+          else
+            echo "Compression did not shrink $file, keeping the original" >&2
+          fi
         '';
         # https://polylux.dev/book/external/pdfpc.html
         # https://touying-typ.github.io/docs/external/pdfpc
