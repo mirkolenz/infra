@@ -10,19 +10,27 @@
       home.packages = lib.mapAttrsToList (name: text: pkgs.writeShellApplication { inherit name text; }) {
         # https://masdilor.github.io/use-imagemagick-to-resize-and-compress-images/
         mogrify-convert = /* bash */ ''
-          if [ "$#" -ne 3 ]; then
-            echo "Usage: $0 INPUT_FILE OUTPUT_DIR QUALITY" >&2
+          if [ "$#" -lt 2 ]; then
+            echo "Usage: $0 QUALITY FILE..." >&2
             exit 1
           fi
-          exec mogrify -path "$2" -strip -interlace none -sampling-factor 4:2:0 -define jpeg:dct-method=float -quality "$3" "$1"
+          quality="$1"
+          shift
+
+          exec mogrify -strip -interlace none -sampling-factor 4:2:0 -define jpeg:dct-method=float -quality "$quality" "$@"
         '';
         # https://masdilor.github.io/use-imagemagick-to-resize-and-compress-images/
         mogrify-resize = /* bash */ ''
-          if [ "$#" -ne 4 ]; then
-            echo "Usage: $0 INPUT_FILE OUTPUT_DIR QUALITY FINAL_SIZE" >&2
+          if [ "$#" -lt 3 ]; then
+            echo "Usage: $0 QUALITY FINAL_SIZE FILE..." >&2
             exit 1
           fi
-          exec mogrify -path "$2" -filter Triangle -define filter:support=2 -thumbnail "$4" -unsharp 0.25x0.08+8.3+0.045 -dither None -posterize 136 -quality "$3" -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -interlace none -colorspace sRGB "$1"
+          quality="$1"
+          shift
+          final_size="$1"
+          shift
+
+          exec mogrify -filter Triangle -define filter:support=2 -thumbnail "$final_size" -unsharp 0.25x0.08+8.3+0.045 -dither None -posterize 136 -quality "$quality" -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -interlace none -colorspace sRGB "$@"
         '';
         gc = /* bash */ ''
           systemProfiles="$(find "/nix/var/nix/profiles" -type l -lname '*link*')"
@@ -149,17 +157,18 @@
         # https://github.com/typst/typst/discussions/404#discussioncomment-9456308
         # https://stackoverflow.com/a/61677298
         pdfcompress = /* bash */ ''
-          if [ "$#" -lt 2 ]; then
-            echo "Usage: $0 SOURCE_PATH TARGET_PATH [GHOSTSCRIPT_ARGS...]" >&2
+          if [ "$#" -lt 1 ]; then
+            echo "Usage: $0 FILE [GHOSTSCRIPT_ARGS...]" >&2
             exit 1
           fi
 
-          source_path="$1"
-          shift
-          target_path="$1"
+          file="$1"
           shift
 
-          exec ${lib.getExe pkgs.ghostscript} \
+          tmpfile="$(mktemp)"
+          trap 'rm -f "$tmpfile"' EXIT
+
+          ${lib.getExe pkgs.ghostscript} \
             -dNOPAUSE -dQUIET -dBATCH -dSAFER \
             -sDEVICE=pdfwrite \
             -dPDFSETTINGS=/ebook \
@@ -178,8 +187,10 @@
             -dMonoImageDownsampleType=/Bicubic \
             -dMonoImageResolution=150 \
             "$@" \
-            -sOutputFile="$target_path" \
-            -f "$source_path"
+            -sOutputFile="$tmpfile" \
+            -f "$file"
+
+          cat "$tmpfile" > "$file"
         '';
         # https://polylux.dev/book/external/pdfpc.html
         # https://touying-typ.github.io/docs/external/pdfpc
