@@ -13,7 +13,7 @@
 
       # Absolute paths need the `//` prefix, otherwise a rule is read as relative
       # to the project root.
-      mkReadRule = path: "Read(/${path}/**)";
+      mkRules = tool: paths: map (path: "${tool}(/${path}/**)") paths;
 
       knownMarketplaces = {
         claude-plugins-official = {
@@ -65,13 +65,10 @@
               # sends through the classifier, turning every unforeseen host into a dead end.
               inherit (agents.sandbox) allowedDomains deniedDomains;
             };
-            filesystem = {
-              allowWrite = pathsWith "write";
-              # denyRead = [
-              #   ".env*"
-              #   "*secret*"
-              # ];
-            };
+            # `filesystem` is deliberately unset: an `Edit` allow rule grants the sandbox
+            # the same write access as `allowWrite`, and a `Read` or `Edit` deny rule the
+            # same block as `denyRead`, so the `permissions` block below is the one place
+            # the paths are stated and it covers the built-in tools as well.
             credentials = {
               envVars = map (name: {
                 inherit name;
@@ -113,11 +110,16 @@
             defaultMode = "auto";
             disableBypassPermissionsMode = "disable";
             blockReadsOutsideWorkingDirectories = false;
-            # claude reads outside the workspace freely, so this only skips the prompt
-            allow = map mkReadRule (pathsWith "read");
-            # read deny rules cover the built-in tools and are merged into the sandbox boundary,
-            # so a single rule blocks both claude itself and any subprocess it spawns
-            deny = map mkReadRule (pathsWith "deny");
+            # `Edit` is the matcher every file-writing built-in is checked against, and an
+            # `Edit` allow rule doubles as the sandbox's write grant, so a write path needs
+            # stating only here. Claude reads outside the workspace freely, so a `Read`
+            # allow rule merely skips the prompt.
+            allow = mkRules "Read" (pathsWith "read") ++ mkRules "Edit" (pathsWith "write");
+            # deny rules cover the built-in tools and are merged into the sandbox boundary,
+            # so a single rule blocks both claude itself and any subprocess it spawns. A
+            # `Read` deny already stops Edit and Write, but not NotebookEdit, hence the
+            # `Edit` rule beside it.
+            deny = mkRules "Read" (pathsWith "deny") ++ mkRules "Edit" (pathsWith "deny");
             ask = [ ];
           };
           statusLine = lib.mkIf (lib.versionAtLeast config.programs.starship.package.version "1.25.0") {
