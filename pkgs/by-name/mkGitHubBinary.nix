@@ -1,5 +1,8 @@
 {
-  writeScript,
+  writeShellApplication,
+  cacert,
+  curl,
+  jq,
   lib,
   fetchurl,
   stdenv,
@@ -118,41 +121,50 @@ lib.extendMkDerivation {
       ];
 
       passthru = {
-        updateScript = writeScript "github-binaries-${owner}-${repo}" ''
-          #!/usr/bin/env nix-shell
-          #!nix-shell --pure --keep GITHUB_TOKEN -i bash -p curl jq cacert
+        updateScript = lib.getExe (writeShellApplication {
+          name = "github-binaries-${owner}-${repo}";
+          runtimeInputs = [
+            curl
+            jq
+          ];
+          runtimeEnv.SSL_CERT_FILE = "${cacert}/etc/ssl/certs/ca-bundle.crt";
+          text = ''
+            auth=()
 
-          set -euo pipefail
+            if [[ -n "''${GITHUB_TOKEN:-}" ]]; then
+              auth=(--user ":$GITHUB_TOKEN")
+            fi
 
-          if ! response="$(
-            curl --silent --show-error --fail-with-body --location \
-              --header "Accept: application/vnd.github+json" \
-              --header "X-GitHub-Api-Version: 2026-03-10" \
-              ''${GITHUB_TOKEN:+--user ":$GITHUB_TOKEN"} \
-              "${api.url}"
-          )"; then
-            echo "$response" >&2
-            exit 1
-          fi
+            if ! response="$(
+              curl --silent --show-error --fail-with-body --location --compressed \
+                --header "Accept: application/vnd.github+json" \
+                --header "X-GitHub-Api-Version: 2026-03-10" \
+                "''${auth[@]}" \
+                "${api.url}"
+            )"; then
+              echo "$response" >&2
+              exit 1
+            fi
 
-          output="$(
-            jq --argjson sentinelNames '${sentinelAssetNames}' '
-              ${api.selector} |
-              (${jqVersionExpr}) as $version |
-              INDEX(.assets[]; .name) as $assets | {
-                tag_name,
-                assets: [
-                  $sentinelNames[] as $sentinelName |
-                  ($sentinelName | split("${sentinel}") | join($version)) as $name |
-                  ($assets[$name] // error("Asset not found: \($name)")) |
-                  { key: .name, value: { digest } }
-                ] | from_entries
-              }
-            ' <<<"$response"
-          )"
+            output="$(
+              jq --argjson sentinelNames '${sentinelAssetNames}' '
+                ${api.selector} |
+                (${jqVersionExpr}) as $version |
+                INDEX(.assets[]; .name) as $assets | {
+                  tag_name,
+                  assets: [
+                    $sentinelNames[] as $sentinelName |
+                    ($sentinelName | split("${sentinel}") | join($version)) as $name |
+                    ($assets[$name] // error("Asset not found: \($name)")) |
+                    { key: .name, value: { digest } }
+                  ] | from_entries
+                }
+              ' <<<"$response"
+            )"
 
-          echo "$output" > "${toString file}"
-        '';
+            echo "$output" > "${toString file}"
+          '';
+        });
       }
       // passthru;
 

@@ -7,7 +7,10 @@
   writableTmpDirAsHomeHook,
   makeBinaryWrapper,
   installShellFiles,
-  writeScript,
+  writeShellApplication,
+  cacert,
+  curl,
+  jq,
   zstd,
   bubblewrap,
   socat,
@@ -92,30 +95,33 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   strictDeps = true;
   __structuredAttrs = true;
 
-  passthru.updateScript = writeScript "update-claude-code" ''
-    #!/usr/bin/env nix-shell
-    #!nix-shell --pure -i bash -p curl jq cacert
+  passthru.updateScript = lib.getExe (writeShellApplication {
+    name = "update-claude-code";
+    runtimeInputs = [
+      curl
+      jq
+    ];
+    runtimeEnv.SSL_CERT_FILE = "${cacert}/etc/ssl/certs/ca-bundle.crt";
+    text = ''
+      # https://claude.ai/install.sh
+      version="$(curl -fsSL --compressed "${baseUrl}/${updateChannel}")"
 
-    set -euo pipefail
-
-    # https://claude.ai/install.sh
-    version="$(curl -fsSL "${baseUrl}/${updateChannel}")"
-
-    manifest="$(
-      curl -fsSL "${baseUrl}/$version/manifest.zst.json" \
-      | jq '{
-        version,
-        platforms: .platforms | with_entries(
-          select(.key | test("^(darwin|linux)-(x64|arm64)$"))
-          | {
-            key,
-            value: { binary: .value.binary, checksum: .value.checksum }
-          }
-        )
-      }'
-    )"
-    echo "$manifest" > "${toString manifestFile}"
-  '';
+      manifest="$(
+        curl -fsSL --compressed "${baseUrl}/$version/manifest.zst.json" \
+        | jq '{
+          version,
+          platforms: .platforms | with_entries(
+            select(.key | test("^(darwin|linux)-(x64|arm64)$"))
+            | {
+              key,
+              value: { binary: .value.binary, checksum: .value.checksum }
+            }
+          )
+        }'
+      )"
+      echo "$manifest" > "${toString manifestFile}"
+    '';
+  });
 
   meta = {
     description = "Agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster";

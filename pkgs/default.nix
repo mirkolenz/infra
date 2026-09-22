@@ -10,17 +10,23 @@ let
   byNameDir = toString ./by-name;
 
   # a by-name file that builds on a nixpkgs package inherits its meta.position along with its
-  # update script, which would then edit the nixpkgs source instead of ours
-  keepLocalUpdateScripts = lib.mapAttrsRecursiveCond (value: !lib.isDerivation value) (
-    _: value:
-    if lib.isDerivation value && !lib.hasPrefix byNameDir (value.meta.position or "") then
-      lib'.disableUpdateScript value
-    else
-      value
-  );
+  # update script, which would then edit the nixpkgs source instead of ours. the scripts we keep
+  # are told where they live, under `prefix` plus their position in `set`, so `nix-update` selects
+  # each package directly instead of through the flattened set below.
+  localUpdateScripts =
+    prefix:
+    lib.mapAttrsRecursiveCond (value: !lib.isDerivation value) (
+      path: value:
+      if !lib.isDerivation value then
+        value
+      else if !lib.hasPrefix byNameDir (value.meta.position or "") then
+        lib'.disableUpdateScript value
+      else
+        lib'.setUpdateScriptAttrPath (lib.concatStringsSep "." (prefix ++ path)) value
+    );
 
   # callPackage-style packages from ./by-name; subdirectories form nested scopes (e.g. vimPlugins)
-  byName = keepLocalUpdateScripts (
+  byName = localUpdateScripts [ ] (
     lib.packagesFromDirectoryRecursive {
       inherit (final) callPackage;
       directory = ./by-name;
@@ -42,11 +48,9 @@ let
 
   # dependencies vendored by a package via `passthru.vendored` (e.g. python libraries missing from
   # nixpkgs) are exposed flat as well, so that CI builds them and their update scripts run
-  flattenedVendored = keepLocalUpdateScripts (
-    flattenPrefixed (
-      lib.mapAttrs (_: pkg: pkg.vendored or { }) (
-        lib.filterAttrs (_: lib.isDerivation) (byName // flattenedScopes)
-      )
+  flattenedVendored = flattenPrefixed (
+    lib.mapAttrs (parent: pkg: localUpdateScripts [ parent "vendored" ] (pkg.vendored or { })) (
+      lib.filterAttrs (_: lib.isDerivation) (byName // flattenedScopes)
     )
   );
 

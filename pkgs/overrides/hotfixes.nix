@@ -4,6 +4,23 @@ final: prev:
   # that python 3.14 forwards to `add_parser()`. Fixed upstream in latexminted 0.7.0, which only
   # ships with texlive 2026. https://github.com/NixOS/nixpkgs/issues/542483
   texlive = prev.texlive.override { python3 = final.python313; };
+
+  # nix-update 1.16.0 resolves a package's current ref as `rev or tag`. A src written with
+  # nixpkgs' newer `fetchFromGitHub { tag = ...; }` expands that to `refs/tags/v1.2.3`, which
+  # never equals the plain `v1.2.3` the version fetcher reports, so every run counts as a change
+  # and re-fetches the source plus vendorHash/cargoHash/npmDepsHash even when nothing moved.
+  # Fixed upstream by 4f9f5341 (prefer tag over rev) and d45c6cfe (skip unchanged versions that
+  # pin neither), both merged after the 1.16.0 release.
+  # https://github.com/Mic92/nix-update/commit/4f9f53413
+  nix-update = prev.nix-update.overrideAttrs (prevAttrs: {
+    postPatch = (prevAttrs.postPatch or "") + ''
+      substituteInPlace nix_update/update.py \
+        --replace-fail 'old_rev_tag = package.rev or package.tag' \
+                       'old_rev_tag = package.tag or package.rev' \
+        --replace-fail 'package.new_version.rev is not None and package.new_version.rev != old_rev_tag' \
+                       'old_rev_tag is not None and package.new_version.rev is not None and package.new_version.rev != old_rev_tag'
+    '';
+  });
 }
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
 
