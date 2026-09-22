@@ -22,6 +22,8 @@ let
     "t2bdrm"
     "t2touchbar"
     "hid_t2magicmouse"
+    "t2_precision_trackpad"
+    "t2_trackpad_actuator"
     "t2mfi_fastcharge"
     "t2gmux"
     "t2thunderbolt"
@@ -113,6 +115,10 @@ stdenv.mkDerivation {
   # own: `nix-update` writes to wherever `meta.position` points.
   version = "0.1.12-unstable-2026-09-21";
 
+  # `rev` is moved twice a day by CI, while the marker below moves only when
+  # someone reads the diff that came with it, so the two together delimit what
+  # is still unreviewed. See README.md.
+  # reviewed-rev: ce07b036e375f8a11e1ff8b71634b3c7f392dae9
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";
@@ -124,7 +130,7 @@ stdenv.mkDerivation {
   hardeningDisable = [ "pic" ];
 
   # The drift check runs here rather than in a `checkPhase`, so a moved list
-  # fails in a second instead of after nine modules have compiled.
+  # fails in a second instead of after eleven modules have compiled.
   postPatch = ''
     # Prints one element per line of a bash array literal, however it is wrapped.
     upstreamArray() {

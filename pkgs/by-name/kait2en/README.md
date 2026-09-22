@@ -5,16 +5,16 @@ Support for Macs with an Apple T2 security chip, taken from
 Upstream ships its drivers as DKMS packages against a stock Fedora kernel rather
 than as a kernel patch set, which is why NixOS can run them on a cached kernel.
 
-| package           | what it is                                                            |
-| ----------------- | --------------------------------------------------------------------- |
-| `kait2en.modules` | the nine out-of-tree driver packages, built against `passthru.kernel` |
-| `kait2en.ucm`     | `alsa-ucm-conf` extended with the Apple T2 use case profiles          |
-| `kait2en.dsp`     | PipeWire filter graphs for the internal speakers, per Mac model       |
-| `kait2en.ncm`     | suspend and resume helper for the T2's internal bridge link           |
-| `kait2en.suspend` | reloads the Broadcom Wi-Fi and Bluetooth modules across S3            |
-| `kait2en.touchid` | Touch ID bridge between the T2 sensor and stock fprintd               |
-| `kait2en.journal` | `t2journal`, merging bridgeOS logs into a Linux boot                  |
-| `kait2en.ave`     | `t2remote`, the userspace half of the T2 audio/video engine           |
+| package           | what it is                                                              |
+| ----------------- | ----------------------------------------------------------------------- |
+| `kait2en.modules` | the eleven out-of-tree driver packages, built against `passthru.kernel` |
+| `kait2en.ucm`     | `alsa-ucm-conf` extended with the Apple T2 use case profiles            |
+| `kait2en.dsp`     | PipeWire filter graphs for the internal speakers, per Mac model         |
+| `kait2en.ncm`     | suspend and resume helper for the T2's internal bridge link             |
+| `kait2en.suspend` | reloads the Broadcom Wi-Fi and Bluetooth modules across S3              |
+| `kait2en.touchid` | Touch ID bridge between the T2 sensor and stock fprintd                 |
+| `kait2en.journal` | `t2journal`, merging bridgeOS logs into a Linux boot                    |
+| `kait2en.ave`     | `t2remote`, the userspace half of the T2 audio/video engine             |
 
 The last four talk to the T2 over its internal CDC-NCM link, which
 `modules/hardware/apple-t2/bridge.nix` brings up.
@@ -77,12 +77,18 @@ installer releases, lag by weeks, and the most recent one predates the module
 layout packaged here.
 
 Since a bump can cross hundreds of upstream commits, review one before
-rebuilding by diffing the two revisions:
+rebuilding. The `reviewed-rev:` marker next to `src` in `modules.nix` names the
+last revision that was read, so the range still to look at is that marker
+against the current `rev`:
 
 ```shell
-git log -p -2 -- pkgs/by-name/kait2en/modules.nix
-# https://github.com/kaiT2en/KaiT2en-Fedora/compare/OLD_REV...NEW_REV
+gh api repos/kaiT2en/KaiT2en-Fedora/compare/REVIEWED_REV...REV \
+  -q '.files[] | "\(.status)\t\(.filename)"'
+# https://github.com/kaiT2en/KaiT2en-Fedora/compare/REVIEWED_REV...REV
 ```
+
+Move the marker to `rev` once the range has been read, in the same commit as
+whatever the range made necessary.
 
 The four lists in `modules.nix` mirror arrays in upstream's installer scripts,
 and the `mirrored` list there pairs each one with its source. A build that fails
@@ -93,7 +99,8 @@ Nothing else has to be reviewed routinely.
 ## What the check cannot catch
 
 - New components outside the four arrays, such as the daemons under
-  `t2-services` or the GTK applications under `apps`.
+  `t2-services` or the GTK applications under `apps`. See the section below for
+  which of them are deliberately left out.
 - `initcallBlacklist`, which has no upstream counterpart: it names the built-in
   symbols a blacklist cannot reach, so a nixpkgs kernel config turning one of
   those from `=y` into `=m` makes it stale.
@@ -106,6 +113,49 @@ Nothing else has to be reviewed routinely.
   name: `modules/hardware/apple-t2/touchbar.nix` adds `t2bdrm` and
   `t2tb_backlight` to its udev rules with `--replace-fail`, so a rename on
   either side fails that build instead.
+
+## Deliberately not packaged
+
+All three `t2-services` features are packaged. Its fourth component, `shared/`,
+is only the integration for the internal CDC-NCM link, which
+`modules/hardware/apple-t2/bridge.nix` reimplements.
+
+None of the nine GTK applications under `apps/` are. They configure Fedora by
+writing `/etc` and calling `systemctl enable`, so packaging one means shipping
+a front end that is then not allowed to do what it is for. Where the effect is
+worth having, the NixOS module states it instead:
+
+- `t2-dgpu-control` is reimplemented in `graphics.nix`.
+- `t2-force-click` restores two module parameters at boot and binds an action
+  to the force click. `trackpad.nix` states the parameters, and the driver
+  reports the force click as `BTN_TASK` on an input device of its own,
+  `T2 Force Click Events`, so nothing has to go through the daemon to bind it.
+  Nothing binds it here.
+- `t2-hybrid-gpu-control` is for the MacBookPro15,1 and needs upstream's gmux
+  and amdgpu patches, so it cannot apply to a stock kernel.
+- `t2-kernel-builder` builds Fedora kernels, which is the opposite of running
+  on a cached nixpkgs one.
+- `t2-fan-control` and `t2-smc-control` edit and display a fan curve the SMC
+  already runs in firmware.
+- `t2-cpu-control` writes RAPL power limits, the TCC thermal target and the
+  PROCHOT override through MSRs, and `t2-power-tune` the PCIe ASPM, runtime PM
+  and LTR tunables that `kernelParams` already covers. Every value they set has
+  to be measured on the machine, and the PROCHOT override trades away a thermal
+  protection path, so both are left to a deliberate decision rather than a
+  default. `services.mbpfan` is wired up and off for the same reason.
+- `t2-power-explorer` is a diagnostic view.
+
+Two installer steps are left out as well. `install-hardware-video-decoding.sh`
+swaps Fedora VA-API packages, which the `coffee-lake` import already provides.
+`install-acpi-fixes.sh` overrides the `CpuSSDT` and `DSDT` tables to fix a
+`_PDC` redefinition and an `_OSC` buffer overflow, but only when the current
+boot logs them. Overriding a table on NixOS means committing the machine's own
+patched AML and prepending a CPIO to the initrd, and whether this machine needs
+it at all is one command away:
+
+```shell
+journalctl -kb | grep -E 'AE_AML_BUFFER_LIMIT|Marking method.*_PDC'
+```
 
 Upstream rejects issues and pull requests they believe were written by an AI, so
 anything reported there has to be written by hand.
