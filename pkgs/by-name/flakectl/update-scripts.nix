@@ -26,6 +26,7 @@ let
     inherit (pkg) name;
     pname = lib.getName pkg;
     old_version = packageMeta.${key}.version;
+    homepage = pkg.meta.homepage or null;
     position = pkg.meta.position or null;
     command = map toString (lib.toList (pkg.updateScript.command or pkg.updateScript));
   }) withScript;

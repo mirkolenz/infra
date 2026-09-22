@@ -7,12 +7,21 @@ import re
 import shlex
 import shutil
 import subprocess
+import urllib.parse
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, Any
 
+import httpx2
 import typer
+
+# Host that `access-tokens` entries are keyed by, and its REST API.
+GITHUB_HOST = "github.com"
+GITHUB_API = "https://api.github.com"
+
+# Pinned alongside the one in pkgs/by-name/mkGitHubBinary.nix.
+GITHUB_API_VERSION = "2026-03-10"
 
 # Flags passed to every `nix` invocation.
 NIX_FLAGS = ["--extra-experimental-features", "nix-command flakes"]
@@ -46,7 +55,6 @@ class Config:
     flake: str
     nix_exe: str
     git_exe: str
-    gh_exe: str
     update_scripts_nix: str | None
     nixd_exe: str
     mkpasswd_exe: str
@@ -260,7 +268,6 @@ def main(
     ctx: typer.Context,
     nix_exe: Annotated[str, typer.Option()] = "nix",
     git_exe: Annotated[str, typer.Option()] = "git",
-    gh_exe: Annotated[str, typer.Option()] = "gh",
     update_scripts_nix: Annotated[str | None, typer.Option()] = None,
     nixd_exe: Annotated[str, typer.Option()] = "determinate-nixd",
     mkpasswd_exe: Annotated[str, typer.Option()] = "mkpasswd",
@@ -378,33 +385,126 @@ def passwd(ctx: typer.Context, file: Annotated[Path, typer.Argument()]):
     typer.echo(f"Wrote {file}, rebuild the configuration to apply.", err=True)
 
 
-def get_latest_release(gh_exe: str, owner: str, repo: str) -> str | None:
-    """Fetch the latest release tag via the gh CLI."""
-    result = subprocess_capture(
-        [gh_exe, "api", f"repos/{owner}/{repo}/releases/latest", "--jq", ".tag_name"]
-    )
+@functools.cache
+def access_tokens(nix_exe: str) -> Mapping[str, str]:
+    """The credentials nix itself uses to fetch inputs, as `scope -> token`.
+
+    An exported GITHUB_TOKEN wins outright, otherwise nix.conf supplies its
+    `access-tokens`, printed as space-separated `scope=token` pairs. Cached
+    because neither source can change within a run.
+    """
+    if token := os.environ.get("GITHUB_TOKEN"):
+        return {GITHUB_HOST: token}
+
+    result = subprocess_capture(nix_argv(nix_exe, "config", "show", "access-tokens"))
 
     if result.returncode != 0:
+        return {}
+
+    return dict(entry.split("=", 1) for entry in result.stdout.split() if "=" in entry)
+
+
+def github_token(nix_exe: str, *scope: str) -> str | None:
+    """The token for `github.com/<scope>`, the longest matching prefix winning.
+
+    Nix accepts a scope narrower than a host, so it resolves
+    `github.com/owner/repo` ahead of `github.com/owner` ahead of the host-wide
+    `github.com`, and this follows suit. An empty scope therefore asks for the
+    host-wide token only, the right credential for a caller that reaches
+    arbitrary repositories. A token merely lifts the API rate limit from 60 to
+    5000 requests per hour, so having none is not an error.
+    """
+    tokens = access_tokens(nix_exe)
+    parts = [GITHUB_HOST, *scope]
+
+    while parts:
+        if token := tokens.get("/".join(parts)):
+            return token
+
+        parts.pop()
+
+    return None
+
+
+def github_client() -> httpx2.Client:
+    """A pooled client for the GitHub REST API, credentials left to each request."""
+    return httpx2.Client(
+        base_url=GITHUB_API,
+        timeout=30,
+        follow_redirects=True,
+        headers={
+            "accept": "application/vnd.github+json",
+            "x-github-api-version": GITHUB_API_VERSION,
+        },
+    )
+
+
+def get_latest_release(
+    client: httpx2.Client, nix_exe: str, owner: str, repo: str
+) -> str | None:
+    """The latest release tag from the GitHub API, or None if there is none.
+
+    Any failure answers None rather than raising: unauthenticated runs hit the
+    rate limit and archived repos have no release, neither of which should stop
+    the remaining inputs from being updated."""
+    token = github_token(nix_exe, owner, repo)
+
+    try:
+        response = client.get(
+            f"/repos/{owner}/{repo}/releases/latest",
+            headers={"authorization": f"Bearer {token}"} if token else None,
+        )
+        response.raise_for_status()
+        release: Any = response.json()
+    except (httpx2.HTTPError, ValueError):
         return None
 
-    return result.stdout.strip() or None
+    tag = release.get("tag_name") if isinstance(release, dict) else None
+
+    return tag if isinstance(tag, str) and tag else None
 
 
-def replace_github_ref(gh_exe: str, match: re.Match[str]) -> str:
-    owner = match.group("owner")
-    repo = match.group("repo")
-    current = match.group("ref")
-    latest = get_latest_release(gh_exe, owner, repo)
+def latest_releases(cfg: Config, content: str) -> Mapping[tuple[str, str], str | None]:
+    """The latest tag of every repo `content` pins, fetched concurrently.
 
-    if latest is None:
+    Resolving up front keeps the substitution itself a pure lookup, so the
+    requests overlap while the log still reports them in flake.nix order, and a
+    repo pinned by several inputs costs a single request."""
+    repos = sorted(
+        {(m["owner"], m["repo"]) for m in GITHUB_SEMVER_REF.finditer(content)}
+    )
+
+    if not repos:
+        return {}
+
+    with (
+        github_client() as client,
+        concurrent.futures.ThreadPoolExecutor(
+            max_workers=min(len(repos), cfg.max_workers)
+        ) as pool,
+    ):
+        tags = pool.map(
+            lambda repo: get_latest_release(client, cfg.nix_exe, *repo), repos
+        )
+
+        return dict(zip(repos, tags, strict=True))
+
+
+def replace_github_ref(
+    latest: Mapping[tuple[str, str], str | None], match: re.Match[str]
+) -> str:
+    owner, repo, current = match.group("owner", "repo", "ref")
+    tag = latest[owner, repo]
+
+    if tag is None:
         typer.echo(f"{owner}/{repo}: no release found", err=True)
-        return match.group(0)
-    if latest == current:
+        return match[0]
+    if tag == current:
         typer.echo(f"{owner}/{repo}: up to date ({current})", err=True)
-        return match.group(0)
+        return match[0]
 
-    typer.echo(f"{owner}/{repo}: {current} -> {latest}", err=True)
-    return f'url = "github:{owner}/{repo}/{latest}"'
+    typer.echo(f"{owner}/{repo}: {current} -> {tag}", err=True)
+    return f'url = "github:{owner}/{repo}/{tag}"'
 
 
 def is_worktree_of(flake: str) -> bool:
@@ -452,8 +552,9 @@ def update_flake(
     cfg.require_worktree()
     flake_file = Path("flake.nix")
     content = flake_file.read_text()
+    latest = latest_releases(cfg, content)
     new_content = GITHUB_SEMVER_REF.sub(
-        lambda m: replace_github_ref(cfg.gh_exe, m), content
+        lambda m: replace_github_ref(latest, m), content
     )
 
     if dry_run:
@@ -549,6 +650,7 @@ class UpdateScript:
     name: str
     pname: str
     old_version: str
+    homepage: str | None
     position: str | None
     command: list[str]
 
@@ -579,6 +681,20 @@ class UpdateScript:
         return str(target.relative_to(root)) if target.is_relative_to(root) else None
 
     @property
+    def github_scope(self) -> tuple[str, ...]:
+        """The `owner, repo` this package lives at, narrowing its access token.
+
+        `meta.homepage` is where a package records that; anything but a GitHub
+        repository yields an empty scope, which falls back to the host-wide
+        token."""
+        url = urllib.parse.urlparse(self.homepage or "")
+
+        if url.hostname != GITHUB_HOST:
+            return ()
+
+        return tuple(url.path.strip("/").split("/")[:2])
+
+    @property
     def wants_github_token(self) -> bool:
         """Whether the script names GITHUB_TOKEN, `--keep GITHUB_TOKEN` included.
 
@@ -592,7 +708,8 @@ class UpdateScript:
     def run(self, token: str | None) -> subprocess.CompletedProcess[str]:
         """Run the updateScript, inheriting cwd (repo root) and PATH.
 
-        `token` reaches a script that asks for it; every other script runs with
+        `token` is the narrowest one covering this package's own repository. It
+        reaches a script that asks for it; every other script runs with
         GITHUB_TOKEN unset, so an exported one leaks no further than this."""
         env = dict(os.environ)
 
@@ -602,22 +719,6 @@ class UpdateScript:
             env.pop("GITHUB_TOKEN", None)
 
         return subprocess_capture(self.argv, env=env)
-
-
-def github_token(gh_exe: str) -> str | None:
-    """The token for update scripts that call the GitHub API, if one is around.
-
-    An exported GITHUB_TOKEN wins, otherwise the `gh` login provides one. A
-    token only lifts the API rate limit from 60 to 5000 requests per hour, so
-    neither a missing `gh` nor a missing login is an error.
-    """
-    if token := os.environ.get("GITHUB_TOKEN"):
-        return token
-
-    if (gh := shutil.which(gh_exe)) is None:
-        return None
-
-    return subprocess_capture([gh, "auth", "token"]).stdout.strip() or None
 
 
 def update_scripts_args(
@@ -745,13 +846,17 @@ def update_pkgs(
         raise typer.Exit(0)
 
     succeeded: set[str] = set()
-    token = github_token(cfg.gh_exe)
 
     with concurrent.futures.ThreadPoolExecutor(
         max_workers=min(len(scripts), cfg.max_workers)
     ) as pool:
+        # Tokens resolve here rather than in `run` so the cached `access-tokens`
+        # lookup happens once, on this thread, instead of racing across workers.
         futures = {
-            pool.submit(script.run, token): key for key, script in scripts.items()
+            pool.submit(
+                script.run, github_token(cfg.nix_exe, *script.github_scope)
+            ): key
+            for key, script in scripts.items()
         }
 
         try:

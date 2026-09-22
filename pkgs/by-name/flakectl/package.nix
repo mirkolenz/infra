@@ -3,7 +3,6 @@
   writers,
   writeShellScriptBin,
   python3Packages,
-  gh,
   git,
   determinate-nix,
   mkpasswd,
@@ -13,15 +12,16 @@
 }:
 let
   flakectl = writers.writePython3Bin "flakectl" {
-    libraries = with python3Packages; [ typer ];
+    libraries = with python3Packages; [
+      httpx2
+      typer
+    ];
     doCheck = false;
     makeWrapperArgs = [
       "--add-flag"
       "--nix-exe=${lib.getExe determinate-nix}"
       "--add-flag"
       "--git-exe=${lib.getExe git}"
-      "--add-flag"
-      "--gh-exe=${lib.getExe gh}"
       "--add-flag"
       "--mkpasswd-exe=${lib.getExe mkpasswd}"
       "--add-flag"
