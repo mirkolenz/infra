@@ -407,16 +407,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1789729682,
-        "narHash": "sha256-pfjKq6QDHEGyOB3oRUwZAo/MOt3k3HzOIYqdTEEPsAY=",
+        "lastModified": 1790065178,
+        "narHash": "sha256-EcrMo0D9ck/XJhuhYnCiUTKF52pHxQL7XowC2CL3QFk=",
         "owner": "mistralai",
         "repo": "mistral-vibe",
-        "rev": "c069ffa1e12fb5f2487b489217c40ab97721d553",
+        "rev": "4a96003186b166d55b9f06895c45bb136eef61cd",
         "type": "github"
       },
       "original": {
         "owner": "mistralai",
-        "ref": "v2.25.5",
+        "ref": "v2.25.7",
         "repo": "mistral-vibe",
         "type": "github"
       }
@@ -838,11 +838,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1788380820,
-        "narHash": "sha256-sVjYSZdWWxx89adpQyHgSE24c9frgu/RjGq3cwzw2IU=",
+        "lastModified": 1790066802,
+        "narHash": "sha256-bMDi8JSaHFivCg2IjkZt02jyUMU4YE9LmmIh1VOsnEE=",
         "owner": "mirkolenz",
         "repo": "quadlet-nix",
-        "rev": "96160d00e9e4e95a2641cfa8dc9a99760969c92e",
+        "rev": "e077435f08d33f8c9635302269960ff1ff24b00f",
         "type": "github"
       },
       "original": {
