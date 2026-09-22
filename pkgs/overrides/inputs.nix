@@ -7,7 +7,6 @@ let
   dontDistribute = lib.mapNullable lib.dontDistribute;
 in
 {
-  cosmic-manager = fromInput "cosmic-manager" "cosmic-manager";
   disko = fromInput "disko" "disko";
   disko-install = fromInput "disko" "disko-install";
   makejinja = fromInput "makejinja" "makejinja";

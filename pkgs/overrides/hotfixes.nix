@@ -4,30 +4,6 @@ final: prev:
   # that python 3.14 forwards to `add_parser()`. Fixed upstream in latexminted 0.7.0, which only
   # ships with texlive 2026. https://github.com/NixOS/nixpkgs/issues/542483
   texlive = prev.texlive.override { python3 = final.python313; };
-
-  # ripwire 0.5.0 only points the C toolchain at the wrapped ar/ranlib, so the C++ targets keep the
-  # host ones and fail to link on darwin. Backport the 0.6.1 bump, which sets the matching
-  # CMAKE_CXX_COMPILER_AR/RANLIB flags. https://github.com/NixOS/nixpkgs/pull/564985
-  ripwire = prev.ripwire.overrideAttrs (
-    finalAttrs: prevAttrs:
-    prev.lib.optionalAttrs (prevAttrs.version == "0.5.0") {
-      version = "0.6.1";
-
-      src = final.fetchFromGitHub {
-        owner = "redhat-et";
-        repo = "ripwire";
-        tag = "v${finalAttrs.version}";
-        hash = "sha256-2a4J9lS0rdJyhkXkpQSkFrSf+NsMyeI2mJJNIYvgA8Y=";
-      };
-
-      preConfigure =
-        (prevAttrs.preConfigure or "")
-        + prev.lib.optionalString prev.stdenv.hostPlatform.isDarwin ''
-          prependToVar cmakeFlags "-DCMAKE_CXX_COMPILER_AR=$(command -v $AR)"
-          prependToVar cmakeFlags "-DCMAKE_CXX_COMPILER_RANLIB=$(command -v $RANLIB)"
-        '';
-    }
-  );
 }
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
 
@@ -45,16 +21,6 @@ final: prev:
                        'static struct flashchip mock_chip; mock_chip = chip_bad;'
     '';
   });
-
-  # src/test/file_caps_test.c interposes fgetxattr()/fsetxattr() to mock the security.capability
-  # xattr. With a shared libc the test definitions simply win over the libc ones, but linking the
-  # test statically pulls musl's xattr.lo out of libc.a (cap-ng.c needs fremovexattr from it) and
-  # the linker then sees two definitions of each. Skip the test suite for static builds.
-  # https://github.com/stevegrubb/libcap-ng/issues/85
-  # https://github.com/NixOS/nixpkgs/pull/562812
-  libcap_ng = prev.libcap_ng.overrideAttrs {
-    doCheck = !prev.stdenv.hostPlatform.isStatic;
-  };
 
 })
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
