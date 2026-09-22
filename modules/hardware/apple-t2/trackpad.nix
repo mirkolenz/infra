@@ -19,12 +19,17 @@
         "medium"
         "firm"
       ];
+
+      # The driver has no off switch for the force click, so its threshold is
+      # put where a finger does not reach. Ten times a plain click is far past
+      # the 300 upstream's own settings stop at.
+      unreachable = 1000;
     in
     {
       options.custom.apple-t2.trackpad = {
         clickStrength = lib.mkOption {
           type = lib.types.enum strengths;
-          default = "medium";
+          default = "light";
           description = ''
             How hard the trackpad has to be pressed for a plain click. The
             same three steps as macOS's own Click setting, which scale the
@@ -33,12 +38,13 @@
         };
 
         forceClickThreshold = lib.mkOption {
-          type = lib.types.ints.positive;
+          type = lib.types.nullOr lib.types.ints.positive;
           default = 175;
           description = ''
             How hard a force click has to be, as a percentage of
             {option}`custom.apple-t2.trackpad.clickStrength`. Below roughly
-            125 an ordinary click starts to cross it as well.
+            125 an ordinary click starts to cross it as well, and `null`
+            turns the force click off.
           '';
         };
       };
@@ -48,7 +54,9 @@
       config.boot.extraModprobeConfig = ''
         options t2_precision_trackpad click_strength=${
           toString (lib.lists.findFirstIndex (name: name == cfg.clickStrength) 0 strengths)
-        } force_click_threshold_percent=${toString cfg.forceClickThreshold}
+        } force_click_threshold_percent=${
+          toString (if cfg.forceClickThreshold == null then unreachable else cfg.forceClickThreshold)
+        }
       '';
     };
 }
