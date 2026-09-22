@@ -85,13 +85,7 @@
             "codex@openai-codex" = true;
           };
           env = agents.sandbox.sessionVariables // {
-            # better results, but too many tokens
-            # ANTHROPIC_DEFAULT_HAIKU_MODEL = "sonnet";
             ENABLE_CLAUDEAI_MCP_SERVERS = false;
-            # subagents fan out, so they dominate token spend. This is the fallback only:
-            # a spawn call and an agent's own `model` frontmatter both still win, and
-            # CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1 would be what overrides them
-            CLAUDE_CODE_SUBAGENT_MODEL = "sonnet";
             # suppresses the in-session rating/feedback survey popup
             CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = true;
             # node ships undici as the global `fetch`, which ignores http_proxy and

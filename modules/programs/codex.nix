@@ -19,8 +19,9 @@
         # https://developers.openai.com/codex/config-reference
         # https://developers.openai.com/codex/config-schema.json
         settings = {
-          model = "gpt-5.6-sol";
+          model = "gpt-6-sol";
           model_reasoning_effort = "high";
+          model_verbosity = "low";
           # counterpart to Claude's `allowUnsandboxedCommands = false`
           approval_policy.granular = {
             sandbox_approval = false;
@@ -32,7 +33,6 @@
           approvals_reviewer = "auto_review";
           file_opener = "none";
           check_for_update_on_startup = false;
-          personality = "pragmatic";
           web_search = "live";
           service_tier = "default";
           forced_login_method = "chatgpt";
@@ -40,10 +40,6 @@
             generate_memories = false;
             use_memories = false;
           };
-          # the main session runs sol at high effort, spawned agents fall back to this
-          # unless the spawn call names a model. `default_subagent_reasoning_effort`
-          # sits beside it if the effort should drop too
-          agents.default_subagent_model = "gpt-5.6-terra";
           # https://developers.openai.com/codex/permissions
           default_permissions = "workspace-net";
           permissions.workspace-net = {
@@ -79,6 +75,7 @@
             vim_mode_default = false;
             alternate_screen = "always";
             show_tooltips = false;
+            fullscreen_transcript = true;
           };
           notice = {
             hide_rate_limit_model_nudge = true;
