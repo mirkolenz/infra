@@ -9,9 +9,7 @@
   flake.modules.homeManager.linux =
     {
       lib,
-      pkgs,
       config,
-      inputs,
       ...
     }:
     lib.mkIf config.custom.features.graphical.enable {
@@ -20,9 +18,7 @@
       # enableChromeIntegration), but not to Vivaldi.
       programs.vivaldi = {
         enable = true;
-        # programs.vicinae.package is null, which makes the module fall back to
-        # the flake's default package without exposing it, so take the input.
-        nativeMessagingHosts = [ inputs.vicinae.packages.${pkgs.stdenv.hostPlatform.system}.default ];
+        nativeMessagingHosts = [ config.programs.vicinae.package ];
       };
 
       programs.firefox.enable = true;

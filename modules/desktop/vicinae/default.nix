@@ -3,9 +3,12 @@
 # graphical session. https://docs.vicinae.com/nixos
 {
   flake.modules.nixos.base =
-    { config, ... }:
+    { config, pkgs, ... }:
     {
-      programs.vicinae.input-server.enable = config.custom.features.graphical.enable;
+      programs.vicinae.input-server = {
+        enable = config.custom.features.graphical.enable;
+        package = pkgs.vicinae;
+      };
     };
 
   flake.modules.homeManager.default =
@@ -13,14 +16,10 @@
       lib,
       pkgs,
       config,
-      inputs,
       osConfig,
       ...
     }:
     let
-      inherit (pkgs.stdenv.hostPlatform) system;
-      vicinaeExtensions = inputs.vicinae-extensions.packages.${system};
-
       # Vicinae has no options for shortcuts and snippets yet, so write its data
       # files directly. Both are lists keyed by an opaque id, and every field
       # below that we do not set has a usable default in vicinae.
@@ -72,7 +71,7 @@
         launchd.enable = false;
 
         extensions =
-          (with vicinaeExtensions; [
+          (with pkgs.vicinaeExtensions; [
             github
             nix
           ])

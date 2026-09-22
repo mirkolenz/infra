@@ -137,7 +137,7 @@
               ];
               initialization_options.nixd = {
                 formatting.command = [ "nixfmt" ];
-                nixpkgs.expr = "import (builtins.getFlake \"pkgs\") { }";
+                nixpkgs.expr = "import (builtins.getFlake \"nixpkgs\") { }";
               };
             };
             php.auto_start = true;

@@ -1,4 +1,4 @@
-# Generic option + builder for darwinConfigurations. Hosts register
+# Option + builder for darwinConfigurations. Hosts register
 # `configurations.darwin.<name>.{system,module}` (see modules/hosts/*); `system`
 # is the only source of truth, as `nixpkgs.pkgs` disables the platform assertion.
 {
@@ -6,6 +6,7 @@
   lib,
   lib',
   config,
+  withSystem,
   ...
 }:
 {
@@ -21,33 +22,31 @@
     default = { };
   };
 
-  config.flake.darwinConfigurations = lib.mapAttrs (
-    name:
-    { system, module }:
-    inputs.nix-darwin.lib.darwinSystem {
-      system = null;
-      modules = [
-        module
-        {
-          _file = ./darwin.nix;
-          networking.hostName = lib.mkDefault name;
-          nixpkgs = {
-            pkgs = config.pkgsFor.${system};
-            # nix-darwin ignores the supplied instance when resolving
-            # `system.nixpkgsRevision` and reads this input instead.
-            source = lib'.nixpkgsInput { inherit inputs system; };
-          };
-        }
-      ];
-    }
-  ) config.configurations.darwin;
+  config = {
+    flake.darwinConfigurations = lib.mapAttrs (
+      name:
+      { system, module }:
+      inputs.nix-darwin.lib.darwinSystem {
+        system = null;
+        modules = [
+          module
+          {
+            _file = ./darwin-configurations.nix;
+            networking.hostName = lib.mkDefault name;
+            nixpkgs = {
+              pkgs = withSystem system ({ pkgs, ... }: pkgs);
+              # nix-darwin ignores the supplied instance when resolving
+              # `system.nixpkgsRevision` and reads this input instead.
+              source = lib'.nixpkgsInput { inherit inputs system; };
+            };
+          }
+        ];
+      }
+    ) config.configurations.darwin;
 
-  config.evalTargets = lib.mapAttrs' (
-    name:
-    { system, ... }:
-    lib.nameValuePair "darwin/${name}" {
+    evalTargets.darwin = lib.mapAttrs (name: { system, ... }: {
       inherit system;
-      drvPath = config.flake.darwinConfigurations.${name}.config.system.build.toplevel.drvPath;
-    }
-  ) config.configurations.darwin;
+      package = config.flake.darwinConfigurations.${name}.config.system.build.toplevel;
+    }) config.configurations.darwin;
+  };
 }

@@ -312,7 +312,7 @@
           "command": ["nixfmt"]
         },
         "nixpkgs": {
-          "expr": "import (builtins.getFlake \"pkgs\") { }"
+          "expr": "import (builtins.getFlake \"nixpkgs\") { }"
         }
       }
     },

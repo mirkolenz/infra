@@ -6,7 +6,7 @@
         enable = true;
         settings = {
           maintainers = [ "mirkolenz" ];
-          nixpkgs = "builtins.getFlake \"pkgs\"";
+          nixpkgs = "builtins.getFlake \"nixpkgs\"";
           commit = false;
         };
       };

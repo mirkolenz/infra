@@ -14,7 +14,8 @@
 
     viAlias = true;
     vimAlias = true;
-    enableMan = true;
+    # the man page renders every nixvim option, the largest single cost of the build
+    enableMan = false;
 
     withNodeJs = true;
     withPython3 = true;

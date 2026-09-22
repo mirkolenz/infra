@@ -142,6 +142,10 @@
             { "${dir}/${name}/SKILL.md" = mkAgentFile content; }
         ) skills;
 
+    # Whether CI builds `drv`, following Hydra's `meta.hydraPlatforms` convention.
+    # flakectl's `check-build` and `check-flake` split `checks` by the same rule.
+    isHydraTarget = drv: lib.elem drv.system (drv.meta.hydraPlatforms or [ drv.system ]);
+
     disableUpdateScript =
       pkg:
       pkg.overrideAttrs (old: {

@@ -3,18 +3,26 @@
 # derivations under `path` that carry a `passthru.updateScript`. Shipped with
 # flakectl (rather than the target flake) so any attrset of derivations works
 # without a bespoke attribute. Invoked as
-# `nix {build,eval} -f update-scripts.nix <output> --argstr root <repo> --argstr path <attr.path>`.
+# `nix {build,eval} -f update-scripts.nix <output> --argstr root <repo> --argstr path <attr.path>`,
+# optionally with `--argstr packages '["key", ...]'` to narrow the keys under `path`.
 {
   root,
   path,
+  packages ? null,
 }:
 let
   pkgs = import root { };
   inherit (pkgs) lib;
-  packages = lib.attrByPath (lib.splitString "." path) (throw "update path not found") pkgs;
+  all = lib.attrByPath (lib.splitString "." path) (throw "update path not found") pkgs;
+  # narrowed by key alone, so the packages left out are never forced
+  selected =
+    if packages == null then
+      all
+    else
+      lib.filterAttrs (key: _: lib.elem key (lib.fromJSON packages)) all;
   withScript = lib.filterAttrs (
     _: pkg: lib.isDerivation pkg && (pkg.updateScript or null) != null
-  ) packages;
+  ) selected;
   # Keys match the Python `PackageMeta` dataclass for direct instantiation.
   packageMeta = lib.mapAttrs (_: pkg: {
     version = lib.getVersion pkg;
@@ -32,9 +40,6 @@ let
   }) withScript;
 in
 {
-  # All derivation names under `path`; evaluating this is `update-flake`'s
-  # fail-fast check that the working tree still evaluates after a lock update.
-  names = lib.attrNames packages;
   # Built (not evaluated): the commands ride along as Nix string context (via
   # `toString`), so building realizes every updateScript before it runs;
   # flakectl reads the metadata back from this JSON.

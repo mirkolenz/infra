@@ -41,11 +41,8 @@
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
+        systems.follows = "systems";
       };
-    };
-    herdr = {
-      url = "github:ogulcancelik/herdr/v0.9.1";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -62,15 +59,7 @@
         pyproject-nix.follows = "pyproject-nix";
         uv2nix.follows = "uv2nix";
         pyproject-build-systems.follows = "pyproject-build-systems";
-      };
-    };
-    mistral-vibe = {
-      url = "github:mistralai/mistral-vibe/v2.25.7";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        pyproject-nix.follows = "pyproject-nix";
-        uv2nix.follows = "uv2nix";
-        pyproject-build-systems.follows = "pyproject-build-systems";
+        systems.follows = "systems";
       };
     };
     neovim-nightly-overlay = {
@@ -105,11 +94,15 @@
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
+        systems.follows = "systems";
       };
     };
     opnix = {
       url = "github:brizzbuzz/opnix/v0.11.0";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.inputs.systems.follows = "systems";
+      };
     };
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
@@ -137,6 +130,7 @@
         flake-parts.follows = "flake-parts";
       };
     };
+    systems.url = "github:nix-systems/default/future-26.11";
     texmf = {
       url = "github:mirkolenz/texmf";
       flake = false;
@@ -154,13 +148,17 @@
     };
     vicinae = {
       url = "github:vicinaehq/vicinae/v0.29.0";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.soulver-cpp.inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        systems.follows = "systems";
+        soulver-cpp.inputs.nixpkgs.follows = "nixpkgs";
+      };
     };
     vicinae-extensions = {
       url = "github:vicinaehq/extensions";
       inputs = {
         nixpkgs.follows = "nixpkgs";
+        systems.follows = "systems";
         vicinae.follows = "vicinae";
       };
     };

@@ -18,6 +18,9 @@
 
       system.stateVersion = config.custom.stateVersions.darwin;
 
+      # the uninstaller is a second, complete nix-darwin evaluation
+      system.tools.darwin-uninstaller.enable = false;
+
       # https://github.com/nix-darwin/nix-darwin/blob/master/modules/system/activation-scripts.nix
       system.activationScripts = {
         preActivation.text = /* bash */ "";

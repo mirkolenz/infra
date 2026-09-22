@@ -4,7 +4,7 @@
       enable = true;
       config.settings = {
         formatting.command = [ "nixfmt" ];
-        nixpkgs.expr = "import (builtins.getFlake \"pkgs\") { }";
+        nixpkgs.expr = "import (builtins.getFlake \"nixpkgs\") { }";
       };
     };
   };

@@ -1,4 +1,4 @@
-# Pins the flake registry (nixpkgs, stable, unstable, pkgs) per platform so `nix`
+# Pins the flake registry (nixpkgs, stable, unstable) per platform so `nix`
 # commands resolve the same inputs the configuration was built from.
 # Applied to nixos, darwin and standalone home-manager.
 # Deliberately no entry for this flake itself: pinning it would put `self.outPath`
@@ -17,11 +17,10 @@ let
       unstable = channelFlake "unstable";
     in
     {
-      nixpkgs.flake = inputs.nixpkgs;
+      # the channel the configuration itself is built from
+      nixpkgs.flake = unstable;
       stable.flake = channelFlake "stable";
       unstable.flake = unstable;
-      # alias for the channel the configuration itself is built from
-      pkgs.flake = unstable;
     };
 in
 {

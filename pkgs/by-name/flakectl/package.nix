@@ -5,6 +5,8 @@
   python3Packages,
   git,
   determinate-nix,
+  nix-eval-jobs,
+  nix-fast-build,
   mkpasswd,
   darwin-rebuild,
   nixos-rebuild-ng,
@@ -20,6 +22,10 @@ let
     makeWrapperArgs = [
       "--add-flag"
       "--nix-exe=${lib.getExe determinate-nix}"
+      "--add-flag"
+      "--nix-eval-jobs-exe=${lib.getExe nix-eval-jobs}"
+      "--add-flag"
+      "--nix-fast-build-exe=${lib.getExe nix-fast-build}"
       "--add-flag"
       "--git-exe=${lib.getExe git}"
       "--add-flag"

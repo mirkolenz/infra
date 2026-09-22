@@ -1,27 +1,47 @@
-# Evaluation coverage for CI.
+# Evaluation coverage for configurations.
 # `nix flake check` forces a configuration only as far as its toplevel derivation's
 # attribute set, so an error reachable only from the builder script passes.
-# Forcing `drvPath` covers both.
+# Each target therefore becomes an empty file whose text forces the target's
+# `drvPath`: evaluating the check forces the whole configuration, while building
+# it never builds the configuration, and the file references nothing. Only the
+# text depends on the target, so reading `system` or `meta` stays cheap. An empty
+# `hydraPlatforms` keeps CI from building or pushing them (see `lib'.isHydraTarget`).
 { lib, config, ... }:
-{
-  options.evalTargets = lib.mkOption {
-    type = lib.types.lazyAttrsOf (
-      lib.types.submodule {
-        options = {
-          system = lib.mkOption { type = lib.types.enum config.systems; };
-          drvPath = lib.mkOption { type = lib.types.str; };
-        };
+let
+  mkCheck =
+    pkgs: name: target:
+    lib.nameValuePair name (
+      pkgs.writeTextFile {
+        name = lib.strings.sanitizeDerivationName name;
+        text = lib.seq target.package.drvPath "";
+        meta.hydraPlatforms = [ ];
       }
     );
+in
+{
+  options.evalTargets = lib.mkOption {
+    type = lib.types.attrsOf (
+      lib.types.lazyAttrsOf (
+        lib.types.submodule {
+          options = {
+            system = lib.mkOption { type = lib.types.enum config.systems; };
+            package = lib.mkOption { type = lib.types.package; };
+          };
+        }
+      )
+    );
     default = { };
-    description = "Derivations CI forces when constructing checks for their system.";
+    description = "Derivations evaluated as checks for their system, keyed by class and name.";
   };
 
   config.perSystem =
-    { system, ... }:
+    { system, pkgs, ... }:
     {
-      checks = builtins.deepSeq (lib.mapAttrs (_: target: target.drvPath) (
-        lib.filterAttrs (_: target: target.system == system) config.evalTargets
-      )) { };
+      checks = lib.concatMapAttrs (
+        class: targets:
+        lib.mapAttrs' (name: mkCheck pkgs "eval-${class}-${name}") (
+          lib.filterAttrs (_: target: target.system == system) targets
+        )
+      ) config.evalTargets;
     };
 }

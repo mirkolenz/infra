@@ -7,6 +7,8 @@ let
     lib'
     ;
   os = lib'.systemOs system;
+  # plain channel instances without the default overlay, as a fallback when a
+  # package is broken in the shared set
   nixpkgsArgs = {
     inherit system;
     config = self.nixpkgsConfig;
@@ -14,7 +16,6 @@ let
   detnix = inputs.determinate.inputs.nix.packages."${system}".default;
 in
 {
-  nixpkgs = import inputs.nixpkgs nixpkgsArgs;
   stable = import (lib'.systemInput {
     inherit inputs os;
     name = "nixpkgs";
@@ -22,7 +23,8 @@ in
   }) nixpkgsArgs;
   unstable = import (lib'.nixpkgsInput { inherit inputs system; }) nixpkgsArgs;
 
-  inherit (self.packages.${system}) treefmt-nix;
+  # the one package taken from a flake's own package set, to keep Determinate's
+  # binary cache
   determinate-nix = detnix // {
     out = removeAttrs detnix.out [
       "doc"

@@ -3,6 +3,7 @@
   flake.modules.nixos.installer =
     {
       config,
+      lib,
       modulesPath,
       pkgs,
       ...
@@ -11,6 +12,11 @@
       # Declares `system.installer.channel.enable`: the bucket imports no
       # installation-CD profile, so the option does not otherwise exist.
       imports = [ "${modulesPath}/installer/cd-dvd/channel.nix" ];
+
+      # `profiles/installation-device.nix`, pulled in by the iso-installer image,
+      # trims the mbrola voices with an overlay, which the shared read-only package
+      # set rejects. speechd is off here, so the overlay changes nothing.
+      nixpkgs.overlays = lib.mkForce config.nixpkgs.pkgs.overlays;
 
       services.openssh.enable = true;
 

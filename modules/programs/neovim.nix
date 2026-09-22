@@ -2,10 +2,7 @@
 # build for its system and profile (see modules/flake/nixvim.nix); nixvim's own
 # home-manager wrapper would re-evaluate the module tree once per home.
 # That build is self-contained (`wrapRc`), so nothing is written to ~/.config/nvim.
-{ config, ... }:
-let
-  inherit (config) nixvimFor;
-in
+{ withSystem, ... }:
 {
   flake.modules.homeManager.default =
     {
@@ -16,7 +13,9 @@ in
     }:
     let
       profile = if config.custom.features.extras.enable then "default" else "minimal";
-      package = nixvimFor.${pkgs.stdenv.hostPlatform.system}.${profile}.config.build.package;
+      package = withSystem pkgs.stdenv.hostPlatform.system (
+        perSystem: perSystem.config.nixvimConfigurations.${profile}.config.build.package
+      );
     in
     {
       home.packages = [ package ];

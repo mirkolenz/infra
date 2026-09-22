@@ -1,10 +1,11 @@
-# Generic option + builder for nixosConfigurations. Hosts register
-# `configurations.nixos.<name>.{system,module}` (see modules/hosts/*); the system
-# selects the shared package set (see nixpkgs.nix).
+# Option + builder for nixosConfigurations. Hosts register
+# `configurations.nixos.<name>.{system,module}` (see modules/hosts/*). The builder
+# is also used for the installer images.
 {
   inputs,
   lib,
   config,
+  withSystem,
   ...
 }:
 {
@@ -14,58 +15,55 @@
         options = {
           system = lib.mkOption { type = lib.types.enum config.systems; };
           module = lib.mkOption { type = lib.types.deferredModule; };
-          sharedPkgs = lib.mkOption {
-            type = lib.types.bool;
-            default = true;
-            description = ''
-              Whether to build against the shared package set for `system`.
-              The shared path goes through upstream `read-only.nix`, which derives
-              `nixpkgs.{config,overlays,hostPlatform}` back from the instance
-              (`nixos-hardware/apple` gates `hardware.facetimehd` on
-              `nixpkgs.config.allowUnfree`) but rejects a host defining its own
-              overlays.
-            '';
-          };
         };
       }
     );
     default = { };
   };
 
-  config.flake.nixosConfigurations = lib.mapAttrs (
-    name:
-    {
-      system,
-      module,
-      sharedPkgs,
-    }:
-    inputs.nixpkgs-linux-unstable.lib.nixosSystem {
-      system = null;
-      modules = [
+  options.nixosSystemFor = lib.mkOption {
+    type = lib.types.lazyAttrsOf lib.types.raw;
+    readOnly = true;
+    description = ''
+      `nixosSystem` keyed by system, taking a list of modules and building them
+      against the shared package set. Upstream `read-only.nix` derives
+      `nixpkgs.{config,overlays,hostPlatform}` back from that instance
+      (`nixos-hardware/apple` gates `hardware.facetimehd` on
+      `nixpkgs.config.allowUnfree`) and rejects any module defining its own,
+      which belong into the default overlay instead.
+    '';
+  };
+
+  config = {
+    nixosSystemFor = lib.genAttrs config.systems (
+      system: modules:
+      inputs.nixpkgs-linux-unstable.lib.nixosSystem {
+        system = null;
+        modules = modules ++ [
+          {
+            _file = ./nixos-configurations.nix;
+            imports = [ "${inputs.nixpkgs-linux-unstable}/nixos/modules/misc/nixpkgs/read-only.nix" ];
+            nixpkgs.pkgs = withSystem system ({ pkgs, ... }: pkgs);
+          }
+        ];
+      }
+    );
+
+    flake.nixosConfigurations = lib.mapAttrs (
+      name:
+      { system, module }:
+      config.nixosSystemFor.${system} [
         module
         {
-          _file = ./nixos.nix;
+          _file = ./nixos-configurations.nix;
           networking.hostName = lib.mkDefault name;
         }
-        (
-          if sharedPkgs then
-            {
-              imports = [ "${inputs.nixpkgs-linux-unstable}/nixos/modules/misc/nixpkgs/read-only.nix" ];
-              nixpkgs.pkgs = config.pkgsFor.${system};
-            }
-          else
-            config.ownPkgsModuleFor.${system}
-        )
-      ];
-    }
-  ) config.configurations.nixos;
+      ]
+    ) config.configurations.nixos;
 
-  config.evalTargets = lib.mapAttrs' (
-    name:
-    { system, ... }:
-    lib.nameValuePair "nixos/${name}" {
+    evalTargets.nixos = lib.mapAttrs (name: { system, ... }: {
       inherit system;
-      drvPath = config.flake.nixosConfigurations.${name}.config.system.build.toplevel.drvPath;
-    }
-  ) config.configurations.nixos;
+      package = config.flake.nixosConfigurations.${name}.config.system.build.toplevel;
+    }) config.configurations.nixos;
+  };
 }

@@ -10,8 +10,6 @@ in
 {
   configurations.nixos.raspi = {
     system = "aarch64-linux";
-    # nixos-hardware's raspberry-pi support enables an own nixpkgs overlay.
-    sharedPkgs = false;
     module =
       { pkgs, ... }:
       {

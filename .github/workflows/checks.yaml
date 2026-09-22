@@ -9,8 +9,11 @@ concurrency:
   cancel-in-progress: true
 # The branch rule requires only the aggregate `check-all` job:
 # https://github.com/mirkolenz/infra/settings/rules/3352950
+# check-flake evaluates everything the build jobs leave out, the build jobs
+# evaluate and build the CI targets of their system. Together they cover what
+# `nix flake check --all-systems` checks, each derivation evaluated once.
 jobs:
-  check-eval:
+  check-flake:
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
@@ -23,11 +26,12 @@ jobs:
         with:
           name: mirkolenz
           authToken: ${{ secrets.CACHIX_TOKEN }}
-      - run: nix fmt -- --ci
-      - if: ${{ !cancelled() }}
-        run: nix flake check --no-build --show-trace
-  check-system:
-    name: check-${{ matrix.system }}
+          # evaluation only, whatever lands in the store here is no CI target
+          skipPush: true
+      # evaluation memory is bounded by flakectl's shared worker defaults
+      - run: nix run . -- check-flake
+  check-build:
+    name: check-build-${{ matrix.system }}
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -66,11 +70,11 @@ jobs:
         with:
           name: mirkolenz
           authToken: ${{ secrets.CACHIX_TOKEN }}
-      - run: nix run . -- build-pkgs --show-trace
+      - run: nix run . -- check-build --no-nom
   check-all:
     needs:
-      - check-eval
-      - check-system
+      - check-flake
+      - check-build
     runs-on: ubuntu-slim
     if: always()
     steps:

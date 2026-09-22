@@ -7,8 +7,9 @@ import re
 import shlex
 import shutil
 import subprocess
+import tempfile
 import urllib.parse
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, Any
@@ -32,17 +33,70 @@ GITHUB_SEMVER_REF = re.compile(
 )
 
 
-# `nix eval --json` collapses any attrset carrying an `outPath` down to that one
-# string, so the two paths have to travel under names of our own.
-TARGET_APPLY = "builtins.mapAttrs (_: drv: { drv = drv.drvPath; out = drv.outPath; })"
+TARGET_APPLY = "builtins.mapAttrs (_: drv: drv.drvPath)"
+
+# Whether CI builds a derivation, following Hydra's `meta.hydraPlatforms`. The
+# flake's `lib.isHydraTarget` splits `checks` by the same rule. Only `system` and
+# `meta` are read, so a derivation that is not built is not forced either.
+IS_HYDRA_TARGET = (
+    "drv: builtins.elem drv.system (drv.meta.hydraPlatforms or [ drv.system ])"
+)
+
+# The attributes of `set` whose value satisfies `pred`.
+FILTER_ATTRS = (
+    "pred: set: builtins.removeAttrs set"
+    " (builtins.filter (name: !pred set.${name}) (builtins.attrNames set))"
+)
+
+# `check-build`: the targets of one system's `checks` that CI builds.
+BUILD_SELECT = f"""
+let
+  isHydraTarget = {IS_HYDRA_TARGET};
+  filterAttrs = {FILTER_ATTRS};
+in
+filterAttrs isHydraTarget
+"""
+
+# `check-flake`: every derivation `nix flake check` evaluates that `check-build`
+# does not, so that both jobs together cover the flake exactly once.
+EVAL_SELECT = f"""
+flake:
+let
+  inherit (flake) outputs;
+  isHydraTarget = {IS_HYDRA_TARGET};
+  filterAttrs = {FILTER_ATTRS};
+  built = builtins.mapAttrs (_: filterAttrs isHydraTarget) outputs.checks;
+  notBuilt = system: set: builtins.removeAttrs set (builtins.attrNames (built.${{system}} or {{ }}));
+in
+{{
+  checks = builtins.mapAttrs notBuilt outputs.checks;
+  packages = builtins.mapAttrs notBuilt outputs.packages;
+  devShells = outputs.devShells;
+}}
+"""
+
+# The outputs of `nix flake check` that are no derivations. `overlays.default` is
+# left out, since every package set applies it, and `.#overlays` would select
+# `legacyPackages.<system>.overlays` instead.
+APPS_APPLY = "builtins.mapAttrs (_: builtins.mapAttrs (_: app: app.program))"
+
+# nix-eval-jobs bounds shared by `check-flake` and `check-build`. A worker past
+# its share is restarted, so peak memory stays at `workers * max_memory_size` MiB.
+# One worker of 6 GiB fits the smallest hosted runner (macOS, 7 GB) as well as
+# the largest single configuration (about 4.7 GB).
+EvalWorkers = Annotated[int, typer.Option("--workers")]
+EvalMaxMemorySize = Annotated[
+    int, typer.Option("--max-memory-size", help="MiB per worker.")
+]
+EVAL_WORKERS = 1
+EVAL_MAX_MEMORY_SIZE = 6144
 
 
 @dataclass(frozen=True, slots=True)
 class BuildTarget:
-    """A flake attribute resolved to the two store paths a build needs."""
+    """A flake attribute resolved to its store derivation."""
 
     drv_path: str
-    out_path: str
 
     @property
     def installable(self) -> str:
@@ -54,6 +108,8 @@ class BuildTarget:
 class Config:
     flake: str
     nix_exe: str
+    nix_eval_jobs_exe: str
+    nix_fast_build_exe: str
     git_exe: str
     update_scripts_nix: str | None
     nixd_exe: str
@@ -61,7 +117,6 @@ class Config:
     darwin_builder: str
     linux_builder: str
     home_builder: str
-    cache: str | None
     impure_attr: str | None
     build_path: str | None
     hash_path: str | None
@@ -137,36 +192,12 @@ def nix_eval_json(nix_exe: str, *args: str) -> Any:
     return json.loads(subprocess_stdout(nix_argv(nix_exe, "eval", "--json", *args)))
 
 
-def nix_eval_dict(nix_exe: str, *args: str) -> dict[str, str]:
-    """Evaluate a nix expression and assert it returns `{name: store_path}`."""
-    entries = nix_eval_json(nix_exe, *args)
-
-    if not isinstance(entries, dict) or not all(
-        isinstance(k, str) and isinstance(v, str) and v.startswith("/nix/store/")
-        for k, v in entries.items()
-    ):
-        typer.echo(
-            f"nix eval {shlex.join(args)} did not return an attrset of store paths",
-            err=True,
-        )
-        raise typer.Exit(1)
-
-    return entries
-
-
 def nix_eval_targets(nix_exe: str, installable: str) -> dict[str, BuildTarget]:
-    """Evaluate `installable` and assert it returns `{name: derivation}`.
-
-    One evaluation yields both paths a build needs: the output path answers
-    whether the cache already holds it, and the derivation path lets the build
-    itself skip evaluating altogether."""
+    """Evaluate `installable` and assert it returns `{name: derivation}`."""
     entries = nix_eval_json(nix_exe, installable, "--apply", TARGET_APPLY)
 
     if not isinstance(entries, dict) or not all(
-        isinstance(entry, dict)
-        and isinstance(entry.get("drv"), str)
-        and isinstance(entry.get("out"), str)
-        for entry in entries.values()
+        isinstance(drv, str) and drv.endswith(".drv") for drv in entries.values()
     ):
         typer.echo(
             f"nix eval {installable} did not return an attrset of derivations",
@@ -174,86 +205,18 @@ def nix_eval_targets(nix_exe: str, installable: str) -> dict[str, BuildTarget]:
         )
         raise typer.Exit(1)
 
-    return {
-        name: BuildTarget(drv_path=entry["drv"], out_path=entry["out"])
-        for name, entry in entries.items()
-    }
+    return {name: BuildTarget(drv_path=drv) for name, drv in entries.items()}
 
 
-def path_in_cache(nix_exe: str, cache: str, path: str) -> bool:
-    """Whether `path` is present in the binary `cache` itself.
-
-    Substituters are disabled so the exit code reflects true membership of
-    `cache`, not whether some other cache could supply the path."""
-    return (
-        subprocess.run(
-            nix_argv(
-                nix_exe, "path-info", "--store", cache, "--substituters", "", path
-            ),
-            capture_output=True,
-            check=False,
-        ).returncode
-        == 0
-    )
-
-
-def cached_paths(
-    nix_exe: str, cache: str, paths: Iterable[str], max_workers: int
-) -> set[str]:
-    """Return the subset of `paths` already present in the binary `cache`.
-
-    A single `nix path-info --store <cache>` aborts on the first path it cannot
-    resolve, so query each path on its own via `path_in_cache` and keep the ones
-    that are present."""
-    paths = list(paths)
-
-    if not paths:
-        return set()
-
-    # Probe reachability first: otherwise an unreachable cache reads as every
-    # path missing and silently rebuilds everything instead of failing loudly.
-    if subprocess.run(
-        nix_argv(nix_exe, "store", "info", "--store", cache),
-        capture_output=True,
-        check=False,
-    ).returncode:
-        typer.echo(f"Cache {cache} is unreachable.", err=True)
-        raise typer.Exit(1)
-
-    check = functools.partial(path_in_cache, nix_exe, cache)
-
-    with concurrent.futures.ThreadPoolExecutor(
-        max_workers=min(len(paths), max_workers)
-    ) as pool:
-        return {path for path, ok in zip(paths, pool.map(check, paths)) if ok}
-
-
-def build_uncached(
-    nix_exe: str,
-    cache: str | None,
-    targets: Mapping[str, BuildTarget],
-    max_workers: int,
-    extra: Sequence[str] = (),
+def build_targets(
+    nix_exe: str, targets: Mapping[str, BuildTarget], *, check: bool = True
 ) -> None:
-    """Build any of `targets` not yet present in `cache`."""
-    if cache:
-        cached = cached_paths(
-            nix_exe, cache, (t.out_path for t in targets.values()), max_workers
-        )
-        uncached = {name: t for name, t in targets.items() if t.out_path not in cached}
-    else:
-        uncached = dict(targets)
-
-    if not uncached:
-        typer.echo(f"All {len(targets)} package(s) available from {cache}.", err=True)
+    """Build the store derivations of `targets` without evaluating again."""
+    if not targets:
         return
 
-    typer.echo(
-        f"Building {len(uncached)} uncached package(s): {', '.join(uncached)}.",
-        err=True,
-    )
-    refs = [target.installable for target in uncached.values()]
-    run_logged(nix_argv(nix_exe, "build", "--no-link", *refs, *extra))
+    refs = [target.installable for target in targets.values()]
+    run_logged(nix_argv(nix_exe, "build", "--no-link", *refs), check=check)
 
 
 app = typer.Typer(
@@ -267,6 +230,8 @@ app = typer.Typer(
 def main(
     ctx: typer.Context,
     nix_exe: Annotated[str, typer.Option()] = "nix",
+    nix_eval_jobs_exe: Annotated[str, typer.Option()] = "nix-eval-jobs",
+    nix_fast_build_exe: Annotated[str, typer.Option()] = "nix-fast-build",
     git_exe: Annotated[str, typer.Option()] = "git",
     update_scripts_nix: Annotated[str | None, typer.Option()] = None,
     nixd_exe: Annotated[str, typer.Option()] = "determinate-nixd",
@@ -275,7 +240,6 @@ def main(
     linux_builder: Annotated[str, typer.Option()] = "nixos-rebuild",
     home_builder: Annotated[str, typer.Option()] = "home-manager",
     flake: Annotated[str, typer.Option()] = ".",
-    cache: Annotated[str | None, typer.Option()] = None,
     impure_attr: Annotated[str | None, typer.Option()] = None,
     build_path: Annotated[str | None, typer.Option()] = None,
     hash_path: Annotated[str | None, typer.Option()] = None,
@@ -577,26 +541,12 @@ def update_flake(
     if commit and flake_changed:
         run_logged([cfg.git_exe, "commit", "--amend", "--no-edit", str(flake_file)])
 
-    # Fail fast: forcing the package set surfaces a broken input/override as one
-    # clear error here instead of a cascade downstream and in the PR's checks.
-    if cfg.update_path and cfg.update_scripts_nix:
-        typer.echo("Verifying the updated flake still evaluates...", err=True)
-        subprocess_stdout(
-            nix_argv(
-                cfg.nix_exe,
-                "eval",
-                "--impure",
-                *update_scripts_args(cfg.update_scripts_nix, "names", cfg.update_path),
-            )
-        )
-
     if cfg.hash_path:
         # `fix hashes` repairs what nix journaled while building, so the build is
         # what gives it anything to do and its failure is the point. `.` re-resolves
         # the working tree; `cfg.flake` predates the lockfile rewritten above.
-        hashed = nix_eval_dict(cfg.nix_exe, f".#{cfg.hash_path}")
-        refs = [flake_ref(".", cfg.hash_path, name) for name in hashed]
-        run_logged(nix_argv(cfg.nix_exe, "build", "--no-link", *refs), check=False)
+        hashed = nix_eval_targets(cfg.nix_exe, f".#{cfg.hash_path}")
+        build_targets(cfg.nix_exe, hashed, check=False)
 
     # Non-zero also means "nothing to fix".
     run_logged([cfg.nixd_exe, "fix", "hashes", "--auto-apply"], check=False)
@@ -606,40 +556,122 @@ def update_flake(
 
 
 @app.command(
-    "build-pkgs",
+    "check-build",
     context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
 )
-def build_pkgs(
+def check_build(
     ctx: typer.Context,
     path: Annotated[str | None, typer.Option("--path", "-p")] = None,
-    cache: Annotated[str | None, typer.Option()] = None,
-    dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
+    workers: EvalWorkers = EVAL_WORKERS,
+    max_memory_size: EvalMaxMemorySize = EVAL_MAX_MEMORY_SIZE,
 ):
-    """Build packages from a flake attribute path that aren't in the cache yet."""
+    """Build the CI targets of a flake attribute path that no binary cache holds.
+
+    Extra arguments go to nix-fast-build, which builds each target as soon as it
+    has evaluated. Its nix-eval-jobs workers are bounded as in `check-flake`,
+    which evaluates everything else.
+    """
     cfg: Config = ctx.obj
     path = path or cfg.build_path
-    cache = cache or cfg.cache
 
     if not path:
         typer.echo("Specify --path or set --build-path.", err=True)
         raise typer.Exit(1)
 
-    typer.echo("Discovering packages...", err=True)
-    targets = nix_eval_targets(cfg.nix_exe, f"{cfg.flake}#{path}")
-
-    if not targets:
-        typer.echo(f"Found no packages in {cfg.flake}#{path}.", err=True)
-        raise typer.Exit(0)
-
-    typer.echo(
-        f"Found {len(targets)} packages in {cfg.flake}#{path}: {', '.join(targets)}.",
-        err=True,
+    run_logged(
+        [
+            cfg.nix_fast_build_exe,
+            "--nix",
+            cfg.nix_exe,
+            "--nix-build",
+            str(Path(cfg.nix_exe).with_name("nix-build")),
+            "--nix-eval-jobs",
+            cfg.nix_eval_jobs_exe,
+            "--flake",
+            f"{cfg.flake}#{path}",
+            "--select",
+            BUILD_SELECT,
+            "--eval-workers",
+            str(workers),
+            "--eval-max-memory-size",
+            str(max_memory_size),
+            "--skip-cached",
+            *ctx.args,
+        ]
     )
 
-    if dry_run:
-        raise typer.Exit(0)
 
-    build_uncached(cfg.nix_exe, cache, targets, cfg.max_workers, ctx.args)
+def eval_jobs(cfg: Config, workers: int, max_memory_size: int) -> bool:
+    """Evaluate `EVAL_SELECT` with nix-eval-jobs, reporting each failing attribute.
+
+    A worker is restarted once it exceeds `max_memory_size` MiB, which keeps the
+    peak at `workers * max_memory_size` however many configurations the flake has.
+    """
+    errors = 0
+
+    with tempfile.TemporaryDirectory() as gc_roots:
+        cmd = [
+            cfg.nix_eval_jobs_exe,
+            "--flake",
+            cfg.flake,
+            "--select",
+            EVAL_SELECT,
+            "--force-recurse",
+            "--workers",
+            str(workers),
+            "--max-memory-size",
+            str(max_memory_size),
+            "--gc-roots-dir",
+            gc_roots,
+        ]
+        typer.echo(f"nix-eval-jobs --flake {cfg.flake}", err=True)
+
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE, text=True) as proc:
+            assert proc.stdout is not None
+
+            for line in proc.stdout:
+                job = json.loads(line)
+
+                if error := job.get("error"):
+                    errors += 1
+                    typer.echo(f"{job['attr']}: FAILED\n{error}", err=True)
+                else:
+                    typer.echo(f"{job['attr']}: ok", err=True)
+
+    return proc.returncode == 0 and errors == 0
+
+
+@app.command("check-flake")
+def check_flake(
+    ctx: typer.Context,
+    workers: EvalWorkers = EVAL_WORKERS,
+    max_memory_size: EvalMaxMemorySize = EVAL_MAX_MEMORY_SIZE,
+):
+    """Check formatting and evaluate what `check-build` leaves out.
+
+    Together with `check-build` on every system, this covers what
+    `nix flake check --no-build --all-systems` evaluates, while the memory of
+    evaluation stays bounded. Every step runs, so one failure hides no other.
+    """
+    cfg: Config = ctx.obj
+    cfg.require_worktree()
+
+    failed = run_logged(nix_argv(cfg.nix_exe, "fmt", "--", "--ci"), check=False) != 0
+
+    apps = subprocess_capture(
+        nix_argv(
+            cfg.nix_exe, "eval", "--json", f"{cfg.flake}#apps", "--apply", APPS_APPLY
+        )
+    )
+
+    if apps.returncode:
+        failed = True
+        typer.echo(apps.stderr.rstrip(), err=True)
+
+    failed |= not eval_jobs(cfg, workers, max_memory_size)
+
+    if failed:
+        raise typer.Exit(1)
 
 
 @dataclass(frozen=True, slots=True)
@@ -722,10 +754,16 @@ class UpdateScript:
 
 
 def update_scripts_args(
-    update_scripts_nix: str, output: str, attr_path: str
+    update_scripts_nix: str,
+    output: str,
+    attr_path: str,
+    packages: Iterable[str] | None = None,
 ) -> list[str]:
-    """`nix` args selecting `<output>` from update-scripts.nix for the working tree."""
-    return [
+    """`nix` args selecting `<output>` from update-scripts.nix for the working tree.
+
+    `packages` narrows the derivations under `attr_path` to those keys before
+    anything of them is forced."""
+    args = [
         "-f",
         update_scripts_nix,
         output,
@@ -737,9 +775,17 @@ def update_scripts_args(
         attr_path,
     ]
 
+    if packages is not None:
+        args.extend(["--argstr", "packages", json.dumps(sorted(packages))])
+
+    return args
+
 
 def discover_update_scripts(
-    nix_exe: str, update_scripts_nix: str, attr_path: str
+    nix_exe: str,
+    update_scripts_nix: str,
+    attr_path: str,
+    packages: Iterable[str] | None = None,
 ) -> dict[str, UpdateScript]:
     """Build and parse the update-scripts manifest for derivations under `attr_path`.
 
@@ -752,7 +798,7 @@ def discover_update_scripts(
             nix_exe,
             "build",
             "--impure",
-            *update_scripts_args(update_scripts_nix, "manifest", attr_path),
+            *update_scripts_args(update_scripts_nix, "manifest", attr_path, packages),
             "--no-link",
             "--print-out-paths",
         )
@@ -773,9 +819,9 @@ class PackageMeta:
 
 
 def eval_metadata(
-    nix_exe: str, update_scripts_nix: str, attr_path: str
+    nix_exe: str, update_scripts_nix: str, attr_path: str, packages: Iterable[str]
 ) -> dict[str, PackageMeta]:
-    """Current metadata for every updateScript package under `attr_path`.
+    """Current metadata for the updateScript `packages` under `attr_path`.
 
     Evaluates the `metadata` output, which forces only each version and
     changelog and so realizes nothing (unlike the manifest).
@@ -783,7 +829,7 @@ def eval_metadata(
     entries = nix_eval_json(
         nix_exe,
         "--impure",
-        *update_scripts_args(update_scripts_nix, "metadata", attr_path),
+        *update_scripts_args(update_scripts_nix, "metadata", attr_path, packages),
     )
 
     return {key: PackageMeta(**fields) for key, fields in entries.items()}
@@ -827,11 +873,11 @@ def update_pkgs(
 
     typer.echo("Discovering updateScripts...", err=True)
     scripts = discover_update_scripts(
-        cfg.nix_exe, cfg.update_scripts_nix, cfg.update_path
+        cfg.nix_exe,
+        cfg.update_scripts_nix,
+        cfg.update_path,
+        None if package is None else [package],
     )
-
-    if package is not None:
-        scripts = {k: v for k, v in scripts.items() if k == package}
 
     if not scripts:
         typer.echo("No matching packages with an updateScript.", err=True)
@@ -884,11 +930,17 @@ def update_pkgs(
 
     if commit:
         # List every version bump in the commit body (sorted), à la `nix flake update`.
-        updated = eval_metadata(cfg.nix_exe, cfg.update_scripts_nix, cfg.update_path)
+        updated = (
+            eval_metadata(
+                cfg.nix_exe, cfg.update_scripts_nix, cfg.update_path, succeeded
+            )
+            if succeeded
+            else {}
+        )
         bumps = [
-            format_bump(key, scripts[key].old_version, updated[key])
-            for key in sorted(succeeded & updated.keys())
-            if scripts[key].old_version != updated[key].version
+            format_bump(key, scripts[key].old_version, meta)
+            for key, meta in sorted(updated.items())
+            if scripts[key].old_version != meta.version
         ]
         message = "chore(deps/pkgs): update"
 

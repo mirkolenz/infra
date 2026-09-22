@@ -12,7 +12,7 @@ let
       "pipe-operators"
     ];
     nix-path = [
-      "nixpkgs=flake:pkgs"
+      "nixpkgs=flake:nixpkgs"
     ];
     accept-flake-config = true;
     commit-lock-file-summary = "chore(deps/nix): update";

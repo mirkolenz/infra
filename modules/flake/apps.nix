@@ -15,7 +15,6 @@
       apps = {
         default.program = pkgs.flakectl.withFlags {
           flake = self.outPath;
-          cache = "https://mirkolenz.cachix.org";
           build-path = "checks.${system}";
           hash-path = "custom.hashedPackages";
           update-path = "custom.flattenedPackages";

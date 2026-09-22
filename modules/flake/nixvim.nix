@@ -1,6 +1,7 @@
-# The flake's only nixvim constructor: one evaluation per system and profile,
-# shared by every home (see modules/programs/neovim.nix) and by `perSystem`.
-# Adding a variant is one entry in `profiles`; it becomes `packages.nixvim-<name>`.
+# The flake's only nixvim constructor: one evaluation per system and profile in
+# `perSystem`, shared by every home through `withSystem` (see
+# modules/programs/neovim.nix). Adding a variant is one entry in `profiles`; it
+# becomes `packages.nixvim-<name>`.
 {
   inputs,
   lib,
@@ -14,39 +15,26 @@ let
   };
 in
 {
-  options.nixvimFor = lib.mkOption {
-    type = lib.types.lazyAttrsOf lib.types.raw;
-    readOnly = true;
-    description = "Shared nixvim configurations keyed by system, one per profile.";
+  nixvim.packages = {
+    enable = true;
+    nameFunction = name: "nixvim-${name}";
   };
 
-  config = {
-    nixvimFor = lib.genAttrs config.systems (
-      system:
-      lib.mapAttrs (
+  perSystem =
+    { pkgs, ... }:
+    {
+      nixvimConfigurations = lib.mapAttrs (
         _: features:
         inputs.nixvim.lib.evalNixvim {
           modules = [
             config.flake.modules.nixvim.default
             {
               _file = ./nixvim.nix;
-              nixpkgs.pkgs = config.pkgsFor.${system};
+              nixpkgs.pkgs = pkgs;
               custom.features = features;
             }
           ];
         }
-      ) profiles
-    );
-
-    nixvim.packages = {
-      enable = true;
-      nameFunction = name: "nixvim-${name}";
+      ) profiles;
     };
-
-    perSystem =
-      { system, ... }:
-      {
-        nixvimConfigurations = config.nixvimFor.${system};
-      };
-  };
 }
