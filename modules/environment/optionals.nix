@@ -31,7 +31,7 @@
         grpcui
         mqttui
         plantuml
-        pre-commit
+        # pre-commit
         mu-repo
         cc2538-bsl
         imagemagick
