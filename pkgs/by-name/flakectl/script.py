@@ -68,11 +68,18 @@ class Config:
             raise typer.Exit(1)
 
 
+def subprocess_capture(
+    cmd: list[str], stdin: str | None = None, env: Mapping[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
+    """Run `cmd` with its output captured as text, leaving failure to the caller."""
+    return subprocess.run(
+        cmd, input=stdin, env=env, capture_output=True, text=True, check=False
+    )
+
+
 def subprocess_stdout(cmd: list[str], stdin: str | None = None) -> str:
     """Capture `cmd`'s stdout; on failure echo its stderr and exit with its status."""
-    result = subprocess.run(
-        cmd, input=stdin, capture_output=True, text=True, check=False
-    )
+    result = subprocess_capture(cmd, stdin)
 
     if result.returncode:
         typer.echo(result.stderr.rstrip(), err=True)
@@ -373,11 +380,8 @@ def passwd(ctx: typer.Context, file: Annotated[Path, typer.Argument()]):
 
 def get_latest_release(gh_exe: str, owner: str, repo: str) -> str | None:
     """Fetch the latest release tag via the gh CLI."""
-    result = subprocess.run(
-        [gh_exe, "api", f"repos/{owner}/{repo}/releases/latest", "--jq", ".tag_name"],
-        capture_output=True,
-        text=True,
-        check=False,
+    result = subprocess_capture(
+        [gh_exe, "api", f"repos/{owner}/{repo}/releases/latest", "--jq", ".tag_name"]
     )
 
     if result.returncode != 0:
@@ -574,9 +578,46 @@ class UpdateScript:
 
         return str(target.relative_to(root)) if target.is_relative_to(root) else None
 
-    def run(self) -> subprocess.CompletedProcess[str]:
-        """Run the updateScript, inheriting cwd (repo root) and PATH."""
-        return subprocess.run(self.argv, capture_output=True, text=True, check=False)
+    @property
+    def wants_github_token(self) -> bool:
+        """Whether the script names GITHUB_TOKEN, `--keep GITHUB_TOKEN` included.
+
+        Letting each script declare the need keeps the credential away from the
+        updaters that never call the GitHub API, without a flag that nixpkgs
+        would not recognize."""
+        script = Path(self.command[0])
+
+        return script.is_file() and b"GITHUB_TOKEN" in script.read_bytes()
+
+    def run(self, token: str | None) -> subprocess.CompletedProcess[str]:
+        """Run the updateScript, inheriting cwd (repo root) and PATH.
+
+        `token` reaches a script that asks for it; every other script runs with
+        GITHUB_TOKEN unset, so an exported one leaks no further than this."""
+        env = dict(os.environ)
+
+        if token is not None and self.wants_github_token:
+            env["GITHUB_TOKEN"] = token
+        else:
+            env.pop("GITHUB_TOKEN", None)
+
+        return subprocess_capture(self.argv, env=env)
+
+
+def github_token(gh_exe: str) -> str | None:
+    """The token for update scripts that call the GitHub API, if one is around.
+
+    An exported GITHUB_TOKEN wins, otherwise the `gh` login provides one. A
+    token only lifts the API rate limit from 60 to 5000 requests per hour, so
+    neither a missing `gh` nor a missing login is an error.
+    """
+    if token := os.environ.get("GITHUB_TOKEN"):
+        return token
+
+    if (gh := shutil.which(gh_exe)) is None:
+        return None
+
+    return subprocess_capture([gh, "auth", "token"]).stdout.strip() or None
 
 
 def update_scripts_args(
@@ -704,11 +745,14 @@ def update_pkgs(
         raise typer.Exit(0)
 
     succeeded: set[str] = set()
+    token = github_token(cfg.gh_exe)
 
     with concurrent.futures.ThreadPoolExecutor(
         max_workers=min(len(scripts), cfg.max_workers)
     ) as pool:
-        futures = {pool.submit(script.run): key for key, script in scripts.items()}
+        futures = {
+            pool.submit(script.run, token): key for key, script in scripts.items()
+        }
 
         try:
             for future in concurrent.futures.as_completed(futures):

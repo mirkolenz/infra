@@ -41,12 +41,18 @@ lib.extendMkDerivation {
       ...
     }:
     let
-      jqSelector = if allowPrereleases then ".[0]" else ".";
-      ghCall =
+      # The prerelease endpoint returns a list, hence the differing selector.
+      api =
         if allowPrereleases then
-          "gh api repos/${owner}/${repo}/releases --method GET --raw-field per_page=1"
+          {
+            url = "https://api.github.com/repos/${owner}/${repo}/releases?per_page=1";
+            selector = ".[0]";
+          }
         else
-          "gh api repos/${owner}/${repo}/releases/latest";
+          {
+            url = "https://api.github.com/repos/${owner}/${repo}/releases/latest";
+            selector = ".";
+          };
 
       release = lib.importJSON file;
 
@@ -114,14 +120,24 @@ lib.extendMkDerivation {
       passthru = {
         updateScript = writeScript "github-binaries-${owner}-${repo}" ''
           #!/usr/bin/env nix-shell
-          #!nix-shell --pure --keep GH_TOKEN -i bash -p gh jq
+          #!nix-shell --pure --keep GITHUB_TOKEN -i bash -p curl jq cacert
 
           set -euo pipefail
 
+          if ! response="$(
+            curl --silent --show-error --fail-with-body --location \
+              --header "Accept: application/vnd.github+json" \
+              --header "X-GitHub-Api-Version: 2026-03-10" \
+              ''${GITHUB_TOKEN:+--user ":$GITHUB_TOKEN"} \
+              "${api.url}"
+          )"; then
+            echo "$response" >&2
+            exit 1
+          fi
+
           output="$(
-            ${ghCall} \
-            | jq --argjson sentinelNames '${sentinelAssetNames}' '
-              ${jqSelector} |
+            jq --argjson sentinelNames '${sentinelAssetNames}' '
+              ${api.selector} |
               (${jqVersionExpr}) as $version |
               INDEX(.assets[]; .name) as $assets | {
                 tag_name,
@@ -132,7 +148,7 @@ lib.extendMkDerivation {
                   { key: .name, value: { digest } }
                 ] | from_entries
               }
-            '
+            ' <<<"$response"
           )"
 
           echo "$output" > "${toString file}"
