@@ -7,13 +7,13 @@
 }:
 buildGoModule (finalAttrs: {
   pname = "osv-scalibr";
-  version = "0.5.2";
+  version = "0.5.3";
 
   src = fetchFromGitHub {
     owner = "google";
     repo = "osv-scalibr";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-J/KbFDlVfnPpqy1jQrKqizOlBmsXYLD3rKUKg/D6ofE=";
+    hash = "sha256-r4nLxxwQqIy+CA8tQXxetKO8Ckqz5JVPtQyysYcVMR0=";
   };
 
   vendorHash = "sha256-ZxVnh509Oy3buK49Juvmu2+LjYiW8G/UhXYVJ2rh5Jo=";
