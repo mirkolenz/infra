@@ -68,7 +68,9 @@ stdenv.mkDerivation (finalAttrs: {
     runHook postInstall
   '';
 
-  passthru.updateScript = nix-update-script { };
+  passthru.updateScript = nix-update-script {
+    extraArgs = [ "--version-regex=knip@(.*)" ];
+  };
 
   nativeInstallCheckInputs = [ versionCheckHook ];
   doInstallCheck = true;
