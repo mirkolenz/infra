@@ -118,12 +118,12 @@ stdenv.mkDerivation {
   # `rev` is moved twice a day by CI, while the marker below moves only when
   # someone reads the diff that came with it, so the two together delimit what
   # is still unreviewed. See README.md.
-  # reviewed-rev: 73a1b8e1615b826327d8f5483837f7930ae4f25a
+  # reviewed-rev: 0c9178d14d238e3568cb1e886d7c23010d7179b3
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";
-    rev = "73a1b8e1615b826327d8f5483837f7930ae4f25a";
-    hash = "sha256-xmI00oATq+CotK5jS9T9jMMdswEAk2bij/Z50XEinBc=";
+    rev = "0c9178d14d238e3568cb1e886d7c23010d7179b3";
+    hash = "sha256-l1oELIOkm1hlraO9xHBhY2jK+J1xd7WQmlI4XO7gakY=";
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies;
