@@ -20,6 +20,15 @@ lib.genAttrs [
   # taken from the flake's own package set like determinate-nix, extended by the
   # attributes of nixpkgs' nix-eval-jobs that dependents rely on
   nix-eval-jobs = final.inputs.nix-eval-jobs.packages.${system}.default.overrideAttrs (prevAttrs: {
+    # TODO: drop once the fork includes NixOS/nix-eval-jobs#435 (2.35.1).
+    # A worker restarting on the last job made a successful evaluation exit 1.
+    patches = prevAttrs.patches or [ ] ++ [
+      (final.fetchpatch {
+        url = "https://github.com/NixOS/nix-eval-jobs/commit/1dfd85ae68393aa7db55f1dd005e0feab92c844b.patch";
+        excludes = [ "tests-functional/*" ];
+        hash = "sha256-64Qn3WwrhD+0vIdQZ4knRBb67msku7uyY7A64FdECxk=";
+      })
+    ];
     passthru = prevAttrs.passthru // {
       nix = final.determinate-nix;
     };
