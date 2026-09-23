@@ -89,6 +89,8 @@ gh api repos/kaiT2en/KaiT2en-Fedora/compare/REVIEWED_REV...REV \
 
 Move the marker to `rev` once the range has been read, in the same commit as
 whatever the range made necessary.
+Use the first twelve characters only, because nix-update replaces every
+occurrence of the full old `rev` in `modules.nix` and would move the marker too.
 
 The four lists in `modules.nix` mirror arrays in upstream's installer scripts,
 and the `mirrored` list there pairs each one with its source. A build that fails
