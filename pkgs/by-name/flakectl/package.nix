@@ -1,7 +1,6 @@
 {
   lib,
   writers,
-  writeShellScript,
   writeShellScriptBin,
   python3Packages,
   git,
@@ -12,14 +11,8 @@
   darwin-rebuild,
   nixos-rebuild-ng,
   home-manager,
-  gnugrep,
 }:
 let
-  # nix-eval-jobs links upstream Nix, which warns about every setting of
-  # Determinate's nix.conf that it does not know
-  nix-eval-jobs' = writeShellScript "nix-eval-jobs" ''
-    exec ${lib.getExe nix-eval-jobs} "$@" 2> >(${lib.getExe gnugrep} --line-buffered --invert-match --extended-regexp "^warning: unknown (setting|experimental feature) '" >&2)
-  '';
   flakectl = writers.writePython3Bin "flakectl" {
     libraries = with python3Packages; [
       httpx2
@@ -30,7 +23,7 @@ let
       "--add-flag"
       "--nix-exe=${lib.getExe determinate-nix}"
       "--add-flag"
-      "--nix-eval-jobs-exe=${nix-eval-jobs'}"
+      "--nix-eval-jobs-exe=${lib.getExe nix-eval-jobs}"
       "--add-flag"
       "--nix-fast-build-exe=${lib.getExe nix-fast-build}"
       "--add-flag"

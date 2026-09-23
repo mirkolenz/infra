@@ -46,6 +46,7 @@ let
   overrides = lib'.importOverlays [
     ./overrides/inputs.nix
     ./overrides/ports.nix
+    ./overrides/determinate.nix
     ./overrides/hotfixes.nix
   ] final prev;
 

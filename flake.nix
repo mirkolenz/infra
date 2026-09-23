@@ -76,6 +76,13 @@
       url = "github:nix-darwin/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # fork tracking determinate nix, which upstream nix-eval-jobs does not build against
+    nix-eval-jobs = {
+      url = "github:determinatesystems/nix-eval-jobs";
+      inputs.nix.follows = "determinate/nix";
+      inputs.flake-parts.follows = "flake-parts";
+      inputs.treefmt-nix.follows = "treefmt-nix";
+    };
     nix-index-database = {
       url = "github:mic92/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
