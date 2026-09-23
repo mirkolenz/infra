@@ -18,9 +18,10 @@ in
           system,
           uid,
           genericLinux ? true,
+          check ? false,
         }:
         {
-          inherit system;
+          inherit system check;
           module = {
             imports = [
               homeManager.${lib'.systemOs system}
@@ -33,6 +34,19 @@ in
         }
       )
       {
+        # canonical homes checked by CI, the others differ from them only in
+        # login and uid
+        "mlenz@generic" = {
+          system = "x86_64-linux";
+          uid = 1000;
+          check = true;
+        };
+        "mlenz@nixos" = {
+          system = "x86_64-linux";
+          uid = 1000;
+          genericLinux = false;
+          check = true;
+        };
         "lenz@gpu.wi2.uni-trier.de" = {
           system = "x86_64-linux";
           uid = 1002;

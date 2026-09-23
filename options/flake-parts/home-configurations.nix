@@ -14,6 +14,11 @@
         options = {
           system = lib.mkOption { type = lib.types.enum config.systems; };
           module = lib.mkOption { type = lib.types.deferredModule; };
+          # whether CI evaluates the home
+          check = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
+          };
         };
       }
     );
@@ -23,7 +28,7 @@
   config = {
     flake.homeConfigurations = lib.mapAttrs (
       _:
-      { system, module }:
+      { system, module, ... }:
       withSystem system (
         { pkgs, ... }:
         inputs.home-manager.lib.homeManagerConfiguration {
@@ -45,6 +50,6 @@
     evalTargets.home = lib.mapAttrs (name: { system, ... }: {
       inherit system;
       package = config.flake.homeConfigurations.${name}.activationPackage;
-    }) config.configurations.home;
+    }) (lib.filterAttrs (_: home: home.check) config.configurations.home);
   };
 }
