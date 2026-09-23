@@ -27,7 +27,10 @@
         flake-parts.follows = "flake-parts";
       };
     };
-    determinate.url = "github:determinatesystems/determinate";
+    determinate = {
+      url = "github:determinatesystems/determinate";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     disko = {
       url = "github:nix-community/disko/v1.13.0";
       inputs.nixpkgs.follows = "nixpkgs";
