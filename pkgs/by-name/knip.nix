@@ -12,20 +12,20 @@
 }:
 stdenv.mkDerivation (finalAttrs: {
   pname = "knip";
-  version = "6.37.0";
+  version = "6.38.0";
 
   src = fetchFromGitHub {
     owner = "webpro-nl";
     repo = "knip";
     tag = "knip@${finalAttrs.version}";
-    hash = "sha256-epod0JsCZ2oemoqzK7GRzFUg0OwEunqSOsAl3kr09H8=";
+    hash = "sha256-S0l72lc8Xhvyjy0vnWWCHFSJ5AKZwa7/3/UbsWtDblU=";
   };
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-73rus7YYjl3bDkiVobo5eWAoceqodlpaimxDv/a3V3o=";
+    hash = "sha256-InYbcDE3IHgWTqiW1PKnK1GlhPr7dZyRmtdQBIj4GQM=";
   };
 
   nativeBuildInputs = [
