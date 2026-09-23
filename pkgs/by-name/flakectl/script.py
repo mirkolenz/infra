@@ -1,6 +1,7 @@
 import concurrent.futures
 import functools
 import getpass
+import itertools
 import json
 import os
 import re
@@ -9,7 +10,7 @@ import shutil
 import subprocess
 import tempfile
 import urllib.parse
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, Any
@@ -23,6 +24,8 @@ GITHUB_API = "https://api.github.com"
 
 # Pinned alongside the one in pkgs/by-name/mkGitHubBinary.nix.
 GITHUB_API_VERSION = "2026-03-10"
+
+GITHUB_ACTIONS = os.environ.get("GITHUB_ACTIONS") == "true"
 
 # Flags passed to every `nix` invocation.
 NIX_FLAGS = ["--extra-experimental-features", "nix-command flakes"]
@@ -249,7 +252,7 @@ def main(
     ctx.obj = Config(**ctx.params, is_worktree=is_worktree_of(flake))
 
     # the Actions log renders colors although stderr is a pipe there
-    if os.environ.get("GITHUB_ACTIONS") == "true":
+    if GITHUB_ACTIONS:
         ctx.color = True
 
     if ctx.invoked_subcommand is None:
@@ -606,37 +609,68 @@ def check_build(
     )
 
 
-def write_step_summary(passed: Sequence[str], failed: Mapping[str, str]) -> None:
-    """Append the evaluation results to the job summary, as nix-fast-build does."""
+# A check's outcome and its section of the job summary.
+CheckResult = tuple[bool, list[str]]
+
+
+def fenced(text: str, lang: str = "") -> list[str]:
+    """Wrap `text` in a Markdown code block."""
+    return [f"```{lang}", text.strip(), "```", ""]
+
+
+def write_step_summary(lines: Iterable[str]) -> None:
+    """Append `lines` to the job summary, if there is one."""
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
 
     if not summary:
         return
 
-    status = (
-        f"## ❌ Evaluation Failed ({len(failed)} failed, {len(passed)} successful)"
-        if failed
-        else f"## ✅ All Evaluations Passed ({len(passed)} successful)"
-    )
-    lines = ["# nix-eval-jobs Results", "", status, ""]
+    with Path(summary).open("a") as file:
+        file.write("\n".join(lines) + "\n")
 
-    for attr, error in failed.items():
-        lines += [f"**`{attr}`**", "", "```", error.strip(), "```", ""]
 
-    lines += [
-        "<details>",
-        f"<summary>Evaluated {len(passed)} attributes</summary>",
+def check_fmt(cfg: Config) -> CheckResult:
+    """Run the formatter, annotating each file it changed."""
+    if run_logged(nix_argv(cfg.nix_exe, "fmt", "--", "--ci"), check=False) == 0:
+        return True, ["## ✅ Formatting Passed", ""]
+
+    files = subprocess_stdout([cfg.git_exe, "diff", "--name-only"]).splitlines()
+
+    if not files:
+        return False, ["## ❌ Formatting Failed", "", "See the job log.", ""]
+
+    if GITHUB_ACTIONS:
+        for file in files:
+            typer.echo(f"::error file={file},title=nix fmt::File is not formatted")
+
+    diff = subprocess_stdout([cfg.git_exe, "diff"])
+
+    return False, [
+        f"## ❌ Formatting Failed ({len(files)} files)",
         "",
-        *(f"- {attr}" for attr in passed),
-        "</details>",
+        *(f"- `{file}`" for file in files),
         "",
+        *fenced(diff, "diff"),
     ]
 
-    with Path(summary).open("a") as file:
-        file.write("\n".join(lines))
+
+def check_apps(cfg: Config) -> CheckResult:
+    """Evaluate the program of every app."""
+    apps = subprocess_capture(
+        nix_argv(
+            cfg.nix_exe, "eval", "--json", f"{cfg.flake}#.apps", "--apply", APPS_APPLY
+        )
+    )
+
+    if apps.returncode:
+        typer.echo(apps.stderr.rstrip(), err=True)
+
+        return False, ["## ❌ Apps Evaluation Failed", "", *fenced(apps.stderr)]
+
+    return True, ["## ✅ Apps Evaluation Passed", ""]
 
 
-def eval_jobs(cfg: Config, workers: int, max_memory_size: int) -> bool:
+def eval_jobs(cfg: Config, workers: int, max_memory_size: int) -> CheckResult:
     """Evaluate `EVAL_SELECT` with nix-eval-jobs, reporting each failing attribute.
 
     A worker is restarted once it exceeds `max_memory_size` MiB, which keeps the
@@ -682,9 +716,26 @@ def eval_jobs(cfg: Config, workers: int, max_memory_size: int) -> bool:
                 else:
                     passed.append(attr)
 
-    write_step_summary(passed, failed)
+    lines = [
+        f"## ❌ Evaluation Failed ({len(failed)} failed, {len(passed)} successful)"
+        if failed
+        else f"## ✅ All Evaluations Passed ({len(passed)} successful)",
+        "",
+    ]
 
-    return proc.returncode == 0 and not failed
+    for attr, error in failed.items():
+        lines += [f"**`{attr}`**", "", *fenced(error)]
+
+    lines += [
+        "<details>",
+        f"<summary>Evaluated {len(passed)} attributes</summary>",
+        "",
+        *(f"- {attr}" for attr in passed),
+        "</details>",
+        "",
+    ]
+
+    return proc.returncode == 0 and not failed, lines
 
 
 @app.command("check-flake")
@@ -702,21 +753,16 @@ def check_flake(
     cfg: Config = ctx.obj
     cfg.require_worktree()
 
-    failed = run_logged(nix_argv(cfg.nix_exe, "fmt", "--", "--ci"), check=False) != 0
-
-    apps = subprocess_capture(
-        nix_argv(
-            cfg.nix_exe, "eval", "--json", f"{cfg.flake}#.apps", "--apply", APPS_APPLY
-        )
+    results = [
+        check_fmt(cfg),
+        check_apps(cfg),
+        eval_jobs(cfg, workers, max_memory_size),
+    ]
+    write_step_summary(
+        itertools.chain(["# Flake Check", ""], *(lines for _, lines in results))
     )
 
-    if apps.returncode:
-        failed = True
-        typer.echo(apps.stderr.rstrip(), err=True)
-
-    failed |= not eval_jobs(cfg, workers, max_memory_size)
-
-    if failed:
+    if not all(ok for ok, _ in results):
         raise typer.Exit(1)
 
 
