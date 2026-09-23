@@ -123,8 +123,8 @@ stdenv.mkDerivation {
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";
-    rev = "b8b5cc9beeb78aa329b21e18afe14368f6f7f841";
-    hash = "sha256-zynruBXWLxqwFnUcFacSjkm/ZCNK5KXa2ULJV9sxnwY=";
+    rev = "283c4f4c8e47d4d773c6491ff12e4283c2d5e183";
+    hash = "sha256-69WruWXNB5w1Ny0r+cYxXJNOIQ5x2GsU0LCX+jhgi6k=";
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies;
