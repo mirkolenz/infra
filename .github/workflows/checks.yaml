@@ -12,24 +12,24 @@ concurrency:
 # check-flake evaluates everything the build jobs leave out, the build jobs
 # evaluate and build the CI targets of their system. Together they cover what
 # `nix flake check --all-systems` checks, each derivation evaluated once.
+# Limits follow the hardware of the standard runners for public repositories:
+# https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+# check-flake leaves about 3 GB of the runner to the system, two workers
+# keep more of nixpkgs cached than four. The build jobs evaluate in seconds.
 jobs:
   check-flake:
+    # 4 vCPU, 16 GB RAM
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
       - uses: DeterminateSystems/determinate-nix-action@4eea0b33e3d1f02ecfe37cf16e7204c424009606 # v3
         with:
+          summarize: false
           extra-conf: |
             accept-flake-config = true
+            eval-cores = 1
             log-lines = 200
-      - uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
-        with:
-          name: mirkolenz
-          authToken: ${{ secrets.CACHIX_TOKEN }}
-          # evaluation only, whatever lands in the store here is no CI target
-          skipPush: true
-      # evaluation memory is bounded by flakectl's shared worker defaults
-      - run: nix run . -- check-flake
+      - run: nix run . -- check-flake --workers 2 --max-memory-size 6656
   check-build:
     name: check-build-${{ matrix.system }}
     runs-on: ${{ matrix.runner }}
@@ -37,13 +37,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+          # 4 vCPU, 16 GB RAM
           - system: aarch64-linux
             runner: ubuntu-26.04-arm
+            max-jobs: 4
+          # 4 vCPU, 16 GB RAM
           - system: x86_64-linux
             runner: ubuntu-26.04
+            max-jobs: 4
+          # 3 vCPU, 7 GB RAM
           - system: aarch64-darwin
             runner: macos-26
+            max-jobs: 3
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
       - name: reclaim linux disk space
@@ -57,11 +62,14 @@ jobs:
           done
       - uses: DeterminateSystems/determinate-nix-action@4eea0b33e3d1f02ecfe37cf16e7204c424009606 # v3
         with:
+          summarize: false
+          # nix-fast-build does not pass `--max-jobs` on, so every build
+          # realizes its own dependencies one at a time
           extra-conf: |
             accept-flake-config = true
             build-dir = /nix/build
             cores = 0
-            eval-cores = 0
+            eval-cores = 1
             fallback = true
             keep-going = true
             log-lines = 200
@@ -70,7 +78,7 @@ jobs:
         with:
           name: mirkolenz
           authToken: ${{ secrets.CACHIX_TOKEN }}
-      - run: nix run . -- check-build --no-nom
+      - run: nix run . -- check-build --max-memory-size 2048 --no-nom --max-jobs ${{ matrix.max-jobs }}
   check-all:
     needs:
       - check-flake
