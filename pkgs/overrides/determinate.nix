@@ -6,15 +6,13 @@ let
   inherit (prev) lib;
   inherit (prev.stdenv.hostPlatform) system;
 in
-lib.genAttrs
-  [
-    "nix-init"
-    "nix-update"
-    "nixos-rebuild-ng"
-    "nixpkgs-review"
-    "nurl"
-  ]
-  (name: prev.${name}.override { nix = final.determinate-nix; })
+lib.genAttrs [
+  "nix-init"
+  "nix-update"
+  "nixos-rebuild-ng"
+  "nixpkgs-review"
+  "nurl"
+] (name: prev.${name}.override { nix = final.determinate-nix; })
 // {
   # taken from the flake's own package set like determinate-nix, extended by the
   # attributes of nixpkgs' nix-eval-jobs that dependents rely on
