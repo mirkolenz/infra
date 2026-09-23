@@ -725,7 +725,10 @@ def eval_jobs(cfg: Config, workers: int, max_memory_size: int) -> CheckResult:
     ]
 
     if proc.returncode:
-        lines += [f"nix-eval-jobs exited with code {proc.returncode}, see the job log.", ""]
+        lines += [
+            f"nix-eval-jobs exited with code {proc.returncode}, see the job log.",
+            "",
+        ]
 
     for attr, error in failed.items():
         lines += [f"**`{attr}`**", "", *fenced(error)]
