@@ -26,6 +26,7 @@
 - Write operations such as `git commit` need explicit user permission.
 - Remote operations such as `git push` are always forbidden.
 - Use conventional commit messages with a concise title and an empty body.
+- The following prefixes are allowed besides fix and feat: build, chore, ci, docs, style, refactor, perf, test
 
 ## Source Code Files
 
