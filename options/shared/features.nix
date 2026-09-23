@@ -1,7 +1,6 @@
 # Cross-cutting feature flags, shared across all module systems
 # (nixos/darwin/home/nixvim). Values are set per host/configuration; home inherits
-# them from the host in modules/core/home.nix, and nixvim inherits extras.enable in
-# modules/programs/neovim.nix.
+# them from the host in modules/core/home.nix.
 { lib, config, ... }:
 {
   options.custom.features = {
