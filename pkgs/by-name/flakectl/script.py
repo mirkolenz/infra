@@ -665,9 +665,9 @@ def check_apps(cfg: Config) -> CheckResult:
     if apps.returncode:
         typer.echo(apps.stderr.rstrip(), err=True)
 
-        return False, ["## ❌ Apps Evaluation Failed", "", *fenced(apps.stderr)]
+        return False, ["## ❌ App Evals Failed", "", *fenced(apps.stderr)]
 
-    return True, ["## ✅ Apps Evaluation Passed", ""]
+    return True, ["## ✅ App Evals Passed", ""]
 
 
 def eval_jobs(cfg: Config, workers: int, max_memory_size: int) -> CheckResult:
@@ -716,26 +716,30 @@ def eval_jobs(cfg: Config, workers: int, max_memory_size: int) -> CheckResult:
                 else:
                     passed.append(attr)
 
+    ok = proc.returncode == 0 and not failed
     lines = [
-        f"## ❌ Evaluation Failed ({len(failed)} failed, {len(passed)} successful)"
-        if failed
-        else f"## ✅ All Evaluations Passed ({len(passed)} successful)",
+        f"## ✅ Drv Evals Passed ({len(passed)} successful)"
+        if ok
+        else f"## ❌ Drv Evals Failed ({len(failed)} failed, {len(passed)} successful)",
         "",
     ]
+
+    if proc.returncode:
+        lines += [f"nix-eval-jobs exited with code {proc.returncode}, see the job log.", ""]
 
     for attr, error in failed.items():
         lines += [f"**`{attr}`**", "", *fenced(error)]
 
     lines += [
         "<details>",
-        f"<summary>Evaluated {len(passed)} attributes</summary>",
+        f"<summary>Evaluated {len(passed)} derivations</summary>",
         "",
         *(f"- {attr}" for attr in passed),
         "</details>",
         "",
     ]
 
-    return proc.returncode == 0 and not failed, lines
+    return ok, lines
 
 
 @app.command("check-flake")
