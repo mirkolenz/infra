@@ -7,6 +7,12 @@ let
   inherit (final) inputs;
   fromOverlay = overlay: names: lib.getAttrs names (overlay final prev);
 
+  # the kernel `nixos-hardware/raspberry-pi/4` gives the raspi host, built by CI
+  # without evaluating that host
+  raspi-kernel = lib.addMetaAttrs { platforms = [ "aarch64-linux" ]; } (
+    final.callPackage "${inputs.nixos-hardware}/raspberry-pi/common/kernel.nix" { rpiVersion = 4; }
+  );
+
   disko = final.callPackage "${inputs.disko}/package.nix" {
     diskoVersion = (import "${inputs.disko}/version.nix").version;
   };
@@ -35,7 +41,7 @@ fromOverlay inputs.makejinja.overlays.default [ "makejinja" ]
 // fromOverlay inputs.neovim-nightly-overlay.overlays.default [ "neovim-unwrapped" ]
 // fromOverlay inputs.opnix.overlays.default [ "opnix" ]
 // {
-  inherit disko;
+  inherit disko raspi-kernel;
   disko-install = disko.overrideAttrs { name = "disko-install"; };
 
   inherit (vicinae) mkVicinaeExtension;

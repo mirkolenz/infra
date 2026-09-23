@@ -1,8 +1,4 @@
-{
-  self,
-  lib',
-  ...
-}:
+{ lib', ... }:
 {
   perSystem =
     {
@@ -19,13 +15,7 @@
     in
     {
       packages = exports;
-      # added past the availability filter, so that listing the checks does not
-      # evaluate the raspi configuration
-      checks =
-        lib.filterAttrs (_: lib'.isHydraTarget) exports
-        // lib.optionalAttrs (system == "aarch64-linux") {
-          raspi-kernel = self.nixosConfigurations.raspi.config.boot.kernelPackages.kernel;
-        };
+      checks = lib.filterAttrs (_: lib'.isHydraTarget) exports;
       formatter = pkgs.treefmt-nix;
       legacyPackages = pkgs;
     };
