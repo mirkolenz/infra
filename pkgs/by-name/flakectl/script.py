@@ -9,7 +9,7 @@ import shutil
 import subprocess
 import tempfile
 import urllib.parse
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, Any
@@ -82,8 +82,8 @@ APPS_APPLY = "builtins.mapAttrs (_: builtins.mapAttrs (_: app: app.program))"
 
 # nix-eval-jobs bounds shared by `check-flake` and `check-build`. A worker past
 # its share is restarted, so peak memory stays at `workers * max_memory_size` MiB.
-# One worker of 6 GiB fits the smallest hosted runner (macOS, 7 GB) as well as
-# the largest single configuration (about 4.7 GB).
+# One worker of 6 GiB fits any host as well as the largest single configuration
+# (about 4.7 GB).
 EvalWorkers = Annotated[int, typer.Option("--workers")]
 EvalMaxMemorySize = Annotated[
     int, typer.Option("--max-memory-size", help="MiB per worker.")
@@ -247,6 +247,11 @@ def main(
     max_workers: Annotated[int, typer.Option()] = 8,
 ):
     ctx.obj = Config(**ctx.params, is_worktree=is_worktree_of(flake))
+
+    # the Actions log renders colors although stderr is a pipe there
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        ctx.color = True
+
     if ctx.invoked_subcommand is None:
         build_config(ctx)
 
@@ -601,13 +606,44 @@ def check_build(
     )
 
 
+def write_step_summary(passed: Sequence[str], failed: Mapping[str, str]) -> None:
+    """Append the evaluation results to the job summary, as nix-fast-build does."""
+    summary = os.environ.get("GITHUB_STEP_SUMMARY")
+
+    if not summary:
+        return
+
+    status = (
+        f"## ❌ Evaluation Failed ({len(failed)} failed, {len(passed)} successful)"
+        if failed
+        else f"## ✅ All Evaluations Passed ({len(passed)} successful)"
+    )
+    lines = ["# nix-eval-jobs Results", "", status, ""]
+
+    for attr, error in failed.items():
+        lines += [f"**`{attr}`**", "", "```", error.strip(), "```", ""]
+
+    lines += [
+        "<details>",
+        f"<summary>Evaluated {len(passed)} attributes</summary>",
+        "",
+        *(f"- {attr}" for attr in passed),
+        "</details>",
+        "",
+    ]
+
+    with Path(summary).open("a") as file:
+        file.write("\n".join(lines))
+
+
 def eval_jobs(cfg: Config, workers: int, max_memory_size: int) -> bool:
     """Evaluate `EVAL_SELECT` with nix-eval-jobs, reporting each failing attribute.
 
     A worker is restarted once it exceeds `max_memory_size` MiB, which keeps the
     peak at `workers * max_memory_size` however many configurations the flake has.
     """
-    errors = 0
+    passed: list[str] = []
+    failed: dict[str, str] = {}
 
     with tempfile.TemporaryDirectory() as gc_roots:
         cmd = [
@@ -631,14 +667,24 @@ def eval_jobs(cfg: Config, workers: int, max_memory_size: int) -> bool:
 
             for line in proc.stdout:
                 job = json.loads(line)
+                attr = job["attr"]
 
-                if error := job.get("error"):
-                    errors += 1
-                    typer.echo(f"{job['attr']}: FAILED\n{error}", err=True)
+                error = job.get("error")
+                typer.secho(
+                    f"{'✘' if error else '✔'}  {attr}",
+                    fg="red" if error else "green",
+                    err=True,
+                )
+
+                if error:
+                    failed[attr] = error
+                    typer.echo(error, err=True)
                 else:
-                    typer.echo(f"{job['attr']}: ok", err=True)
+                    passed.append(attr)
 
-    return proc.returncode == 0 and errors == 0
+    write_step_summary(passed, failed)
+
+    return proc.returncode == 0 and not failed
 
 
 @app.command("check-flake")
