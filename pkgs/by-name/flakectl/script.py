@@ -181,10 +181,10 @@ def nix_argv(nix_exe: str, *args: str) -> list[str]:
 def flake_ref(flake: str, attr_path: str, name: str) -> str:
     """Installable for `name` within `attr_path`.
 
-    The name is quoted so a dot in it stays one attribute, and keeping
-    `attr_path` builds what was evaluated rather than a same-named
-    `packages.<system>`."""
-    return f'{flake}#{attr_path}."{name}"'
+    The name is quoted so a dot in it stays one attribute, and the leading dot
+    makes `attr_path` absolute, so nix neither looks it up in `packages.<system>`
+    first nor builds a same-named package instead."""
+    return f'{flake}#.{attr_path}."{name}"'
 
 
 def nix_eval_json(nix_exe: str, *args: str) -> Any:
@@ -706,7 +706,7 @@ def check_flake(
 
     apps = subprocess_capture(
         nix_argv(
-            cfg.nix_exe, "eval", "--json", f"{cfg.flake}#apps", "--apply", APPS_APPLY
+            cfg.nix_exe, "eval", "--json", f"{cfg.flake}#.apps", "--apply", APPS_APPLY
         )
     )
 

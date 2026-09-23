@@ -32,7 +32,7 @@ writeShellApplication {
     # Built on demand so that this script stays cheap to evaluate: nothing here
     # forces an evaluation of the darwin configuration.
     src=$(nix build --no-link --print-out-paths \
-      ${lib.escapeShellArg "${self}#darwinConfigurations.mirkos-macbook.config.system.build.remoteConfig"})
+      ${lib.escapeShellArg "${self}#.darwinConfigurations.mirkos-macbook.config.system.build.remoteConfig"})
 
     # macOS ships rsync 2.6.9, but --chmod is applied by the sending side, so the
     # modern local rsync handles it; a recursive transfer also creates the remote

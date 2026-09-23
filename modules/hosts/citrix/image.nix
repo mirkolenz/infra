@@ -1,7 +1,7 @@
 # Convert the host's disk image (system.build.image) into a fixed VHD for the
 # Citrix Hypervisor / XCP-ng admin to import, exposed as a build attribute next
 # to the stock builders (system.build.image, .diskoImages, .toplevel, ...):
-#   nix build .#nixosConfigurations.citrix.config.system.build.image-vhd
+#   nix build .#.nixosConfigurations.citrix.config.system.build.image-vhd
 {
   configurations.nixos.citrix.module =
     { config, pkgs, ... }:

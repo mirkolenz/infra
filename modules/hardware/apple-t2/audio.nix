@@ -18,8 +18,8 @@
     in
     lib.mkMerge [
       {
-        # nix build .#packages.x86_64-linux.kait2en-ucm
-        # nix build .#packages.x86_64-linux.kait2en-dsp
+        # nix build .#.packages.x86_64-linux.kait2en-ucm
+        # nix build .#.packages.x86_64-linux.kait2en-dsp
         environment.variables.ALSA_CONFIG_UCM2 = ucm2Dir;
 
         # Renames the ALSA card after the DMI model, which is how the graphs

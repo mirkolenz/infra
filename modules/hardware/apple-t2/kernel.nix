@@ -9,7 +9,7 @@
       drivers = pkgs.kait2en.modules;
     in
     {
-      # nix build .#packages.x86_64-linux.kait2en-modules
+      # nix build .#.packages.x86_64-linux.kait2en-modules
       # A stock cached kernel, taken back out of the package so the two cannot
       # drift apart.
       boot.kernelPackages = drivers.linuxPackages;
