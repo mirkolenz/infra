@@ -30,6 +30,32 @@
           herdr worktree open --cwd "${projectsPath}/$repo" --path "${projectsPath}/$repo" --focus
         '';
       };
+
+      # Runs in a temporary zoomed pane rather than a popup, since popups are session-modal
+      # and cannot be hidden to interact with the agent while the draft is open.
+      promptEditor = pkgs.writeShellApplication {
+        name = "herdr-prompt-editor";
+        runtimeInputs = [
+          config.programs.herdr.package
+          pkgs.coreutils
+          config.programs.micro.package
+        ];
+        text = ''
+          target="''${HERDR_ACTIVE_PANE_ID:?no active pane to send the prompt to}"
+          draft="$(mktemp --suffix .md)"
+          trap 'rm -f -- "$draft"' EXIT
+
+          micro "$draft"
+          prompt="$(<"$draft")"
+
+          [[ -n "''${prompt//[[:space:]]/}" ]] || exit 0
+
+          if ! herdr agent prompt "$target" "$prompt"; then
+            read -rp "Sending failed, press enter to discard the draft."
+            exit 1
+          fi
+        '';
+      };
     in
     {
       programs.fish.interactiveShellInit = ''
@@ -98,6 +124,12 @@
                 description = "open a project workspace";
                 width = "60%";
                 height = "60%";
+              }
+              {
+                key = "prefix+ctrl+e";
+                type = "pane";
+                command = lib.getExe promptEditor;
+                description = "draft a prompt for the focused agent";
               }
             ];
           };
