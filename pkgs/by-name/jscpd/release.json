@@ -1,14 +1,14 @@
 {
-  "tag_name": "v5.3.1",
+  "tag_name": "v5.3.2",
   "assets": {
     "jscpd-darwin-arm64.tar.gz": {
-      "digest": "sha256:c5ff2727090942e4ad31ded7f49ce2529e8be7057e79e3d16383856f68b2b7b3"
+      "digest": "sha256:c629e1d2c7a6c41230a0f3bdd72d5ee69996013527a19eabbb5f0e845249dfbc"
     },
     "jscpd-linux-arm64-gnu.tar.gz": {
-      "digest": "sha256:5ea4ccba7784fb7c836a0be2dd7cdf0fa4750ac866401a4390213c66ac621670"
+      "digest": "sha256:ddf336de86eb7e26632062a01e751417f6579b4422e9156aa3836fdab1d0265d"
     },
     "jscpd-linux-x64-gnu.tar.gz": {
-      "digest": "sha256:f3e7e7e3c537a0c8fd6efae781e244633dfa89024f38cd5d09b131eaf0ecfc7d"
+      "digest": "sha256:97259f222ea7f6d51a0f2faa98ed5889430233e0fb8d2c129f23d84aff4b93b2"
     }
   }
 }
