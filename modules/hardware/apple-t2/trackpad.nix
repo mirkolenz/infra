@@ -21,15 +21,16 @@
       ];
 
       # The driver has no off switch for the force click, so its threshold is
-      # put where a finger does not reach. Ten times a plain click is far past
-      # the 300 upstream's own settings stop at.
-      unreachable = 1000;
+      # put where a finger does not reach. The driver clamps pressure at 32767
+      # and computes the threshold in an s32, which overflows past 21845 at
+      # `firm`, so this sits just below that and near the sensor maximum.
+      unreachable = 20000;
     in
     {
       options.custom.apple-t2.trackpad = {
         clickStrength = lib.mkOption {
           type = lib.types.enum strengths;
-          default = "light";
+          default = "medium";
           description = ''
             How hard the trackpad has to be pressed for a plain click. The
             same three steps as macOS's own Click setting, which scale the
