@@ -113,7 +113,7 @@ stdenv.mkDerivation {
 
   # The pin every package here is built from. It cannot live in a file of its
   # own: `nix-update` writes to wherever `meta.position` points.
-  version = "0.1.12-unstable-2026-09-23";
+  version = "0.1.12-unstable-2026-09-24";
 
   # `rev` is moved twice a day by CI, while the marker below moves only when
   # someone reads the diff that came with it, so the two together delimit what
@@ -123,8 +123,8 @@ stdenv.mkDerivation {
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";
-    rev = "283c4f4c8e47d4d773c6491ff12e4283c2d5e183";
-    hash = "sha256-69WruWXNB5w1Ny0r+cYxXJNOIQ5x2GsU0LCX+jhgi6k=";
+    rev = "d8892d8e2ad661150a5d30b2de5a4991e8a56c74";
+    hash = "sha256-pd0vPlVflK1UKYiEVXh/n8N3PpWABMYPh0PxiSPdxK0=";
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies;
