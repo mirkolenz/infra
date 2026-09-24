@@ -71,12 +71,10 @@ let
     "pm_async=off"
     # The Broadcom part wedges when it brings up a peer-to-peer interface.
     "brcmfmac.p2pon=0"
-    # Apple leaves ASPM disabled in firmware, and the advanced error reporting
-    # these bridges emit is noise on this platform.
+    # Apple leaves ASPM disabled in firmware.
     "pcie_aspm=force"
     "pcie_aspm.policy=powersave"
     "pcie_ports=compat"
-    "pci=noaer"
     "i915.enable_guc=2"
     # S3, not s2idle: the T2 only reaches its low power state on the deep path,
     # and `t2smp` offlines the secondary CPUs so resume does not crawl.
@@ -119,7 +117,7 @@ stdenv.mkDerivation {
   # someone reads the diff that came with it, so the two together delimit what
   # is still unreviewed. It is kept short, since nix-update rewrites every
   # occurrence of the full `rev` in this file. See README.md.
-  # reviewed-rev: ce07b036e375
+  # reviewed-rev: d8892d8e2ad6
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";

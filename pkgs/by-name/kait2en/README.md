@@ -106,9 +106,8 @@ Nothing else has to be reviewed routinely.
 - `initcallBlacklist`, which has no upstream counterpart: it names the built-in
   symbols a blacklist cannot reach, so a nixpkgs kernel config turning one of
   those from `=y` into `=m` makes it stale.
-- Kernel arguments upstream applies conditionally, currently `amdgpu.aspm=1`
-  (set in `modules/hardware/apple-t2/default.nix`) and the GPU runtime PM patch
-  set under `patches/runtime`, which upstream only builds for MacBookPro15,1.
+- The GPU runtime PM patch set under `patches/runtime`, which upstream only
+  builds for the MacBookPro15,1, MacBookPro16,1 and MacBookPro16,4.
 - Layout changes in the UCM, DSP or t2-services trees, which surface as a build
   failure in the package that reads them instead.
 - Renamed drivers, except in `tiny-dfr`, which finds the Touch Bar by driver
@@ -133,8 +132,9 @@ worth having, the NixOS module states it instead:
   reports the force click as `BTN_TASK` on an input device of its own,
   `T2 Force Click Events`, so nothing has to go through the daemon to bind it.
   Nothing binds it here.
-- `t2-hybrid-gpu-control` is for the MacBookPro15,1 and needs upstream's gmux
-  and amdgpu patches, so it cannot apply to a stock kernel.
+- `t2-hybrid-gpu-control` is for the MacBookPro15,1, MacBookPro16,1 and
+  MacBookPro16,4 and needs upstream's gmux and amdgpu patches,
+  so it cannot apply to a stock kernel.
 - `t2-kernel-builder` builds Fedora kernels, which is the opposite of running
   on a cached nixpkgs one.
 - `t2-fan-control` and `t2-smc-control` edit and display a fan curve the SMC

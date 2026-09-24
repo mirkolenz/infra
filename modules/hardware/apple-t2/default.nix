@@ -3,11 +3,7 @@
     { pkgs, ... }:
     {
       # Declared and checked against upstream in `kait2en/modules.nix`.
-      boot.kernelParams = pkgs.kait2en.modules.kernelParams ++ [
-        # Upstream adds this on the models with an AMD dGPU, and it is inert
-        # without one.
-        "amdgpu.aspm=1"
-      ];
+      boot.kernelParams = pkgs.kait2en.modules.kernelParams;
 
       powerManagement.enable = true;
 
