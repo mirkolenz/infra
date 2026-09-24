@@ -1,14 +1,14 @@
 {
-  "tag_name": "0.16.8",
+  "tag_name": "0.16.9",
   "assets": {
     "ruff-aarch64-apple-darwin.tar.gz": {
-      "digest": "sha256:0ffa53899f2970d24f14fbed8d8265c87180b159b7100794d97a1527dc60fa79"
+      "digest": "sha256:33d35394499094cf6eb90f730dc82f11c0fab05d176378ae4f67de985ecc4146"
     },
     "ruff-aarch64-unknown-linux-gnu.tar.gz": {
-      "digest": "sha256:8ff18ee07d6ed3cfbd05fdc9012646a79482c00045dbcbf32416ef8f14ab1f7e"
+      "digest": "sha256:a13061e8f471b49c9d2aa284c32dd54a0e5534d702d1a44e1d7f4c875569586d"
     },
     "ruff-x86_64-unknown-linux-gnu.tar.gz": {
-      "digest": "sha256:c4a8c7c152532bcb7e7ede4bd6ccd440dcacddffcdcdd79b90090ac6021f41c2"
+      "digest": "sha256:1bfbb819b5d4f9af501748862276b60e412d336034d99387691a4d4bce7a6f13"
     }
   }
 }
