@@ -439,38 +439,6 @@
         "type": "github"
       }
     },
-    "nix-eval-jobs": {
-      "inputs": {
-        "flake-parts": [
-          "flake-parts"
-        ],
-        "nix": [
-          "determinate",
-          "nix"
-        ],
-        "nixpkgs": [
-          "nix-eval-jobs",
-          "nix",
-          "nixpkgs"
-        ],
-        "treefmt-nix": [
-          "treefmt-nix"
-        ]
-      },
-      "locked": {
-        "lastModified": 1789750576,
-        "narHash": "sha256-A5B7gAapUk55w4M9IAZvy0oXgwtOhASocqqj2EerXS0=",
-        "owner": "determinatesystems",
-        "repo": "nix-eval-jobs",
-        "rev": "ea717b501794614a7868c25e84d74d8192bd5763",
-        "type": "github"
-      },
-      "original": {
-        "owner": "determinatesystems",
-        "repo": "nix-eval-jobs",
-        "type": "github"
-      }
-    },
     "nix-index-database": {
       "inputs": {
         "nixpkgs": [
@@ -822,7 +790,6 @@
         "makejinja": "makejinja",
         "neovim-nightly-overlay": "neovim-nightly-overlay",
         "nix-darwin": "nix-darwin",
-        "nix-eval-jobs": "nix-eval-jobs",
         "nix-index-database": "nix-index-database",
         "nixos-hardware": "nixos-hardware",
         "nixos-wsl": "nixos-wsl",

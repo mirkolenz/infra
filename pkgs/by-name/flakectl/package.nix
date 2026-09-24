@@ -1,7 +1,9 @@
 {
   lib,
   writers,
+  writeShellApplication,
   writeShellScriptBin,
+  gnugrep,
   python3Packages,
   git,
   determinate-nix,
@@ -13,6 +15,20 @@
   home-manager,
 }:
 let
+  # nix-eval-jobs links upstream Nix, which warns about every setting and
+  # experimental feature of Determinate's nix.conf it does not know
+  nix-eval-jobs-quiet = writeShellApplication {
+    name = "nix-eval-jobs";
+    runtimeInputs = [
+      gnugrep
+      nix-eval-jobs
+    ];
+    text = ''
+      exec 2> >(grep -avxE --line-buffered "warning: unknown (setting|experimental feature) '[^']*'" >&2)
+      exec nix-eval-jobs "$@"
+    '';
+  };
+
   flakectl = writers.writePython3Bin "flakectl" {
     libraries = with python3Packages; [
       httpx2
@@ -23,7 +39,7 @@ let
       "--add-flag"
       "--nix-exe=${lib.getExe determinate-nix}"
       "--add-flag"
-      "--nix-eval-jobs-exe=${lib.getExe nix-eval-jobs}"
+      "--nix-eval-jobs-exe=${lib.getExe nix-eval-jobs-quiet}"
       "--add-flag"
       "--nix-fast-build-exe=${lib.getExe nix-fast-build}"
       "--add-flag"
