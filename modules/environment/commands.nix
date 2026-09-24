@@ -385,7 +385,8 @@
         '';
         ffmpeg2poster = ''
           if [ "$#" -lt 1 ]; then
-            echo "Usage: $0 INPUT_FILE [FFMPEG_ARGS...]" >&2
+            echo "Usage: $0 INPUT_FILE [FFMPEG_ARGS...] OUTPUT_FILE" >&2
+            echo "Pass -ss SECONDS to skip black intros longer than the 300 analyzed frames" >&2
             exit 1
           fi
 
@@ -393,8 +394,9 @@
           shift
 
           ffmpeg -i "$input" \
-            -vf "scale='min(1920,iw)':-2:flags=lanczos" \
+            -vf "thumbnail=300,scale='min(1920,iw)':-2:flags=lanczos" \
             -frames:v 1 \
+            -update 1 \
             -q:v 2 \
             "$@"
         '';
