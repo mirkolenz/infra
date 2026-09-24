@@ -8,7 +8,6 @@
   fetchFromGitHub,
   kait2en,
   linuxPackages_latest,
-  nix-update-script,
 }:
 let
   # Re-exported through `passthru`, so the modules cannot be loaded into a
@@ -113,10 +112,9 @@ stdenv.mkDerivation {
   # own: `nix-update` writes to wherever `meta.position` points.
   version = "0.1.12-unstable-2026-09-24";
 
-  # `rev` is moved twice a day by CI, while the marker below moves only when
-  # someone reads the diff that came with it, so the two together delimit what
-  # is still unreviewed. It is kept short, since nix-update rewrites every
-  # occurrence of the full `rev` in this file. See README.md.
+  # A manual update moves `rev`, while the marker below moves after its diff
+  # has been reviewed. Keep it short, since nix-update replaces every
+  # occurrence of the full old `rev` in this file. See README.md.
   # reviewed-rev: fbc43ad31631
   src = fetchFromGitHub {
     owner = "kaiT2en";
@@ -224,21 +222,13 @@ stdenv.mkDerivation {
       ;
     # The set itself, so the NixOS module does not instantiate a second one.
     linuxPackages = linuxPackages_latest;
-    # `nix-update -s` moves the pin, then refreshes each `cargoHash` against it
-    # in the same process. Separate update scripts would race.
+    # A manual `nix-update --subpackage` refreshes these cargo hashes after
+    # moving the shared source pin.
     inherit (kait2en)
       ave
       journal
       touchid
       ;
-    updateScript = nix-update-script {
-      extraArgs = [
-        "--version=branch"
-        "--subpackage=touchid"
-        "--subpackage=journal"
-        "--subpackage=ave"
-      ];
-    };
   };
 
   strictDeps = true;

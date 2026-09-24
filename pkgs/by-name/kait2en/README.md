@@ -62,11 +62,15 @@ t2-dgpu-control helper without taking its code.
 ## Updating
 
 ```shell
-nix run .# -- update-pkgs -p kait2en-modules
+nix-update -F packages.x86_64-linux.kait2en-modules \
+  --system x86_64-linux --version=branch \
+  --subpackage=touchid --subpackage=journal --subpackage=ave
 ```
 
-This rewrites `version`, `rev` and `hash` in `modules.nix`, which moves every
-package at once, and runs from CI twice a day.
+Run this from the repository root when an upstream update is wanted.
+It rewrites `version`, `rev` and `hash` in `modules.nix`, then refreshes the
+three Rust packages' `cargoHash` values against the same source revision.
+The scheduled updater does not include this package.
 
 The three Rust packages are reached through `nix-update --subpackage`. This is
 why the pin cannot live in a file of its own behind `--override-filename`, which
@@ -92,6 +96,19 @@ Move the marker to `rev` once the range has been read, in the same commit as
 whatever the range made necessary.
 Use the first twelve characters only, because nix-update replaces every
 occurrence of the full old `rev` in `modules.nix` and would move the marker too.
+Build the updated packages before deploying them:
+
+```shell
+nix build --no-link \
+  .#packages.x86_64-linux.kait2en-modules \
+  .#packages.x86_64-linux.kait2en-ucm \
+  .#packages.x86_64-linux.kait2en-dsp \
+  .#packages.x86_64-linux.kait2en-ncm \
+  .#packages.x86_64-linux.kait2en-suspend \
+  .#packages.x86_64-linux.kait2en-touchid \
+  .#packages.x86_64-linux.kait2en-journal \
+  .#packages.x86_64-linux.kait2en-ave
+```
 
 The four lists in `modules.nix` mirror arrays in upstream's installer scripts,
 and the `mirrored` list there pairs each one with its source. A build that fails
