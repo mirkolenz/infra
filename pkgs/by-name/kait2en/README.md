@@ -10,7 +10,7 @@ than as a kernel patch set, which is why NixOS can run them on a cached kernel.
 | `kait2en.modules` | the eleven out-of-tree driver packages, built against `passthru.kernel` |
 | `kait2en.ucm`     | `alsa-ucm-conf` extended with the Apple T2 use case profiles            |
 | `kait2en.dsp`     | PipeWire filter graphs for the internal speakers, per Mac model         |
-| `kait2en.ncm`     | runs feature hooks around suspend and resume                             |
+| `kait2en.ncm`     | runs feature hooks around suspend and resume                            |
 | `kait2en.suspend` | reloads the Broadcom Wi-Fi and Bluetooth modules across S3              |
 | `kait2en.touchid` | Touch ID bridge between the T2 sensor and stock fprintd                 |
 | `kait2en.journal` | `t2journal`, merging bridgeOS logs into a Linux boot                    |
