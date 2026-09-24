@@ -213,7 +213,7 @@
           filename="''${1%.typ}"
           shift
 
-          typst eval "$@" --root . \
+          exec typst eval "$@" --root . \
             'query(<pdfpc-file>).first().value' \
             --in "./$filename.typ" \
             > "./$filename.pdfpc"
@@ -295,7 +295,7 @@
           exec ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -o "LogLevel=ERROR" "$@"
         '';
         jlog = /* bash */ ''
-          exec journalctl -a -o json "$@" | ${lib.getExe pkgs.lnav}
+          journalctl -a -o json "$@" | ${lib.getExe pkgs.lnav}
         '';
         fontconvert = /* bash */ ''
           if [ "$#" -lt 2 ]; then
@@ -370,7 +370,7 @@
           input="$1"
           shift
 
-          ffmpeg -i "$input" \
+          exec ffmpeg -i "$input" \
             -vf "scale='min(1920,iw)':-2:flags=lanczos" \
             -c:v libx264 \
             -preset veryslow \
@@ -393,7 +393,7 @@
           input="$1"
           shift
 
-          ffmpeg -i "$input" \
+          exec ffmpeg -i "$input" \
             -vf "thumbnail=300,scale='min(1920,iw)':-2:flags=lanczos" \
             -frames:v 1 \
             -update 1 \
