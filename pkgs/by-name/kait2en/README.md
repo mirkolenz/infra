@@ -10,14 +10,15 @@ than as a kernel patch set, which is why NixOS can run them on a cached kernel.
 | `kait2en.modules` | the eleven out-of-tree driver packages, built against `passthru.kernel` |
 | `kait2en.ucm`     | `alsa-ucm-conf` extended with the Apple T2 use case profiles            |
 | `kait2en.dsp`     | PipeWire filter graphs for the internal speakers, per Mac model         |
-| `kait2en.ncm`     | suspend and resume helper for the T2's internal bridge link             |
+| `kait2en.ncm`     | runs feature hooks around suspend and resume                             |
 | `kait2en.suspend` | reloads the Broadcom Wi-Fi and Bluetooth modules across S3              |
 | `kait2en.touchid` | Touch ID bridge between the T2 sensor and stock fprintd                 |
 | `kait2en.journal` | `t2journal`, merging bridgeOS logs into a Linux boot                    |
 | `kait2en.ave`     | `t2remote`, the userspace half of the T2 audio/video engine             |
 
-The last four talk to the T2 over its internal CDC-NCM link, which
+`touchid`, `journal` and `ave` talk to the T2 over its internal CDC-NCM link, which
 `modules/hardware/apple-t2/bridge.nix` brings up.
+The virtual USB host controller reset-resumes the link after a stateful sleep.
 
 `ncm` and `suspend` are upstream bash helpers rather than builds, and share
 `mkScript.nix`.
@@ -118,8 +119,8 @@ Nothing else has to be reviewed routinely.
 ## Deliberately not packaged
 
 All three `t2-services` features are packaged. Its fourth component, `shared/`,
-is only the integration for the internal CDC-NCM link, which
-`modules/hardware/apple-t2/bridge.nix` reimplements.
+provides the network profile and sleep hook runner, which
+`modules/hardware/apple-t2/bridge.nix` integrates.
 
 None of the nine GTK applications under `apps/` are. They configure Fedora by
 writing `/etc` and calling `systemctl enable`, so packaging one means shipping

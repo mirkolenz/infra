@@ -117,7 +117,7 @@ stdenv.mkDerivation {
   # someone reads the diff that came with it, so the two together delimit what
   # is still unreviewed. It is kept short, since nix-update rewrites every
   # occurrence of the full `rev` in this file. See README.md.
-  # reviewed-rev: d8892d8e2ad6
+  # reviewed-rev: fbc43ad31631
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";

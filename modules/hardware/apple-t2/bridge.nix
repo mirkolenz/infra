@@ -1,5 +1,5 @@
 # The internal CDC-NCM link Touch ID, the journal and AVE reach the T2 over.
-# It does not survive suspend, which `pkgs/by-name/kait2en/ncm.nix` works around.
+# The virtual USB host controller reset-resumes it after a stateful sleep.
 # The profile and the sleep commands below follow upstream's, which cannot be
 # installed as files because they name Fedora paths.
 # Derived from KaiT2en, (C) 2026 André Eikmeyer, GPL-3.0-or-later (LICENSING.md).
@@ -26,7 +26,7 @@
 
       ncm = lib.getExe pkgs.kait2en.ncm;
 
-      # The net device tagged below, matched on the USB ids `t2-ncm-sleep` uses.
+      # The net device tagged below by its USB IDs.
       bridgeDevice = "dev-t2bridge.device";
     in
     {
@@ -52,9 +52,8 @@
           default = [ ];
           internal = true;
           description = ''
-            Units of daemons that reach the T2 over the link, which all take the
-            same ordering: they cannot talk to it before NetworkManager has
-            brought the connection up.
+            Units of daemons that reach the T2 over the link, which all start
+            after its device and NetworkManager and retry until it is addressed.
           '';
         };
       };
@@ -81,8 +80,8 @@
           '';
 
           networking.networkmanager = {
-            # The link re-enumerates on every resume, and NetworkManager would
-            # accumulate a fresh generic profile each time.
+            # The link can re-enumerate, and NetworkManager would accumulate a
+            # fresh generic profile each time.
             settings.main.no-auto-default = mac;
 
             ensureProfiles.profiles.t2-bridge = {
@@ -104,8 +103,8 @@
             lib.genAttrs cfg.services (_: {
               # Started by the link rather than `network-online.target`, which
               # would hold every boot behind `NetworkManager-wait-online` for up
-              # to 60s, waiting on every other profile too. Not `bindsTo`: the
-              # AVE sleep hook needs a live daemon while the link is unbound.
+              # to 60s, waiting on every other profile too. The AVE sleep hook
+              # needs the daemon to remain running through suspend.
               wantedBy = [ bridgeDevice ];
               after = [
                 bridgeDevice
@@ -128,9 +127,7 @@
               };
             })
             // {
-              # Runs the transition below, both halves of it through nmcli.
-              # Rebinding retries the address for 20 rounds and then gives the
-              # AVE hook 125s of its own, past the 90s systemd would allow.
+              # The AVE hook can take 125s, past the 90s systemd would allow.
               sleep-actions = {
                 after = [ "NetworkManager.service" ];
                 serviceConfig = {
@@ -140,9 +137,8 @@
               };
             };
 
-          # Down last and back first, so the rest of the transition still has
-          # the link. `t2-ncm-sleep` runs the `T2_HOOK_DIR` hooks itself, at the
-          # point in its own sequence where the sessions have to close.
+          # Down last and back first, so the other devices transition after
+          # the AVE session closes and before it reopens.
           powerManagement = {
             powerDownCommands = lib.mkAfter ''
               T2_HOOK_DIR=${hooks}/libexec/kait2en/sleep.d ${ncm} pre
