@@ -20,6 +20,7 @@ jobs:
   check-flake:
     # 4 vCPU, 16 GB RAM
     runs-on: ubuntu-26.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
       - uses: DeterminateSystems/determinate-nix-action@4eea0b33e3d1f02ecfe37cf16e7204c424009606 # v3
@@ -33,6 +34,7 @@ jobs:
   check-build:
     name: check-build-${{ matrix.system }}
     runs-on: ${{ matrix.runner }}
+    timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
