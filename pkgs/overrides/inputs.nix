@@ -38,7 +38,9 @@ let
     };
 in
 fromOverlay inputs.makejinja.overlays.default [ "makejinja" ]
-// fromOverlay inputs.neovim-nightly-overlay.overlays.default [ "neovim-unwrapped" ]
+// lib.mapAttrs (_: lib.dontDistribute) (
+  fromOverlay inputs.neovim-nightly-overlay.overlays.default [ "neovim-unwrapped" ]
+)
 // fromOverlay inputs.opnix.overlays.default [ "opnix" ]
 // {
   inherit disko raspi-kernel;
