@@ -10,6 +10,12 @@
       inherit (config.programs.herdr) plugins;
       inherit (config.custom) projectsPath;
 
+      popup = {
+        type = "popup";
+        width = "80%";
+        height = "70%";
+      };
+
       # Repositories are checked out as <owner>/<repo>, putting `.git` three levels below the root.
       # `worktree open` focuses the repository's workspace when one exists and otherwise creates a
       # worktree-backed one, which is what the `open_worktree` binding operates on.
@@ -28,6 +34,35 @@
           ) || exit 0
 
           herdr worktree open --cwd "${projectsPath}/$repo" --path "${projectsPath}/$repo" --focus
+        '';
+      };
+
+      tabPicker = pkgs.writeShellApplication {
+        name = "herdr-tab-picker";
+        runtimeInputs = [
+          config.programs.herdr.package
+          pkgs.fzf
+          pkgs.jq
+        ];
+        text = ''
+          tab_id=$(
+            herdr api snapshot | jq -r '
+              .result.snapshot as {$workspaces, $tabs, $agents}
+              | $tabs[] as $tab
+              | [
+                  $tab.tab_id,
+                  ([
+                    ($workspaces[] | select(.workspace_id == $tab.workspace_id).label),
+                    $tab.label,
+                    ([$agents[] | select(.tab_id == $tab.tab_id) | .agent // .display_agent | values]
+                      | join(" ") | select(. != ""))
+                  ] | join(" / "))
+                ]
+              | @tsv
+            ' | fzf --reverse --prompt 'tab> ' --delimiter '\t' --with-nth 2 --accept-nth 1
+          ) || exit 0
+
+          herdr tab focus "$tab_id" >/dev/null
         '';
       };
 
@@ -117,14 +152,22 @@
                 command = "${plugins.reviewr.name}.toggle";
                 description = "review the agent's diff";
               }
-              {
-                key = "prefix+ctrl+p";
-                type = "popup";
-                command = lib.getExe projectPicker;
-                description = "open a project workspace";
-                width = "60%";
-                height = "60%";
-              }
+              (
+                popup
+                // {
+                  key = "prefix+ctrl+p";
+                  command = lib.getExe projectPicker;
+                  description = "open a project workspace";
+                }
+              )
+              (
+                popup
+                // {
+                  key = "prefix+ctrl+t";
+                  command = lib.getExe tabPicker;
+                  description = "switch to a tab in any workspace";
+                }
+              )
               {
                 key = "prefix+ctrl+e";
                 type = "pane";
