@@ -108,14 +108,16 @@ lib.extendMkDerivation {
         ++ lib.optionals stdenv.hostPlatform.isElf [ autoPatchelfHook ];
 
       # Packages may replace the default installation of the listed binaries.
-      installPhase = args.installPhase or ''
-        runHook preInstall
+      installPhase =
+        args.installPhase or ''
+          runHook preInstall
 
-        ${lib.concatLines (
-          lib.mapAttrsToList (name: path: ''install -Dm755 "${path}" "$out/bin/${name}"'') binaryPaths
-        )}
-        runHook postInstall
-      '';
+          ${lib.concatLines (
+            lib.mapAttrsToList (name: path: ''install -Dm755 "${path}" "$out/bin/${name}"'') binaryPaths
+          )}
+
+          runHook postInstall
+        '';
 
       postPhases = lib.optionals (installShellCompletionPhase != "") [
         "installShellCompletionPhase"
