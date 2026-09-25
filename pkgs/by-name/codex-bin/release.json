@@ -1,41 +1,14 @@
 {
   "tag_name": "rust-v0.157.0",
   "assets": {
-    "codex-aarch64-apple-darwin.tar.gz": {
-      "digest": "sha256:0f1522362bf8c8bbb58bf2fa8a3c600a0b723f1d4e3405ab831afeda32438909"
+    "codex-package-aarch64-apple-darwin.tar.gz": {
+      "digest": "sha256:97809f91cb355e55480cd7a126f9ad24bb7b162222515e30286bcac6fba94acd"
     },
-    "codex-app-server-aarch64-apple-darwin.tar.gz": {
-      "digest": "sha256:090c654ed474ebb0f55242a81a3e01fb0198eaa29fce7b066dcc1e9910f975e6"
+    "codex-package-aarch64-unknown-linux-musl.tar.gz": {
+      "digest": "sha256:c1c36beab0b4f72779adf53ba9e9e494bf7cbfbe4f3506a08ff67a24f5f00d08"
     },
-    "codex-code-mode-host-aarch64-apple-darwin.tar.gz": {
-      "digest": "sha256:a5b33ff6c7a50134d0885fbbf194caf1ce2745bc57946445cb664165b06d2357"
-    },
-    "codex-responses-api-proxy-aarch64-apple-darwin.tar.gz": {
-      "digest": "sha256:34100fe8fe4a7eb5cdf6ffa8940411ca16dea061b57450a50a8e70513e34cf1a"
-    },
-    "codex-aarch64-unknown-linux-musl.tar.gz": {
-      "digest": "sha256:e6fbe2798e941b833f7e3bc34010f7443240ac4a149ce1876f32cbfa0ba7d25f"
-    },
-    "codex-app-server-aarch64-unknown-linux-musl.tar.gz": {
-      "digest": "sha256:a0e47ed8348d76e6ce89cf2807474679f5a4b223e52a9ec4774a35ff93f0b839"
-    },
-    "codex-code-mode-host-aarch64-unknown-linux-musl.tar.gz": {
-      "digest": "sha256:3b31358135e16bf8090efcb0404c44807c512a4fd82387de03a52a51ed05c910"
-    },
-    "codex-responses-api-proxy-aarch64-unknown-linux-musl.tar.gz": {
-      "digest": "sha256:c2853f602beaeb5f0ef8587af2f3a7aa67eba4ee66ff18359960c907a87d4d96"
-    },
-    "codex-x86_64-unknown-linux-musl.tar.gz": {
-      "digest": "sha256:db3fe3adaa35c50edfb68a988a117782fe3492960fb63d7003eb6748ccc0657b"
-    },
-    "codex-app-server-x86_64-unknown-linux-musl.tar.gz": {
-      "digest": "sha256:f1e5e41eb1fafff819a68d9a39ce781c316c016c33038f06ce0d2aeb231ff380"
-    },
-    "codex-code-mode-host-x86_64-unknown-linux-musl.tar.gz": {
-      "digest": "sha256:47d32419e895c9cddbb664a2890bfb250ef0e3fded3da70e5f2bc61479f1989c"
-    },
-    "codex-responses-api-proxy-x86_64-unknown-linux-musl.tar.gz": {
-      "digest": "sha256:0a4d8514f007ab301268d79e76eac656c4c93f59d07e1c655f15fcd1af36293a"
+    "codex-package-x86_64-unknown-linux-musl.tar.gz": {
+      "digest": "sha256:042f851ea3fc1083c45157520520944fc790632b53ebc580fc98eaca55862a25"
     }
   }
 }

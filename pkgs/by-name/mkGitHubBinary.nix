@@ -42,7 +42,7 @@ lib.extendMkDerivation {
       passthru ? { },
       meta ? { },
       ...
-    }:
+    }@args:
     let
       # The prerelease endpoint returns a list, hence the differing selector.
       api =
@@ -107,7 +107,8 @@ lib.extendMkDerivation {
         ++ [ installShellFiles ]
         ++ lib.optionals stdenv.hostPlatform.isElf [ autoPatchelfHook ];
 
-      installPhase = ''
+      # Packages may replace the default installation of the listed binaries.
+      installPhase = args.installPhase or ''
         runHook preInstall
 
         ${lib.concatLines (

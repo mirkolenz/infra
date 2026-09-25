@@ -17,7 +17,6 @@ mkGitHubBinary {
     aarch64-darwin = "pi-darwin-arm64.tar.gz";
   };
   versionPrefix = "v";
-  binaries = [ ];
 
   buildInputs = lib.optionals stdenv.hostPlatform.isElf [ libxcb ];
   nativeBuildInputs = [ makeBinaryWrapper ];
@@ -25,10 +24,14 @@ mkGitHubBinary {
   # strip is not compatible with the bun runtime
   dontStrip = true;
 
-  postInstall = ''
+  installPhase = ''
+    runHook preInstall
+
     mkdir -p $out/bin
     cp -r . $out/libexec
     makeBinaryWrapper $out/libexec/pi $out/bin/pi
+
+    runHook postInstall
   '';
 
   nativeInstallCheckInputs = [

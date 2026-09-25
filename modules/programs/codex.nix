@@ -9,6 +9,7 @@
     }:
     let
       agents = config.programs.agents;
+      package = config.programs.codex.package;
     in
     lib.mkIf config.custom.features.extras.enable {
       programs.codex = {
@@ -115,6 +116,19 @@
         inherit config;
         source = config.home.file.".codex/config.toml".source;
         target = "${config.home.homeDirectory}/.codex/config.toml";
+      };
+
+      # The app-server daemon runs whatever package `current` selects and only installs
+      # a copy when it is missing. A store path also keeps its self-updater disabled.
+      home.file.".codex/packages/app-server-daemon/current" = {
+        source = "${package}/libexec/codex";
+        # A running daemon keeps its old binary until restarted.
+        onChange = /* bash */ ''
+          if [[ -e "$HOME/.codex/app-server-daemon/daemon.pid" ]]; then
+            run ${lib.getExe package} app-server daemon restart \
+              || warnEcho "Failed to restart the codex app-server daemon"
+          fi
+        '';
       };
     };
 }

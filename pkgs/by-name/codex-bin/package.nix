@@ -3,32 +3,44 @@
   stdenv,
   versionCheckHook,
   mkGitHubBinary,
+  ripgrep,
+  bubblewrap,
+  ncurses,
 }:
-let
-  platforms = {
-    x86_64-linux = "x86_64-unknown-linux-musl";
-    aarch64-linux = "aarch64-unknown-linux-musl";
-    aarch64-darwin = "aarch64-apple-darwin";
-  };
-  platform = platforms.${stdenv.hostPlatform.system};
-  # codex discovers its helpers next to its own executable, so they all live in $out/bin.
-  programs = [
-    "codex"
-    "codex-app-server"
-    "codex-code-mode-host"
-    "codex-responses-api-proxy"
-  ];
-in
 mkGitHubBinary {
   owner = "openai";
   repo = "codex";
   file = ./release.json;
-  assets = lib.mapAttrs (_: plat: map (bin: "${bin}-${plat}.tar.gz") programs) platforms;
+  assets = lib.mapAttrs (_: plat: "codex-package-${plat}.tar.gz") {
+    x86_64-linux = "x86_64-unknown-linux-musl";
+    aarch64-linux = "aarch64-unknown-linux-musl";
+    aarch64-darwin = "aarch64-apple-darwin";
+  };
   versionPrefix = "rust-v";
-  # Each tarball holds a single platform-suffixed executable.
-  binaries = lib.genAttrs programs (bin: "${bin}-${platform}");
 
-  sourceRoot = ".";
+  # The tarball has no top-level directory, extract it straight into place.
+  dontUnpack = true;
+
+  # The voice runtime pins its bundled libraries in runtime.json.
+  dontStrip = true;
+
+  # The vendored zsh links against libtinfo.
+  buildInputs = lib.optionals stdenv.hostPlatform.isElf [ ncurses ];
+
+  # codex detects its package layout via codex-package.json next to bin/,
+  # so keep the tree intact and symlink rather than wrap the entrypoint.
+  # Stock tools replace their vendored copies, the zsh fork and voice runtime stay.
+  installPhase = ''
+    runHook preInstall
+
+    mkdir -p $out/bin $out/libexec/codex
+    tar -xf "$srcs" -C $out/libexec/codex
+    ln -s $out/libexec/codex/bin/codex $out/bin/codex
+    ln -sf ${lib.getExe ripgrep} $out/libexec/codex/codex-path/rg
+    ${lib.optionalString stdenv.hostPlatform.isLinux "ln -sf ${lib.getExe bubblewrap} $out/libexec/codex/codex-resources/bwrap"}
+
+    runHook postInstall
+  '';
 
   installShellCompletionPhase = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
     installShellCompletion --cmd codex \
