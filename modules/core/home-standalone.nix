@@ -22,9 +22,12 @@
       # nix.sh prepends the profile bin dir without checking whether it is already
       # present and targets.genericLinux sources it both from hm-session-vars and
       # from the bash init, on top of the system-wide /etc/profile.d copy.
+      # Fish is affected too, since hm-session-vars.fish runs a translated nix.sh
+      # after the system-wide vendor_conf.d/nix.fish already added the dir.
       # Upstream bug, no option to opt out of the reordering yet:
       # https://github.com/nix-community/home-manager/issues/8076
       # https://github.com/nix-community/home-manager/issues/8790
+      # https://github.com/nix-community/home-manager/issues/8112
       dedupePath = ''
         PATH="$(
           IFS=":"
@@ -66,7 +69,17 @@
         sudo = lib.mkIf config.targets.genericLinux.enable ''/usr/bin/sudo env "PATH=${sudoPath}" '';
       };
 
-      programs.fish.shellInit = "set -gx __HM_FISH_HANDOVER 1";
+      # shellInit runs right after hm-session-vars.fish is sourced.
+      programs.fish.shellInit = ''
+        set -gx __HM_FISH_HANDOVER 1
+
+        set -l unique
+        for entry in $PATH
+          contains -- $entry $unique; or set -a unique $entry
+        end
+
+        set -gx PATH $unique
+      '';
 
       # mkAfter so this runs once the generic Linux nix.sh sourcing is done.
       programs.bash.initExtra = lib.mkAfter (dedupePath + execFish);
