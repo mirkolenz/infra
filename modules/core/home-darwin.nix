@@ -31,8 +31,11 @@
           })
         ];
         home.file = {
-          "Library/Group Containers/group.com.apple.AppleSpell/Library/Spelling/LocalDictionary".source =
-            ./dictionary.txt;
+          "Library/Group Containers/group.com.apple.AppleSpell/Library/Spelling/LocalDictionary" = {
+            source = ./dictionary.txt;
+            # AppleSpell caches the dictionary and is relaunched on demand.
+            onChange = "run /usr/bin/killall AppleSpell || true";
+          };
         };
         home.shellAliases = {
           copy = /* bash */ ''${lib.getExe' pkgs.coreutils "tr"} -d '\n' | pbcopy'';
