@@ -15,6 +15,14 @@
       # to the project root.
       mkRules = tool: paths: map (path: "${tool}(/${path}/**)") paths;
 
+      # https://code.claude.com/docs/en/model-config
+      models = {
+        fable = "claude-fable-5-1";
+        opus = "claude-opus-5-5";
+        sonnet = "claude-sonnet-5";
+        haiku = "claude-haiku-4-5";
+      };
+
       knownMarketplaces = {
         claude-plugins-official = {
           source = "github";
@@ -37,6 +45,9 @@
           autoMemoryEnabled = false;
           cleanupPeriodDays = 30;
           effortLevel = "xhigh";
+          modelSettings = lib.genAttrs (lib.attrValues models) (_model: {
+            effortLevel = "xhigh";
+          });
           enableAllProjectMcpServers = true;
           includeGitInstructions = true;
           outputStyle = "Concise";
@@ -122,12 +133,6 @@
           };
         };
       };
-      # https://code.claude.com/docs/en/model-config
-      home.shellAliases = {
-        fable = "claude --model fable";
-        opus = "claude --model opus";
-        sonnet = "claude --model sonnet";
-        haiku = "claude --model haiku";
-      };
+      home.shellAliases = lib.mapAttrs (_name: model: "claude --model ${model}") models;
     };
 }
