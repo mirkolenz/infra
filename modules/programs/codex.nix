@@ -130,5 +130,10 @@
           fi
         '';
       };
+
+      # The restart looks up `ps` in PATH to record the new daemon's start time.
+      home.extraActivationPath = with pkgs; [
+        unixtools.ps
+      ];
     };
 }
