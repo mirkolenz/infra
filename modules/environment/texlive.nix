@@ -57,7 +57,6 @@
         arxiv-latex-cleaner
         bibtex-tidy
         bibtexbrowser.bibtex2cff
-        ltex-ls-plus
         tectonic
       ];
     };

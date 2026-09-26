@@ -72,6 +72,8 @@
             "${config.xdg.cacheHome}" = "write";
             "${config.xdg.configHome}/.wrangler/logs" = "write";
             "${config.xdg.configHome}/.semgrep" = "write";
+            # codebook downloads its dictionaries here on first use
+            "${config.xdg.dataHome}/codebook" = "write";
             "${config.home.homeDirectory}/.ssh" = "deny";
           }
           # orb would need "${config.home.homeDirectory}/.orbstack" here too
