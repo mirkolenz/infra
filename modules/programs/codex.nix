@@ -21,7 +21,7 @@
         # https://developers.openai.com/codex/config-schema.json
         settings = {
           model = "gpt-6-sol";
-          model_reasoning_effort = "high";
+          model_reasoning_effort = "xhigh";
           model_verbosity = "low";
           # counterpart to Claude's `allowUnsandboxedCommands = false`
           approval_policy.granular = {

@@ -9,7 +9,7 @@
     "use_modifier_to_send": false,
     "play_sound_when_agent_done": "always",
     "default_model": {
-      "effort": "high",
+      "effort": "xhigh",
       "enable_thinking": true,
       "provider": "zed.dev",
       "model": "gpt-5.6-sol",

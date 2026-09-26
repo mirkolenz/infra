@@ -36,7 +36,7 @@
         settings = {
           autoMemoryEnabled = false;
           cleanupPeriodDays = 30;
-          effortLevel = "high";
+          effortLevel = "xhigh";
           enableAllProjectMcpServers = true;
           includeGitInstructions = true;
           outputStyle = "Concise";
