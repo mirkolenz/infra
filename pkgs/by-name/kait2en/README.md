@@ -62,12 +62,14 @@ t2-dgpu-control helper without taking its code.
 ## Updating
 
 ```shell
-nix-update -F packages.x86_64-linux.kait2en-modules \
+nix-update kait2en.modules \
   --system x86_64-linux --version=branch \
   --subpackage=touchid --subpackage=journal --subpackage=ave
 ```
 
 Run this from the repository root when an upstream update is wanted.
+It evaluates the non-flake `default.nix`, since `-F` cannot locate `modules.nix`
+under lazy trees.
 It rewrites `version`, `rev` and `hash` in `modules.nix`, then refreshes the
 three Rust packages' `cargoHash` values against the same source revision.
 The scheduled updater does not include this package.
