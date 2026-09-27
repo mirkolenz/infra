@@ -24,6 +24,8 @@
         typstyle
         tinymist
       ];
+      # Vendors the library into the current project,
+      # which selects it via `export TYPST_PACKAGE_PATH=$PWD/typst` in its .envrc.
       custom.commands.typstup = lib'.mkVendorScript {
         source = checkout;
         target = "typst/${packageDir}";
