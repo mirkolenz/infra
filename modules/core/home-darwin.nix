@@ -16,20 +16,16 @@
           container
           mole-mac
           nvtopPackages.apple
-          (writeShellApplication {
-            name = "scansnap-reset";
-            text = /* bash */ ''
-              pkill -f ScanSnap
-              open --hide /Applications/ScanSnapHomeMain.app
-            '';
-          })
-          (writeShellApplication {
-            name = "nixos";
-            text = /* bash */ ''
-              exec orbctl run --machine nixos "$@"
-            '';
-          })
         ];
+        custom.commands = {
+          scansnap-reset = /* bash */ ''
+            pkill -f ScanSnap
+            open --hide /Applications/ScanSnapHomeMain.app
+          '';
+          nixos = /* bash */ ''
+            exec orbctl run --machine nixos "$@"
+          '';
+        };
         home.file = {
           "Library/Group Containers/group.com.apple.AppleSpell/Library/Spelling/LocalDictionary" = {
             source = ./dictionary.txt;

@@ -23,14 +23,11 @@
         typst-bin
         typstyle
         tinymist
-        (writeShellApplication {
-          name = "typstup";
-          text = lib'.mkVendorScript {
-            source = checkout;
-            target = "typst/${packageDir}";
-          };
-        })
       ];
+      custom.commands.typstup = lib'.mkVendorScript {
+        source = checkout;
+        target = "typst/${packageDir}";
+      };
       home.activation.linkTypstLibrary = lib'.mkCheckoutLink {
         inherit config checkout;
         target = "${dataDir}/typst/packages/${packageDir}";

@@ -13,14 +13,11 @@
         home.packages = with pkgs; [
           angrr
           cfspeedtest
-          # https://unix.stackexchange.com/a/617686
-          (writeShellApplication {
-            name = "getusers";
-            text = /* bash */ ''
-              ${lib.getExe' procps "ps"} -eo user,uid | ${lib.getExe gawk} 'NR>1 && $2 >= 1000 && ++seen[$2]==1{print $1}'
-            '';
-          })
         ];
+        # https://unix.stackexchange.com/a/617686
+        custom.commands.getusers = /* bash */ ''
+          ${lib.getExe' pkgs.procps "ps"} -eo user,uid | ${lib.getExe pkgs.gawk} 'NR>1 && $2 >= 1000 && ++seen[$2]==1{print $1}'
+        '';
       }
     )
 

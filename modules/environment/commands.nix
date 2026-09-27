@@ -7,7 +7,7 @@
       ...
     }:
     {
-      home.packages = lib.mapAttrsToList (name: text: pkgs.writeShellApplication { inherit name text; }) {
+      custom.commands = {
         # https://masdilor.github.io/use-imagemagick-to-resize-and-compress-images/
         mogrify-convert = /* bash */ ''
           if [ "$#" -lt 2 ]; then

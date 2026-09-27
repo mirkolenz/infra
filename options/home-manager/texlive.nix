@@ -21,32 +21,6 @@ let
   # bibtex-tidy ignores its input files whenever stdin is no terminal,
   # so the bibliography is always passed on stdin.
   mkBibScript = args: ''${bibtidyBase} ${args} < "${cfg.bibliographyPath}/''${1:-bibtex}.bib"'';
-
-  cmdTexts = {
-    texmfup = lib'.mkVendorScript {
-      source = cfg.texmfPath;
-      target = "texmf";
-    };
-    latexmkrc = /* bash */ ''
-      targetFile="''${1:-.latexmkrc}"
-      exec cp --force --no-preserve=all ${config.home.file.".latexmkrc".source} "$targetFile"
-    '';
-    bibtidy = ''${bibtidyBase} ${bibtidyFilter} "$@"'';
-    bibcat = mkBibScript bibtidyFilter;
-    bibcat-full = mkBibScript "--omit=abstract";
-    bibcopy = mkBibScript "${bibtidyFilter} ${bibOutput}";
-    bibcopy-full = mkBibScript "--omit=abstract ${bibOutput}";
-    acrocat = /* bash */ ''
-      # shellcheck disable=SC2002 # the sd commands are generated via nix, so cat is more elegant than piping
-      cat "${cfg.bibliographyPath}/acronyms.tex" | ${lib.concatStringsSep " | " acronymReplacements}
-    '';
-    acrocopy = /* bash */ ''
-      targetDir="''${1:-.}"
-      ${lib.getExe cmds.acrocat} > "$targetDir/acronyms.tex"
-    '';
-  };
-
-  cmds = lib.mapAttrs (name: text: pkgs.writeShellApplication { inherit name text; }) cmdTexts;
 in
 {
   options = {
@@ -126,13 +100,36 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    custom.commands = {
+      texmfup = lib'.mkVendorScript {
+        source = cfg.texmfPath;
+        target = "texmf";
+      };
+      latexmkrc = /* bash */ ''
+        targetFile="''${1:-.latexmkrc}"
+        exec cp --force --no-preserve=all ${config.home.file.".latexmkrc".source} "$targetFile"
+      '';
+      bibtidy = ''${bibtidyBase} ${bibtidyFilter} "$@"'';
+      bibcat = mkBibScript bibtidyFilter;
+      bibcat-full = mkBibScript "--omit=abstract";
+      bibcopy = mkBibScript "${bibtidyFilter} ${bibOutput}";
+      bibcopy-full = mkBibScript "--omit=abstract ${bibOutput}";
+      acrocat = /* bash */ ''
+        # shellcheck disable=SC2002 # the sd commands are generated via nix, so cat is more elegant than piping
+        cat "${cfg.bibliographyPath}/acronyms.tex" | ${lib.concatStringsSep " | " acronymReplacements}
+      '';
+      acrocopy = /* bash */ ''
+        targetDir="''${1:-.}"
+        ${lib.getExe config.custom.commands.acrocat} > "$targetDir/acronyms.tex"
+      '';
+    };
     home = {
       activation.linkTexmf = lib'.mkCheckoutLink {
         inherit config;
         target = "${config.home.homeDirectory}/texmf";
         checkout = cfg.texmfPath;
       };
-      packages = [ cfg.package ] ++ lib.attrValues cmds;
+      packages = [ cfg.package ];
       file = {
         ".latexmkrc".source = pkgs.writeText "latexmkrc" cfg.latexmkrc;
       };

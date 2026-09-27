@@ -7,31 +7,21 @@
       ...
     }:
     let
-      mkNodeApp =
-        name: values:
-        pkgs.writeShellApplication {
-          inherit name;
-          text = ''
-            exec ${lib.getExe' pkgs.nodejs "npx"} \
-              ${toString (map (v: "--package ${v}") values)} \
-              ${name} "$@"
-          '';
-        };
-      mkPythonApp =
-        name: values:
-        pkgs.writeShellApplication {
-          inherit name;
-          text = ''
-            exec ${lib.getExe' config.programs.uv.package "uvx"} \
-              --python ${lib.getExe pkgs.python3} \
-              ${toString (map (v: "--from ${v}") values)} \
-              ${name} "$@"
-          '';
-        };
+      mkNodeApp = name: values: ''
+        exec ${lib.getExe' pkgs.nodejs "npx"} \
+          ${toString (map (v: "--package ${v}") values)} \
+          ${name} "$@"
+      '';
+      mkPythonApp = name: values: ''
+        exec ${lib.getExe' config.programs.uv.package "uvx"} \
+          --python ${lib.getExe pkgs.python3} \
+          ${toString (map (v: "--from ${v}") values)} \
+          ${name} "$@"
+      '';
     in
     lib.mkIf config.custom.features.extras.enable {
-      home.packages =
-        (lib.mapAttrsToList mkNodeApp {
+      custom.commands =
+        (lib.mapAttrs mkNodeApp {
           gemini = [ "@google/gemini-cli" ];
           icloud-photos-sync = [ "icloud-photos-sync" ];
           mcp-inspector = [ "@modelcontextprotocol/inspector" ];
@@ -39,7 +29,7 @@
           ccusage = [ "ccusage" ];
           cyclonedx-npm = [ "@cyclonedx/cyclonedx-npm" ];
         })
-        ++ (lib.mapAttrsToList mkPythonApp {
+        // (lib.mapAttrs mkPythonApp {
           arguebuf = [ "arguebuf[cli]" ];
           ast-grep-server = [ "git+https://github.com/ast-grep/ast-grep-mcp" ];
         });
