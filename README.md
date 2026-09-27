@@ -77,6 +77,34 @@ nix run github:mirkolenz/infra -- passwd /mnt/etc/nixos/secrets/USER.passwd
 nix run github:mirkolenz/infra#nixos-install -- MACHINE_NAME
 ```
 
+### Secure Boot
+
+[Lanzaboote](https://github.com/nix-community/lanzaboote) replaces systemd-boot on UEFI hosts whose firmware can enroll custom keys via Setup Mode.
+This excludes all Macs, as pre-T2 models lack Secure Boot and T2 models only trust Apple and Microsoft.
+Replace `boot.loader.systemd-boot.enable` of the host with the following, `modules/boot/default.nix` provides the rest.
+
+```nix
+boot.lanzaboote = {
+  enable = true;
+  pkiBundle = "/var/lib/sbctl";
+};
+```
+
+1. Put the firmware into Setup Mode via "Reset to Setup Mode", not "Clear All Keys".
+2. Switch and reboot, the first boot generates the keys and reboots again to enroll them.
+3. Verify with `bootctl status` (`Secure Boot: enabled (user)`) and `sudo sbctl verify`.
+
+To unlock a LUKS2 volume through the TPM2, also set `boot.lanzaboote.measuredBoot.enable = true` and add `settings.crypttabExtraOpts = [ "tpm2-device=auto" ];` to its disko `luks` entry.
+Check that `/run/current-system/systemd/lib/systemd/systemd-pcrlock is-supported` prints `yes`, then enroll once after Secure Boot is active.
+Every switch afterwards updates the TPM policy, and the passphrase stays as recovery.
+Drop `--tpm2-with-pin=true` for unattended hosts.
+
+```shell
+sudo systemd-cryptenroll --tpm2-device=auto --tpm2-with-pin=true --tpm2-pcrlock=/var/lib/systemd/pcrlock.json /dev/DEVICE
+```
+
+To revert, disable Secure Boot in the firmware before switching back to systemd-boot.
+
 ### Troubleshooting
 
 - A warning about `/boot` being world-readable is not an issue, [the permissions are correctly set after a reboot](https://discourse.nixos.org/t/nixos-install-with-custom-flake-results-in-boot-being-world-accessible/34555).

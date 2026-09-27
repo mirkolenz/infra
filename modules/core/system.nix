@@ -32,6 +32,7 @@ in
     inputs.quadlet-nix.nixosModules.default
     inputs.determinate.nixosModules.default
     inputs.disko.nixosModules.default
+    "${inputs.lanzaboote}/nix/modules/lanzaboote.nix"
     inputs.opnix.nixosModules.default
     inputs.vicinae.nixosModules.default
     (inputs.import-tree ../../options/shared)

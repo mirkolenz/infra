@@ -17,6 +17,13 @@ let
     diskoVersion = (import "${inputs.disko}/version.nix").version;
   };
 
+  # the default of `boot.lanzaboote.package`, bundling the UEFI stub it signs
+  lanzaboote = import inputs.lanzaboote {
+    pkgs = final;
+    crane = inputs.lanzaboote.inputs.crane.mkLib final;
+    inherit (inputs.lanzaboote.inputs) rust-overlay;
+  };
+
   vicinae = inputs.vicinae.overlays.default final prev;
   # the upstream overlay takes numen from numen's own package set
   numen = (inputs.vicinae.inputs.numen.overlays.default final prev).numen.override {
@@ -45,6 +52,11 @@ fromOverlay inputs.makejinja.overlays.default [ "makejinja" ]
 // {
   inherit disko raspi-kernel;
   disko-install = disko.overrideAttrs { name = "disko-install"; };
+
+  # not built by CI until a host enables lanzaboote
+  lzbt = lib.dontDistribute (
+    lib.addMetaAttrs { platforms = lib.platforms.linux; } lanzaboote.packages.lzbt
+  );
 
   inherit (vicinae) mkVicinaeExtension;
   vicinae = lib.dontDistribute (vicinae.vicinae.override { inherit numen; });
