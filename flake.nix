@@ -15,10 +15,6 @@
 
   inputs = {
     # keep-sorted start block=yes
-    bibliography = {
-      url = "github:mirkolenz/bibliography";
-      flake = false;
-    };
     cosmic-manager = {
       url = "github:heitoraugustoln/cosmic-manager";
       inputs = {
@@ -152,10 +148,6 @@
       };
     };
     systems.url = "github:nix-systems/default/future-26.11";
-    texmf = {
-      url = "github:mirkolenz/texmf";
-      flake = false;
-    };
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";

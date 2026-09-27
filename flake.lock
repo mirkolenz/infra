@@ -1,21 +1,5 @@
 {
   "nodes": {
-    "bibliography": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1775809033,
-        "narHash": "sha256-MpYe4yVYOisIpFFlrGwoh4xGdM7uOFVLf9RZrL7RXYM=",
-        "owner": "mirkolenz",
-        "repo": "bibliography",
-        "rev": "6cfcebae1e3fd227e3e922e32d8183feaa34aafc",
-        "type": "github"
-      },
-      "original": {
-        "owner": "mirkolenz",
-        "repo": "bibliography",
-        "type": "github"
-      }
-    },
     "cosmic-manager": {
       "inputs": {
         "flake-parts": [
@@ -681,7 +665,6 @@
     },
     "root": {
       "inputs": {
-        "bibliography": "bibliography",
         "cosmic-manager": "cosmic-manager",
         "determinate": "determinate",
         "disko": "disko",
@@ -707,7 +690,6 @@
         "pyproject-nix": "pyproject-nix",
         "quadlet-nix": "quadlet-nix",
         "systems": "systems",
-        "texmf": "texmf",
         "treefmt-nix": "treefmt-nix",
         "uv2nix": "uv2nix",
         "vicinae": "vicinae",
@@ -748,22 +730,6 @@
         "owner": "nix-systems",
         "ref": "future-26.11",
         "repo": "default",
-        "type": "github"
-      }
-    },
-    "texmf": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1773740017,
-        "narHash": "sha256-wpBESQiuSiThPMO0oHBGQAs9aBrspLdkB/GXCafAVDE=",
-        "owner": "mirkolenz",
-        "repo": "texmf",
-        "rev": "e1a2b3e1db1f83383edb08cd06cc724d01b36355",
-        "type": "github"
-      },
-      "original": {
-        "owner": "mirkolenz",
-        "repo": "texmf",
         "type": "github"
       }
     },
