@@ -84,10 +84,14 @@
 
     # `custom.commands` script vendoring the live checkout at `source` into the current
     # project, replacing any previous copy at the TARGET-DIR argument, which defaults to `target`.
-    # The `.git` directory is left out, so the project can commit the copy instead of
+    # Every `.git` entry is left out, so the project can commit the copy instead of
     # embedding a repository.
     mkVendorScript =
-      { source, target }:
+      {
+        pkgs,
+        source,
+        target,
+      }:
       /* bash */ ''
         # @describe Replace the vendored copy of ${source} in the current project
         # @arg target-dir=${builtins.toJSON target} Location of the copy
@@ -97,10 +101,7 @@
           exit 1
         fi
 
-        rm -rf "$argc_target_dir"
-        mkdir -p "$argc_target_dir"
-        cp -R ${lib.escapeShellArg source}/. "$argc_target_dir"
-        rm -rf "$argc_target_dir/.git"
+        ${lib.getExe pkgs.rsync} --archive --delete --mkpath --exclude=.git ${lib.escapeShellArg source}/ "$argc_target_dir/"
       '';
 
     # Home-manager activation entry that installs writable copies of files after

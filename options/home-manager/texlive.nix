@@ -119,6 +119,7 @@ in
   config = lib.mkIf cfg.enable {
     custom.commands = {
       texmfup.text = lib'.mkVendorScript {
+        inherit pkgs;
         source = cfg.texmfPath;
         target = "texmf";
       };

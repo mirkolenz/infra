@@ -27,6 +27,7 @@
       # Vendors the library into the current project,
       # which selects it via `export TYPST_PACKAGE_PATH=$PWD/typst` in its .envrc.
       custom.commands.typstup.text = lib'.mkVendorScript {
+        inherit pkgs;
         source = checkout;
         target = "typst/${packageDir}";
       };
