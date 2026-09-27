@@ -44,9 +44,9 @@
         settings = {
           autoMemoryEnabled = false;
           cleanupPeriodDays = 30;
-          effortLevel = "xhigh";
+          effortLevel = "high";
           modelSettings = lib.genAttrs (lib.attrValues models) (_model: {
-            effortLevel = "xhigh";
+            effortLevel = "high";
           });
           enableAllProjectMcpServers = true;
           includeGitInstructions = true;
