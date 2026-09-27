@@ -66,6 +66,24 @@
         config.custom.configPath + lib.removePrefix (toString ../..) (toString value)
       );
 
+    # Shell script vendoring the live checkout at `source` into the current project,
+    # replacing any previous copy at `$1` or `target`. The `.git` directory is left
+    # out, so the project can commit the copy instead of embedding a repository.
+    mkVendorScript =
+      { source, target }:
+      /* bash */ ''
+        if [[ ! -d ${lib.escapeShellArg source} ]]; then
+          echo ${lib.escapeShellArg "Checkout ${source} is missing"} >&2
+          exit 1
+        fi
+
+        targetDir="''${1:-${target}}"
+        rm -rf "$targetDir"
+        mkdir -p "$targetDir"
+        cp -R ${lib.escapeShellArg source}/. "$targetDir"
+        rm -rf "$targetDir/.git"
+      '';
+
     # Home-manager activation entry that installs writable copies of files after
     # linkGeneration. Use for programs that rewrite their own config and choke on
     # read-only store symlinks: the writable copy lets them work, while our

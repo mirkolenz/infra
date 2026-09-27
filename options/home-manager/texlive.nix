@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  lib',
   pkgs,
   inputs,
   ...
@@ -23,11 +24,10 @@ let
   mkBibScript = args: ''${bibtidyBase} ${args} < "${cfg.bibliographyPath}/''${1:-bibtex}.bib"'';
 
   cmdTexts = {
-    texmfup = /* bash */ ''
-      targetDir="''${1:-texmf}"
-      rm -rf "$targetDir"
-      cp -r --no-preserve=all ${cfg.texmfPath} "$targetDir"
-    '';
+    texmfup = lib'.mkVendorScript {
+      source = cfg.texmfPath;
+      target = "texmf";
+    };
     latexmkrc = /* bash */ ''
       targetFile="''${1:-.latexmkrc}"
       exec cp --force --no-preserve=all ${config.home.file.".latexmkrc".source} "$targetFile"
