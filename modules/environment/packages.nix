@@ -49,14 +49,6 @@
         dua
         ncdu
         duf
-        # nix
-        nixpkgs-review
-        nix-eval-jobs
-        nix-output-monitor
-        nix-fast-build
-        nix-info
-        fh
-        nh
         # required packages: https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/config/system-path.nix
         # acl # not available on darwin
         # attr # not available on darwin

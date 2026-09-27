@@ -1,6 +1,6 @@
 # Nix wiring across home-manager, nixos and darwin: GC, store optimisation,
-# determinate hookup and the secrets include. The settings attrsets themselves
-# live in settings.nix.
+# determinate hookup, the secrets include and the nix tooling.
+# The settings attrsets themselves live in settings.nix.
 {
   flake.modules.nixos.base =
     { lib, pkgs, ... }:
@@ -57,5 +57,37 @@
           options = "--delete-older-than 7d";
         };
       };
+    };
+
+  flake.modules.homeManager.default =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      home.packages =
+        with pkgs;
+        [
+          nixpkgs-review
+          nix-eval-jobs
+          nix-output-monitor
+          nix-fast-build
+          nix-info
+          fh
+          nh
+        ]
+        ++ lib.optionals config.custom.features.extras.enable [
+          nixd
+          nixf-diagnose
+          nixfmt-rs
+          nix-update
+          nurl
+          hydra-check
+          nixos-render-docs
+          nix-converter
+          nix-sweep
+        ];
     };
 }

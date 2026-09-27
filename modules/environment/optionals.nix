@@ -23,9 +23,6 @@
         mods.enable = true;
       };
       home.packages = with pkgs; [
-        exiftool
-        fontforge
-        unpaper
         buf
         gomplate
         grpcui
@@ -34,19 +31,10 @@
         # pre-commit
         mu-repo
         cc2538-bsl
-        imagemagick
-        vtracer
-        pngquant
-        poppler-utils
-        pstoedit
-        ffmpeg
-        ffmpeg-normalize
-        qpdf
         comrak
         mdbook
         treefmt-nix
         llm
-        ghostscript
         # janice
         protobuf-language-server
         touying
@@ -71,16 +59,6 @@
         # tdf # used via alias
         # fancy-cat # currently broken
         pdf-cli
-        # nix
-        nixd
-        nixf-diagnose
-        nixfmt-rs
-        nix-update
-        nurl
-        hydra-check
-        nixos-render-docs
-        nix-converter
-        nix-sweep
         # go
         gopls
         delve
