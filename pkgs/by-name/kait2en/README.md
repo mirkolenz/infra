@@ -3,16 +3,16 @@
 Support for Macs with an Apple T2 security chip, taken from [KaiT2en](https://github.com/kaiT2en/KaiT2en-Fedora).
 Upstream ships its drivers as DKMS packages for a stock Fedora kernel, so NixOS can build them against a cached kernel.
 
-| package           | what it is                                                              |
-| ----------------- | ----------------------------------------------------------------------- |
-| `kait2en.modules` | the out-of-tree drivers, built against `passthru.kernel`                |
-| `kait2en.ucm`     | `alsa-ucm-conf` extended with the Apple T2 use case profiles            |
-| `kait2en.dsp`     | PipeWire filter graphs for the internal speakers, per Mac model         |
-| `kait2en.ncm`     | runs feature hooks around suspend and resume                            |
-| `kait2en.suspend` | reloads the Broadcom Wi-Fi and Bluetooth modules across S3              |
-| `kait2en.touchid` | Touch ID bridge between the T2 sensor and stock fprintd                 |
-| `kait2en.journal` | `t2journal`, merging bridgeOS logs into a Linux boot                    |
-| `kait2en.ave`     | `t2remote`, the userspace half of the T2 audio/video engine             |
+| package           | what it is                                                      |
+| ----------------- | --------------------------------------------------------------- |
+| `kait2en.modules` | the out-of-tree drivers, built against `passthru.kernel`        |
+| `kait2en.ucm`     | `alsa-ucm-conf` extended with the Apple T2 use case profiles    |
+| `kait2en.dsp`     | PipeWire filter graphs for the internal speakers, per Mac model |
+| `kait2en.ncm`     | runs feature hooks around suspend and resume                    |
+| `kait2en.suspend` | reloads the Broadcom Wi-Fi and Bluetooth modules across S3      |
+| `kait2en.touchid` | Touch ID bridge between the T2 sensor and stock fprintd         |
+| `kait2en.journal` | `t2journal`, merging bridgeOS logs into a Linux boot            |
+| `kait2en.ave`     | `t2remote`, the userspace half of the T2 audio/video engine     |
 
 `modules.nix` pins the revision every other package takes its `src` and `version` from.
 Its `passthru` exports what the NixOS module in `modules/hardware/apple-t2` needs: the kernel, the initrd modules, the blacklisted modules and the kernel parameters.
