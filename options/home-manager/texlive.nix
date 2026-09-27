@@ -128,7 +128,7 @@ in
 
   config = lib.mkIf cfg.enable {
     home = {
-      packages = [ cfg.package ] ++ (lib.optionals (cfg.bibliographyPath != "") (lib.attrValues cmds));
+      packages = [ cfg.package ] ++ lib.attrValues cmds;
       file = {
         ".latexmkrc".source = pkgs.writeText "latexmkrc" cfg.latexmkrc;
       };
