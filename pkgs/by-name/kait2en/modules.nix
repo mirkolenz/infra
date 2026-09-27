@@ -70,7 +70,8 @@ let
     "pm_async=off"
     # The Broadcom part wedges when it brings up a peer-to-peer interface.
     "brcmfmac.p2pon=0"
-    # Apple leaves ASPM disabled in firmware.
+    # Apple leaves ASPM disabled in firmware, the AMD dGPU included.
+    "amdgpu.aspm=1"
     "pcie_aspm=force"
     "pcie_aspm.policy=powersave"
     "pcie_ports=compat"
@@ -110,17 +111,17 @@ stdenv.mkDerivation {
 
   # The pin every package here is built from. It cannot live in a file of its
   # own: `nix-update` writes to wherever `meta.position` points.
-  version = "0.1.12-unstable-2026-09-24";
+  version = "0.1.12-unstable-2026-09-26";
 
   # A manual update moves `rev`, while the marker below moves after its diff
   # has been reviewed. Keep it short, since nix-update replaces every
   # occurrence of the full old `rev` in this file. See README.md.
-  # reviewed-rev: fbc43ad31631
+  # reviewed-rev: 555f93d09e8b
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";
-    rev = "fbc43ad316312228e27d70aa39710fb44dd1464f";
-    hash = "sha256-3pt65u7DlQMYmgozDw4Qtzc585Vt7JuRo6EtAGZA2Cw=";
+    rev = "555f93d09e8b007519ff07f4b0727a809f87cf8e";
+    hash = "sha256-RPNi9olVsImB6XZSlI30BHCU2d3ETo5xjDiXWS3wnek=";
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies;
