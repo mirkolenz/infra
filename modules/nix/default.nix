@@ -197,20 +197,17 @@
               echo "Usage: $0 NIX_FLAKE_ATTRS [NIX_PREFETCH_ARGS...]" >&2
               exit 1
             fi
-            TMPFILE="$(mktemp)"
             attrs="$1"
             shift
-            echo "hashes = {" >> "$TMPFILE"
+            echo "hashes = {"
             ${nix} eval --json "$attrs" \
               | ${jq} -r 'to_entries[] | "\(.key) \(.value)"' \
               | while read -r key value; do
                 echo "Evaluating $key" >&2
                 hash="$(${nix} store prefetch-file --json "$@" "$value" | ${jq} -r .hash)"
-                echo "  $key = \"$hash\";" >> "$TMPFILE"
+                echo "  $key = \"$hash\";"
               done
-            echo "};" >> "$TMPFILE"
-            cat "$TMPFILE"
-            rm "$TMPFILE"
+            echo "};"
           '';
           nix-flake-input = /* bash */ ''
             if [ "$#" -lt 1 ]; then
