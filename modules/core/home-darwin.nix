@@ -18,11 +18,16 @@
           nvtopPackages.apple
         ];
         custom.commands = {
-          scansnap-reset = /* bash */ ''
+          scansnap-reset.text = /* bash */ ''
+            # @describe Restart ScanSnap Home in the background
+
             pkill -f ScanSnap
             open --hide /Applications/ScanSnapHomeMain.app
           '';
-          nixos = /* bash */ ''
+          nixos.text = /* bash */ ''
+            # @describe Run a command in the NixOS machine of OrbStack
+            # @arg args~ Arguments of orbctl run
+
             exec orbctl run --machine nixos "$@"
           '';
         };

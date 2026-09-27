@@ -15,7 +15,9 @@
           cfspeedtest
         ];
         # https://unix.stackexchange.com/a/617686
-        custom.commands.getusers = /* bash */ ''
+        custom.commands.getusers.text = /* bash */ ''
+          # @describe List the regular users that run processes
+
           ${lib.getExe' pkgs.procps "ps"} -eo user,uid | ${lib.getExe pkgs.gawk} 'NR>1 && $2 >= 1000 && ++seen[$2]==1{print $1}'
         '';
       }

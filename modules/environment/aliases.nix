@@ -7,17 +7,27 @@
       ...
     }:
     let
-      mkNodeApp = name: values: ''
-        exec ${lib.getExe' pkgs.nodejs "npx"} \
-          ${toString (map (v: "--package ${v}") values)} \
-          ${name} "$@"
-      '';
-      mkPythonApp = name: values: ''
-        exec ${lib.getExe' config.programs.uv.package "uvx"} \
-          --python ${lib.getExe pkgs.python3} \
-          ${toString (map (v: "--from ${v}") values)} \
-          ${name} "$@"
-      '';
+      mkNodeApp = name: values: {
+        text = /* bash */ ''
+          # @describe Run ${name} with npx
+          # @arg args~ Arguments of ${name}
+
+          exec ${lib.getExe' pkgs.nodejs "npx"} \
+            ${toString (map (v: "--package ${v}") values)} \
+            ${name} "$@"
+        '';
+      };
+      mkPythonApp = name: values: {
+        text = /* bash */ ''
+          # @describe Run ${name} with uvx
+          # @arg args~ Arguments of ${name}
+
+          exec ${lib.getExe' config.programs.uv.package "uvx"} \
+            --python ${lib.getExe pkgs.python3} \
+            ${toString (map (v: "--from ${v}") values)} \
+            ${name} "$@"
+        '';
+      };
     in
     lib.mkIf config.custom.features.extras.enable {
       custom.commands =

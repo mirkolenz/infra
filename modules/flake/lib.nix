@@ -82,22 +82,25 @@
         fi
       '';
 
-    # Shell script vendoring the live checkout at `source` into the current project,
-    # replacing any previous copy at `$1` or `target`. The `.git` directory is left
-    # out, so the project can commit the copy instead of embedding a repository.
+    # `custom.commands` script vendoring the live checkout at `source` into the current
+    # project, replacing any previous copy at the TARGET-DIR argument, which defaults to `target`.
+    # The `.git` directory is left out, so the project can commit the copy instead of
+    # embedding a repository.
     mkVendorScript =
       { source, target }:
       /* bash */ ''
+        # @describe Replace the vendored copy of ${source} in the current project
+        # @arg target-dir=${builtins.toJSON target} Location of the copy
+
         if [[ ! -d ${lib.escapeShellArg source} ]]; then
           echo ${lib.escapeShellArg "Checkout ${source} is missing"} >&2
           exit 1
         fi
 
-        targetDir="''${1:-${target}}"
-        rm -rf "$targetDir"
-        mkdir -p "$targetDir"
-        cp -R ${lib.escapeShellArg source}/. "$targetDir"
-        rm -rf "$targetDir/.git"
+        rm -rf "$argc_target_dir"
+        mkdir -p "$argc_target_dir"
+        cp -R ${lib.escapeShellArg source}/. "$argc_target_dir"
+        rm -rf "$argc_target_dir/.git"
       '';
 
     # Home-manager activation entry that installs writable copies of files after

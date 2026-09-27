@@ -22,51 +22,48 @@ in
   };
 
   config = mkIf cfg.enable {
-    custom.commands.quadletctl = ''
-      if [ "$#" -eq 0 ]; then
-        set -- "help"
-      fi
-      command="$1"
-      shift
-      if [ "$command" = "exec" ]; then
-        container="$1"
-        shift
-        exec ${lib.getExe config.virtualisation.podman.package} exec "systemd-$container" "$@"
-      fi
-      if [ "$command" = "update" ]; then
-        container="$1"
-        shift
-        exec ${lib.getExe config.virtualisation.podman.package} auto-update "systemd-$container" "$@"
-      fi
-      if [ "$command" = "service" ]; then
-        container="$1"
-        shift
-        action="''${1:-status}"
-        shift
-        exec systemctl "$action" "$container.service" "$@"
-      fi
-      if [ "$command" = "journal" ]; then
-        container="$1"
-        shift
-        exec journalctl --pager-end --no-hostname --unit "$container.service" "$@"
-      fi
-      if [ "$command" = "unshare" ]; then
-        id="$1"
-        shift
-        exec unshare --user --map-auto --setuid "$id" --setgid "$id" -- "$@"
-      fi
-      if [ "$command" = "help" ]; then
-        echo "Usage: $0 <command> <args>
+    custom.commands.quadletctl.text =
+      let
+        podman = lib.getExe config.virtualisation.podman.package;
+      in
+      /* bash */ ''
+        # @describe Manage quadlet containers and their services
 
-        Available commands:
-        exec <container> <args>: Run a command in an existing container
-        update <container> <args>: Run podman auto-update
-        service <container> <action> <args>: Control the systemd service
-        journal <container> <args>: Show the logs of the podman service
-        unshare <id> <args>: Run a command in a new user namespace
-        " >&2
-        exit 0
-      fi
-    '';
+        # @cmd Run a command in an existing container
+        # @arg container!    Name of the quadlet container
+        # @arg podman-args~  Further arguments of podman exec
+        run() {
+          exec ${podman} exec "systemd-$argc_container" "''${argc_podman_args[@]}"
+        }
+
+        # @cmd Run podman auto-update for a container
+        # @arg container!    Name of the quadlet container
+        # @arg podman-args~  Further arguments of podman auto-update
+        update() {
+          exec ${podman} auto-update "systemd-$argc_container" "''${argc_podman_args[@]}"
+        }
+
+        # @cmd Control the systemd service of a container
+        # @arg container!       Name of the quadlet container
+        # @arg action=status    Verb of systemctl
+        # @arg systemctl-args~  Further arguments of systemctl
+        service() {
+          exec systemctl "$argc_action" "$argc_container.service" "''${argc_systemctl_args[@]}"
+        }
+
+        # @cmd Show the logs of the service of a container
+        # @arg container!        Name of the quadlet container
+        # @arg journalctl-args~  Further arguments of journalctl
+        journal() {
+          exec journalctl --pager-end --no-hostname --unit "$argc_container.service" "''${argc_journalctl_args[@]}"
+        }
+
+        # @cmd Run a command in a new user namespace
+        # @arg id!       User and group ID inside the namespace
+        # @arg command~  Command to run
+        unshare() {
+          exec unshare --user --map-auto --setuid "$argc_id" --setgid "$argc_id" -- "''${argc_command[@]}"
+        }
+      '';
   };
 }

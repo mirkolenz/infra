@@ -104,10 +104,15 @@ in
         {
           # Discarding the known hosts file makes ssh announce the host key as
           # newly added on every run, so drop anything below an error.
-          ssh-once = /* bash */ ''
+          ssh-once.text = /* bash */ ''
+            # @describe Connect with ssh without checking or remembering the host key
+            # @arg args~ Arguments of ssh
+
             exec ${ssh} -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -o "LogLevel=ERROR" "$@"
           '';
-          nixbuild-shell = /* bash */ ''
+          nixbuild-shell.text = /* bash */ ''
+            # @describe Open the nixbuild.net shell
+
             exec ${lib.getExe pkgs.rlwrap} ${ssh} eu.nixbuild.net shell
           '';
         };

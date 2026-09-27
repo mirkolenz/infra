@@ -35,7 +35,10 @@ in
     {
       home.sessionVariables = systemdVariables;
       # The host's journalctl, pinning systemd would add it to standalone homes.
-      custom.commands.jlog = /* bash */ ''
+      custom.commands.jlog.text = /* bash */ ''
+        # @describe Browse the systemd journal in lnav
+        # @arg args~ Arguments of journalctl
+
         journalctl -a -o json "$@" | ${lib.getExe pkgs.lnav}
       '';
     };

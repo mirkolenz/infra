@@ -15,12 +15,29 @@ let
 
   bibtidyBase = "${lib.getExe pkgs.bibtex-tidy} --v2 --no-align --no-wrap --blank-lines --no-escape";
   bibtidyFilter = ''--omit="${lib.concatStringsSep "," cfg.bibtidyOmit}" --max-authors="${toString cfg.bibtidyMaxAuthors}"'';
-  bibOutput = ''--output="''${2:-.}/references.bib"'';
 
-  # Tidies the bibliography in format `$1`, which defaults to bibtex.
+  # Tidies the bibliography in a format, printing it or writing it to a directory with `output`.
   # bibtex-tidy ignores its input files whenever stdin is no terminal,
   # so the bibliography is always passed on stdin.
-  mkBibScript = args: ''${bibtidyBase} ${args} < "${cfg.bibliographyPath}/''${1:-bibtex}.bib"'';
+  mkBibScript =
+    { output, full }:
+    let
+      verb = if output then "Copy" else "Print";
+      fields = lib.optionalString full " with all fields but the abstract";
+      filter = if full then "--omit=abstract" else bibtidyFilter;
+      target = lib.optionalString output " --output=\"$argc_target_dir/references.bib\"";
+    in
+    lib.concatLines (
+      [
+        "# @describe ${verb} the tidied bibliography${fields}"
+        "# @arg format=bibtex  Name of the bibliography file"
+      ]
+      ++ lib.optional output "# @arg target-dir=.  Directory receiving references.bib"
+      ++ [
+        ""
+        ''${bibtidyBase} ${filter}${target} < "${cfg.bibliographyPath}/$argc_format.bib"''
+      ]
+    );
 in
 {
   options = {
@@ -101,26 +118,49 @@ in
 
   config = lib.mkIf cfg.enable {
     custom.commands = {
-      texmfup = lib'.mkVendorScript {
+      texmfup.text = lib'.mkVendorScript {
         source = cfg.texmfPath;
         target = "texmf";
       };
-      latexmkrc = /* bash */ ''
-        targetFile="''${1:-.latexmkrc}"
-        exec cp --force --no-preserve=all ${config.home.file.".latexmkrc".source} "$targetFile"
+      latexmkrc.text = /* bash */ ''
+        # @describe Copy the managed .latexmkrc into the current project
+        # @arg target-file=.latexmkrc
+
+        exec cp --force --no-preserve=all ${config.home.file.".latexmkrc".source} "$argc_target_file"
       '';
-      bibtidy = ''${bibtidyBase} ${bibtidyFilter} "$@"'';
-      bibcat = mkBibScript bibtidyFilter;
-      bibcat-full = mkBibScript "--omit=abstract";
-      bibcopy = mkBibScript "${bibtidyFilter} ${bibOutput}";
-      bibcopy-full = mkBibScript "--omit=abstract ${bibOutput}";
-      acrocat = /* bash */ ''
+      bibtidy.text = /* bash */ ''
+        # @describe Tidy bibliographies with the managed bibtex-tidy settings
+        # @arg args~ Arguments of bibtex-tidy
+
+        ${bibtidyBase} ${bibtidyFilter} "$@"
+      '';
+      bibcat.text = mkBibScript {
+        output = false;
+        full = false;
+      };
+      bibcat-full.text = mkBibScript {
+        output = false;
+        full = true;
+      };
+      bibcopy.text = mkBibScript {
+        output = true;
+        full = false;
+      };
+      bibcopy-full.text = mkBibScript {
+        output = true;
+        full = true;
+      };
+      acrocat.text = /* bash */ ''
+        # @describe Print the acronyms with the presets applied
+
         # shellcheck disable=SC2002 # the sd commands are generated via nix, so cat is more elegant than piping
         cat "${cfg.bibliographyPath}/acronyms.tex" | ${lib.concatStringsSep " | " acronymReplacements}
       '';
-      acrocopy = /* bash */ ''
-        targetDir="''${1:-.}"
-        ${lib.getExe config.custom.commands.acrocat} > "$targetDir/acronyms.tex"
+      acrocopy.text = /* bash */ ''
+        # @describe Copy the acronyms with the presets applied
+        # @arg target-dir=. Directory receiving acronyms.tex
+
+        ${lib.getExe config.custom.commands.acrocat} > "$argc_target_dir/acronyms.tex"
       '';
     };
     home = {

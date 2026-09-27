@@ -21,7 +21,9 @@
         };
       };
       home.shellAliases.py = "${uv} run";
-      custom.commands.uvup = /* bash */ ''
+      custom.commands.uvup.text = /* bash */ ''
+        # @describe Upgrade the uv dependencies and commit the lock file
+
         ${uv} sync --all-extras --upgrade
         ${lib.getExe config.programs.git.package} commit -m "chore(deps/uv): update" uv.lock
       '';

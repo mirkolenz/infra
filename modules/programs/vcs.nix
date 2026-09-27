@@ -399,24 +399,22 @@
         lg = lib.getExe config.programs.lazygit.package;
         lw = lib.getExe config.programs.lazyworktree.package;
       };
-      custom.commands.gh-prs =
+      custom.commands.gh-prs.text =
         let
           gh = lib.getExe config.programs.gh.package;
           jq = lib.getExe config.programs.jq.package;
         in
         /* bash */ ''
-          if [ "$#" -lt 1 ]; then
-            echo "Usage: $0 SELECT [GH_SEARCH_ARGS...]" >&2
-            echo "Example: $0 '.title == \"PR_TITLE\"'" >&2
-            exit 1
-          fi
-          filter="$1"
-          shift
+          # @describe Merge the open pull requests assigned to you that match a jq condition
+          #
+          # Example: gh-prs '.title == "PR_TITLE"'
+          # @arg filter!   jq condition on the title, url, number and repository of a pull request
+          # @arg gh-args~  Further arguments of gh search prs
 
-          prs="$(${gh} search prs --assignee @me --state open "$@" \
+          prs="$(${gh} search prs --assignee @me --state open "''${argc_gh_args[@]}" \
             --json title,url,number,repository)"
 
-          matched="$(${jq} "[.[] | select($filter)]" <<<"$prs")"
+          matched="$(${jq} "[.[] | select($argc_filter)]" <<<"$prs")"
           urls="$(${jq} -r '.[].url' <<<"$matched")"
 
           if [ -z "$urls" ]; then

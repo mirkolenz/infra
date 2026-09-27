@@ -26,25 +26,23 @@
       ];
       # Vendors the library into the current project,
       # which selects it via `export TYPST_PACKAGE_PATH=$PWD/typst` in its .envrc.
-      custom.commands.typstup = lib'.mkVendorScript {
+      custom.commands.typstup.text = lib'.mkVendorScript {
         source = checkout;
         target = "typst/${packageDir}";
       };
       # https://polylux.dev/book/external/pdfpc.html
       # https://touying-typ.github.io/docs/external/pdfpc
-      custom.commands.typst2pdfpc = /* bash */ ''
-        if [ "$#" -lt 1 ]; then
-          echo "Usage: $0 FILENAME [TYPST_ARGS...]" >&2
-          exit 1
-        fi
+      custom.commands.typst2pdfpc.text = /* bash */ ''
+        # @describe Export the pdfpc speaker notes of a Typst presentation next to it
+        # @arg file!        Typst file, with or without its extension
+        # @arg typst-args~  Further arguments of typst eval
 
-        filename="''${1%.typ}"
-        shift
+        file="''${argc_file%.typ}"
 
-        exec ${lib.getExe pkgs.typst-bin} eval "$@" --root . \
+        exec ${lib.getExe pkgs.typst-bin} eval "''${argc_typst_args[@]}" --root . \
           'query(<pdfpc-file>).first().value' \
-          --in "./$filename.typ" \
-          > "./$filename.pdfpc"
+          --in "./$file.typ" \
+          > "./$file.pdfpc"
       '';
       home.activation.linkTypstLibrary = lib'.mkCheckoutLink {
         inherit config checkout;

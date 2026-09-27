@@ -31,7 +31,9 @@
       };
       custom.commands = {
         # https://github.com/NixOS/nixpkgs/blob/nixos-26.05/nixos/modules/tasks/auto-upgrade.nix#L268
-        needs-reboot = /* bash */ ''
+        needs-reboot.text = /* bash */ ''
+          # @describe Check whether the built system has a different kernel than the booted one
+
           booted="$(readlink /run/booted-system/{initrd,kernel,kernel-modules})"
           built="$(readlink /nix/var/nix/profiles/system/{initrd,kernel,kernel-modules})"
 
@@ -43,14 +45,12 @@
             exit 0
           fi
         '';
-        nixos-profile = /* bash */ ''
-          if [ "$#" -lt 1 ]; then
-            echo "Usage: $0 COMMAND [NIX_PROFILE_ARGS...]" >&2
-            exit 1
-          fi
-          command="$1"
-          shift
-          exec ${lib.getExe config.nix.package} profile "$command" --profile /nix/var/nix/profiles/system "$@"
+        nixos-profile.text = /* bash */ ''
+          # @describe Run a nix profile command on the system profile
+          # @arg command!  Subcommand of nix profile
+          # @arg nix-args~ Further arguments of nix profile
+
+          exec ${lib.getExe config.nix.package} profile "$argc_command" --profile /nix/var/nix/profiles/system "''${argc_nix_args[@]}"
         '';
       };
     };
@@ -124,7 +124,9 @@
           jq = lib.getExe config.programs.jq.package;
         in
         {
-          gc = /* bash */ ''
+          gc.text = /* bash */ ''
+            # @describe Wipe the history of nix profiles older than a week, then collect and optimise the store
+
             systemProfiles="$(find "/nix/var/nix/profiles" -type l -lname '*link*')"
             userProfiles="$(find "${config.xdg.stateHome}/nix/profiles" -type l -lname '*link*')"
 
@@ -165,14 +167,22 @@
             echo "Optimising store..."
             ${nix} store optimise
           '';
-          flakeup = /* bash */ ''
+          flakeup.text = /* bash */ ''
+            # @describe Update the flake inputs and commit the lock file
+            # @arg args~ Arguments of nix flake update
+
             exec ${nix} flake update --commit-lock-file "$@"
           '';
-          dev = /* bash */ ''
+          dev.text = /* bash */ ''
+            # @describe Enter the development shell of a flake
+            # @arg args~ Arguments of nix develop
+
             exec ${nix} develop "$@"
           '';
-          # Resolves the flake from the working directory, so run it in a checkout.
-          nixrepl = /* bash */ ''
+          nixrepl.text = /* bash */ ''
+            # @describe Open a nix repl with the flake of the working directory and its packages
+            # @arg args~ Arguments of nix repl
+
             exec ${nix} repl --expr 'rec {
               self = builtins.getFlake ("git+file://" + toString ./.);
               pkgs = import <pkgs> {
@@ -182,41 +192,36 @@
               lib = pkgs.lib;
             }' "$@"
           '';
-          prefetch-attr = /* bash */ ''
-            if [ "$#" -lt 1 ]; then
-              echo "Usage: $0 NIX_FLAKE_ATTR [NIX_PREFETCH_ARGS...]" >&2
-              exit 1
-            fi
-            value="$(${nix} eval --raw "$1")"
-            shift
-            hash="$(${nix} store prefetch-file --json "$@" "$value" | ${jq} -r .hash)"
+          prefetch-attr.text = /* bash */ ''
+            # @describe Print the hash of the file at the URL of a flake attribute
+            # @arg attr!               Flake attribute holding the URL
+            # @arg nix-prefetch-args~  Further arguments of nix store prefetch-file
+
+            url="$(${nix} eval --raw "$argc_attr")"
+            hash="$(${nix} store prefetch-file --json "''${argc_nix_prefetch_args[@]}" "$url" | ${jq} -r .hash)"
             echo "hash = \"$hash\";"
           '';
-          prefetch-attrs = /* bash */ ''
-            if [ "$#" -lt 1 ]; then
-              echo "Usage: $0 NIX_FLAKE_ATTRS [NIX_PREFETCH_ARGS...]" >&2
-              exit 1
-            fi
-            attrs="$1"
-            shift
+          prefetch-attrs.text = /* bash */ ''
+            # @describe Print the hashes of the files at the URLs of a flake attribute set
+            # @arg attr!               Flake attribute holding the URLs
+            # @arg nix-prefetch-args~  Further arguments of nix store prefetch-file
+
             echo "hashes = {"
-            ${nix} eval --json "$attrs" \
+            ${nix} eval --json "$argc_attr" \
               | ${jq} -r 'to_entries[] | "\(.key) \(.value)"' \
-              | while read -r key value; do
+              | while read -r key url; do
                 echo "Evaluating $key" >&2
-                hash="$(${nix} store prefetch-file --json "$@" "$value" | ${jq} -r .hash)"
+                hash="$(${nix} store prefetch-file --json "''${argc_nix_prefetch_args[@]}" "$url" | ${jq} -r .hash)"
                 echo "  $key = \"$hash\";"
               done
             echo "};"
           '';
-          nix-flake-input = /* bash */ ''
-            if [ "$#" -lt 1 ]; then
-              echo "Usage: $0 INPUT_NAME [NIX_FLAKE_PREFETCH_ARGS...]" >&2
-              exit 1
-            fi
-            input="$1"
-            shift
-            ${nix} flake prefetch --inputs-from . "$input" --json "$@" | ${jq} -r .storePath
+          nix-flake-input.text = /* bash */ ''
+            # @describe Print the store path of an input of the flake in the working directory
+            # @arg input!     Name of the flake input
+            # @arg nix-args~  Further arguments of nix flake prefetch
+
+            ${nix} flake prefetch --inputs-from . "$argc_input" --json "''${argc_nix_args[@]}" | ${jq} -r .storePath
           '';
         };
     };

@@ -84,69 +84,73 @@
           tar = lib.getExe pkgs.gnutar;
         in
         {
-          encrypt = /* bash */ ''
-            if [ "$#" -ne 3 ]; then
-              echo "Usage: $0 SOURCE TARGET RECIPIENT" >&2
-              exit 1
-            fi
+          encrypt.text = /* bash */ ''
+            # @describe Encrypt a file for a GnuPG recipient
+            # @arg source-path!
+            # @arg target-path!
+            # @arg recipient!    Key of the recipient
 
-            exec ${gpg} --output "$2" --encrypt --recipient "$3" "$1"
+            exec ${gpg} --output "$argc_target_path" --encrypt --recipient "$argc_recipient" "$argc_source_path"
           '';
-          decrypt = /* bash */ ''
-            if [ "$#" -ne 2 ]; then
-              echo "Usage: $0 SOURCE TARGET" >&2
-              exit 1
-            fi
+          decrypt.text = /* bash */ ''
+            # @describe Decrypt a GnuPG encrypted file
+            # @arg source-path!
+            # @arg target-path!
 
-            exec ${gpg} --output "$2" --decrypt "$1"
+            exec ${gpg} --output "$argc_target_path" --decrypt "$argc_source_path"
           '';
-          backup = /* bash */ ''
-            if [ "$#" -ne 2 ]; then
-              echo "Usage: $0 SOURCE_PATH TARGET_DIR" >&2
-              exit 1
-            fi
-            mkdir -p "$2"
-            TIMESTAMP=$(date +"%Y-%m-%d-%H-%M-%S")
-            sudo ${tar} -czf "$2/$TIMESTAMP.tgz" "$1"
-          '';
-          restore = /* bash */ ''
-            if [ "$#" -ne 2 ]; then
-              echo "Usage: $0 SOURCE_PATH TARGET_DIR" >&2
-              exit 1
-            fi
-            mkdir -p "$2"
-            sudo ${tar} -xzf "$1" -C "$2"
-          '';
-          compress = /* bash */ ''
-            if [ "$#" -lt 1 ]; then
-              echo "Usage: $0 SOURCE_PATH [TAR_ARGS...]" >&2
-              exit 1
-            fi
-            source_path="$1"
-            shift
+          backup.text = /* bash */ ''
+            # @describe Archive a path as root into a timestamped tarball
+            # @arg source-path!
+            # @arg target-dir!
 
-            exec ${tar} -czf "$source_path.tgz" "$source_path" "$@"
+            mkdir -p "$argc_target_dir"
+            timestamp=$(date +"%Y-%m-%d-%H-%M-%S")
+            sudo ${tar} -czf "$argc_target_dir/$timestamp.tgz" "$argc_source_path"
           '';
-          decompress = /* bash */ ''
-            if [ "$#" -lt 1 ]; then
-              echo "Usage: $0 SOURCE_PATH [TAR_ARGS...]" >&2
-              exit 1
-            fi
-            source_path="$1"
-            shift
+          restore.text = /* bash */ ''
+            # @describe Extract a tarball as root
+            # @arg source-path!
+            # @arg target-dir!
 
-            exec ${tar} -xzf "$source_path" "$@"
+            mkdir -p "$argc_target_dir"
+            sudo ${tar} -xzf "$argc_source_path" -C "$argc_target_dir"
           '';
-          noeol = /* bash */ ''
+          compress.text = /* bash */ ''
+            # @describe Archive a path into a tarball next to it
+            # @arg source-path!
+            # @arg tar-args~     Further arguments of tar
+
+            exec ${tar} -czf "$argc_source_path.tgz" "$argc_source_path" "''${argc_tar_args[@]}"
+          '';
+          decompress.text = /* bash */ ''
+            # @describe Extract a tarball into the working directory
+            # @arg source-path!
+            # @arg tar-args~     Further arguments of tar
+
+            exec ${tar} -xzf "$argc_source_path" "''${argc_tar_args[@]}"
+          '';
+          noeol.text = /* bash */ ''
+            # @describe Remove the newlines from stdin
+
             exec tr -d '\n'
           '';
-          json-tool = /* bash */ ''
+          json-tool.text = /* bash */ ''
+            # @describe Validate and pretty-print JSON
+            # @arg args~ Arguments of python -m json.tool
+
             exec ${python} -m json.tool "$@"
           '';
-          http-server = /* bash */ ''
+          http-server.text = /* bash */ ''
+            # @describe Serve the working directory over HTTP
+            # @arg args~ Arguments of python -m http.server
+
             exec ${python} -m http.server "$@"
           '';
-          wget-mirror = /* bash */ ''
+          wget-mirror.text = /* bash */ ''
+            # @describe Mirror a website politely
+            # @arg args~ Arguments of wget
+
             exec ${lib.getExe pkgs.wget} \
               --mirror \
               --convert-links \
