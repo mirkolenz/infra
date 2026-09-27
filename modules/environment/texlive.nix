@@ -10,8 +10,6 @@
     lib.mkIf config.custom.features.extras.enable {
       custom.texlive = {
         enable = true;
-        bibliographyPath = "${config.custom.projectsPath}/mirkolenz/bibliography";
-        texmfPath = "${config.home.homeDirectory}/texmf";
         latexmkrc = /* perl */ ''
           # 1: pdflatex
           # 4: lualatex

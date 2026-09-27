@@ -66,6 +66,22 @@
         config.custom.configPath + lib.removePrefix (toString ../..) (toString value)
       );
 
+    # Home-manager activation entry that links `target` to the live checkout at
+    # `checkout`, typically below `config.custom.projectsPath`, so edits take effect
+    # without a rebuild. Hosts without the checkout are skipped, keeping it optional.
+    mkCheckoutLink =
+      {
+        config,
+        target,
+        checkout,
+      }:
+      config.lib.dag.entryAfter [ "linkGeneration" ] ''
+        if [[ -e ${lib.escapeShellArg checkout} ]]; then
+          run mkdir -p $VERBOSE_ARG ${lib.escapeShellArg (dirOf target)}
+          run ln -sfn $VERBOSE_ARG ${lib.escapeShellArg checkout} ${lib.escapeShellArg target}
+        fi
+      '';
+
     # Shell script vendoring the live checkout at `source` into the current project,
     # replacing any previous copy at `$1` or `target`. The `.git` directory is left
     # out, so the project can commit the copy instead of embedding a repository.

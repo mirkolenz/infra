@@ -3,7 +3,6 @@
   lib,
   lib',
   pkgs,
-  inputs,
   ...
 }:
 let
@@ -62,14 +61,14 @@ in
 
       bibliographyPath = lib.mkOption {
         type = lib.types.str;
-        default = inputs.bibliography.outPath;
-        description = "Location of the bibliography files.";
+        default = "${config.custom.projectsPath}/mirkolenz/bibliography";
+        description = "Location of the bibliography checkout.";
       };
 
       texmfPath = lib.mkOption {
         type = lib.types.str;
-        default = inputs.texmf.outPath;
-        description = "Location of the texmf files.";
+        default = "${config.custom.projectsPath}/mirkolenz/texmf";
+        description = "Location of the texmf checkout, linked to ~/texmf, the default TEXMFHOME.";
       };
 
       latexmkrc = lib.mkOption {
@@ -128,6 +127,11 @@ in
 
   config = lib.mkIf cfg.enable {
     home = {
+      activation.linkTexmf = lib'.mkCheckoutLink {
+        inherit config;
+        target = "${config.home.homeDirectory}/texmf";
+        checkout = cfg.texmfPath;
+      };
       packages = [ cfg.package ] ++ lib.attrValues cmds;
       file = {
         ".latexmkrc".source = pkgs.writeText "latexmkrc" cfg.latexmkrc;
