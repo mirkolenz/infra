@@ -29,7 +29,15 @@
     };
     determinate = {
       url = "github:determinatesystems/determinate";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nix.inputs = {
+          flake-parts.follows = "flake-parts";
+          git-hooks-nix.follows = "";
+          nixpkgs-23-11.follows = "";
+          nixpkgs-regression.follows = "";
+        };
+      };
     };
     disko = {
       url = "github:nix-community/disko/v1.13.0";
@@ -93,7 +101,10 @@
     };
     nixos-wsl = {
       url = "github:nix-community/nixos-wsl";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-compat.follows = "";
+      };
     };
     nixpkgs-darwin-stable.url = "https://channels.nixos.org/nixpkgs-26.05-darwin/nixexprs.tar.zst";
     nixpkgs-linux-stable.url = "https://channels.nixos.org/nixos-26.05/nixexprs.tar.zst";
@@ -161,16 +172,12 @@
       inputs = {
         nixpkgs.follows = "nixpkgs";
         systems.follows = "systems";
-        soulver-cpp.inputs.nixpkgs.follows = "nixpkgs";
+        soulver-cpp.follows = "";
       };
     };
     vicinae-extensions = {
       url = "github:vicinaehq/extensions";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        systems.follows = "systems";
-        vicinae.follows = "vicinae";
-      };
+      flake = false;
     };
     # keep-sorted end
   };
