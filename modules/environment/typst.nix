@@ -25,11 +25,17 @@
         tinymist
       ];
       # Vendors the library into the current project,
-      # which selects it via `export TYPST_PACKAGE_PATH=$PWD/typst` in its .envrc.
+      # which selects it via `TYPST_PACKAGE_PATH` in its .envrc.
       custom.commands.typstup.text = lib'.mkVendorScript {
         inherit pkgs;
         source = checkout;
         target = "typst/${packageDir}";
+        projectFile = {
+          name = ".envrc";
+          source = pkgs.writeText "envrc" ''
+            export TYPST_PACKAGE_PATH=$PWD/typst
+          '';
+        };
       };
       # https://polylux.dev/book/external/pdfpc.html
       # https://touying-typ.github.io/docs/external/pdfpc

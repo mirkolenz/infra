@@ -38,6 +38,8 @@ let
         ''${bibtidyBase} ${filter}${target} < "${cfg.bibliographyPath}/$argc_format.bib"''
       ]
     );
+
+  latexmkrcFile = pkgs.writeText "latexmkrc" cfg.latexmkrc;
 in
 {
   options = {
@@ -122,12 +124,16 @@ in
         inherit pkgs;
         source = cfg.texmfPath;
         target = "texmf";
+        projectFile = {
+          name = ".latexmkrc";
+          source = latexmkrcFile;
+        };
       };
       latexmkrc.text = /* bash */ ''
         # @describe Copy the managed .latexmkrc into the current project
         # @arg target-file=.latexmkrc
 
-        exec cp --force --no-preserve=all ${config.home.file.".latexmkrc".source} "$argc_target_file"
+        exec cp --force --no-preserve=all ${latexmkrcFile} "$argc_target_file"
       '';
       bibtidy.text = /* bash */ ''
         # @describe Tidy bibliographies with the managed bibtex-tidy settings
@@ -172,7 +178,7 @@ in
       };
       packages = [ cfg.package ];
       file = {
-        ".latexmkrc".source = pkgs.writeText "latexmkrc" cfg.latexmkrc;
+        ".latexmkrc".source = latexmkrcFile;
       };
     };
   };
