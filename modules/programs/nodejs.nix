@@ -23,7 +23,6 @@
         };
       };
       home.packages = with pkgs; [
-        nodejs
         prettier
         svgo
         npm-check-updates

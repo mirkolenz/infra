@@ -31,7 +31,6 @@
         stress-ng
         fuc
         # json parsing
-        jq
         jaq
         jql
         yq
