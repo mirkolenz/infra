@@ -97,6 +97,20 @@ in
         fi
       '';
       home.sessionVariables.SSH_AUTH_SOCK = agentLink;
+      custom.commands =
+        let
+          ssh = lib.getExe pkgs.openssh;
+        in
+        {
+          # Discarding the known hosts file makes ssh announce the host key as
+          # newly added on every run, so drop anything below an error.
+          ssh-once = /* bash */ ''
+            exec ${ssh} -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -o "LogLevel=ERROR" "$@"
+          '';
+          nixbuild-shell = /* bash */ ''
+            exec ${lib.getExe pkgs.rlwrap} ${ssh} eu.nixbuild.net shell
+          '';
+        };
       programs.ssh = lib.mkIf config.custom.features.graphical.enable {
         enable = true;
         enableDefaultConfig = false;

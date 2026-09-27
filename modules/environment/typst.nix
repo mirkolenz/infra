@@ -30,6 +30,22 @@
         source = checkout;
         target = "typst/${packageDir}";
       };
+      # https://polylux.dev/book/external/pdfpc.html
+      # https://touying-typ.github.io/docs/external/pdfpc
+      custom.commands.typst2pdfpc = /* bash */ ''
+        if [ "$#" -lt 1 ]; then
+          echo "Usage: $0 FILENAME [TYPST_ARGS...]" >&2
+          exit 1
+        fi
+
+        filename="''${1%.typ}"
+        shift
+
+        exec ${lib.getExe pkgs.typst-bin} eval "$@" --root . \
+          'query(<pdfpc-file>).first().value' \
+          --in "./$filename.typ" \
+          > "./$filename.pdfpc"
+      '';
       home.activation.linkTypstLibrary = lib'.mkCheckoutLink {
         inherit config checkout;
         target = "${dataDir}/typst/packages/${packageDir}";

@@ -21,6 +21,10 @@
         };
       };
       home.shellAliases.py = "${uv} run";
+      custom.commands.uvup = /* bash */ ''
+        ${uv} sync --all-extras --upgrade
+        ${lib.getExe config.programs.git.package} commit -m "chore(deps/uv): update" uv.lock
+      '';
       home.activation = {
         pruneUvCache = lib.hm.dag.entryAfter [ "writeBoundary" ] /* bash */ ''
           run ${uv} cache prune --force $VERBOSE_ARG

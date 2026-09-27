@@ -30,9 +30,15 @@ in
     programs.less.enable = true;
     environment.variables = systemdVariables;
   };
-  flake.modules.homeManager.linux = {
-    home.sessionVariables = systemdVariables;
-  };
+  flake.modules.homeManager.linux =
+    { lib, pkgs, ... }:
+    {
+      home.sessionVariables = systemdVariables;
+      # The host's journalctl, pinning systemd would add it to standalone homes.
+      custom.commands.jlog = /* bash */ ''
+        journalctl -a -o json "$@" | ${lib.getExe pkgs.lnav}
+      '';
+    };
   # programs.less is NixOS-only, so install the package directly elsewhere.
   flake.modules.darwin.base =
     { pkgs, ... }:

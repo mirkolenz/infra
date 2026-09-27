@@ -399,5 +399,51 @@
         lg = lib.getExe config.programs.lazygit.package;
         lw = lib.getExe config.programs.lazyworktree.package;
       };
+      custom.commands.gh-prs =
+        let
+          gh = lib.getExe config.programs.gh.package;
+          jq = lib.getExe config.programs.jq.package;
+        in
+        /* bash */ ''
+          if [ "$#" -lt 1 ]; then
+            echo "Usage: $0 SELECT [GH_SEARCH_ARGS...]" >&2
+            echo "Example: $0 '.title == \"PR_TITLE\"'" >&2
+            exit 1
+          fi
+          filter="$1"
+          shift
+
+          prs="$(${gh} search prs --assignee @me --state open "$@" \
+            --json title,url,number,repository)"
+
+          matched="$(${jq} "[.[] | select($filter)]" <<<"$prs")"
+          urls="$(${jq} -r '.[].url' <<<"$matched")"
+
+          if [ -z "$urls" ]; then
+            echo "No matching pull requests found."
+            exit 0
+          fi
+
+          echo "Matching pull requests:"
+          echo
+          ${jq} -r '
+            ["REPOSITORY", "ID", "TITLE"],
+            (.[] | [.repository.nameWithOwner, "#\(.number)", .title])
+            | @tsv
+          ' <<<"$matched" | column -t -s $'\t'
+          echo
+
+          read -r -n 1 -p "How should they be merged? (s)quash/(m)erge/(r)ebase, any other key to skip " method
+          echo
+
+          case "$method" in
+            s) mergeArg="--squash" ;;
+            m) mergeArg="--merge" ;;
+            r) mergeArg="--rebase" ;;
+            *) echo "Nothing merged."; exit 0 ;;
+          esac
+
+          xargs -I {} ${gh} pr merge {} "$mergeArg" --delete-branch --auto <<<"$urls"
+        '';
     };
 }
