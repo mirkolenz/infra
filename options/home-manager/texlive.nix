@@ -13,6 +13,15 @@ let
     name: preset: "sd -F 'preset=${name}' '${lib.concatStringsSep ", " (acronymPresetToList preset)}'"
   ) cfg.acronymPresets;
 
+  bibtidyBase = "${lib.getExe pkgs.bibtex-tidy} --v2 --no-align --no-wrap --blank-lines --no-escape";
+  bibtidyFilter = ''--omit="${lib.concatStringsSep "," cfg.bibtidyOmit}" --max-authors="${toString cfg.bibtidyMaxAuthors}"'';
+  bibOutput = ''--output="''${2:-.}/references.bib"'';
+
+  # Tidies the bibliography in format `$1`, which defaults to bibtex.
+  # bibtex-tidy ignores its input files whenever stdin is no terminal,
+  # so the bibliography is always passed on stdin.
+  mkBibScript = args: ''${bibtidyBase} ${args} < "${cfg.bibliographyPath}/''${1:-bibtex}.bib"'';
+
   cmdTexts = {
     texmfup = /* bash */ ''
       targetDir="''${1:-texmf}"
@@ -23,38 +32,11 @@ let
       targetFile="''${1:-.latexmkrc}"
       exec cp --force --no-preserve=all ${config.home.file.".latexmkrc".source} "$targetFile"
     '';
-    bibtidy = /* bash */ ''
-      ${lib.getExe pkgs.bibtex-tidy} --v2 \
-        --no-align --no-wrap --blank-lines --no-escape \
-        --omit="${lib.concatStringsSep "," cfg.bibtidyOmit}" \
-        --max-authors="${toString cfg.bibtidyMaxAuthors}" \
-        "$@"
-    '';
-    bibcat = /* bash */ ''
-      format="''${1:-bibtex}"
-      ${lib.getExe cmds.bibtidy} "${cfg.bibliographyPath}/$format.bib"
-    '';
-    bibcat-full = /* bash */ ''
-      format="''${1:-bibtex}"
-      ${lib.getExe pkgs.bibtex-tidy} --v2 \
-        --no-align --no-wrap --blank-lines --no-escape \
-        --omit="abstract" \
-        "${cfg.bibliographyPath}/$format.bib"
-    '';
-    bibcopy = /* bash */ ''
-      format="''${1:-bibtex}"
-      targetDir="''${2:-.}"
-      ${lib.getExe cmds.bibtidy} --output="$targetDir/references.bib" "${cfg.bibliographyPath}/$format.bib"
-    '';
-    bibcopy-full = /* bash */ ''
-      format="''${1:-bibtex}"
-      targetDir="''${2:-.}"
-      ${lib.getExe pkgs.bibtex-tidy} --v2 \
-        --no-align --no-wrap --blank-lines --no-escape \
-        --omit="abstract" \
-        --output="$targetDir/references.bib" \
-        "${cfg.bibliographyPath}/$format.bib"
-    '';
+    bibtidy = ''${bibtidyBase} ${bibtidyFilter} "$@"'';
+    bibcat = mkBibScript bibtidyFilter;
+    bibcat-full = mkBibScript "--omit=abstract";
+    bibcopy = mkBibScript "${bibtidyFilter} ${bibOutput}";
+    bibcopy-full = mkBibScript "--omit=abstract ${bibOutput}";
     acrocat = /* bash */ ''
       # shellcheck disable=SC2002 # the sd commands are generated via nix, so cat is more elegant than piping
       cat "${cfg.bibliographyPath}/acronyms.tex" | ${lib.concatStringsSep " | " acronymReplacements}
