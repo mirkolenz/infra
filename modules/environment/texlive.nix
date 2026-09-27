@@ -21,10 +21,10 @@
           $pdflatex = "pdflatex %O %S";
           $lualatex = "lualatex %O %S";
 
-          # inject local texmf if needed
-          # ensure_path("TEXINPUTS", "./texmf//");
-          # ensure_path("BSTINPUTS", "./texmf//");
-          # ensure_path("BIBINPUTS", "./texmf//");
+          # vendored texmf, see texmfup
+          ensure_path("TEXINPUTS", "./texmf//");
+          ensure_path("BSTINPUTS", "./texmf//");
+          ensure_path("BIBINPUTS", "./texmf//");
 
           # set timezone
           $ENV{"TZ"} = "Europe/Berlin";
