@@ -56,21 +56,28 @@ in
       };
     };
 
-  flake.modules.darwin.base = {
-    programs.ssh = { inherit knownHosts; };
-    programs.mosh.enable = false;
-    services.eternal-terminal.enable = false;
-    services.openssh = {
-      enable = true;
-      extraConfig = ''
-        ClientAliveInterval 30
-        KbdInteractiveAuthentication no
-        PasswordAuthentication no
-        PermitRootLogin no
-        X11Forwarding no
+  flake.modules.darwin.base =
+    { lib, pkgs, ... }:
+    {
+      programs.ssh = { inherit knownHosts; };
+      # nixos rssh counterpart tried before Touch ID,
+      # the stock macOS sudoers already keeps SSH_AUTH_SOCK
+      security.pam.services.sudo_local.text = lib.mkBefore ''
+        auth       sufficient     ${pkgs.pam_rssh}/lib/libpam_rssh.dylib auth_key_file=/etc/ssh/nix_authorized_keys.d/$ruser
       '';
+      programs.mosh.enable = false;
+      services.eternal-terminal.enable = false;
+      services.openssh = {
+        enable = true;
+        extraConfig = ''
+          ClientAliveInterval 30
+          KbdInteractiveAuthentication no
+          PasswordAuthentication no
+          PermitRootLogin no
+          X11Forwarding no
+        '';
+      };
     };
-  };
 
   flake.modules.homeManager.default =
     {
