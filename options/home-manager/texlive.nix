@@ -43,7 +43,7 @@ let
     '';
     acrocopy = /* bash */ ''
       targetDir="''${1:-.}"
-      ${lib.getExe cmds.acrocat} "${cfg.bibliographyPath}" > "$targetDir/acronyms.tex"
+      ${lib.getExe cmds.acrocat} > "$targetDir/acronyms.tex"
     '';
   };
 
