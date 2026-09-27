@@ -6,6 +6,9 @@
       config,
       ...
     }:
+    let
+      uv = lib.getExe config.programs.uv.package;
+    in
     {
       programs.uv = {
         enable = true;
@@ -17,9 +20,10 @@
           python-preference = "system";
         };
       };
+      home.shellAliases.py = "${uv} run";
       home.activation = {
         pruneUvCache = lib.hm.dag.entryAfter [ "writeBoundary" ] /* bash */ ''
-          run ${lib.getExe config.programs.uv.package} cache prune --force $VERBOSE_ARG
+          run ${uv} cache prune --force $VERBOSE_ARG
         '';
       };
     };

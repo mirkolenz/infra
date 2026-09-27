@@ -1,11 +1,6 @@
 {
   flake.modules.homeManager.default =
-    {
-      pkgs,
-      lib,
-      config,
-      ...
-    }:
+    { pkgs, ... }:
     {
       home.packages = with pkgs; [
         tree
@@ -91,11 +86,5 @@
         which
         zstd
       ];
-      home.shellAliases = {
-        cat = lib.getExe config.programs.bat.package;
-        lg = lib.getExe config.programs.lazygit.package;
-        lw = lib.getExe config.programs.lazyworktree.package;
-        py = "${lib.getExe config.programs.uv.package} run";
-      };
     };
 }

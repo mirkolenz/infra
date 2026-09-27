@@ -2,6 +2,7 @@
   flake.modules.homeManager.default =
     {
       pkgs,
+      lib,
       config,
       ...
     }:
@@ -393,6 +394,10 @@
             };
           };
         };
+      };
+      home.shellAliases = {
+        lg = lib.getExe config.programs.lazygit.package;
+        lw = lib.getExe config.programs.lazyworktree.package;
       };
     };
 }
