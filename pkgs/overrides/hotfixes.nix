@@ -21,6 +21,23 @@ final: prev:
                        'old_rev_tag is not None and package.new_version.rev is not None and package.new_version.rev != old_rev_tag'
     '';
   });
+
+  # direnv's buildPhase and installPhase never run their hooks, so the postInstall that drops
+  # share/fish is skipped. The shipped vendor_conf.d/direnv.fish then hooks every fish,
+  # including each `fish -c`, where home-manager only hooks interactive shells.
+  # https://github.com/NixOS/nixpkgs/pull/564930
+  direnv = prev.direnv.overrideAttrs {
+    buildPhase = ''
+      runHook preBuild
+      make BASH_PATH=$BASH_PATH
+      runHook postBuild
+    '';
+    installPhase = ''
+      runHook preInstall
+      make install PREFIX=$out
+      runHook postInstall
+    '';
+  };
 }
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
 

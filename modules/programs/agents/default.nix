@@ -83,12 +83,9 @@
           allowedUnixSockets = [
             (lib'.nixDaemonSocket pkgs.stdenv)
           ];
-          # Dropping SSH_AUTH_SOCK only removes an agent handed over through the
-          # environment, a forwarded one above all. It does not cover the 1Password
-          # agent, whose socket ssh takes from `IdentityAgent` in ssh_config, which
-          # overrides the variable; `allowedUnixSockets` is what puts that out of
-          # reach. Kept for whenever an agent arrives by environment again, and the
-          # keys themselves stay unreadable through their `deny` entry in `paths`.
+          # Hides the forwarded agent link from modules/networking/ssh.nix.
+          # `IdentityAgent` in ssh_config bypasses the variable, `allowedUnixSockets` blocks
+          # those sockets, and the keys stay unreadable through their `deny` entry in `paths`.
           deniedEnvVars = [
             "SSH_AUTH_SOCK"
           ];

@@ -76,7 +76,7 @@ in
 
     programs.ssh = lib.mkIf cfg.sshAgent.enable {
       includes = [
-        "~/.ssh/1password/config"
+        "~/.ssh/1Password/config"
       ];
       settings."*".IdentityAgent = ''"${cfg.sshAgent.socket}"'';
     };

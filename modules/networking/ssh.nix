@@ -1,5 +1,5 @@
 # SSH across all classes: shared known hosts (nixos + darwin), the OpenSSH
-# server hardening per platform, and the user's client config (home-manager).
+# server hardening per platform, and the user's client config and forwarded agent (home-manager).
 let
   # update: ssh-keyscan -t ed25519 URL_OR_IP
   knownHosts = {
@@ -40,6 +40,8 @@ in
         authorizedKeysInHomedir = false;
         openFirewall = true;
         settings = {
+          # reap dead clients so their forwarded agent sockets vanish
+          ClientAliveInterval = 30;
           KbdInteractiveAuthentication = false;
           PasswordAuthentication = false;
           PermitRootLogin = "no";
@@ -61,6 +63,7 @@ in
     services.openssh = {
       enable = true;
       extraConfig = ''
+        ClientAliveInterval 30
         KbdInteractiveAuthentication no
         PasswordAuthentication no
         PermitRootLogin no
@@ -76,14 +79,26 @@ in
       config,
       ...
     }:
-    lib.mkIf config.custom.features.graphical.enable {
-      programs.ssh = {
+    let
+      # forwarded agent of the newest ssh login, stable across reconnects
+      agentLink = "${config.home.homeDirectory}/.ssh/ssh_auth_sock";
+    in
+    {
+      home.file.".ssh/rc".text = ''
+        if [ -S "$SSH_AUTH_SOCK" ]; then
+          ln -sf "$SSH_AUTH_SOCK" ${agentLink}
+        fi
+      '';
+      home.sessionVariables.SSH_AUTH_SOCK = agentLink;
+      programs.ssh = lib.mkIf config.custom.features.graphical.enable {
         enable = true;
         enableDefaultConfig = false;
         includes = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin [
           "${config.home.homeDirectory}/.orbstack/ssh/config"
         ];
         settings = {
+          # prefer a live forwarded agent over the IdentityAgent of `*` (1Password)
+          "Match exec 'test -S ${agentLink}'".IdentityAgent = agentLink;
           "*" = {
             # default config from home manager module
             ForwardAgent = false;
