@@ -128,7 +128,7 @@ stdenv.mkDerivation {
   hardeningDisable = [ "pic" ];
 
   # The drift check runs here rather than in a `checkPhase`, so a moved list
-  # fails in a second instead of after eleven modules have compiled.
+  # fails in a second instead of after every module has compiled.
   postPatch = ''
     # Prints one element per line of a bash array literal, however it is wrapped.
     upstreamArray() {

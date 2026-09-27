@@ -1,13 +1,11 @@
 # KaiT2en
 
-Support for Macs with an Apple T2 security chip, taken from
-[KaiT2en](https://github.com/kaiT2en/KaiT2en-Fedora).
-Upstream ships its drivers as DKMS packages against a stock Fedora kernel rather
-than as a kernel patch set, which is why NixOS can run them on a cached kernel.
+Support for Macs with an Apple T2 security chip, taken from [KaiT2en](https://github.com/kaiT2en/KaiT2en-Fedora).
+Upstream ships its drivers as DKMS packages for a stock Fedora kernel, so NixOS can build them against a cached kernel.
 
 | package           | what it is                                                              |
 | ----------------- | ----------------------------------------------------------------------- |
-| `kait2en.modules` | the eleven out-of-tree driver packages, built against `passthru.kernel` |
+| `kait2en.modules` | the out-of-tree drivers, built against `passthru.kernel`                |
 | `kait2en.ucm`     | `alsa-ucm-conf` extended with the Apple T2 use case profiles            |
 | `kait2en.dsp`     | PipeWire filter graphs for the internal speakers, per Mac model         |
 | `kait2en.ncm`     | runs feature hooks around suspend and resume                            |
@@ -16,168 +14,78 @@ than as a kernel patch set, which is why NixOS can run them on a cached kernel.
 | `kait2en.journal` | `t2journal`, merging bridgeOS logs into a Linux boot                    |
 | `kait2en.ave`     | `t2remote`, the userspace half of the T2 audio/video engine             |
 
-`touchid`, `journal` and `ave` talk to the T2 over its internal CDC-NCM link, which
-`modules/hardware/apple-t2/bridge.nix` brings up.
-The virtual USB host controller reset-resumes the link after a stateful sleep.
-
-`ncm` and `suspend` are upstream bash helpers rather than builds, and share
-`mkScript.nix`.
-`installScript.nix` holds the three steps that install one, since the sleep hook
-`ave` ships needs them too without being a `mkScript` build.
-`commonMeta.nix` carries the `meta` fields every package in the scope shares.
-
-`modules.nix` holds the single revision every package is built from, and the
-others take `src` and `version` back off it.
-It also declares, and exports through `passthru`, everything the NixOS module
-under `modules/hardware/apple-t2` needs: the kernel to build against, the
-modules to load from the initrd, the in-tree modules to blacklist and the kernel
-command line.
+`modules.nix` pins the revision every other package takes its `src` and `version` from.
+Its `passthru` exports what the NixOS module in `modules/hardware/apple-t2` needs: the kernel, the initrd modules, the blacklisted modules and the kernel parameters.
+`touchid`, `journal` and `ave` talk to the T2 over its CDC-NCM link, which `bridge.nix` brings up with the network profile and sleep hooks from upstream's `t2-services/shared`.
 
 ## Licensing
 
-Upstream splits at the kernel boundary: the drivers under `modules/` and
-`t2-services/t2-ave/kernel` are GPL-2.0, and everything else is
-GPL-3.0-or-later.
-`kait2en.modules` is the only package on the kernel side of that line, and its
-`meta.license` lists both `gpl2Only` and `gpl2Plus` because the drivers forked
-out of the kernel kept the license of the file they came from.
-`kait2en.journal` additionally vendors `macos-unifiedlogs`, which is Apache-2.0.
+Upstream's drivers under `modules/` and `t2-services/t2-ave/kernel` are GPL-2.0, everything else is GPL-3.0-or-later.
+`kait2en.modules` lists both `gpl2Only` and `gpl2Plus`, since each forked driver kept the license of its kernel file.
+`kait2en.journal` also vendors the Apache-2.0 `macos-unifiedlogs`.
 
-The GPL-3.0-or-later components carry an attribution term under section 7(b),
-so every package installs upstream's `LICENSE`, `LICENSING.md` and
-`LICENSES/GPL-3.0-or-later.txt` under `share/licenses/<pname>` through
-`installLicenses.nix`, the way upstream's own RPM, Debian and Makefile packaging
-does.
-`kait2en.dsp` gets them from the upstream Makefile instead, along with the
-per-model README that carries each profile's copyright.
-
-The NixOS module transliterates several upstream units and configuration files
-rather than installing them, because they name Fedora paths.
-`modules/hardware/apple-t2/{ave,bridge,touchid}.nix` carry the upstream
-copyright and license next to the link, since what they reproduce is upstream's
-expression and not just its effect.
-`graphics.nix` only links, because it reimplements the behaviour of upstream's
-t2-dgpu-control helper without taking its code.
+The GPL-3.0-or-later components carry an attribution term under section 7(b), so every package installs upstream's license notices to `share/licenses/<pname>`, through `installLicenses.nix` or, for `kait2en.dsp`, the upstream Makefile.
+`{ave,bridge,touchid}.nix` transliterate upstream units and carry its copyright next to the link.
+`graphics.nix` only reimplements the behaviour of t2-dgpu-control, so it just links.
 
 ## Updating
 
-```shell
-nix-update kait2en.modules \
-  --system x86_64-linux --version=branch \
-  --subpackage=touchid --subpackage=journal --subpackage=ave
-```
+Upstream is followed on `main`, since its tags mark Fedora installer releases and lag behind.
+The scheduled updater skips this package.
 
-Run this from the repository root when an upstream update is wanted.
-It evaluates the non-flake `default.nix`, since `-F` cannot locate `modules.nix`
-under lazy trees.
-It rewrites `version`, `rev` and `hash` in `modules.nix`, then refreshes the
-three Rust packages' `cargoHash` values against the same source revision.
-The scheduled updater does not include this package.
+1. Bump the pin from the repository root:
 
-The three Rust packages are reached through `nix-update --subpackage`. This is
-why the pin cannot live in a file of its own behind `--override-filename`, which
-nix-update would apply to the subpackages as well and write their hashes into
-the wrong file.
+   ```shell
+   nix-update kait2en.modules --system x86_64-linux --version=branch \
+     --subpackage=touchid --subpackage=journal --subpackage=ave
+   ```
 
-Upstream is followed on `main` rather than on a tag: its tags mark Fedora
-installer releases, lag by weeks, and the most recent one predates the module
-layout packaged here.
+   This evaluates the non-flake `default.nix`, since `-F` cannot locate `modules.nix` under lazy trees.
+   The subpackages refresh the Rust `cargoHash` values, which is also why the pin cannot move to a file of its own through `--override-filename`.
 
-Since a bump can cross hundreds of upstream commits, review one before
-rebuilding. The `reviewed-rev:` marker next to `src` in `modules.nix` names the
-last revision that was read, so the range still to look at is that marker
-against the current `rev`:
+2. Review the upstream range from the `reviewed-rev:` marker in `modules.nix` to the new `rev`:
 
-```shell
-gh api repos/kaiT2en/KaiT2en-Fedora/compare/REVIEWED_REV...REV \
-  -q '.files[] | "\(.status)\t\(.filename)"'
-# https://github.com/kaiT2en/KaiT2en-Fedora/compare/REVIEWED_REV...REV
-```
+   ```shell
+   gh api repos/kaiT2en/KaiT2en-Fedora/compare/REVIEWED_REV...REV \
+     -q '.files[] | "\(.status)\t\(.filename)"'
+   ```
 
-Move the marker to `rev` once the range has been read, in the same commit as
-whatever the range made necessary.
-Use the first twelve characters only, because nix-update replaces every
-occurrence of the full old `rev` in `modules.nix` and would move the marker too.
-Build the updated packages before deploying them:
+3. Build every package:
 
-```shell
-nix build --no-link \
-  .#packages.x86_64-linux.kait2en-modules \
-  .#packages.x86_64-linux.kait2en-ucm \
-  .#packages.x86_64-linux.kait2en-dsp \
-  .#packages.x86_64-linux.kait2en-ncm \
-  .#packages.x86_64-linux.kait2en-suspend \
-  .#packages.x86_64-linux.kait2en-touchid \
-  .#packages.x86_64-linux.kait2en-journal \
-  .#packages.x86_64-linux.kait2en-ave
-```
+   ```shell
+   nix build --no-link .#packages.x86_64-linux.kait2en-{modules,ucm,dsp,ncm,suspend,touchid,journal,ave}
+   ```
 
-The four lists in `modules.nix` mirror arrays in upstream's installer scripts,
-and the `mirrored` list there pairs each one with its source. A build that fails
-with `<ARRAY> in <file> changed upstream` means one of them moved: read the diff,
-read the surrounding script for the reason, and update the matching list.
-Nothing else has to be reviewed routinely.
+   The lists in `modules.nix` mirror arrays in upstream's installer scripts, and `mirrored` pairs each with its source.
+   A failure reading `<ARRAY> in <file> changed upstream` means one of them moved, so update the matching list.
 
-## What the check cannot catch
+4. Move the marker to the new `rev`, in the same commit as whatever the review made necessary.
+   Keep it short, because nix-update replaces every occurrence of the full old `rev`.
 
-- New components outside the four arrays, such as the daemons under
-  `t2-services` or the GTK applications under `apps`. See the section below for
-  which of them are deliberately left out.
-- `initcallBlacklist`, which has no upstream counterpart: it names the built-in
-  symbols a blacklist cannot reach, so a nixpkgs kernel config turning one of
-  those from `=y` into `=m` makes it stale.
-- The GPU runtime PM patch set under `patches/runtime`, which upstream only
-  builds for the MacBookPro15,1, MacBookPro16,1 and MacBookPro16,4.
-- Layout changes in the UCM, DSP or t2-services trees, which surface as a build
-  failure in the package that reads them instead.
-- Renamed drivers, except in `tiny-dfr`, which finds the Touch Bar by driver
-  name: `modules/hardware/apple-t2/touchbar.nix` adds `t2bdrm` and
-  `t2tb_backlight` to its udev rules with `--replace-fail`, so a rename on
-  either side fails that build instead.
+The build cannot catch:
+
+- New upstream components outside the mirrored arrays, see below for those left out on purpose.
+- A stale `initcallBlacklist`, which has no upstream counterpart and breaks when nixpkgs turns one of its built-ins into a module.
+- Changes to the GPU runtime PM patches under `patches/runtime`, which upstream only builds for the MacBookPro15,1, MacBookPro16,1 and MacBookPro16,4.
+- Renamed drivers, except the ones `touchbar.nix` patches into the tiny-dfr udev rules with `--replace-fail`.
 
 ## Deliberately not packaged
 
-All three `t2-services` features are packaged. Its fourth component, `shared/`,
-provides the network profile and sleep hook runner, which
-`modules/hardware/apple-t2/bridge.nix` integrates.
-
-None of the nine GTK applications under `apps/` are. They configure Fedora by
-writing `/etc` and calling `systemctl enable`, so packaging one means shipping
-a front end that is then not allowed to do what it is for. Where the effect is
-worth having, the NixOS module states it instead:
+The GTK applications under `apps/` configure Fedora by writing `/etc` and calling `systemctl enable`, which NixOS does not allow.
+Where their effect is worth having, the NixOS module states it instead:
 
 - `t2-dgpu-control` is reimplemented in `graphics.nix`.
-- `t2-force-click` restores two module parameters at boot and binds an action
-  to the force click. `trackpad.nix` states the parameters, and the driver
-  reports the force click as `BTN_TASK` on an input device of its own,
-  `T2 Force Click Events`, so nothing has to go through the daemon to bind it.
-  Nothing binds it here.
-- `t2-hybrid-gpu-control` is for the MacBookPro15,1, MacBookPro16,1 and
-  MacBookPro16,4 and needs upstream's gmux and amdgpu patches,
-  so it cannot apply to a stock kernel.
-- `t2-kernel-builder` builds Fedora kernels, which is the opposite of running
-  on a cached nixpkgs one.
-- `t2-fan-control` and `t2-smc-control` edit and display a fan curve the SMC
-  already runs in firmware.
-- `t2-cpu-control` writes RAPL power limits, the TCC thermal target and the
-  PROCHOT override through MSRs, and `t2-power-tune` the PCIe ASPM, runtime PM
-  and LTR tunables that `kernelParams` already covers. Every value they set has
-  to be measured on the machine, and the PROCHOT override trades away a thermal
-  protection path, so both are left to a deliberate decision rather than a
-  default. `services.mbpfan` is wired up and off for the same reason.
+- `t2-force-click` is replaced by `trackpad.nix` setting the module parameters, and the force click is a `BTN_TASK` event on the `T2 Force Click Events` device that anything can bind.
+- `t2-hybrid-gpu-control` and `t2-kernel-builder` need a patched Fedora kernel.
+- `t2-fan-control` and `t2-smc-control` edit a fan curve the SMC already runs in firmware.
+- `t2-cpu-control` and `t2-power-tune` set power and thermal limits that have to be measured per machine, so they are left to a deliberate decision, like the disabled `services.mbpfan`.
 - `t2-power-explorer` is a diagnostic view.
 
-Two installer steps are left out as well. `install-hardware-video-decoding.sh`
-swaps Fedora VA-API packages, which the `coffee-lake` import already provides.
-`install-acpi-fixes.sh` overrides the `CpuSSDT` and `DSDT` tables to fix a
-`_PDC` redefinition and an `_OSC` buffer overflow, but only when the current
-boot logs them. Overriding a table on NixOS means committing the machine's own
-patched AML and prepending a CPIO to the initrd, and whether this machine needs
-it at all is one command away:
+Of the installer steps, `install-hardware-video-decoding.sh` is covered by the `coffee-lake` import.
+`install-acpi-fixes.sh` overrides the `CpuSSDT` and `DSDT` tables, which on NixOS means committing the machine's own patched AML to the initrd, so check first whether the machine needs it:
 
 ```shell
 journalctl -kb | grep -E 'AE_AML_BUFFER_LIMIT|Marking method.*_PDC'
 ```
 
-Upstream rejects issues and pull requests they believe were written by an AI, so
-anything reported there has to be written by hand.
+Upstream rejects issues and pull requests they believe were written by an AI, so anything reported there has to be written by hand.
