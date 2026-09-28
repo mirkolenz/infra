@@ -44,6 +44,20 @@
           --in "./$file.typ" \
           > "./$file.pdfpc"
       '';
+      custom.commands.typb.text = /* bash */ ''
+        # @describe Compile a Typst bundle into a directory and compress its PDFs
+        # @arg file!         Typst file, with or without its extension
+        # @arg typst-args~   Further arguments of typst compile
+        # @option -o --output  Bundle directory, defaults to the file stem like typst
+
+        file="''${argc_file%.typ}"
+        out="''${argc_output:-$file}"
+
+        ${lib.getExe pkgs.typst-bin} compile "''${argc_typst_args[@]}" --root . \
+          --features bundle --format bundle "./$file.typ" "$out"
+
+        find "$out" -name '*.pdf' -exec ${lib.getExe config.custom.commands.pdfcompress} {} \;
+      '';
       home.activation.linkTypstLibrary = lib'.mkCheckoutLink {
         inherit config checkout;
         target = "${dataDir}/typst/packages/${packageDir}";
