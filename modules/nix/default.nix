@@ -1,6 +1,10 @@
 # Nix wiring across home-manager, nixos and darwin: GC, store optimisation,
 # determinate hookup, the secrets include and the nix tooling.
 # The settings attrsets themselves live in settings.nix.
+let
+  # Age of the profile generations that garbage collection deletes.
+  gcAge = "7d";
+in
 {
   flake.modules.nixos.base =
     {
@@ -18,7 +22,7 @@
         '';
         gc = {
           automatic = true;
-          options = "--delete-older-than 7d";
+          options = "--delete-older-than ${gcAge}";
         };
         optimise = {
           automatic = true;
@@ -83,7 +87,7 @@
         package = pkgs.determinate-nix;
         gc = {
           automatic = true;
-          options = "--delete-older-than 7d";
+          options = "--delete-older-than ${gcAge}";
         };
       };
     };
@@ -124,42 +128,39 @@
         ];
       custom.commands = {
         gc.text = /* bash */ ''
-          # @describe Wipe the history of nix profiles older than a week, then collect and optimise the store
+          # @describe Wipe the history of nix profiles, then collect and optimise the store
+          # @option --older-than=${gcAge}  Age of the profile generations to delete
+          # @flag -y --yes           Wipe the history without asking
 
-          systemProfiles="$(find "/nix/var/nix/profiles" -type l -lname '*link*')"
-          userProfiles="$(find "${config.xdg.stateHome}/nix/profiles" -type l -lname '*link*')"
+          # Wipes the profiles below a directory with the nix command that follows it.
+          wipe() {
+            profiles="$(find "$1" -type l -lname '*link*')"
 
-          if [ -z "$systemProfiles" ]; then
-            systemProfilesAnswer="n"
-          else
-            echo "Do you want to clean the following system profiles? (y/n)"
-            echo "$systemProfiles"
-            read -r -n 1 systemProfilesAnswer
-            echo
-          fi
+            if [ -z "$profiles" ]; then
+              return
+            fi
 
-          if [ -z "$userProfiles" ]; then
-            userProfilesAnswer="n"
-          else
-            echo "Do you want to clean the following user profiles? (y/n)"
-            echo "$userProfiles"
-            read -r -n 1 userProfilesAnswer
-            echo
-          fi
+            answer="''${argc_yes:+y}"
 
-          if [ "$systemProfilesAnswer" = "y" ]; then
-            for profile in $systemProfiles; do
+            if [ -z "$answer" ]; then
+              echo "Do you want to clean the following profiles? (y/n)"
+              echo "$profiles"
+              read -r -n 1 answer
+              echo
+            fi
+
+            if [ "$answer" != "y" ]; then
+              return
+            fi
+
+            for profile in $profiles; do
               echo "Processing profile $profile..."
-              sudo ${nix} profile wipe-history --older-than 7d --profile "$profile"
+              "''${@:2}" profile wipe-history --older-than "$argc_older_than" --profile "$profile"
             done
-          fi
+          }
 
-          if [ "$userProfilesAnswer" = "y" ]; then
-            for profile in $userProfiles; do
-              echo "Processing profile $profile..."
-              ${nix} profile wipe-history --older-than 7d --profile "$profile"
-            done
-          fi
+          wipe /nix/var/nix/profiles sudo ${nix}
+          wipe "${config.xdg.stateHome}/nix/profiles" ${nix}
 
           echo "Collecting garbage..."
           ${nix} store gc
@@ -192,27 +193,43 @@
           }' "$@"
         '';
         prefetch-attr.text = /* bash */ ''
-          # @describe Print the hash of the file at the URL of a flake attribute
-          # @arg attr!               Flake attribute holding the URL
+          # @describe Print the hash of the file at the URL of a flake attribute, or the hashes of an attribute set of URLs
+          # @arg attr!               Flake attribute holding the URL or URLs
           # @arg nix-prefetch-args~  Further arguments of nix store prefetch-file
 
-          url="$(${nix} eval --raw "$argc_attr")"
-          hash="$(${nix} store prefetch-file --json "''${argc_nix_prefetch_args[@]}" "$url" | ${jq} -r .hash)"
-          echo "hash = \"$hash\";"
-        '';
-        prefetch-attrs.text = /* bash */ ''
-          # @describe Print the hashes of the files at the URLs of a flake attribute set
-          # @arg attr!               Flake attribute holding the URLs
-          # @arg nix-prefetch-args~  Further arguments of nix store prefetch-file
+          prefetch() {
+            ${nix} store prefetch-file --json "''${argc_nix_prefetch_args[@]}" "$1" | ${jq} -r .hash
+          }
+
+          value="$(${nix} eval --json "$argc_attr")"
+
+          if url="$(${jq} -er strings <<<"$value")"; then
+            hash="$(prefetch "$url")"
+            echo "hash = \"$hash\";"
+            exit
+          fi
+
+          # Prefetches all URLs in parallel, each into the file of its index, and prints them in order.
+          dir="$(mktemp -d)"
+          trap 'rm -rf "$dir"' EXIT
+          ${jq} -r 'to_entries[] | "\(.key) \(.value)"' <<<"$value" > "$dir/entries"
+          keys=()
+          pids=()
+
+          while read -r key url; do
+            echo "Prefetching $key" >&2
+            prefetch "$url" > "$dir/''${#keys[@]}" &
+            keys+=("$key")
+            pids+=("$!")
+          done < "$dir/entries"
 
           echo "hashes = {"
-          ${nix} eval --json "$argc_attr" \
-            | ${jq} -r 'to_entries[] | "\(.key) \(.value)"' \
-            | while read -r key url; do
-              echo "Evaluating $key" >&2
-              hash="$(${nix} store prefetch-file --json "''${argc_nix_prefetch_args[@]}" "$url" | ${jq} -r .hash)"
-              echo "  $key = \"$hash\";"
-            done
+
+          for i in "''${!keys[@]}"; do
+            wait "''${pids[$i]}"
+            echo "  ''${keys[$i]} = \"$(<"$dir/$i")\";"
+          done
+
           echo "};"
         '';
         nix-flake-input.text = /* bash */ ''
