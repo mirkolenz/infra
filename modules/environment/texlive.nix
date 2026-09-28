@@ -22,9 +22,9 @@
           $lualatex = "lualatex %O %S";
 
           # vendored texmf, see `vendor texmf`
-          ensure_path("TEXINPUTS", "./texmf//");
-          ensure_path("BSTINPUTS", "./texmf//");
-          ensure_path("BIBINPUTS", "./texmf//");
+          ensure_path("TEXINPUTS", "./vendor/texmf//");
+          ensure_path("BSTINPUTS", "./vendor/texmf//");
+          ensure_path("BIBINPUTS", "./vendor/texmf//");
 
           # set timezone
           $ENV{"TZ"} = "Europe/Berlin";

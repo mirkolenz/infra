@@ -102,7 +102,7 @@ in
   config = lib.mkIf cfg.enable {
     custom.vendor.texmf = {
       source = cfg.texmfPath;
-      target = "texmf";
+      target = "vendor/texmf";
       projectFile = {
         name = ".latexmkrc";
         source = latexmkrcFile;

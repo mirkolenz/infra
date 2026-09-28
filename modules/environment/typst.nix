@@ -24,16 +24,11 @@
         typstyle
         tinymist
       ];
-      # The project selects its copy via `TYPST_PACKAGE_PATH` in its .envrc.
+      # The project imports its copy by path, e.g. `#import "/vendor/typst/lib.typ": *`,
+      # which works both locally and in the typst.app web app.
       custom.vendor.typst = {
         source = checkout;
-        target = "typst/${packageDir}";
-        projectFile = {
-          name = ".envrc";
-          source = pkgs.writeText "envrc" ''
-            export TYPST_PACKAGE_PATH=$PWD/typst
-          '';
-        };
+        target = "vendor/typst";
       };
       # https://polylux.dev/book/external/pdfpc.html
       # https://touying-typ.github.io/docs/external/pdfpc
