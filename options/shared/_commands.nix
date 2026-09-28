@@ -123,8 +123,7 @@ let
 in
 {
   options.custom.commands = lib.mkOption {
-    # Lazy, so that commands can refer to each other without infinite recursion.
-    type = types.lazyAttrsOf command;
+    type = types.attrsOf command;
     default = { };
     apply = lib.mapAttrs (_: command: command.builder command);
     example = lib.literalExpression ''
