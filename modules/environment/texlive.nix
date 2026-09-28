@@ -35,8 +35,7 @@
           # force bibtex
           $bibtex_use = 2;
 
-          # No previewer, mirroring the typst setup: run `tdf main.pdf` in a second
-          # pane, it reloads whenever latexmk rewrites the PDF.
+          # use tdf manually
           $view = 'none';
         '';
         acronymPresets = {
