@@ -19,7 +19,7 @@
       models = {
         fable = "claude-fable-5-1";
         opus = "claude-opus-5-5";
-        sonnet = "claude-sonnet-5";
+        sonnet = "claude-sonnet-5-5";
         haiku = "claude-haiku-4-5";
       };
 
