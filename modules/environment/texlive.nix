@@ -21,7 +21,7 @@
           $pdflatex = "pdflatex %O %S";
           $lualatex = "lualatex %O %S";
 
-          # vendored texmf, see texmfup
+          # vendored texmf, see `vendor texmf`
           ensure_path("TEXINPUTS", "./texmf//");
           ensure_path("BSTINPUTS", "./texmf//");
           ensure_path("BIBINPUTS", "./texmf//");

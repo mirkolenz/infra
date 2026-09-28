@@ -24,10 +24,8 @@
         typstyle
         tinymist
       ];
-      # Vendors the library into the current project,
-      # which selects it via `TYPST_PACKAGE_PATH` in its .envrc.
-      custom.commands.typstup.text = lib'.mkVendorScript {
-        inherit pkgs;
+      # The project selects its copy via `TYPST_PACKAGE_PATH` in its .envrc.
+      custom.vendor.typst = {
         source = checkout;
         target = "typst/${packageDir}";
         projectFile = {

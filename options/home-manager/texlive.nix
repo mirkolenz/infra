@@ -119,16 +119,15 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    custom.commands = {
-      texmfup.text = lib'.mkVendorScript {
-        inherit pkgs;
-        source = cfg.texmfPath;
-        target = "texmf";
-        projectFile = {
-          name = ".latexmkrc";
-          source = latexmkrcFile;
-        };
+    custom.vendor.texmf = {
+      source = cfg.texmfPath;
+      target = "texmf";
+      projectFile = {
+        name = ".latexmkrc";
+        source = latexmkrcFile;
       };
+    };
+    custom.commands = {
       latexmkrc.text = /* bash */ ''
         # @describe Copy the managed .latexmkrc into the current project
         # @arg target-file=.latexmkrc
