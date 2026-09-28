@@ -3,8 +3,8 @@
     { pkgs, lib, ... }:
     let
       gpg = lib.getExe pkgs.gnupg;
-      python = lib.getExe pkgs.python3;
       tar = lib.getExe pkgs.gnutar;
+      pigz = lib.getExe pkgs.pigz;
     in
     {
       home.packages = with pkgs; [
@@ -40,9 +40,10 @@
         jql
         yq
         dasel
-        # http requests
+        # http clients and servers
         httpie
         xh
+        miniserve
         # bulk renaming
         massren
         mmv-go
@@ -83,68 +84,50 @@
         zstd
       ];
       custom.commands = {
-        encrypt.text = /* bash */ ''
-          # @describe Encrypt a file for a GnuPG recipient
-          # @arg source-path!
-          # @arg target-path!
-          # @arg recipient!    Key of the recipient
+        gpgfile.text = /* bash */ ''
+          # @describe Encrypt and decrypt files with GnuPG
 
-          exec ${gpg} --output "$argc_target_path" --encrypt --recipient "$argc_recipient" "$argc_source_path"
+          # @cmd Encrypt a file
+          # @option -r --recipient*  Key of a recipient, which GnuPG asks for if absent
+          # @arg source-path!
+          # @arg target-path         Encrypted file, defaulting to the source with a .gpg extension
+          encrypt() {
+            exec ${gpg} --output "''${argc_target_path:-$argc_source_path.gpg}" --encrypt "''${argc_recipient[@]/#/--recipient=}" "$argc_source_path"
+          }
+
+          # @cmd Decrypt a file
+          # @arg source-path!
+          # @arg target-path  Decrypted file, defaulting to the source without its .gpg extension
+          decrypt() {
+            exec ${gpg} --output "''${argc_target_path:-''${argc_source_path%.gpg}}" --decrypt "$argc_source_path"
+          }
         '';
-        decrypt.text = /* bash */ ''
-          # @describe Decrypt a GnuPG encrypted file
-          # @arg source-path!
-          # @arg target-path!
+        tgz.text = /* bash */ ''
+          # @describe Create and extract gzipped tarballs
+          # @meta inherit-flag-options
+          # @flag -s --sudo  Run tar as root
 
-          exec ${gpg} --output "$argc_target_path" --decrypt "$argc_source_path"
-        '';
-        backup.text = /* bash */ ''
-          # @describe Archive a path as root into a timestamped tarball
+          # @cmd Archive a path into a tarball
+          # @option -o --output <FILE>  Tarball to create, defaulting to the source with a .tgz extension
           # @arg source-path!
-          # @arg target-dir!
+          # @arg tar-args~              Further arguments of tar
+          create() {
+            ''${argc_sudo:+sudo} ${tar} -c -I ${pigz} -f "''${argc_output:-''${argc_source_path%/}.tgz}" "''${argc_tar_args[@]}" "$argc_source_path"
+          }
 
-          mkdir -p "$argc_target_dir"
-          timestamp=$(date +"%Y-%m-%d-%H-%M-%S")
-          sudo ${tar} -czf "$argc_target_dir/$timestamp.tgz" "$argc_source_path"
-        '';
-        restore.text = /* bash */ ''
-          # @describe Extract a tarball as root
+          # @cmd Extract a tarball
+          # @option -C --directory=.  Directory receiving the contents
           # @arg source-path!
-          # @arg target-dir!
-
-          mkdir -p "$argc_target_dir"
-          sudo ${tar} -xzf "$argc_source_path" -C "$argc_target_dir"
-        '';
-        compress.text = /* bash */ ''
-          # @describe Archive a path into a tarball next to it
-          # @arg source-path!
-          # @arg tar-args~     Further arguments of tar
-
-          exec ${tar} -czf "$argc_source_path.tgz" "$argc_source_path" "''${argc_tar_args[@]}"
-        '';
-        decompress.text = /* bash */ ''
-          # @describe Extract a tarball into the working directory
-          # @arg source-path!
-          # @arg tar-args~     Further arguments of tar
-
-          exec ${tar} -xzf "$argc_source_path" "''${argc_tar_args[@]}"
+          # @arg tar-args~            Further arguments of tar
+          extract() {
+            ''${argc_sudo:+sudo} mkdir -p "$argc_directory"
+            ''${argc_sudo:+sudo} ${tar} -x -I ${pigz} -f "$argc_source_path" -C "$argc_directory" "''${argc_tar_args[@]}"
+          }
         '';
         noeol.text = /* bash */ ''
           # @describe Remove the newlines from stdin
 
           exec tr -d '\n'
-        '';
-        json-tool.text = /* bash */ ''
-          # @describe Validate and pretty-print JSON
-          # @arg args~ Arguments of python -m json.tool
-
-          exec ${python} -m json.tool "$@"
-        '';
-        http-server.text = /* bash */ ''
-          # @describe Serve the working directory over HTTP
-          # @arg args~ Arguments of python -m http.server
-
-          exec ${python} -m http.server "$@"
         '';
         wget-mirror.text = /* bash */ ''
           # @describe Mirror a website politely

@@ -4,6 +4,7 @@
   flake.modules.homeManager.darwin.imports = [
     (
       {
+        config,
         pkgs,
         lib,
         ...
@@ -39,7 +40,7 @@
           };
         };
         home.shellAliases = {
-          copy = /* bash */ ''${lib.getExe' pkgs.coreutils "tr"} -d '\n' | pbcopy'';
+          copy = "${lib.getExe config.custom.commands.noeol} | pbcopy";
         };
         targets.darwin.copyApps.enableChecks = false; # requires sudo during activation
       }
