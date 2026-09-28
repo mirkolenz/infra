@@ -6,8 +6,10 @@
   lib,
   stdenv,
   fetchFromGitHub,
+  jq,
   kait2en,
   linuxPackages_latest,
+  shfmt,
 }:
 let
   # Re-exported through `passthru`, so the modules cannot be loaded into a
@@ -55,13 +57,6 @@ let
     "apple_gmux"
   ];
 
-  # The built-in counterparts of `replacedModules`: a driver compiled into the
-  # kernel is past every blacklist, so it is stopped at its initcall instead.
-  initcallBlacklist = [
-    "cmos_init"
-    "magicmouse_driver_init"
-  ];
-
   kernelParams = [
     # The t2bce stack needs the IOMMU, audio and suspend need it passed through,
     # and `pm_async=off` serialises the resume ordering the T2 depends on.
@@ -79,10 +74,18 @@ let
     # S3, not s2idle: the T2 only reaches its low power state on the deep path,
     # and `t2smp` offlines the secondary CPUs so resume does not crawl.
     "mem_sleep_default=deep"
+    # `blacklistedKernelModules` only suppresses loading by alias, which leaves
+    # a module something asks for by name.
+    "module_blacklist=${lib.concatStringsSep "," replacedModules}"
+    # Stopped at their init functions, since Fedora builds them into the kernel
+    # where no module blacklist reaches. nixpkgs builds them as modules, whose
+    # init passes the same check.
+    "initcall_blacklist=cmos_init,magicmouse_driver_init"
   ];
 
-  # Each list above mirrors an array in an upstream installer script, which
-  # `postPatch` diffs against it so a bump fails loudly instead of silently.
+  # Each list above mirrors the array an upstream installer script has built
+  # once its assignments ran, which `postPatch` diffs against it so a bump fails
+  # loudly instead of silently.
   mirrored = [
     {
       file = "scripts/fedora/install-dkms-modules.sh";
@@ -96,11 +99,6 @@ let
     }
     {
       file = "scripts/fedora/install-kernel-args.sh";
-      array = "BLACKLIST_MODULES";
-      values = replacedModules;
-    }
-    {
-      file = "scripts/fedora/install-kernel-args.sh";
       array = "ADD_ARGS";
       values = kernelParams;
     }
@@ -111,36 +109,43 @@ stdenv.mkDerivation {
 
   # The pin every package here is built from. It cannot live in a file of its
   # own: `nix-update` writes to wherever `meta.position` points.
-  version = "0.1.12-unstable-2026-09-26";
+  version = "0.1.12-unstable-2026-09-27";
 
   # A manual update moves `rev`, while the marker below moves after its diff
   # has been reviewed. Keep it short, since nix-update replaces every
   # occurrence of the full old `rev` in this file. See README.md.
-  # reviewed-rev: 555f93d09e8b
+  # reviewed-rev: 5e09e3f3b5b1
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";
-    rev = "555f93d09e8b007519ff07f4b0727a809f87cf8e";
-    hash = "sha256-RPNi9olVsImB6XZSlI30BHCU2d3ETo5xjDiXWS3wnek=";
+    rev = "5e09e3f3b5b148c6287f9ccb266583a374f95fef";
+    hash = "sha256-hLYP6jMAQ6sb3IZ2Wp6sLNJLSmbx98RDAceR6q5ievo=";
   };
 
-  nativeBuildInputs = kernel.moduleBuildDependencies;
+  nativeBuildInputs = kernel.moduleBuildDependencies ++ [
+    jq
+    shfmt
+  ];
   hardeningDisable = [ "pic" ];
 
   # The drift check runs here rather than in a `checkPhase`, so a moved list
   # fails in a second instead of after every module has compiled.
   postPatch = ''
-    # Prints one element per line of a bash array literal, however it is wrapped.
+    # Prints the named array as a script leaves it after its top-level
+    # assignments. shfmt parses those out, so nothing else in it runs.
     upstreamArray() {
-      awk -v name="$2" '
-        index($0, name "=(") == 1 { open = 1; sub(/^[^(]*\(/, "") }
-        open {
-          if (sub(/\).*/, "")) open = 2
-          sub(/#.*/, ""); gsub(/"/, "")
-          for (i = 1; i <= NF; i++) print $i
-          if (open == 2) exit
-        }
-      ' "$1" | sort
+      local assignments
+      assignments=$(shfmt --to-json <"$1" |
+        jq '.Stmts |= map(select(.Cmd.Type == "CallExpr" and .Cmd.Args == null))' |
+        shfmt --from-json)
+
+      (
+        # Some call helpers from the unsourced `lib.sh`, which only leaves
+        # those variables empty.
+        eval "$assignments" || true
+        local -n array=$2
+        printf '%s\n' "''${array[@]}"
+      ) | sort
     }
 
     ${lib.concatMapStringsSep "\n" (
@@ -216,7 +221,6 @@ stdenv.mkDerivation {
   passthru = {
     inherit
       earlyModules
-      initcallBlacklist
       kernel
       kernelParams
       replacedModules

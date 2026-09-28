@@ -56,7 +56,8 @@ The scheduled updater skips this package.
    nix build --no-link .#packages.x86_64-linux.kait2en-{modules,ucm,dsp,ncm,suspend,touchid,journal,ave}
    ```
 
-   The lists in `modules.nix` mirror arrays in upstream's installer scripts, and `mirrored` pairs each with its source.
+   The lists in `modules.nix` mirror the arrays upstream's installer scripts build, and `mirrored` pairs each with its source.
+   Only the top-level assignments of a script run, parsed out by shfmt, so `ADD_ARGS` already carries both blacklists.
    A failure reading `<ARRAY> in <file> changed upstream` means one of them moved, so update the matching list.
 
 4. Move the marker to the new `rev`, in the same commit as whatever the review made necessary.
@@ -65,7 +66,6 @@ The scheduled updater skips this package.
 The build cannot catch:
 
 - New upstream components outside the mirrored arrays, see below for those left out on purpose.
-- A stale `initcallBlacklist`, which has no upstream counterpart and breaks when nixpkgs turns one of its built-ins into a module.
 - Changes to the GPU runtime PM patches under `patches/runtime`, which upstream only builds for the MacBookPro15,1, MacBookPro16,1 and MacBookPro16,4.
 - Renamed drivers, except the ones `touchbar.nix` patches into the tiny-dfr udev rules with `--replace-fail`.
 

@@ -1,10 +1,6 @@
 {
   flake.modules.nixos.apple-t2 =
-    {
-      lib,
-      pkgs,
-      ...
-    }:
+    { pkgs, ... }:
     let
       drivers = pkgs.kait2en.modules;
     in
@@ -20,12 +16,7 @@
 
       boot.blacklistedKernelModules = drivers.replacedModules;
 
-      boot.kernelParams = [
-        # `blacklistedKernelModules` only suppresses loading by alias, which
-        # leaves a module something asks for by name.
-        "module_blacklist=${lib.concatStringsSep "," drivers.replacedModules}"
-        # Built in, so they are reached through their initcalls instead.
-        "initcall_blacklist=${lib.concatStringsSep "," drivers.initcallBlacklist}"
-      ];
+      # Declared and checked against upstream in `kait2en/modules.nix`.
+      boot.kernelParams = drivers.kernelParams;
     };
 }

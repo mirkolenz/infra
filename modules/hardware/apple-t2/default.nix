@@ -1,10 +1,6 @@
 {
   flake.modules.nixos.apple-t2 =
-    { pkgs, ... }:
     {
-      # Declared and checked against upstream in `kait2en/modules.nix`.
-      boot.kernelParams = pkgs.kait2en.modules.kernelParams;
-
       powerManagement.enable = true;
 
       # A boot where `graphics.nix` did not park the dGPU leaves mutter free to
