@@ -59,6 +59,8 @@
         # tdf # used via alias
         # fancy-cat # currently broken
         pdf-cli
+        # office
+        officecli-bin
         # go
         gopls
         delve
