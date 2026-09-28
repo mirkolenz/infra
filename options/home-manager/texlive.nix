@@ -152,7 +152,9 @@ in
           fi
 
           # shellcheck disable=SC2002 # the sd commands are generated via nix, so cat is more elegant than piping
-          cat "${cfg.bibliographyPath}/acronyms.tex"${lib.concatMapStrings (sd: " | ${sd}") acronymReplacements}
+          cat "${cfg.bibliographyPath}/acronyms.tex"${
+            lib.concatMapStrings (sd: " | ${sd}") acronymReplacements
+          }
         }
       '';
     };

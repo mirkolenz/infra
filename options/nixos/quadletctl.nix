@@ -11,7 +11,9 @@ let
     ;
 
   cfg = config.virtualisation.quadlet.quadletctl;
-  containers = lib.attrNames (lib.filterAttrs (_: c: c.enable) config.virtualisation.quadlet.containers);
+  containers = lib.attrNames (
+    lib.filterAttrs (_: c: c.enable) config.virtualisation.quadlet.containers
+  );
   # argc rejects an empty choice list.
   container = "container!${
     lib.optionalString (containers != [ ]) "[${lib.concatStringsSep "|" containers}]"
