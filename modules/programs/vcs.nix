@@ -407,8 +407,9 @@
         # @describe Merge the open pull requests assigned to you that match a jq condition
         #
         # Example: gh-prs '.title == "PR_TITLE"'
-        # @arg filter!   jq condition on the title, url, number and repository of a pull request
-        # @arg gh-args~  Further arguments of gh search prs
+        # @option -m --method[squash|merge|rebase]  Merge method, asked for if absent
+        # @arg filter!                              jq condition on the title, url, number and repository of a pull request
+        # @arg gh-args~                             Further arguments of gh search prs
 
         prs="$(${gh} search prs --assignee @me --state open "''${argc_gh_args[@]}" \
           --json title,url,number,repository)"
@@ -430,17 +431,19 @@
         ' <<<"$matched" | column -t -s $'\t'
         echo
 
-        read -r -n 1 -p "How should they be merged? (s)quash/(m)erge/(r)ebase, any other key to skip " method
-        echo
+        if [ -z "$argc_method" ]; then
+          read -r -n 1 -p "How should they be merged? (s)quash/(m)erge/(r)ebase, any other key to skip " key
+          echo
 
-        case "$method" in
-          s) mergeArg="--squash" ;;
-          m) mergeArg="--merge" ;;
-          r) mergeArg="--rebase" ;;
-          *) echo "Nothing merged."; exit 0 ;;
-        esac
+          case "$key" in
+            s) argc_method="squash" ;;
+            m) argc_method="merge" ;;
+            r) argc_method="rebase" ;;
+            *) echo "Nothing merged."; exit 0 ;;
+          esac
+        fi
 
-        xargs -I {} ${gh} pr merge {} "$mergeArg" --delete-branch --auto <<<"$urls"
+        xargs -P 8 -I {} ${gh} pr merge {} "--$argc_method" --delete-branch --auto <<<"$urls"
       '';
     };
 }
