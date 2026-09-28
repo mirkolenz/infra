@@ -126,6 +126,10 @@ in
           nix-converter
           nix-sweep
         ];
+      custom.bump.nix = {
+        files = [ "flake.lock" ];
+        text = "${nix} flake update --commit-lock-file";
+      };
       custom.commands = {
         gc.text = /* bash */ ''
           # @describe Wipe the history of nix profiles, then collect and optimise the store
@@ -166,12 +170,6 @@ in
           ${nix} store gc
           echo "Optimising store..."
           ${nix} store optimise
-        '';
-        flakeup.text = /* bash */ ''
-          # @describe Update the flake inputs and commit the lock file
-          # @arg args~ Arguments of nix flake update
-
-          exec ${nix} flake update --commit-lock-file "$@"
         '';
         dev.text = /* bash */ ''
           # @describe Enter the development shell of a flake

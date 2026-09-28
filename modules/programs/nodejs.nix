@@ -33,12 +33,15 @@
         typescript
         astro-language-server
       ];
-      custom.commands.npmup.text = /* bash */ ''
-        # @describe Upgrade the npm dependencies interactively and commit them
-
-        ${lib.getExe pkgs.npm-check-updates} --interactive --format group --install never
-        ${lib.getExe' config.programs.npm.package "npm"} update
-        ${lib.getExe config.programs.git.package} commit -m "chore(deps/npm): update" package.json package-lock.json
-      '';
+      custom.bump.npm = {
+        files = [
+          "package.json"
+          "package-lock.json"
+        ];
+        text = ''
+          ${lib.getExe pkgs.npm-check-updates} --interactive --format group --install never
+          ${lib.getExe' config.programs.npm.package "npm"} update
+        '';
+      };
     };
 }

@@ -21,12 +21,10 @@
         };
       };
       home.shellAliases.py = "${uv} run";
-      custom.commands.uvup.text = /* bash */ ''
-        # @describe Upgrade the uv dependencies and commit the lock file
-
-        ${uv} sync --all-extras --upgrade
-        ${lib.getExe config.programs.git.package} commit -m "chore(deps/uv): update" uv.lock
-      '';
+      custom.bump.uv = {
+        files = [ "uv.lock" ];
+        text = "${uv} sync --all-extras --upgrade";
+      };
       home.activation = {
         pruneUvCache = lib.hm.dag.entryAfter [ "writeBoundary" ] /* bash */ ''
           run ${uv} cache prune --force $VERBOSE_ARG
