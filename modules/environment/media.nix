@@ -25,28 +25,29 @@
         # fonts
         fontforge
       ];
+      # Bound here, since `ffmpeg` would shadow the package in the list above.
       custom.commands =
         let
           mogrify = lib.getExe' pkgs.imagemagick "mogrify";
           ffmpeg = lib.getExe pkgs.ffmpeg;
+          # Keeps the aspect ratio and at most 1920 pixels of width.
+          scale = "scale='min(1920,iw)':-2:flags=lanczos";
         in
         {
           # https://masdilor.github.io/use-imagemagick-to-resize-and-compress-images/
-          mogrify-convert.text = /* bash */ ''
+          imgcompress.text = /* bash */ ''
             # @describe Compress images in place
-            # @arg quality!  Quality from 1 to 100
-            # @arg files+    Images to overwrite
+            # @option -q --quality=85         Quality from 1 to 100
+            # @option -r --resize <GEOMETRY>  Shrink the images to thumbnails of a geometry such as 800x600
+            # @arg files+                     Images to overwrite
 
-            exec ${mogrify} -strip -interlace none -sampling-factor 4:2:0 -define jpeg:dct-method=float -quality "$argc_quality" "''${argc_files[@]}"
-          '';
-          # https://masdilor.github.io/use-imagemagick-to-resize-and-compress-images/
-          mogrify-resize.text = /* bash */ ''
-            # @describe Resize and compress images in place
-            # @arg quality!     Quality from 1 to 100
-            # @arg final-size!  Geometry of the thumbnail, such as 800x600
-            # @arg files+       Images to overwrite
+            if [ -n "$argc_resize" ]; then
+              args=(-filter Triangle -define filter:support=2 -thumbnail "$argc_resize" -unsharp 0.25x0.08+8.3+0.045 -dither None -posterize 136 -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -colorspace sRGB)
+            else
+              args=(-strip -sampling-factor 4:2:0 -define jpeg:dct-method=float)
+            fi
 
-            exec ${mogrify} -filter Triangle -define filter:support=2 -thumbnail "$argc_final_size" -unsharp 0.25x0.08+8.3+0.045 -dither None -posterize 136 -quality "$argc_quality" -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -interlace none -colorspace sRGB "''${argc_files[@]}"
+            exec ${mogrify} "''${args[@]}" -interlace none -quality "$argc_quality" "''${argc_files[@]}"
           '';
           # Only raster images are touched, text and vector graphics pass through untouched.
           # The distiller presets such as /ebook are avoided on purpose: they force a full
@@ -99,36 +100,41 @@
             exec ${lib.getExe' pkgs.fontforge "fontforge"} -c "Open(\"$argc_source_file\"); Generate(\"$argc_target_file\");" "''${argc_fontforge_args[@]}"
           '';
           ffmpeg2web.text = /* bash */ ''
-            # @describe Encode a video for the web as H.264 of at most 1920 pixels width
-            # @arg input-file!
-            # @arg ffmpeg-args~  Further arguments of ffmpeg, ending with the output file
+            # @describe Convert videos for the web, at most 1920 pixels wide
 
-            exec ${ffmpeg} -i "$argc_input_file" \
-              -vf "scale='min(1920,iw)':-2:flags=lanczos" \
-              -c:v libx264 \
-              -preset veryslow \
-              -profile:v high \
-              -pix_fmt yuv420p \
-              -c:a aac \
-              -b:a 128k \
-              -ac 2 \
-              -movflags \
-              +faststart \
-              "''${argc_ffmpeg_args[@]}"
-          '';
-          ffmpeg2poster.text = /* bash */ ''
-            # @describe Extract a representative frame of a video as poster image
-            #
-            # Pass -ss SECONDS to skip black intros longer than the 300 analyzed frames.
+            # @cmd Encode a video as H.264
             # @arg input-file!
-            # @arg ffmpeg-args~  Further arguments of ffmpeg, ending with the output file
+            # @arg output-file!
+            # @arg ffmpeg-args~  Further output arguments of ffmpeg
+            video() {
+              exec ${ffmpeg} -i "$argc_input_file" \
+                -vf "${scale}" \
+                -c:v libx264 \
+                -preset veryslow \
+                -profile:v high \
+                -pix_fmt yuv420p \
+                -c:a aac \
+                -b:a 128k \
+                -ac 2 \
+                -movflags +faststart \
+                "''${argc_ffmpeg_args[@]}" \
+                "$argc_output_file"
+            }
 
-            exec ${ffmpeg} -i "$argc_input_file" \
-              -vf "thumbnail=300,scale='min(1920,iw)':-2:flags=lanczos" \
-              -frames:v 1 \
-              -update 1 \
-              -q:v 2 \
-              "''${argc_ffmpeg_args[@]}"
+            # @cmd Extract a representative frame of a video as poster image
+            # @option -s --start <SECONDS>  Skip the beginning, such as a black intro longer than the 300 analyzed frames
+            # @arg input-file!
+            # @arg output-file!
+            # @arg ffmpeg-args~             Further output arguments of ffmpeg
+            poster() {
+              exec ${ffmpeg} ''${argc_start:+-ss "$argc_start"} -i "$argc_input_file" \
+                -vf "thumbnail=300,${scale}" \
+                -frames:v 1 \
+                -update 1 \
+                -q:v 2 \
+                "''${argc_ffmpeg_args[@]}" \
+                "$argc_output_file"
+            }
           '';
         };
     };
