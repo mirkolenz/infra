@@ -1,5 +1,6 @@
 # `vendor`, which replaces the copies of live checkouts in the current project.
 # Every `.git` entry is left out, so the project can commit the copy instead of embedding a repository.
+# The top-level readme, license and `.gitignore` are left out as well, and the project keeps its own.
 {
   config,
   lib,
@@ -53,7 +54,15 @@ in
           exit 1
         fi
 
-        ${lib.getExe pkgs.rsync} --archive --delete --mkpath --exclude=.git "$1/" "$2/"
+        ${lib.getExe pkgs.rsync} \
+          --archive \
+          --delete \
+          --mkpath \
+          --exclude=.git \
+          --exclude='/README*' \
+          --exclude='/LICENSE*' \
+          --exclude=/.gitignore \
+          "$1/" "$2/"
 
         if [[ -e $3 && -z $argc_force ]]; then
           echo "Keeping $3, compare it with $4" >&2
