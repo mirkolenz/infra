@@ -3,13 +3,11 @@
     {
       config,
       lib,
-      lib',
       pkgs,
       ...
     }:
     let
       agents = config.programs.agents;
-      package = config.programs.codex.package;
     in
     lib.mkIf config.custom.features.extras.enable {
       programs.codex = {
@@ -17,6 +15,7 @@
         package = pkgs.codex-bin;
         enableMcpIntegration = true;
         inherit (agents) context skills;
+        installations.work = { };
         # https://developers.openai.com/codex/config-reference
         # https://developers.openai.com/codex/config-schema.json
         settings = {
@@ -109,33 +108,5 @@
           };
         };
       };
-      # Codex writes trust decisions back to config.toml, which fails on a read-only
-      # store symlink (https://github.com/openai/codex/issues/6646). Replace it with a
-      # writable copy of the generated config; trust resets on each activation.
-      home.file.".codex/config.toml".enable = lib.mkForce false;
-
-      home.activation.setupCodexFiles = lib'.mkMutableFile {
-        inherit config;
-        source = config.home.file.".codex/config.toml".source;
-        target = "${config.home.homeDirectory}/.codex/config.toml";
-      };
-
-      # The app-server daemon runs whatever package `current` selects and only installs
-      # a copy when it is missing. A store path also keeps its self-updater disabled.
-      home.file.".codex/packages/app-server-daemon/current" = {
-        source = "${package}/libexec/codex";
-        # A running daemon keeps its old binary until restarted.
-        onChange = /* bash */ ''
-          if [[ -e "$HOME/.codex/app-server-daemon/daemon.pid" ]]; then
-            run ${lib.getExe package} app-server daemon restart \
-              || warnEcho "Failed to restart the codex app-server daemon"
-          fi
-        '';
-      };
-
-      # The restart looks up `ps` in PATH to record the new daemon's start time.
-      home.extraActivationPath = with pkgs; [
-        unixtools.ps
-      ];
     };
 }

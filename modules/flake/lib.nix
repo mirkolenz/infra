@@ -86,8 +86,7 @@
     # linkGeneration. Use for programs that rewrite their own config and choke on
     # read-only store symlinks: the writable copy lets them work, while our
     # declared content is restored on every rebuild. `coreutils` (hence `install`)
-    # is always on the activation PATH. `hmLib` is `lib.hm` (for `dag.entryAfter`);
-    # `files` is a list of { source; target; mode ? "600"; }.
+    # is always on the activation PATH. `files` is a list of { source; target; mode ? "600"; }.
     mkMutableFiles =
       { config, files }:
       config.lib.dag.entryAfter [ "linkGeneration" ] (

@@ -7,7 +7,7 @@
   bubblewrap,
   ncurses,
 }:
-mkGitHubBinary {
+mkGitHubBinary (finalAttrs: {
   owner = "openai";
   repo = "codex";
   file = ./release.json;
@@ -52,8 +52,11 @@ mkGitHubBinary {
   nativeInstallCheckInputs = [ versionCheckHook ];
   doInstallCheck = true;
 
+  # Where the app-server daemon expects the package tree, see the codex home-manager module.
+  passthru.appServerDaemon = "${finalAttrs.finalPackage}/libexec/codex";
+
   meta = {
     description = "Lightweight coding agent that runs in your terminal";
     license = lib.licenses.asl20;
   };
-}
+})
