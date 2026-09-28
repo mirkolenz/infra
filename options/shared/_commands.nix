@@ -22,14 +22,14 @@ let
     let
       inherit (command) name;
       derivationArgs = command.derivationArgs or { };
+      lines = lib.splitString "\n" command.text;
+      tags = lib.lists.findFirstIndex (line: !lib.hasPrefix "#" line) (lib.length lines) lines;
     in
     pkgs.writeShellApplication (
       removeAttrs command [ "builder" ]
       // {
-        text = ''
-          ${eval}
-          ${command.text}
-        '';
+        # The eval follows the leading tags, since argc only parses tags ahead of its compiled parser.
+        text = lib.concatStringsSep "\n" (lib.take tags lines ++ [ eval ] ++ lib.drop tags lines);
         # Without nounset, since argc leaves the variables of absent parameters unset,
         # while ShellCheck still reports misspelled ones as never assigned.
         bashOptions =
@@ -51,7 +51,7 @@ let
           ]
           ++ derivationArgs.nativeBuildInputs or [ ];
           # Compiles the script that the checks then run on, from a copy of its source named after
-          # the command, since argc names the help after the file and only parses tags ahead of its parser.
+          # the command, since argc names the help after the file.
           # argc calls `main` or the subcommand at its eval, which therefore has to follow their definitions.
           preCheck = ''
             if argc --argc-export "$target" | jq --exit-status '.command_fn != null or .subcommands != []' >/dev/null; then
