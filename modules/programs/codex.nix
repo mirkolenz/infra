@@ -75,8 +75,10 @@
             notifications = true;
             vim_mode_default = false;
             alternate_screen = "always";
+            copy_on_select = "always";
             show_tooltips = false;
             fullscreen_transcript = true;
+            auto_recap = false;
           };
           notice = {
             hide_rate_limit_model_nudge = true;
