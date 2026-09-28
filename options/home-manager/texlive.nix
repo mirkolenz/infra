@@ -10,34 +10,15 @@ let
 
   acronymPresetToList = lib.mapAttrsToList (name: value: "${name}=${value}");
   acronymReplacements = lib.mapAttrsToList (
-    name: preset: "sd -F 'preset=${name}' '${lib.concatStringsSep ", " (acronymPresetToList preset)}'"
+    name: preset:
+    "${lib.getExe pkgs.sd} -F 'preset=${name}' '${lib.concatStringsSep ", " (acronymPresetToList preset)}'"
   ) cfg.acronymPresets;
 
-  bibtidyBase = "${lib.getExe pkgs.bibtex-tidy} --v2 --no-align --no-wrap --blank-lines --no-escape";
-  bibtidyFilter = ''--omit="${lib.concatStringsSep "," cfg.bibtidyOmit}" --max-authors="${toString cfg.bibtidyMaxAuthors}"'';
-
-  # Tidies the bibliography in a format, printing it or writing it to a directory with `output`.
-  # bibtex-tidy ignores its input files whenever stdin is no terminal,
-  # so the bibliography is always passed on stdin.
-  mkBibScript =
-    { output, full }:
-    let
-      verb = if output then "Copy" else "Print";
-      fields = lib.optionalString full " with all fields but the abstract";
-      filter = if full then "--omit=abstract" else bibtidyFilter;
-      target = lib.optionalString output " --output=\"$argc_target_dir/references.bib\"";
-    in
-    lib.concatLines (
-      [
-        "# @describe ${verb} the tidied bibliography${fields}"
-        "# @arg format=bibtex  Name of the bibliography file"
-      ]
-      ++ lib.optional output "# @arg target-dir=.  Directory receiving references.bib"
-      ++ [
-        ""
-        ''${bibtidyBase} ${filter}${target} < "${cfg.bibliographyPath}/$argc_format.bib"''
-      ]
-    );
+  bibtidy = "${lib.getExe pkgs.bibtex-tidy} --v2 --no-align --no-wrap --blank-lines --no-escape";
+  bibtidyFilter = lib.escapeShellArgs [
+    "--omit=${lib.concatStringsSep "," cfg.bibtidyOmit}"
+    "--max-authors=${toString cfg.bibtidyMaxAuthors}"
+  ];
 
   latexmkrcFile = pkgs.writeText "latexmkrc" cfg.latexmkrc;
 in
@@ -134,39 +115,45 @@ in
 
         exec cp --force --no-preserve=all ${latexmkrcFile} "$argc_target_file"
       '';
-      bibtidy.text = /* bash */ ''
-        # @describe Tidy bibliographies with the managed bibtex-tidy settings
+      # bibtex-tidy ignores its input files whenever stdin is no terminal,
+      # so the bibliography is always passed on stdin.
+      bib.text = /* bash */ ''
+        # @describe Tidy and print the managed bibliography and acronyms
+
+        # @cmd Tidy bibliographies with the managed bibtex-tidy settings
         # @arg args~ Arguments of bibtex-tidy
+        tidy() {
+          exec ${bibtidy} ${bibtidyFilter} "''${argc_args[@]}"
+        }
 
-        ${bibtidyBase} ${bibtidyFilter} "$@"
-      '';
-      bibcat.text = mkBibScript {
-        output = false;
-        full = false;
-      };
-      bibcat-full.text = mkBibScript {
-        output = false;
-        full = true;
-      };
-      bibcopy.text = mkBibScript {
-        output = true;
-        full = false;
-      };
-      bibcopy-full.text = mkBibScript {
-        output = true;
-        full = true;
-      };
-      acrocat.text = /* bash */ ''
-        # @describe Print the acronyms with the presets applied
+        # @cmd Print the tidied bibliography
+        # @flag -f --full                Keep all fields but the abstract
+        # @option -o --output-dir <DIR>  Write references.bib into a directory instead
+        # @arg format[=bibtex|biblatex]  Name of the bibliography file
+        references() {
+          filter=(${bibtidyFilter})
 
-        # shellcheck disable=SC2002 # the sd commands are generated via nix, so cat is more elegant than piping
-        cat "${cfg.bibliographyPath}/acronyms.tex" | ${lib.concatStringsSep " | " acronymReplacements}
-      '';
-      acrocopy.text = /* bash */ ''
-        # @describe Copy the acronyms with the presets applied
-        # @arg target-dir=. Directory receiving acronyms.tex
+          if [ -n "$argc_full" ]; then
+            filter=(--omit=abstract)
+          fi
 
-        ${lib.getExe config.custom.commands.acrocat} > "$argc_target_dir/acronyms.tex"
+          if [ -n "$argc_output_dir" ]; then
+            exec > "$argc_output_dir/references.bib"
+          fi
+
+          ${bibtidy} "''${filter[@]}" < "${cfg.bibliographyPath}/$argc_format.bib"
+        }
+
+        # @cmd Print the acronyms with the presets applied
+        # @option -o --output-dir <DIR>  Write acronyms.tex into a directory instead
+        acronyms() {
+          if [ -n "$argc_output_dir" ]; then
+            exec > "$argc_output_dir/acronyms.tex"
+          fi
+
+          # shellcheck disable=SC2002 # the sd commands are generated via nix, so cat is more elegant than piping
+          cat "${cfg.bibliographyPath}/acronyms.tex"${lib.concatMapStrings (sd: " | ${sd}") acronymReplacements}
+        }
       '';
     };
     home = {
