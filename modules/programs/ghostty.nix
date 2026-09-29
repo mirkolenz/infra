@@ -19,6 +19,7 @@
           font-family = "JetBrainsMono Nerd Font";
           font-size = if pkgs.stdenv.hostPlatform.isDarwin then 13 else 11;
           font-thicken = true;
+          macos-option-as-alt = "left";
           macos-titlebar-style = "tabs";
           notify-on-command-finish = "unfocused";
           notify-on-command-finish-action = "bell,notify";
