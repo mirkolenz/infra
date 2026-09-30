@@ -38,6 +38,16 @@ final: prev:
       runHook postInstall
     '';
   };
+
+  # semgrep 1.172.0 pins pyjwt~=2.13.0, but nixpkgs already ships pyjwt 2.14.0, so the runtime
+  # deps check rejects the wheel. The minor bump keeps the api semgrep uses.
+  pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+    (_: pyprev: {
+      semgrep = pyprev.semgrep.overridePythonAttrs (prevAttrs: {
+        pythonRelaxDeps = (prevAttrs.pythonRelaxDeps or [ ]) ++ [ "pyjwt" ];
+      });
+    })
+  ];
 }
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
 
