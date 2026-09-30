@@ -59,7 +59,7 @@
                   ] | join(" / "))
                 ]
               | @tsv
-            ' | fzf --reverse --prompt 'tab> ' --delimiter '\t' --with-nth 2 --accept-nth 1
+            ' | fzf --prompt 'tab> ' --delimiter '\t' --with-nth 2 --accept-nth 1
           ) || exit 0
 
           herdr tab focus "$tab_id" >/dev/null
