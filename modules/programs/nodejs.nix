@@ -43,5 +43,12 @@
           ${lib.getExe' config.programs.npm.package "npm"} update
         '';
       };
+      custom.bump.bun = {
+        files = [
+          "package.json"
+          "bun.lock"
+        ];
+        text = "${lib.getExe config.programs.bun.package} update";
+      };
     };
 }

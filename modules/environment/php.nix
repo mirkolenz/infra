@@ -16,5 +16,12 @@
         phpactor # legacy language server
         phpstan # legacy type checker
       ];
+      custom.bump.composer = {
+        files = [
+          "composer.json"
+          "composer.lock"
+        ];
+        text = "${lib.getExe pkgs.phpPackages.composer} update";
+      };
     };
 }

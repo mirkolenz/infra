@@ -10,17 +10,24 @@
       pythonWithPackages = pkgs.python3.withPackages (ps: with ps; [ typer ]);
     in
     lib.mkIf config.custom.features.extras.enable {
-      home.sessionVariables = {
-        RUST_SRC_PATH = pkgs.rustPlatform.rustLibSrc;
-      };
       home.shellAliases = {
         tdf = "${lib.getExe pkgs.tdf} --fullscreen";
       };
       programs = {
-        go.enable = true;
         gradle.enable = true;
         java.enable = true;
         mods.enable = true;
+      };
+      custom.bump = {
+        buf = {
+          files = [ "buf.lock" ];
+          text = "${lib.getExe pkgs.buf} dep update";
+        };
+        # swift ships with xcode instead of nixpkgs
+        swift = lib.mkIf pkgs.stdenv.isDarwin {
+          files = [ "Package.resolved" ];
+          text = "/usr/bin/swift package update";
+        };
       };
       home.packages = with pkgs; [
         buf
@@ -62,23 +69,12 @@
         pdf-cli
         # office
         officecli-bin
-        # go
-        gopls
-        delve
-        go-outline
-        goreleaser
         # python
         pythonWithPackages
         pylyzer
         basedpyright
         zuban
         pyrefly-bin
-        # rust
-        rustc
-        cargo
-        rustfmt
-        clippy
-        rust-analyzer
         # language servers
         bash-language-server
         docker-language-server

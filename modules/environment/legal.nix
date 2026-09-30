@@ -1,6 +1,6 @@
 # Clients for the official legal corpora, one per jurisdiction, reading the consolidated
 # text rather than a mirror. The guidance around them ships as pdf, which `poppler-utils`
-# in `optionals.nix` reads.
+# in `media.nix` reads.
 {
   flake.modules.homeManager.default =
     {

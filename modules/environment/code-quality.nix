@@ -1,7 +1,7 @@
 # Static analysis: linters, structural search and dead-code detection, across the
 # languages this config works in. Language toolchains, language servers and formatters
-# stay with their ecosystem in `optionals.nix`, and security, licensing and
-# bill-of-materials tooling lives in `supply-chain.nix`.
+# stay with their ecosystem, such as `go.nix` or `optionals.nix`,
+# and security, licensing and bill-of-materials tooling lives in `supply-chain.nix`.
 {
   flake.modules.homeManager.default =
     {
