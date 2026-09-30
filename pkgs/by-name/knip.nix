@@ -12,13 +12,13 @@
 }:
 stdenv.mkDerivation (finalAttrs: {
   pname = "knip";
-  version = "6.38.0";
+  version = "6.39.0";
 
   src = fetchFromGitHub {
     owner = "webpro-nl";
     repo = "knip";
     tag = "knip@${finalAttrs.version}";
-    hash = "sha256-S0l72lc8Xhvyjy0vnWWCHFSJ5AKZwa7/3/UbsWtDblU=";
+    hash = "sha256-RSxqvvNlpDDafNzj3vQ40rQBXCEGslJx0Y6YbNvsmYo=";
   };
 
   pnpmDeps = fetchPnpmDeps {

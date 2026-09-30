@@ -15,13 +15,13 @@
 }:
 buildNpmPackage (finalAttrs: {
   pname = "sbom-workbench";
-  version = "1.41.0";
+  version = "1.41.1";
 
   src = fetchFromGitHub {
     owner = "scanoss";
     repo = "sbom-workbench";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-ghJOcvt+hpUBITbYWd1J4ZxLdkzf8gJiIGQeAJEj5XY=";
+    hash = "sha256-yyZi0ozE1Enoj4G67WtXL/k0xWEqZm091FljE7n4kuA=";
   };
 
   npmDepsHash = "sha256-Uj1Ci3n0fQui9fPGWortrQukFq67q0hyDrwxUTR1/II=";
