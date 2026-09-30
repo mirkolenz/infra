@@ -7,6 +7,8 @@
 (python3Packages.toPythonApplication python3Packages.scancode-toolkit).overrideAttrs (old: {
   meta = old.meta // {
     mainProgram = "scancode";
+    # too large for the binary cache
+    hydraPlatforms = [ ];
     maintainers = old.meta.maintainers ++ [ lib.maintainers.mirkolenz ];
   };
 })

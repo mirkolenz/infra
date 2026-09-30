@@ -153,5 +153,7 @@ buildNpmPackage (finalAttrs: {
     maintainers = with lib.maintainers; [ mirkolenz ];
     mainProgram = "sbom-workbench";
     inherit (electron.meta) platforms;
+    # too large for the binary cache
+    hydraPlatforms = [ ];
   };
 })

@@ -7,7 +7,10 @@ final: prev:
   # lighthouse only needs a chromium based browser for CHROME_PATH, and nixpkgs chromium is
   # linux-only. google-chrome builds on every platform we use and is the browser lighthouse
   # targets, so it replaces chromium everywhere to keep the hosts consistent.
-  google-lighthouse = prev.google-lighthouse.override { chromium = final.google-chrome; };
+  # google-chrome is unfree and too large for the binary cache
+  google-lighthouse = prev.lib.dontDistribute (
+    prev.google-lighthouse.override { chromium = final.google-chrome; }
+  );
 }
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
 
