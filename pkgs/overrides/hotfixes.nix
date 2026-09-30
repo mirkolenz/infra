@@ -66,6 +66,25 @@ final: prev:
     '';
   });
 
+  # pstoedit's configure picks -std=gnu++11 under gcc 16, but src/fillpoly.cpp declares octant()
+  # as a c++14 multi-statement constexpr function, which gcc rejects in c++11 mode. clang only
+  # warns, so darwin is unaffected. octant() is only called at runtime, so dropping constexpr is safe.
+  pstoedit = prev.pstoedit.overrideAttrs (prevAttrs: {
+    postPatch = (prevAttrs.postPatch or "") + ''
+      substituteInPlace src/fillpoly.cpp \
+        --replace-fail 'static constexpr int octant(' 'static int octant('
+    '';
+  });
+
+  # gcc 16 miscompiles the array.h bundled by grammars generated with older tree-sitter releases,
+  # since it breaks strict aliasing, so the tests abort with `corrupted size vs. prev_size`.
+  # https://github.com/NixOS/nixpkgs/pull/568226
+  mergiraf = prev.mergiraf.overrideAttrs (prevAttrs: {
+    env = (prevAttrs.env or { }) // {
+      NIX_CFLAGS_COMPILE = "-fno-strict-aliasing";
+    };
+  });
+
 })
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
 
