@@ -49,9 +49,13 @@ stdenv.mkDerivation (finalAttrs: {
   # root, and each package in it relies on its siblings being reachable from the same
   # directory. `pnpm deploy` would flatten that, but re-resolves against the registry,
   # which the offline store cannot answer, so keep the workspace layout verbatim and
-  # let the relative links stay valid.
+  # let the relative links stay valid. The workspace install also holds the toolchain
+  # and the docs site, so only the production dependencies of the cli are reinstalled.
   installPhase = ''
     runHook preInstall
+
+    rm -rf node_modules packages/*/node_modules
+    pnpm install --offline --frozen-lockfile --ignore-scripts --prod --filter knip
 
     mkdir -p $out/lib/knip/packages/knip
     cp -r node_modules $out/lib/knip/node_modules
