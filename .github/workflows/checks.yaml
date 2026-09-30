@@ -80,6 +80,8 @@ jobs:
         with:
           name: mirkolenz
           authToken: ${{ secrets.CACHIX_TOKEN }}
+          # build-only cargo vendor trees and debug symbols nothing references
+          pushFilter: "(-vendor|-debug)$"
       - run: nix run . -- check-build --max-memory-size 2048 --no-nom --max-jobs ${{ matrix.max-jobs }}
   check-all:
     needs:
