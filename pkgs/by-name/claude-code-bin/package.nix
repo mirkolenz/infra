@@ -133,5 +133,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
     mainProgram = "claude";
     platforms = lib.attrNames platforms;
+    # only a download, not worth the cache space a frequent bump takes
+    hydraPlatforms = [ ];
   };
 })

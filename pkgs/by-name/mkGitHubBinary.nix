@@ -178,6 +178,8 @@ lib.extendMkDerivation {
         sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
         mainProgram = finalAttrs.pname;
         platforms = lib.attrNames resolvedAssets;
+        # only a download, not worth the cache space a frequent bump takes
+        hydraPlatforms = [ ];
       }
       // meta;
     };
