@@ -12,11 +12,14 @@ import tempfile
 import urllib.parse
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Annotated, Any
 
+import boto3
 import httpx2
 import typer
+from mypy_boto3_s3 import S3Client
 
 # Host that `access-tokens` entries are keyed by, and its REST API.
 GITHUB_HOST = "github.com"
@@ -78,6 +81,18 @@ in
 }}
 """
 
+# `gc-cache`: the store derivations of the targets that `check-build` builds
+# and pushes, across all systems.
+ROOTS_APPLY = f"""
+systems:
+let
+  select = {BUILD_SELECT};
+in
+builtins.concatMap (set: builtins.attrValues ({TARGET_APPLY} (select set))) (
+  builtins.attrValues systems
+)
+"""
+
 # The outputs of `nix flake check` that are no derivations. `overlays.default` is
 # left out, since every package set applies it, and `.#overlays` would select
 # `legacyPackages.<system>.overlays` instead.
@@ -124,6 +139,7 @@ class Config:
     build_path: str | None
     hash_path: str | None
     update_path: str | None
+    cache: str | None
     max_workers: int
     is_worktree: bool
 
@@ -247,6 +263,7 @@ def main(
     build_path: Annotated[str | None, typer.Option()] = None,
     hash_path: Annotated[str | None, typer.Option()] = None,
     update_path: Annotated[str | None, typer.Option()] = None,
+    cache: Annotated[str | None, typer.Option()] = None,
     max_workers: Annotated[int, typer.Option()] = 8,
 ):
     ctx.obj = Config(**ctx.params, is_worktree=is_worktree_of(flake))
@@ -573,7 +590,10 @@ def check_build(
     workers: EvalWorkers = EVAL_WORKERS,
     max_memory_size: EvalMaxMemorySize = EVAL_MAX_MEMORY_SIZE,
 ):
-    """Build the CI targets of a flake attribute path that no binary cache holds.
+    """Build the CI targets of the current system that no binary cache holds.
+
+    `path` holds the targets per system, like `checks`, so that `gc-cache`
+    finds what every system pushed under the same path.
 
     Extra arguments go to nix-fast-build, which builds each target as soon as it
     has evaluated. Its nix-eval-jobs workers are bounded as in `check-flake`,
@@ -586,17 +606,17 @@ def check_build(
         typer.echo("Specify --path or set --build-path.", err=True)
         raise typer.Exit(1)
 
+    system = subprocess_stdout(nix_argv(cfg.nix_exe, "config", "show", "system"))
+
     run_logged(
         [
             cfg.nix_fast_build_exe,
             "--nix",
             cfg.nix_exe,
-            "--nix-build",
-            str(Path(cfg.nix_exe).with_name("nix-build")),
             "--nix-eval-jobs",
             cfg.nix_eval_jobs_exe,
             "--flake",
-            f"{cfg.flake}#{path}",
+            f"{cfg.flake}#{path}.{system}",
             "--select",
             BUILD_SELECT,
             "--eval-workers",
@@ -604,9 +624,186 @@ def check_build(
             "--eval-max-memory-size",
             str(max_memory_size),
             "--skip-cached",
+            *(["--copy-to", cfg.cache, "--push-build-closure"] if cfg.cache else []),
             *ctx.args,
         ]
     )
+
+
+@dataclass(frozen=True, slots=True)
+class CacheObject:
+    """An object of the binary cache bucket, as far as `gc-cache` needs it."""
+
+    modified: datetime
+    size: int
+
+
+def hash_part(path: str) -> str:
+    """The hash of a store path or its basename, which keys its narinfo."""
+    return Path(path).name.split("-", 1)[0]
+
+
+def build_closure_outputs(nix_exe: str, drvs: Iterable[str]) -> set[str]:
+    """The output paths of `drvs` and of every derivation they depend on.
+
+    Resolved from the store derivations without building or substituting
+    anything, which also covers the fixed-output paths that
+    `nix derivation show` leaves out.
+    """
+    requisites = subprocess_stdout(
+        nix_argv(nix_exe, "path-info", "--recursive", "--stdin"), "\n".join(drvs)
+    )
+    installables = "\n".join(
+        f"{path}^*" for path in requisites.splitlines() if path.endswith(".drv")
+    )
+    outputs = subprocess_stdout(
+        nix_argv(
+            nix_exe,
+            "path-info",
+            "--json",
+            "--json-format",
+            "2",
+            "--option",
+            "substitute",
+            "false",
+            "--stdin",
+        ),
+        installables,
+    )
+
+    return set(json.loads(outputs)["info"])
+
+
+def s3_client(url: str) -> tuple[S3Client, str]:
+    """A client for the `s3://` store `url` and its bucket.
+
+    Reads the `endpoint` and `region` parameters of the store, credentials come
+    from the usual AWS environment variables.
+    """
+    parsed = urllib.parse.urlparse(url)
+
+    if parsed.scheme != "s3":
+        typer.echo(f"Not an s3:// binary cache: {url}", err=True)
+        raise typer.Exit(1)
+
+    params = dict(urllib.parse.parse_qsl(parsed.query))
+    client: S3Client = boto3.client(
+        "s3",
+        endpoint_url=params.get("endpoint"),
+        region_name=params.get("region"),
+    )
+
+    return client, parsed.netloc
+
+
+def list_objects(client: S3Client, bucket: str) -> dict[str, CacheObject]:
+    """Every object of `bucket` by key."""
+    return {
+        obj["Key"]: CacheObject(modified=obj["LastModified"], size=obj["Size"])
+        for page in client.get_paginator("list_objects_v2").paginate(Bucket=bucket)
+        for obj in page.get("Contents", [])
+        if "Key" in obj and "LastModified" in obj and "Size" in obj
+    }
+
+
+def cache_closure(nix_exe: str, cache: str, paths: Iterable[str]) -> dict[str, Any]:
+    """The path infos of `paths` and everything they reference in `cache`, by
+    basename, each of them held by `cache`.
+
+    `--refresh` bypasses the local narinfo cache, which may still remember a
+    path that the bucket no longer holds.
+    """
+    stdout = subprocess_stdout(
+        nix_argv(
+            nix_exe,
+            "path-info",
+            "--refresh",
+            "--store",
+            cache,
+            "--recursive",
+            "--json",
+            "--json-format",
+            "2",
+            "--stdin",
+        ),
+        "\n".join(paths),
+    )
+
+    return json.loads(stdout)["info"]
+
+
+@app.command("gc-cache")
+def gc_cache(
+    ctx: typer.Context,
+    keep_days: Annotated[int, typer.Option()] = 30,
+    dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
+):
+    """Delete what the binary cache holds beyond the closure of the CI targets.
+
+    Keeps the outputs of the current `check-build` targets of every system and
+    of their build dependencies, which `check-build` pushes as well, and the
+    paths uploaded within `keep_days`, each with its closure, so that no
+    kept path loses a reference. A NAR goes once no kept narinfo points at it
+    and it is older than `keep_days`, which spares one whose narinfo is still
+    being uploaded.
+    """
+    cfg: Config = ctx.obj
+
+    if not cfg.cache or not cfg.build_path:
+        typer.echo("Specify --cache and --build-path.", err=True)
+        raise typer.Exit(1)
+
+    client, bucket = s3_client(cfg.cache)
+    cutoff = datetime.now(UTC) - timedelta(days=keep_days)
+    objects = list_objects(client, bucket)
+    narinfos = {
+        key.removesuffix(".narinfo"): obj
+        for key, obj in objects.items()
+        if key.endswith(".narinfo") and "/" not in key
+    }
+    drvs = nix_eval_json(
+        cfg.nix_exe, f"{cfg.flake}#{cfg.build_path}", "--apply", ROOTS_APPLY
+    )
+    roots = {hash_part(path) for path in build_closure_outputs(cfg.nix_exe, drvs)}
+    recent = {digest for digest, obj in narinfos.items() if obj.modified >= cutoff}
+    store_dir = nix_eval_json(cfg.nix_exe, "--expr", "builtins.storeDir")
+    # nix finds a path by its hash part, `x` is the name it gives an unknown one
+    seeds = [f"{store_dir}/{digest}-x" for digest in narinfos.keys() & (roots | recent)]
+    kept = cache_closure(cfg.nix_exe, cfg.cache, seeds) if seeds else {}
+    live_nars = {info["url"] for info in kept.values()}
+    # narinfos first, so that no narinfo outlives its NAR
+    stale = [
+        *(
+            f"{digest}.narinfo"
+            for digest in narinfos.keys() - {hash_part(name) for name in kept}
+        ),
+        *(
+            key
+            for key, obj in objects.items()
+            if key.startswith("nar/") and key not in live_nars and obj.modified < cutoff
+        ),
+    ]
+    size = sum(objects[key].size for key in stale)
+    typer.echo(
+        f"Keeping {len(kept)} of {len(narinfos)} paths,"
+        f" deleting {len(stale)} objects ({size / 2**30:.2f} GiB).",
+        err=True,
+    )
+
+    if dry_run:
+        return
+
+    for batch in itertools.batched(stale, 1000):
+        response = client.delete_objects(
+            Bucket=bucket,
+            Delete={"Objects": [{"Key": key} for key in batch], "Quiet": True},
+        )
+
+        if errors := response.get("Errors"):
+            for error in errors:
+                typer.echo(f"{error.get('Key')}: {error.get('Message')}", err=True)
+
+            raise typer.Exit(1)
 
 
 # A check's outcome and its section of the job summary.

@@ -7,7 +7,6 @@
   perSystem =
     {
       pkgs,
-      system,
       config,
       ...
     }:
@@ -15,7 +14,7 @@
       apps = {
         default.program = pkgs.flakectl.withFlags {
           flake = self.outPath;
-          build-path = "checks.${system}";
+          build-path = "checks";
           hash-path = "custom.hashedPackages";
           update-path = "custom.flattenedPackages";
         };
