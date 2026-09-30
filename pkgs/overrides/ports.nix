@@ -3,7 +3,16 @@ final: prev:
 # These are ports we carry until upstream takes them, not bugs waiting on a release, so
 # unlike `hotfixes.nix` they have no fix to track and are expected to live here for a
 # long time. Each one says what it does and what would let it go.
-prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
+{
+  # lighthouse only needs a chromium based browser for CHROME_PATH, and nixpkgs chromium is
+  # linux-only. google-chrome builds on every platform we use and is the browser lighthouse
+  # targets, so it replaces chromium everywhere to keep the hosts consistent.
+  google-lighthouse = prev.google-lighthouse.override { chromium = final.google-chrome; };
+}
+// (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
+
+})
+// (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
 
   # libvirt.dylib is linked with -Wl,-flat_namespace, so its libxml2 imports bind to the system
   # /usr/lib/libxml2.2.dylib that every CPython process maps. There xmlSchemaInitTypes() returns
@@ -93,4 +102,4 @@ prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
           }
     )
   ];
-}
+})

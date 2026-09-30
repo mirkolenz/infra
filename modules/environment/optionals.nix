@@ -51,6 +51,7 @@
         ripwire
         harlequin
         flow-control
+        google-lighthouse
         # markdown
         html2markdown
         md-tui
