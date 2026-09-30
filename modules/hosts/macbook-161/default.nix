@@ -30,7 +30,7 @@ in
         custom.apple-t2 = {
           firmware.enable = true;
           # Parks the discrete GPU, which on this model otherwise trips CATERR.
-          hybridGraphics.enable = true;
+          graphics.mode = "integrated";
           touchid.enable = true;
           ave.enable = true;
         };

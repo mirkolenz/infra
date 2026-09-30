@@ -13,6 +13,8 @@ Upstream ships its drivers as DKMS packages for a stock Fedora kernel, so NixOS 
 | `kait2en.touchid` | Touch ID bridge between the T2 sensor and stock fprintd         |
 | `kait2en.journal` | `t2journal`, merging bridgeOS logs into a Linux boot            |
 | `kait2en.ave`     | `t2remote`, the userspace half of the T2 audio/video engine     |
+| `kait2en.dgpu`    | parks the dGPU and powers it up across S3                       |
+| `kait2en.amdgpu`  | amdgpu with the GMUX runtime PM patches, for hybrid graphics    |
 
 `modules.nix` pins the revision every other package takes its `src` and `version` from.
 Its `passthru` exports what the NixOS module in `modules/hardware/apple-t2` needs: the kernel, the initrd modules, the blacklisted modules and the kernel parameters.
@@ -26,7 +28,7 @@ Upstream's drivers under `modules/` and `t2-services/t2-ave/kernel` are GPL-2.0,
 
 The GPL-3.0-or-later components carry an attribution term under section 7(b), so every package installs upstream's license notices to `share/licenses/<pname>`, through `installLicenses.nix` or, for `kait2en.dsp`, the upstream Makefile.
 `{ave,bridge,touchid}.nix` transliterate upstream units and carry its copyright next to the link.
-`graphics.nix` only reimplements the behaviour of t2-dgpu-control, so it just links.
+`graphics.nix` only reimplements how t2-dgpu-control and t2-hybrid-gpu-control select the boot GPU, so it just links.
 
 ## Updating
 
@@ -53,12 +55,13 @@ The scheduled updater skips this package.
 3. Build every package:
 
    ```shell
-   nix build --no-link .#packages.x86_64-linux.kait2en-{modules,ucm,dsp,ncm,suspend,touchid,journal,ave}
+   nix build --no-link .#packages.x86_64-linux.kait2en-{modules,ucm,dsp,ncm,suspend,touchid,journal,ave,dgpu,amdgpu}
    ```
 
    The lists in `modules.nix` mirror the arrays upstream's installer scripts build, and `mirrored` pairs each with its source.
    Only the top-level assignments of a script run, parsed out by shfmt, so `ADD_ARGS` already carries both blacklists.
    A failure reading `<ARRAY> in <file> changed upstream` means one of them moved, so update the matching list.
+   `kait2en.amdgpu` applies upstream's `patches/runtime/gpu-runtime-pm/series` to the pinned kernel, and fails on a patch that no longer applies or a changed amdgpu softdep.
 
 4. Move the marker to the new `rev`, in the same commit as whatever the review made necessary.
    Keep it short, because nix-update replaces every occurrence of the full old `rev`.
@@ -66,7 +69,7 @@ The scheduled updater skips this package.
 The build cannot catch:
 
 - New upstream components outside the mirrored arrays, see below for those left out on purpose.
-- Changes to the GPU runtime PM patches under `patches/runtime`, which upstream only builds for the MacBookPro15,1, MacBookPro16,1 and MacBookPro16,4.
+- Changes to how upstream's GPU apps write the boot GPU or enable runtime PM, which `graphics.nix` states itself.
 - Renamed drivers, except the ones `touchbar.nix` patches into the tiny-dfr udev rules with `--replace-fail`.
 
 ## Deliberately not packaged
@@ -74,9 +77,9 @@ The build cannot catch:
 The GTK applications under `apps/` configure Fedora by writing `/etc` and calling `systemctl enable`, which NixOS does not allow.
 Where their effect is worth having, the NixOS module states it instead:
 
-- `t2-dgpu-control` is reimplemented in `graphics.nix`.
+- `t2-dgpu-control` and `t2-hybrid-gpu-control` are replaced by the `custom.apple-t2.graphics.mode` option in `graphics.nix`, which calls the helper of the former.
 - `t2-force-click` is replaced by `trackpad.nix` setting the module parameters, and the force click is a `BTN_TASK` event on the `T2 Force Click Events` device that anything can bind.
-- `t2-hybrid-gpu-control` and `t2-kernel-builder` need a patched Fedora kernel.
+- `t2-kernel-builder` needs a patched Fedora kernel.
 - `t2-fan-control` and `t2-smc-control` edit a fan curve the SMC already runs in firmware.
 - `t2-cpu-control` and `t2-power-tune` set power and thermal limits that have to be measured per machine, so they are left to a deliberate decision, like the disabled `services.mbpfan`.
 - `t2-power-explorer` is a diagnostic view.
