@@ -15,7 +15,8 @@
         default.program = pkgs.flakectl.withFlags {
           flake = self.outPath;
           build-path = "checks";
-          hash-path = "custom.hashedPackages";
+          # always the linux package set, so that the hashes match the ones of CI
+          hash-path = "legacyPackages.${pkgs.stdenv.hostPlatform.parsed.cpu.name}-linux.custom.hashedPackages";
           update-path = "custom.flattenedPackages";
         };
         home-manager.program = pkgs.writeShellScriptBin "home-manager" /* bash */ ''
