@@ -83,6 +83,19 @@ final: prev:
     };
   });
 
+  # kingfisher links mimalloc 3.3.2 (libmimalloc-sys 0.1.49) with the `override` feature, so it
+  # replaces libc's malloc and free. glibc 2.44 calls free(NULL) while libstdc++ initializes,
+  # before mimalloc has set up its page map, so the binary segfaults before main() and prints
+  # nothing. Fixed in mimalloc 3.4.4. Dropping the feature keeps mimalloc as the rust allocator.
+  # https://github.com/microsoft/mimalloc/issues/1341
+  kingfisher = prev.kingfisher.overrideAttrs (prevAttrs: {
+    postPatch = (prevAttrs.postPatch or "") + ''
+      substituteInPlace Cargo.toml \
+        --replace-fail 'mimalloc = { version = "0.1.52", features = ["override"] }' \
+                       'mimalloc = "0.1.52"'
+    '';
+  });
+
 })
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
 
