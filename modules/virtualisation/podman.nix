@@ -46,6 +46,13 @@
         allowedTCPPorts = [ 53 ];
         allowedUDPPorts = [ 53 ];
       };
+      custom.commands.userns.text = /* bash */ ''
+        # @describe Run a command in a new user namespace
+        # @arg id!       User and group ID inside the namespace
+        # @arg command~  Command to run
+
+        exec unshare --user --map-auto --setuid "$argc_id" --setgid "$argc_id" -- "''${argc_command[@]}"
+      '';
     };
 
   flake.modules.darwin.default =
