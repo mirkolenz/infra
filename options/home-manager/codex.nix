@@ -22,9 +22,10 @@ in
       inherit (cfg) package;
       envVar = "CODEX_HOME";
       format = "toml";
-      # Codex writes trust decisions back to config.toml, which fails on a read-only
-      # store symlink (https://github.com/openai/codex/issues/6646). Replace it with a
-      # writable copy of the generated config per installation,
+      # Codex writes trust decisions back to config.toml.
+      # It follows symlinks since openai/codex#6646,
+      # but writing through one into the read-only store still fails.
+      # Replace it with a writable copy of the generated config per installation,
       # trust resets on each activation.
       settingsFile = ".codex/config.toml";
       mutable = true;

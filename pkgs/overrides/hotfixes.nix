@@ -76,6 +76,7 @@ final: prev:
   # gcc 16 miscompiles the array.h bundled by grammars generated with older tree-sitter releases,
   # since it breaks strict aliasing, so the tests abort with `corrupted size vs. prev_size`.
   # https://github.com/NixOS/nixpkgs/pull/568226
+  # todo: merged on 2026-09-30, drop this once it reaches nixpkgs-unstable
   mergiraf = prev.mergiraf.overrideAttrs (prevAttrs: {
     env = (prevAttrs.env or { }) // {
       NIX_CFLAGS_COMPILE = "-fno-strict-aliasing";
