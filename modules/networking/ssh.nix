@@ -96,7 +96,11 @@ in
           ln -sf "$SSH_AUTH_SOCK" ${agentLink}
         fi
       '';
-      home.sessionVariables.SSH_AUTH_SOCK = agentLink;
+      # Interactive shells only, sshd runs the rc through `fish -c`,
+      # where session variables would already hide the fresh socket.
+      programs.fish.interactiveShellInit = "set -gx SSH_AUTH_SOCK ${agentLink}";
+      programs.bash.initExtra = "export SSH_AUTH_SOCK=${agentLink}";
+      programs.zsh.initContent = "export SSH_AUTH_SOCK=${agentLink}";
       custom.commands =
         let
           ssh = lib.getExe pkgs.openssh;
