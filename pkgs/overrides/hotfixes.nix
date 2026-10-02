@@ -73,16 +73,6 @@ final: prev:
     configureFlags = (prevAttrs.configureFlags or [ ]) ++ [ "ac_cv_prog_cxx_cxx11=" ];
   });
 
-  # gcc 16 miscompiles the array.h bundled by grammars generated with older tree-sitter releases,
-  # since it breaks strict aliasing, so the tests abort with `corrupted size vs. prev_size`.
-  # https://github.com/NixOS/nixpkgs/pull/568226
-  # todo: merged on 2026-09-30, drop this once it reaches nixpkgs-unstable
-  mergiraf = prev.mergiraf.overrideAttrs (prevAttrs: {
-    env = (prevAttrs.env or { }) // {
-      NIX_CFLAGS_COMPILE = "-fno-strict-aliasing";
-    };
-  });
-
   # kingfisher links mimalloc 3.3.2 (libmimalloc-sys 0.1.49) with the `override` feature, so it
   # replaces libc's malloc and free. glibc 2.44 calls free(NULL) while libstdc++ initializes,
   # before mimalloc has set up its page map, so the binary segfaults before main() and prints
