@@ -70,6 +70,10 @@ final: prev:
     firefox-esr-153-unwrapped = final.stable.firefox-esr-140-unwrapped;
   };
 
+  # Vicinae pins GCC 15, but numen uses GCC 16 and requires GLIBCXX_3.4.36.
+  # https://github.com/vicinaehq/vicinae/issues/2040
+  vicinae = prev.vicinae.override { gcc15Stdenv = final.stdenv; };
+
   # tests/chip.c's setup_bad_chip() hands setup_chip() a pointer to a copy of chip_bad living in
   # its own frame, so flashctx->chip dangles as soon as the helper returns; every other test in
   # the file keeps that copy in the test function instead. On aarch64 the frame is reused before
