@@ -39,17 +39,36 @@ final: prev:
     '';
   };
 
-  # semgrep 1.172.0 pins pyjwt~=2.13.0, but nixpkgs already ships pyjwt 2.14.0, so the runtime
-  # deps check rejects the wheel. The minor bump keeps the api semgrep uses.
+  # semgrep's pyproject uses setuptools, which nixpkgs omits from the build system.
+  # Its pyjwt constraint also rejects nixpkgs' newer minor release.
+  # https://github.com/NixOS/nixpkgs/pull/548258#issuecomment-5912937007
   pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
-    (_: pyprev: {
+    (pyfinal: pyprev: {
       semgrep = pyprev.semgrep.overridePythonAttrs (prevAttrs: {
+        build-system = (prevAttrs.build-system or [ ]) ++ [ pyfinal.setuptools ];
         pythonRelaxDeps = (prevAttrs.pythonRelaxDeps or [ ]) ++ [ "pyjwt" ];
       });
     })
   ];
 }
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
+
+  # Backport the merged GCC 16 fix until it reaches the pinned Linux channel.
+  # https://github.com/NixOS/nixpkgs/pull/568713
+  intel-compute-runtime-legacy1 = prev.intel-compute-runtime-legacy1.overrideAttrs (prevAttrs: {
+    patches = (prevAttrs.patches or [ ]) ++ [
+      (final.fetchpatch {
+        url = "https://github.com/intel/compute-runtime/commit/c1eb6c1a183c2f69e0d6e9ed5aa042fac2201217.patch";
+        hash = "sha256-O8ZJaxIr4TF73T+fyEbNjEYFbgwLxIUWoYnorxh8ZTo=";
+      })
+    ];
+  });
+
+  # Zotero's Gecko patches target ESR 140, and fail against nixpkgs' ESR 153.
+  # https://github.com/NixOS/nixpkgs/pull/569006
+  zotero = prev.zotero.override {
+    firefox-esr-153-unwrapped = final.stable.firefox-esr-140-unwrapped;
+  };
 
   # tests/chip.c's setup_bad_chip() hands setup_chip() a pointer to a copy of chip_bad living in
   # its own frame, so flashctx->chip dangles as soon as the helper returns; every other test in
