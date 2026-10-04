@@ -24,12 +24,6 @@
 
       hardware.enableAllFirmware = true;
 
-      zramSwap = {
-        enable = true;
-        memoryPercent = 100;
-        memoryMax = 8 * 1024 * 1024 * 1024;
-      };
-
       environment.variables.BROWSER = lib.mkIf (!config.custom.features.graphical.enable) "echo";
 
       environment.systemPackages = with pkgs; [

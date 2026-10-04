@@ -49,6 +49,10 @@
                     "noatime"
                   ];
                 };
+                "/swap" = {
+                  mountpoint = "/swap";
+                  mountOptions = [ "noatime" ];
+                };
               };
             };
           };
@@ -56,4 +60,12 @@
       };
     };
   };
+
+  # Managed by NixOS instead of disko so that changing `size` recreates the file.
+  swapDevices = [
+    {
+      device = "/swap/swapfile";
+      size = 8 * 1024;
+    }
+  ];
 }

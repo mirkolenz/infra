@@ -18,6 +18,9 @@
         }
       ];
 
+      # Cheaper on the Pi's CPU than zstd.
+      boot.zswap.compressor = "lz4";
+
       powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
     };
 }
