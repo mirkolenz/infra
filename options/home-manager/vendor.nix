@@ -1,6 +1,6 @@
 # `vendor`, which replaces the copies of live checkouts in the current project.
-# Every `.git` entry is left out, so the project can commit the copy instead of embedding a repository.
-# The top-level readme, license and `.gitignore` are left out as well, and the project keeps its own.
+# Only files tracked by git are copied, so the project can commit the copy instead of embedding a repository.
+# The top-level readme, license and `.gitignore` are left out, and the project keeps its own.
 {
   config,
   lib,
@@ -62,15 +62,19 @@ in
           exit 1
         fi
 
-        ${lib.getExe pkgs.rsync} \
-          --archive \
-          --delete \
-          --mkpath \
-          --exclude=.git \
-          --exclude='/README*' \
-          --exclude='/LICENSE*' \
-          --exclude=/.gitignore \
-          "$1/" "$2/"
+        rm -rf "$2"
+
+        ${lib.getExe pkgs.git} -C "$1" ls-files -z -- \
+          ':(exclude,glob)README*' \
+          ':(exclude,glob)LICENSE*' \
+          ':(exclude).gitignore' |
+          ${lib.getExe pkgs.rsync} \
+            --archive \
+            --mkpath \
+            --from0 \
+            --files-from=- \
+            --ignore-missing-args \
+            "$1/" "$2/"
 
         if [[ $# -eq 2 ]]; then
           return
