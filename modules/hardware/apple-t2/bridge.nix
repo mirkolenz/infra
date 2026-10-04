@@ -1,9 +1,5 @@
-# The internal CDC-NCM link Touch ID, the journal and AVE reach the T2 over.
-# The virtual USB host controller reset-resumes it after a stateful sleep.
-# The profile and the sleep commands below follow upstream's, which cannot be
-# installed as files because they name Fedora paths.
-# Derived from KaiT2en, (C) 2026 André Eikmeyer, GPL-3.0-or-later (LICENSING.md).
-# https://github.com/kaiT2en/KaiT2en-Fedora/tree/main/t2-services/shared/integration
+# The internal CDC-NCM link Touch ID, the journal and AVE reach the T2 over,
+# and the sleep unit running their hooks. See `pkgs/by-name/kait2en/ncm.nix`.
 {
   flake.modules.nixos.apple-t2 =
     {
@@ -14,6 +10,7 @@
     }:
     let
       cfg = config.custom.apple-t2.bridge;
+      inherit (pkgs.kait2en) ncm;
 
       # The address of the T2's bridge interface, the same on every T2 Mac.
       mac = "ac:de:48:00:11:22";
@@ -21,10 +18,8 @@
       # The shared helper runs every executable in one directory.
       hooks = pkgs.symlinkJoin {
         name = "apple-t2-sleep-hooks";
-        paths = cfg.sleepHooks;
+        paths = cfg.packages;
       };
-
-      ncm = lib.getExe pkgs.kait2en.ncm;
 
       # The net device tagged below by its USB IDs.
       bridgeDevice = "dev-t2bridge.device";
@@ -37,13 +32,14 @@
           otherwise wait for it to time out
         '';
 
-        sleepHooks = lib.mkOption {
+        packages = lib.mkOption {
           type = lib.types.listOf lib.types.package;
           default = [ ];
           internal = true;
           description = ''
-            Packages carrying an executable under `libexec/kait2en/sleep.d`,
-            run with `pre` before sleep and `post` after resume.
+            Packages of the daemons on the link, whose units get installed, and
+            whose executables under `libexec/t2-services/sleep.d` run with `pre`
+            before sleep and `post` after resume.
           '';
         };
 
@@ -79,25 +75,18 @@
             SUBSYSTEM=="net", SUBSYSTEMS=="usb", ATTRS{idVendor}=="05ac", ATTRS{idProduct}=="8233", TAG+="systemd", ENV{SYSTEMD_ALIAS}="/dev/t2bridge"
           '';
 
-          networking.networkmanager = {
-            # The link can re-enumerate, and NetworkManager would accumulate a
-            # fresh generic profile each time.
-            settings.main.no-auto-default = mac;
-
-            ensureProfiles.profiles.t2-bridge = {
-              connection = {
-                id = "Apple T2 Bridge";
-                type = "ethernet";
-                autoconnect = true;
-                # The T2 is either there or it is not.
-                autoconnect-retries = 0;
-              };
-              ethernet.mac-address = lib.toUpper mac;
-              # There is nothing routable behind it, only the T2 itself.
-              ipv4.method = "disabled";
-              ipv6.method = "link-local";
+          # Copied rather than linked, since NetworkManager only loads a profile
+          # owned by root with mode 0600.
+          environment.etc = {
+            "NetworkManager/conf.d/10-t2-services.conf".source =
+              "${ncm}/etc/NetworkManager/conf.d/10-t2-services.conf";
+            "NetworkManager/system-connections/t2-ncm.nmconnection" = {
+              source = "${ncm}/etc/NetworkManager/system-connections/t2-ncm.nmconnection";
+              mode = "0600";
             };
           };
+
+          systemd.packages = [ ncm ] ++ cfg.packages;
 
           systemd.services =
             lib.genAttrs cfg.services (_: {
@@ -106,10 +95,7 @@
               # to 60s, waiting on every other profile too. The AVE sleep hook
               # needs the daemon to remain running through suspend.
               wantedBy = [ bridgeDevice ];
-              after = [
-                bridgeDevice
-                "NetworkManager.service"
-              ];
+              after = [ bridgeDevice ];
               # The device exists before NetworkManager has addressed it, so the
               # first attempts lose that race. Ten starts back off over ~3min,
               # then stop until the next resume requests the unit again. The
@@ -120,33 +106,17 @@
                 StartLimitBurst = 10;
               };
               serviceConfig = {
-                Restart = "on-failure";
                 RestartSec = 1;
                 RestartSteps = 5;
                 RestartMaxDelaySec = 30;
               };
             })
             // {
-              # The AVE hook can take 125s, past the 90s systemd would allow.
-              sleep-actions = {
-                after = [ "NetworkManager.service" ];
-                serviceConfig = {
-                  TimeoutStartSec = 180;
-                  TimeoutStopSec = 300;
-                };
+              t2-services-suspend = {
+                wantedBy = [ "sleep.target" ];
+                environment.T2_HOOK_DIR = "${hooks}/libexec/t2-services/sleep.d";
               };
             };
-
-          # Down last and back first, so the other devices transition after
-          # the AVE session closes and before it reopens.
-          powerManagement = {
-            powerDownCommands = lib.mkAfter ''
-              T2_HOOK_DIR=${hooks}/libexec/kait2en/sleep.d ${ncm} pre
-            '';
-            resumeCommands = lib.mkBefore ''
-              T2_HOOK_DIR=${hooks}/libexec/kait2en/sleep.d ${ncm} post
-            '';
-          };
         })
       ];
     };

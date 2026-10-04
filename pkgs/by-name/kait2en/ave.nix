@@ -2,24 +2,28 @@
 # device, this daemon opens the sessions and ships the sleep hook closing them.
 # https://github.com/kaiT2en/KaiT2en-Fedora/tree/main/t2-services/t2-ave
 {
+  lib,
   kait2en,
-  makeWrapper,
   coreutils,
+  kmod,
 }:
 kait2en.mkService {
   component = "ave";
 
   cargoHash = "sha256-aVKFnhAI52Am2LZNyJJN1Es06dvvN7a3FpcjUtfUPfE=";
 
-  nativeBuildInputs = [ makeWrapper ];
+  integration = true;
 
   # The hook needs `t2remote` and `timeout` on a PATH sleep does not provide.
-  postInstall = kait2en.installScript {
-    src = "t2-services/t2-ave/integration/systemd/t2-ave-suspend";
-    dest = "$out/libexec/kait2en/sleep.d/t2-ave";
-    runtimeInputs = [ coreutils ];
-    extraPaths = [ "$out/bin" ];
-  };
+  postInstall = ''
+    substituteInPlace $out/lib/systemd/system/kait2en-t2-remote.service \
+      --replace-fail /usr/sbin/modprobe ${lib.getExe' kmod "modprobe"}
+    ${kait2en.patchScript {
+      path = "$out/libexec/t2-services/sleep.d/t2-ave";
+      runtimeInputs = [ coreutils ];
+      extraPaths = [ "$out/bin" ];
+    }}
+  '';
 
   meta = {
     description = "Apple T2 AVE service daemon";

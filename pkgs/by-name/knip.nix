@@ -6,7 +6,7 @@
   nodejs,
   pnpm_11,
   pnpmConfigHook,
-  makeWrapper,
+  makeBinaryWrapper,
   versionCheckHook,
   nix-update-script,
 }:
@@ -32,7 +32,7 @@ stdenv.mkDerivation (finalAttrs: {
     nodejs
     pnpm_11
     pnpmConfigHook
-    makeWrapper
+    makeBinaryWrapper
   ];
 
   # `build` also triggers the package's `prebuild`, which generates the plugin
@@ -66,7 +66,7 @@ stdenv.mkDerivation (finalAttrs: {
     # extension and the language server, none of which the cli loads
     find $out/lib/knip -xtype l -delete
 
-    makeWrapper ${lib.getExe nodejs} $out/bin/knip \
+    makeBinaryWrapper ${lib.getExe nodejs} $out/bin/knip \
       --add-flags $out/lib/knip/packages/knip/bin/knip.js
 
     runHook postInstall

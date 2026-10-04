@@ -15,9 +15,6 @@
     let
       inherit (config.custom.apple-t2.graphics) mode;
 
-      switch = "/sys/kernel/debug/vgaswitcheroo/switch";
-      dgpu = lib.getExe pkgs.kait2en.dgpu;
-
       # Apple's own GUID. The first four bytes are the EFI attributes, the
       # fifth selects the GPU, 1 being the integrated one.
       prefs = "/sys/firmware/efi/efivars/gpu-power-prefs-fa4ce28d-b62f-4c99-9cc3-6815686e30f9";
@@ -87,25 +84,21 @@
           systemd.services.apple-t2-gpu = {
             description = "Select the GPU driving the panel";
             wantedBy = [ "multi-user.target" ];
-            after = [ "systemd-modules-load.service" ];
-            unitConfig.ConditionPathExists = lib.mkIf (mode == "integrated") switch;
             serviceConfig = {
               Type = "oneshot";
               RemainAfterExit = true;
-              # Upstream refuses to park while the panel is on the dGPU.
-              ExecStart = [ (lib.getExe setBootGpu) ] ++ lib.optional (mode == "integrated") "${dgpu} power-off";
+              ExecStart = lib.getExe setBootGpu;
             };
           };
         })
 
-        # A powered-down dGPU does not come back from S3, so it goes up for the
-        # transition and down again once awake. Outermost of the three pairs,
-        # so the rest of them run with the card settled. Failures are tolerated
-        # like in upstream's unit, since the halves share one `set -e` script.
+        # Parks the dGPU after boot, and powers it up across S3, which it does
+        # not survive powered down.
         (lib.mkIf (mode == "integrated") {
-          powerManagement = {
-            powerDownCommands = lib.mkBefore "${dgpu} prepare-suspend || true";
-            resumeCommands = lib.mkAfter "${dgpu} restore-after-resume || true";
+          systemd.packages = [ pkgs.kait2en.dgpu ];
+          systemd.services = {
+            kait2en-dgpu-off.wantedBy = [ "multi-user.target" ];
+            kait2en-dgpu-suspend.wantedBy = [ "sleep.target" ];
           };
         })
 

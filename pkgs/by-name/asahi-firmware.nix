@@ -2,7 +2,7 @@
   lib,
   stdenvNoCC,
   fetchFromGitHub,
-  makeWrapper,
+  makeBinaryWrapper,
   python3,
   nix-update-script,
 }:
@@ -17,7 +17,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     hash = "sha256-q+J3/q7SP9KSkoyrL9uvI4wGls/16CUXxMFcUaz+ytM=";
   };
 
-  nativeBuildInputs = [ makeWrapper ];
+  nativeBuildInputs = [ makeBinaryWrapper ];
 
   # Both modules already write a tarball of renamed firmware when run as
   # scripts; bluetooth.py just imports FWPackage from the package root, which
@@ -36,7 +36,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     cp -r asahi_firmware "$out/${python3.sitePackages}/"
 
     for kind in wifi bluetooth; do
-      makeWrapper ${lib.getExe python3} "$out/bin/get-$kind" \
+      makeBinaryWrapper ${lib.getExe python3} "$out/bin/get-$kind" \
         --add-flags "-m asahi_firmware.$kind" \
         --prefix PYTHONPATH : "$out/${python3.sitePackages}"
     done

@@ -2,10 +2,8 @@
   lib,
   stdenvNoCC,
   kait2en,
-  makeWrapper,
 }:
-# Upstream bash helpers, installed rather than built: they need a shebang
-# rewrite and a PATH that a sleep transition does not provide.
+# Upstream bash helpers, installed rather than built, see `patchScript.nix`.
 lib.extendMkDerivation {
   constructDrv = stdenvNoCC.mkDerivation;
   excludeDrvArgNames = [
@@ -26,17 +24,15 @@ lib.extendMkDerivation {
     {
       inherit (kait2en.modules) version src;
 
-      nativeBuildInputs = [ makeWrapper ];
-
       dontConfigure = true;
       dontBuild = true;
 
       installPhase = ''
         runHook preInstall
 
-        ${kait2en.installScript {
-          src = script;
-          dest = program;
+        install -Dm555 ${script} ${program}
+        ${kait2en.patchScript {
+          path = program;
           inherit runtimeInputs;
         }}
         ${kait2en.installLicenses finalAttrs.pname}

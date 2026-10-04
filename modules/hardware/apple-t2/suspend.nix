@@ -1,16 +1,9 @@
 # Broadcom Wi-Fi and Bluetooth across S3. See `pkgs/by-name/kait2en/suspend.nix`.
-# Default order, between the dGPU and link pairs: it shares hardware with
-# neither, so nothing orders it more tightly.
 {
   flake.modules.nixos.apple-t2 =
-    { lib, pkgs, ... }:
-    let
-      helper = lib.getExe pkgs.kait2en.suspend;
-    in
+    { pkgs, ... }:
     {
-      powerManagement = {
-        powerDownCommands = "${helper} pre";
-        resumeCommands = "${helper} post";
-      };
+      systemd.packages = [ pkgs.kait2en.suspend ];
+      systemd.services.kait2en-suspend.wantedBy = [ "sleep.target" ];
     };
 }

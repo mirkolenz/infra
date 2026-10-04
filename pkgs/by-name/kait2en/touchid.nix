@@ -11,11 +11,9 @@ kait2en.mkService {
 
   cargoHash = "sha256-AEIkigG0aFT5UK3RuNef6jThU1ygv/jYRJnWS+ARWys=";
 
-  # The daemon owns a bus name announcing its prompt state to the Touch Bar.
-  postInstall = ''
-    install -Dm444 -t $out/share/dbus-1/system.d \
-      t2-services/t2-touchid/integration/dbus/org.kait2en.TouchId.conf
-  '';
+  # Also the fprintd drop-in, and the D-Bus policy for the name announcing the
+  # prompt to the Touch Bar.
+  integration = true;
 
   meta = {
     description = "Apple T2 Touch ID bridge for fprintd";

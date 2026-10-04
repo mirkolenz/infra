@@ -1,19 +1,39 @@
-# Runs feature hooks around suspend. The T2's CDC-NCM link now survives
-# through the virtual USB host controller's reset-resume path.
-# https://github.com/kaiT2en/KaiT2en-Fedora/blob/main/t2-services/shared/integration/libexec/t2-ncm-sleep
+# The integration shared by the daemons on the T2's CDC-NCM link: the
+# NetworkManager profile for it, and a sleep unit running their hooks.
+# https://github.com/kaiT2en/KaiT2en-Fedora/tree/main/t2-services/shared
 {
+  stdenvNoCC,
   kait2en,
   coreutils,
 }:
-kait2en.mkScript {
+stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "kait2en-ncm";
+  inherit (kait2en.modules) version src;
 
-  script = "t2-services/shared/integration/libexec/t2-ncm-sleep";
+  dontConfigure = true;
+  dontBuild = true;
 
-  runtimeInputs = [ coreutils ];
+  makeFlags = [
+    "-C"
+    "t2-services/shared"
+    "PREFIX=${placeholder "out"}"
+    "SYSCONFDIR=${placeholder "out"}/etc"
+  ];
 
-  meta = {
-    description = "Apple T2 feature sleep hook runner";
-    mainProgram = "t2-ncm-sleep";
+  # Upstream's package lifecycle has nothing to migrate here.
+  postInstall = ''
+    rm -r $out/libexec/t2-services/{lifecycle.py,migration,package-actions}
+    ${kait2en.patchScript {
+      path = "$out/libexec/t2-services/t2-ncm-sleep";
+      runtimeInputs = [ coreutils ];
+    }}
+    ${kait2en.installLicenses finalAttrs.pname}
+  '';
+
+  strictDeps = true;
+  __structuredAttrs = true;
+
+  meta = kait2en.commonMeta // {
+    description = "Apple T2 CDC-NCM link integration";
   };
-}
+})

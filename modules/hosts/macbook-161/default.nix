@@ -28,10 +28,12 @@ in
         ];
 
         custom.apple-t2 = {
+          model = "MacBookPro16,1";
           firmware.enable = true;
           # Parks the discrete GPU, which on this model otherwise trips CATERR.
           graphics.mode = "integrated";
           touchid.enable = true;
+          touchbar.enable = true;
           ave.enable = true;
         };
 
@@ -59,15 +61,9 @@ in
 
         environment.systemPackages = with pkgs; [
           brightnessctl
+          kait2en.power-explorer
+          kait2en.smc-control
         ];
-
-        # https://github.com/AsahiLinux/tiny-dfr/blob/master/share/tiny-dfr/config.toml
-        hardware.apple.touchBar = {
-          enable = true;
-          settings = {
-            MediaLayerDefault = true;
-          };
-        };
       };
   };
 }

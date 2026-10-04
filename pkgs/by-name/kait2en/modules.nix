@@ -109,17 +109,17 @@ stdenv.mkDerivation {
 
   # The pin every package here is built from. It cannot live in a file of its
   # own: `nix-update` writes to wherever `meta.position` points.
-  version = "0.1.12-unstable-2026-10-01";
+  version = "0.1.12-unstable-2026-10-04";
 
   # A manual update moves `rev`, while the marker below moves after its diff
   # has been reviewed. Keep it short, since nix-update replaces every
   # occurrence of the full old `rev` in this file. See README.md.
-  # reviewed-rev: 8f32b9c257d6
+  # reviewed-rev: 2518d7f6b7a4
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";
-    rev = "8f32b9c257d6d7ea05fb1f4a5a3735b9f99dcee7";
-    hash = "sha256-7YnmsUzv6kBBP1dNmUkbKFrmhRRJ728edXnB6kJOVGw=";
+    rev = "2518d7f6b7a49e62dd4cdfcbdaece592433fa253";
+    hash = "sha256-Vq/7lipS9i/9YxJ31GyoMIDhjanIQAjsQpjSsmWNO8Q=";
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies ++ [
@@ -232,6 +232,9 @@ stdenv.mkDerivation {
     inherit (kait2en)
       ave
       journal
+      power-explorer
+      smc-control
+      touchbar
       touchid
       ;
   };
