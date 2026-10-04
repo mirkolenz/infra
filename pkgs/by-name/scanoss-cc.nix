@@ -70,8 +70,8 @@ buildGoModule (finalAttrs: {
       if stdenv.hostPlatform.isDarwin then
         ''
           mkdir -p "$out/Applications"
-          cp -r build/bin/scanoss-cc.app "$out/Applications"
-          makeBinaryWrapper "$out/Applications/scanoss-cc.app/Contents/MacOS/scanoss-cc" "$out/bin/scanoss-cc"
+          cp -r "build/bin/${finalAttrs.meta.mainDarwinApp}" "$out/Applications"
+          makeBinaryWrapper "$out/Applications/${finalAttrs.meta.mainDarwinApp}/Contents/MacOS/scanoss-cc" "$out/bin/scanoss-cc"
         ''
       else
         ''
@@ -135,6 +135,7 @@ buildGoModule (finalAttrs: {
     license = lib.licenses.gpl2Only;
     maintainers = with lib.maintainers; [ mirkolenz ];
     mainProgram = "scanoss-cc";
+    mainDarwinApp = "scanoss-cc.app";
     platforms = lib.platforms.darwin ++ lib.platforms.linux;
   };
 })

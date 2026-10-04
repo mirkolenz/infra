@@ -105,7 +105,7 @@ buildNpmPackage (finalAttrs: {
         ''
           mkdir -p "$out/Applications"
           mv "release/build/mac"*/*.app "$out/Applications"
-          makeBinaryWrapper "$out/Applications/SCANOSS SBOM Workbench.app/Contents/MacOS/SCANOSS SBOM Workbench" \
+          makeBinaryWrapper "$out/Applications/${finalAttrs.meta.mainDarwinApp}/Contents/MacOS/SCANOSS SBOM Workbench" \
             "$out/bin/sbom-workbench"
         ''
       else
@@ -152,6 +152,7 @@ buildNpmPackage (finalAttrs: {
     license = lib.licenses.gpl2Only;
     maintainers = with lib.maintainers; [ mirkolenz ];
     mainProgram = "sbom-workbench";
+    mainDarwinApp = "SCANOSS SBOM Workbench.app";
     inherit (electron.meta) platforms;
     # too large for the binary cache
     hydraPlatforms = [ ];

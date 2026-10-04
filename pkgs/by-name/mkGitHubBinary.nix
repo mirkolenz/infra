@@ -8,9 +8,13 @@
   stdenv,
   installShellFiles,
   autoPatchelfHook,
+  constructDrv ? stdenv.mkDerivation,
 }:
+# Fetches release assets of a GitHub repository and installs the listed binaries.
+# Another builder can install the assets instead, e.g. a macOS app bundle:
+#   mkGitHubBinary.override { constructDrv = mkApp; } { owner = ...; executable = ...; }
 lib.extendMkDerivation {
-  constructDrv = stdenv.mkDerivation;
+  inherit constructDrv;
   excludeDrvArgNames = [
     "owner"
     "repo"
