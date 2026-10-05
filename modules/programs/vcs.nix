@@ -404,20 +404,30 @@
         lw = lib.getExe config.programs.lazyworktree.package;
       };
       custom.commands.gh-prs.text = /* bash */ ''
-        # @describe Merge the open pull requests assigned to you that match a jq condition
+        # @describe Merge the open pull requests that match the given qualifiers and jq condition
         #
-        # Example: gh-prs '.title == "PR_TITLE"'
+        # Example: gh-prs --repo mirkolenz/infra --author app/renovate
         # @option -m --method[squash|merge|rebase]  Merge method, asked for if absent
-        # @arg filter!                              jq condition on the title, url, number and repository of a pull request
+        # @option -a --author                       Author of the pull requests, such as app/renovate
+        # @option -A --assignee                     Assignee of the pull requests, defaulting to @me without other qualifiers
+        # @option -r --repo*                        Repository of the pull requests in owner/name format
+        # @option -o --owner*                       Owner of the repositories
+        # @option -f --filter=true                  jq condition on the title, url, number and repository of a pull request
         # @arg gh-args~                             Further arguments of gh search prs
 
-        prs="$(${gh} search prs --assignee @me --state open "''${argc_gh_args[@]}" \
-          --json title,url,number,repository)"
+        if [ -z "$argc_author$argc_assignee''${argc_repo[*]}''${argc_owner[*]}" ]; then
+          argc_assignee="@me"
+        fi
 
-        matched="$(${jq} "[.[] | select($argc_filter)]" <<<"$prs")"
-        urls="$(${jq} -r '.[].url' <<<"$matched")"
+        matched="$(${gh} search prs --state open \
+          ''${argc_author:+"--author=$argc_author"} \
+          ''${argc_assignee:+"--assignee=$argc_assignee"} \
+          "''${argc_repo[@]/#/--repo=}" \
+          "''${argc_owner[@]/#/--owner=}" \
+          "''${argc_gh_args[@]}" \
+          --json title,url,number,repository --jq "[.[] | select($argc_filter)]")"
 
-        if [ -z "$urls" ]; then
+        if [ "$matched" = "[]" ]; then
           echo "No matching pull requests found."
           exit 0
         fi
@@ -443,7 +453,8 @@
           esac
         fi
 
-        xargs -P 8 -I {} ${gh} pr merge {} "--$argc_method" --delete-branch --auto <<<"$urls"
+        ${jq} -r '.[].url' <<<"$matched" |
+          xargs -P 8 -I {} ${gh} pr merge {} "--$argc_method" --delete-branch --auto
       '';
     };
 }
