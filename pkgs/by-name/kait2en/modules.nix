@@ -114,12 +114,12 @@ stdenv.mkDerivation {
   # A manual update moves `rev`, while the marker below moves after its diff
   # has been reviewed. Keep it short, since nix-update replaces every
   # occurrence of the full old `rev` in this file. See README.md.
-  # reviewed-rev: 2518d7f6b7a4
+  # reviewed-rev: ed5a3613a493
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";
-    rev = "2518d7f6b7a49e62dd4cdfcbdaece592433fa253";
-    hash = "sha256-Vq/7lipS9i/9YxJ31GyoMIDhjanIQAjsQpjSsmWNO8Q=";
+    rev = "ed5a3613a49399a8b426850cdde8c3eaf43f71e9";
+    hash = "sha256-syEHbAwzVdDO5vbSBJ1d7+dYSg5r/i/uNpLoe0oYYFI=";
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies ++ [
