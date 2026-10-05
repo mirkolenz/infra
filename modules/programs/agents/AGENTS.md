@@ -15,6 +15,14 @@
 - Never add prefixes such as `uvx` or `npx` to commands in backticks in these instructions, use them verbatim.
 - I use `fish` as my login shell, not `bash` or `zsh`, make sure to use the correct syntax when running shell commands.
 
+## System
+
+- All command line tools are installed from nixpkgs, Homebrew is only used for GUI apps on macOS.
+- On macOS, the GNU versions of coreutils, findutils, grep, sed, and awk replace the BSD ones, so use GNU syntax such as `sed -i` without a suffix.
+- Exec `nix run nixpkgs#<pkg>` to use a tool that is not installed, and `nix-locate bin/<cmd>` to find the package that provides a command.
+- On NixOS, there is no FHS, so use `#!/usr/bin/env` shebangs and do not expect prebuilt binaries to run.
+- `rg` is configured to use smart case and to search hidden files while skipping `.git/`.
+
 ## Internet
 
 - Exec `xh` for ad-hoc HTTP requests, not `curl` or `wget`.
