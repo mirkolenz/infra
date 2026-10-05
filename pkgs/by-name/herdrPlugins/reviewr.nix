@@ -4,9 +4,7 @@
   rustPlatform,
   fetchFromGitHub,
   nix-update-script,
-  bashNonInteractive,
   gitMinimal,
-  jq,
 }:
 mkHerdrPlugin (finalAttrs: {
   pname = "herdr-reviewr";
@@ -29,13 +27,8 @@ mkHerdrPlugin (finalAttrs: {
     meta.mainProgram = "herdr-reviewr";
   };
   binaryPath = "bin/herdr-reviewr";
-  interpreters = [ bashNonInteractive ];
-  pluginFiles = [ "herdr/pane.sh" ];
 
-  runtimeInputs = [
-    gitMinimal
-    jq
-  ];
+  runtimeInputs = [ gitMinimal ];
 
   passthru.updateScript = nix-update-script {
     extraArgs = [
