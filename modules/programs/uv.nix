@@ -22,8 +22,16 @@
       };
       home.shellAliases.py = "${uv} run";
       custom.bump.uv = {
-        files = [ "uv.lock" ];
-        text = "${uv} sync --all-extras --upgrade";
+        files = [
+          "pyproject.toml"
+          "uv.lock"
+        ];
+        # uv-bump syncs with `--upgrade` before raising the bounds,
+        # so relocking only records the new bounds in the lockfile metadata
+        text = ''
+          ${lib.getExe pkgs.uv-bump}
+          ${uv} lock
+        '';
       };
       home.activation = {
         pruneUvCache = lib.hm.dag.entryAfter [ "writeBoundary" ] /* bash */ ''
