@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: DeterminateSystems/determinate-nix-action@4eea0b33e3d1f02ecfe37cf16e7204c424009606 # v3
         with:
           summarize: false
@@ -52,7 +52,7 @@ jobs:
             runner: macos-26
             max-jobs: 3
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: reclaim linux disk space
         if: runner.os == 'Linux'
         uses: wimpysworld/nothing-but-nix@687c797a730352432950c707ab493fcc951818d7 # v10
