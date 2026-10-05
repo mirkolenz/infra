@@ -35,17 +35,17 @@
       };
       programs.difftastic = {
         enable = true;
-        git.enable = false;
         options = {
           background = "dark";
           color = "always";
           display = "inline"; # "side-by-side", "side-by-side-show-both", "inline"
         };
       };
+      programs.diff-so-fancy = {
+        enable = true;
+      };
       programs.delta = {
         enable = true;
-        enableGitIntegration = true;
-        enableJujutsuIntegration = true;
         options = {
           dark = true;
           features = "zebra-dark";
@@ -361,16 +361,6 @@
               order = "default";
               showGraph = "never";
             };
-            # https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_DiffRenderers.md
-            diffRenderers = [
-              {
-                command = "delta --paging=never --width={{columnWidth}} --hyperlinks-file-link-format=\"lazygit-edit://{path}:{line}\"";
-              }
-              {
-                command = "difft --color=always --display=inline";
-                type = "extDiff";
-              }
-            ];
           };
           os.editPreset = "zed";
           update.method = "never";
