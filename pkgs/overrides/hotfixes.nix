@@ -94,6 +94,15 @@ final: prev:
 })
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
 
+  # Replace the SVG driver's Windows-only header with POSIX headers, as Homebrew does.
+  # https://github.com/Homebrew/homebrew-core/pull/261141
+  pstoedit = prev.pstoedit.overrideAttrs (prevAttrs: {
+    postPatch = (prevAttrs.postPatch or "") + ''
+      substituteInPlace src/drvsvg.cpp \
+        --replace-fail '#include <io.h>' $'#include <unistd.h>\n#include <fcntl.h>'
+    '';
+  });
+
   # nixpkgs carries a separate vendorHash per platform for scorecard, and the darwin one went
   # stale: the go module proxy no longer reproduces it, so the fixed-output go-modules derivation
   # fails before the build starts. The linux hash still matches, which is why hydra only reports
