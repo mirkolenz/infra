@@ -15,7 +15,6 @@
         nix-index.enable = true;
         pandoc.enable = true;
         pay-respects.enable = true;
-        ripgrep.enable = true;
         yazi.enable = true;
         # keep-sorted end
       };
