@@ -517,6 +517,24 @@ def is_worktree_of(flake: str) -> bool:
     return not source.is_file() or source.read_bytes() == target.read_bytes()
 
 
+def snapshot_worktree(git_exe: str) -> str:
+    """A commit of the tracked working tree, which `git stash create` makes
+    without touching the tree, the index, or the stash list."""
+    return subprocess_stdout([git_exe, "stash", "create"]) or "HEAD"
+
+
+def restore_worktree(git_exe: str, snapshot: str, paths: Iterable[str]) -> None:
+    """Restore `paths` to `snapshot`, discarding a broken or partial update
+    but keeping the edits before it."""
+    paths = sorted(set(paths))
+
+    if not paths:
+        return
+
+    typer.echo(f"Reverting {len(paths)} path(s): {', '.join(paths)}", err=True)
+    run_logged([git_exe, "restore", f"--source={snapshot}", "--", *paths])
+
+
 def commit_pkgs(git_exe: str, message: str) -> None:
     """Commit anything that changed under pkgs/, if anything did."""
     status = subprocess_stdout([git_exe, "status", "--porcelain", "--", "pkgs/"])
@@ -1138,18 +1156,6 @@ def format_bump(key: str, old_version: str, meta: PackageMeta) -> str:
     return f"- [{bump}]({meta.changelog})" if meta.changelog else f"- {bump}"
 
 
-def revert_pkgs(git_exe: str, scripts: Iterable[UpdateScript]) -> None:
-    """Restore each package's source from git, discarding a broken or partial
-    update so it is never kept or committed."""
-    sources = sorted({p for s in scripts if (p := s.path)})
-
-    if not sources:
-        return
-
-    typer.echo(f"Reverting {len(sources)} package(s): {', '.join(sources)}", err=True)
-    run_logged([git_exe, "restore", "--", *sources])
-
-
 @app.command("update-pkgs")
 def update_pkgs(
     ctx: typer.Context,
@@ -1187,6 +1193,7 @@ def update_pkgs(
     if dry_run:
         raise typer.Exit(0)
 
+    snapshot = snapshot_worktree(cfg.git_exe)
     succeeded: set[str] = set()
 
     with concurrent.futures.ThreadPoolExecutor(
@@ -1222,7 +1229,9 @@ def update_pkgs(
             raise typer.Exit(130)
 
     failures = [key for key in scripts if key not in succeeded]
-    revert_pkgs(cfg.git_exe, [scripts[key] for key in failures])
+    restore_worktree(
+        cfg.git_exe, snapshot, (p for key in failures if (p := scripts[key].path))
+    )
 
     if commit:
         # List every version bump in the commit body (sorted), à la `nix flake update`.
