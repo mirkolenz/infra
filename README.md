@@ -280,7 +280,8 @@ Switching requires the following steps:
 2. Generate a signing key with `nix key generate-secret --key-name cache.mirkolenz.com-1 > key` and derive its public half with `nix key convert-secret-to-public < key`.
 3. Add the secrets `CACHE_SIGNING_KEY`, `CACHE_ACCESS_KEY_ID`, and `CACHE_SECRET_ACCESS_KEY` as well as the variables `CACHE_BUCKET` and `CACHE_ENDPOINT` (`https://<account-id>.r2.cloudflarestorage.com`) to the repository.
 4. In `flake.nix`, replace the Cachix substituter and public key with the custom domain and the new public key.
-5. In `checks.yaml`, replace `cachix-action` with `secret-key-files` pointing to the signing key and run `nix run . -- --cache "s3://$CACHE_BUCKET?endpoint=$CACHE_ENDPOINT&region=auto&compression=zstd" check-build` with the AWS credentials in the environment.
+5. In `checks.yaml`, replace `cachix-action` with `secret-key-files` pointing to the signing key and run `nix run . -- --cache "s3://$CACHE_BUCKET?endpoint=$CACHE_ENDPOINT&region=auto&compression=zstd" check-build` with the secrets exported as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
+   `gc-cache` reads them from the environment only, not from `~/.aws` profiles.
 6. Add a job that runs `gc-cache` with the same arguments after `check-build` on pushes to `main`.
 7. Replace `*.cachix.org` in the agent sandbox domains with the custom domain.
 

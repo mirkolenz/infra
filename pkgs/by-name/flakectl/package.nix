@@ -31,10 +31,8 @@ let
 
   flakectl = writers.writePython3Bin "flakectl" {
     libraries = with python3Packages; [
-      boto3
-      boto3-stubs
       httpx2
-      mypy-boto3-s3
+      obstore
       typer
     ];
     doCheck = false;

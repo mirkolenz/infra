@@ -16,10 +16,11 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Annotated, Any
 
-import boto3
 import httpx2
+import obstore
 import typer
-from mypy_boto3_s3 import S3Client
+from obstore.exceptions import BaseError
+from obstore.store import S3Store
 
 # Host that `access-tokens` entries are keyed by, and its REST API.
 GITHUB_HOST = "github.com"
@@ -674,14 +675,6 @@ def check_build(
     )
 
 
-@dataclass(frozen=True, slots=True)
-class CacheObject:
-    """An object of the binary cache bucket, as far as `gc-cache` needs it."""
-
-    modified: datetime
-    size: int
-
-
 def hash_part(path: str) -> str:
     """The hash of a store path or its basename, which keys its narinfo."""
     return Path(path).name.split("-", 1)[0]
@@ -718,8 +711,8 @@ def build_closure_outputs(nix_exe: str, drvs: Iterable[str]) -> set[str]:
     return set(json.loads(outputs)["info"])
 
 
-def s3_client(url: str) -> tuple[S3Client, str]:
-    """A client for the `s3://` store `url` and its bucket.
+def s3_store(url: str) -> S3Store:
+    """The bucket of the `s3://` store `url`.
 
     Reads the `endpoint` and `region` parameters of the store, credentials come
     from the usual AWS environment variables.
@@ -731,23 +724,11 @@ def s3_client(url: str) -> tuple[S3Client, str]:
         raise typer.Exit(1)
 
     params = dict(urllib.parse.parse_qsl(parsed.query))
-    client: S3Client = boto3.client(
-        "s3",
-        endpoint_url=params.get("endpoint"),
-        region_name=params.get("region"),
-    )
+    # the defaults of nix, which addresses AWS by region without an endpoint
+    region = params.get("region", "us-east-1")
+    endpoint = params.get("endpoint", f"https://s3.{region}.amazonaws.com")
 
-    return client, parsed.netloc
-
-
-def list_objects(client: S3Client, bucket: str) -> dict[str, CacheObject]:
-    """Every object of `bucket` by key."""
-    return {
-        obj["Key"]: CacheObject(modified=obj["LastModified"], size=obj["Size"])
-        for page in client.get_paginator("list_objects_v2").paginate(Bucket=bucket)
-        for obj in page.get("Contents", [])
-        if "Key" in obj and "LastModified" in obj and "Size" in obj
-    }
+    return S3Store(parsed.netloc, endpoint=endpoint, region=region)
 
 
 def cache_closure(nix_exe: str, cache: str, paths: Iterable[str]) -> dict[str, Any]:
@@ -797,9 +778,13 @@ def gc_cache(
         typer.echo("Specify --cache and --build-path.", err=True)
         raise typer.Exit(1)
 
-    client, bucket = s3_client(cfg.cache)
+    store = s3_store(cfg.cache)
     cutoff = datetime.now(UTC) - timedelta(days=keep_days)
-    objects = list_objects(client, bucket)
+    objects = {
+        obj["path"]: obj
+        for chunk in obstore.list(store, chunk_size=1000)
+        for obj in chunk
+    }
     narinfos = {
         key.removesuffix(".narinfo"): obj
         for key, obj in objects.items()
@@ -809,7 +794,9 @@ def gc_cache(
         cfg.nix_exe, f"{cfg.flake}#{cfg.build_path}", "--apply", ROOTS_APPLY
     )
     roots = {hash_part(path) for path in build_closure_outputs(cfg.nix_exe, drvs)}
-    recent = {digest for digest, obj in narinfos.items() if obj.modified >= cutoff}
+    recent = {
+        digest for digest, obj in narinfos.items() if obj["last_modified"] >= cutoff
+    }
     store_dir = nix_eval_json(cfg.nix_exe, "--expr", "builtins.storeDir")
     # nix finds a path by its hash part, `x` is the name it gives an unknown one
     seeds = [f"{store_dir}/{digest}-x" for digest in narinfos.keys() & (roots | recent)]
@@ -824,10 +811,12 @@ def gc_cache(
         *(
             key
             for key, obj in objects.items()
-            if key.startswith("nar/") and key not in live_nars and obj.modified < cutoff
+            if key.startswith("nar/")
+            and key not in live_nars
+            and obj["last_modified"] < cutoff
         ),
     ]
-    size = sum(objects[key].size for key in stale)
+    size = sum(objects[key]["size"] for key in stale)
     typer.echo(
         f"Keeping {len(kept)} of {len(narinfos)} paths,"
         f" deleting {len(stale)} objects ({size / 2**30:.2f} GiB).",
@@ -837,17 +826,12 @@ def gc_cache(
     if dry_run:
         return
 
-    for batch in itertools.batched(stale, 1000):
-        response = client.delete_objects(
-            Bucket=bucket,
-            Delete={"Objects": [{"Key": key} for key in batch], "Quiet": True},
-        )
-
-        if errors := response.get("Errors"):
-            for error in errors:
-                typer.echo(f"{error.get('Key')}: {error.get('Message')}", err=True)
-
-            raise typer.Exit(1)
+    # bulk deletes in batches of 1000, which S3 allows per request
+    try:
+        obstore.delete(store, stale)
+    except BaseError as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(1) from error
 
 
 # A check's outcome and its section of the job summary.
