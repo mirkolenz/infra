@@ -147,7 +147,7 @@
         flake-parts.follows = "flake-parts";
       };
     };
-    systems.url = "github:nix-systems/default/future-26.11";
+    systems.url = "github:nix-systems/default";
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
