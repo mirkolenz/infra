@@ -18,12 +18,11 @@ in
         imports = [
           nixos.default
           nixos.apple-t2
-          "${inputs.nixos-hardware}/apple"
+          "${inputs.nixos-hardware}/apple/macbook-pro"
           # Not `cpu-only`: the GPU half brings the VA-API and compute drivers
           # for the Intel graphics, which nothing else configures, and it sets
           # the same `i915.enable_guc=2` KaiT2en asks for.
           "${inputs.nixos-hardware}/common/cpu/intel/coffee-lake"
-          "${inputs.nixos-hardware}/common/pc/laptop"
           "${inputs.nixos-hardware}/common/pc/ssd"
         ];
 
