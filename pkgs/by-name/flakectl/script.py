@@ -229,13 +229,14 @@ def nix_eval_targets(nix_exe: str, installable: str) -> dict[str, BuildTarget]:
 
 def build_targets(
     nix_exe: str, targets: Mapping[str, BuildTarget], *, check: bool = True
-) -> None:
+) -> int:
     """Build the store derivations of `targets` without evaluating again."""
     if not targets:
-        return
+        return 0
 
     refs = [target.installable for target in targets.values()]
-    run_logged(nix_argv(nix_exe, "build", "--no-link", *refs), check=check)
+
+    return run_logged(nix_argv(nix_exe, "build", "--no-link", *refs), check=check)
 
 
 app = typer.Typer(
@@ -523,6 +524,13 @@ def snapshot_worktree(git_exe: str) -> str:
     return subprocess_stdout([git_exe, "stash", "create"]) or "HEAD"
 
 
+def changed_paths(git_exe: str, snapshot: str) -> list[str]:
+    """The tracked paths under the cwd that differ from `snapshot`."""
+    return subprocess_stdout(
+        [git_exe, "diff", "--name-only", "--relative", snapshot]
+    ).splitlines()
+
+
 def restore_worktree(git_exe: str, snapshot: str, paths: Iterable[str]) -> None:
     """Restore `paths` to `snapshot`, discarding a broken or partial update
     but keeping the edits before it."""
@@ -585,14 +593,32 @@ def update_flake(
         run_logged([cfg.git_exe, "commit", "--amend", "--no-edit", str(flake_file)])
 
     if cfg.hash_path:
-        # `fix hashes` repairs what nix journaled while building, so the build is
-        # what gives it anything to do and its failure is the point. `.` re-resolves
-        # the working tree; `cfg.flake` predates the lockfile rewritten above.
-        hashed = nix_eval_targets(cfg.nix_exe, f".#{cfg.hash_path}")
-        build_targets(cfg.nix_exe, hashed, check=False)
+        # `fix hashes` repairs what nix journaled while building, so a failed build
+        # is what gives it anything to do. `.` re-resolves the working tree,
+        # `cfg.flake` predates the lockfile rewritten above.
+        installable = f".#{cfg.hash_path}"
+        hashed = nix_eval_targets(cfg.nix_exe, installable)
+        # Only this build's mismatches, not stale ones from earlier builds.
+        since = str(int(datetime.now(UTC).timestamp()))
 
-    # Non-zero also means "nothing to fix".
-    run_logged([cfg.nixd_exe, "fix", "hashes", "--auto-apply"], check=False)
+        if returncode := build_targets(cfg.nix_exe, hashed, check=False):
+            snapshot = snapshot_worktree(cfg.git_exe)
+            # Non-zero also means "nothing to fix", so the edits decide instead.
+            run_logged(
+                [cfg.nixd_exe, "fix", "hashes", "--auto-apply", "--since", since],
+                check=False,
+            )
+            fixed = changed_paths(cfg.git_exe, snapshot)
+
+            if not fixed:
+                raise typer.Exit(returncode)
+
+            # The fixed sources yield new derivations, so evaluate them again.
+            try:
+                build_targets(cfg.nix_exe, nix_eval_targets(cfg.nix_exe, installable))
+            except typer.Exit:
+                restore_worktree(cfg.git_exe, snapshot, fixed)
+                raise
 
     if commit:
         commit_pkgs(cfg.git_exe, "chore(deps/pkgs): hashing")
