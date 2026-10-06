@@ -2,6 +2,7 @@
   lib,
   stdenvNoCC,
   fetchurl,
+  buildPackages,
   autoPatchelfHook,
   versionCheckHook,
   writableTmpDirAsHomeHook,
@@ -30,6 +31,10 @@ let
   };
   platform = platforms.${stdenvNoCC.hostPlatform.system};
   platformManifest = manifest.platforms.${platform};
+  inherit (stdenvNoCC.hostPlatform) isLinux;
+  patchelf = buildPackages.patchelf.overrideAttrs (old: {
+    patches = old.patches or [ ] ++ [ ./patchelf-update-dt-verdef.patch ];
+  });
 in
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "claude-code";
@@ -53,7 +58,14 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     makeBinaryWrapper
     zstd
   ]
-  ++ lib.optionals stdenvNoCC.hostPlatform.isElf [ autoPatchelfHook ];
+  ++ lib.optionals isLinux [
+    autoPatchelfHook
+    patchelf
+  ];
+
+  # DT_RPATH (not DT_RUNPATH) so the dlopen'd audio-capture.node finds libasound
+  runtimeDependencies = lib.optionals isLinux [ alsa-lib ];
+  patchelfFlags = [ "--force-rpath" ];
 
   installPhase = ''
     runHook preInstall
@@ -65,7 +77,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       --set DISABLE_INSTALLATION_CHECKS 1 \
       --set-default FORCE_AUTOUPDATE_PLUGINS 1 \
       --set USE_BUILTIN_RIPGREP 0 \
-      ${lib.optionalString stdenvNoCC.hostPlatform.isLinux "--prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ alsa-lib ]}"} \
       --prefix PATH : ${
         lib.makeBinPath (
           [
@@ -75,7 +86,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
             ripgrep
           ]
           # https://code.claude.com/docs/en/sandboxing#prerequisites
-          ++ lib.optionals stdenvNoCC.hostPlatform.isLinux [
+          ++ lib.optionals isLinux [
             bubblewrap
             socat
           ]
@@ -91,6 +102,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ];
   versionCheckKeepEnvironment = [ "HOME" ];
   doInstallCheck = true;
+  postInstallCheck = lib.optionalString isLinux ''
+    readelf -d $out/bin/.claude-wrapped | grep -q 'RPATH.*${alsa-lib}'
+  '';
 
   strictDeps = true;
   __structuredAttrs = true;
