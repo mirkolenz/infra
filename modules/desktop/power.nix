@@ -6,7 +6,10 @@
       config,
       ...
     }:
-    lib.mkIf config.custom.features.graphical.enable {
+    let
+      inherit (config.custom) features;
+    in
+    lib.mkIf (features.graphical.enable && !features.unattended.enable) {
       services.logind.settings.Login = {
         HandleLidSwitch = lib.mkDefault "sleep";
         HandleLidSwitchExternalPower = lib.mkDefault "sleep";
