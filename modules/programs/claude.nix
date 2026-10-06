@@ -71,6 +71,10 @@
             network = {
               allowLocalBinding = true;
               allowUnixSockets = agents.sandbox.allowedUnixSockets;
+              # Read access to the macOS network configuration, which codex's network policy
+              # already grants. Older reqwest releases read the system proxies through it and
+              # panic when the lookup is denied, which breaks hydra-check among others.
+              allowMachLookup = [ "com.apple.SystemConfiguration.configd" ];
               # `strictAllowlist` is deliberately unset: it would make this list the whole
               # allowlist and have claude refuse the per-command host lists that auto mode
               # sends through the classifier, turning every unforeseen host into a dead end.
