@@ -32,6 +32,7 @@ let
   platform = platforms.${stdenvNoCC.hostPlatform.system};
   platformManifest = manifest.platforms.${platform};
   inherit (stdenvNoCC.hostPlatform) isLinux;
+  # drop the patch once nixpkgs' patchelf includes NixOS/patchelf#665
   patchelf = buildPackages.patchelf.overrideAttrs (old: {
     patches = old.patches or [ ] ++ [ ./patchelf-update-dt-verdef.patch ];
   });
@@ -103,7 +104,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   versionCheckKeepEnvironment = [ "HOME" ];
   doInstallCheck = true;
   postInstallCheck = lib.optionalString isLinux ''
-    readelf -d $out/bin/.claude-wrapped | grep -q 'RPATH.*${alsa-lib}'
+    readelf -dW $out/bin/.claude-wrapped | grep -q '(RPATH).*${lib.getLib alsa-lib}/lib'
   '';
 
   strictDeps = true;
