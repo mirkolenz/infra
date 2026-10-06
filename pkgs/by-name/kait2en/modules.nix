@@ -153,7 +153,7 @@ stdenv.mkDerivation {
       ''
         diff -u <(upstreamArray ${file} ${array}) \
           <(printf '%s\n' ${lib.escapeShellArgs values} | sort) ||
-          { echo "${array} in ${file} changed upstream, see pkgs/by-name/kait2en/README.md" >&2; exit 1; }
+          { echo "${array} in ${file} changed upstream, see .agents/skills/kait2en/SKILL.md" >&2; exit 1; }
       ''
     ) mirrored}
 

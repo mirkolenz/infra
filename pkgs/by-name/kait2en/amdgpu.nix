@@ -40,7 +40,7 @@ stdenv.mkDerivation {
   # Like upstream, a patch already in the kernel is skipped.
   postPatch = ''
     grep -qxF ${lib.escapeShellArg modprobeConfig} ${upstream}/scripts/fedora/install-gpu-runtime-pm.sh ||
-      { echo "the amdgpu softdep changed upstream, see pkgs/by-name/kait2en/README.md" >&2; exit 1; }
+      { echo "the amdgpu softdep changed upstream, see .agents/skills/kait2en/SKILL.md" >&2; exit 1; }
 
     while IFS= read -r entry || [ -n "$entry" ]; do
       case "$entry" in "" | "#"*) continue ;; esac
