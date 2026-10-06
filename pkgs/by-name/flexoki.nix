@@ -4,7 +4,7 @@
   fetchFromGitHub,
   nix-update-script,
 }:
-stdenvNoCC.mkDerivation (finalAttrs: {
+stdenvNoCC.mkDerivation {
   pname = "flexoki";
   version = "2.0.0-unstable-2026-03-07";
 
@@ -40,4 +40,4 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ mirkolenz ];
   };
-})
+}
