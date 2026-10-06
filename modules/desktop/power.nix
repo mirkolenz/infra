@@ -7,17 +7,17 @@
       ...
     }:
     lib.mkIf config.custom.features.graphical.enable {
-      services.logind.settings.Login = lib.mkDefault {
-        HandleLidSwitch = "sleep";
-        HandleLidSwitchExternalPower = "sleep";
-        HandleLidSwitchDocked = "ignore";
+      services.logind.settings.Login = {
+        HandleLidSwitch = lib.mkDefault "sleep";
+        HandleLidSwitchExternalPower = lib.mkDefault "sleep";
+        HandleLidSwitchDocked = lib.mkDefault "ignore";
       };
 
-      systemd.sleep.settings.Sleep = lib.mkDefault {
-        AllowSuspend = "yes";
-        AllowHibernation = "no";
-        AllowSuspendThenHibernate = "no";
-        AllowHybridSleep = "no";
+      systemd.sleep.settings.Sleep = {
+        AllowSuspend = lib.mkDefault "yes";
+        AllowHibernation = lib.mkDefault "no";
+        AllowSuspendThenHibernate = lib.mkDefault "no";
+        AllowHybridSleep = lib.mkDefault "no";
       };
     };
 }

@@ -6,15 +6,9 @@
   configurations.nixos.macbook-113.module =
     { lib, ... }:
     {
-      # power.nix wraps the whole Sleep/Login attrset in a single mkDefault, so a
-      # host block replaces it wholesale rather than merging per key. Restate every
-      # key we rely on (like macbook-161 does) so nothing silently reverts to a
-      # systemd default.
       systemd.sleep.settings.Sleep = {
-        AllowSuspend = "yes";
         AllowHibernation = "yes";
         AllowSuspendThenHibernate = "yes";
-        AllowHybridSleep = "no";
         # Fixed delay before s2idle escalates to hibernate. Kept short because
         # s2idle drains fast here (no S0ix). Overrides systemd's battery-based
         # estimation; raise it for quicker lid-reopen resume at the cost of drain.
@@ -24,7 +18,6 @@
       services.logind.settings.Login = {
         HandleLidSwitch = "suspend-then-hibernate";
         HandleLidSwitchExternalPower = "suspend-then-hibernate";
-        HandleLidSwitchDocked = "ignore";
       };
 
       # protectKernelImage (from the shared security module) forces `nohibernate`.

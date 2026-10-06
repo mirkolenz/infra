@@ -54,14 +54,12 @@
         enable = lib.mkIf config.custom.features.unattended.enable true;
       };
 
-      systemd.sleep.settings.Sleep = lib.mkIf config.custom.features.unattended.enable (
-        lib.mkDefault {
-          AllowSuspend = "no";
-          AllowHibernation = "no";
-          AllowSuspendThenHibernate = "no";
-          AllowHybridSleep = "no";
-        }
-      );
+      systemd.sleep.settings.Sleep = lib.mkIf config.custom.features.unattended.enable {
+        AllowSuspend = lib.mkDefault "no";
+        AllowHibernation = lib.mkDefault "no";
+        AllowSuspendThenHibernate = lib.mkDefault "no";
+        AllowHybridSleep = lib.mkDefault "no";
+      };
     };
 
   flake.modules.nixos.default =
