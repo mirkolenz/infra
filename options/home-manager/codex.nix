@@ -31,6 +31,7 @@ in
       mutable = true;
       sharedEntries = [
         "AGENTS.md"
+        "rules"
         "skills"
       ];
       example.work.forced_chatgpt_workspace_id = "00000000-0000-0000-0000-000000000000";

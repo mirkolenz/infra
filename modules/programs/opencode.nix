@@ -47,6 +47,9 @@
           permission.external_directory = lib.mapAttrs' (
             path: access: lib.nameValuePair (mkGlob path) (if access == "deny" then "deny" else "allow")
           ) agents.sandbox.paths;
+          permission.bash = lib.genAttrs' agents.sandbox.deniedCommands (
+            cmd: lib.nameValuePair "${cmd} *" "deny"
+          );
         };
       };
       home.sessionVariables = {

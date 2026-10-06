@@ -89,6 +89,17 @@
         description = "Variables stripped from the environment agents hand to a subprocess.";
       };
 
+      deniedCommands = lib.mkOption {
+        type = with lib.types; listOf str;
+        default = [ ];
+        example = [ "gh auth" ];
+        description = ''
+          Command prefixes, words separated by single spaces, that agents refuse to run.
+          Matching happens on the command line before it runs, so this guards against
+          mistakes rather than a determined workaround such as a script doing the same.
+        '';
+      };
+
       sessionVariables = lib.mkOption {
         type = with lib.types; attrsOf str;
         default = { };

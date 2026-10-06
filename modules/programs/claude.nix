@@ -124,7 +124,11 @@
             # so a single rule blocks both claude itself and any subprocess it spawns. A
             # `Read` deny already stops Edit and Write, but not NotebookEdit, hence the
             # `Edit` rule beside it.
-            deny = mkRules "Read" (pathsWith "deny") ++ mkRules "Edit" (pathsWith "deny");
+            deny =
+              mkRules "Read" (pathsWith "deny")
+              ++ mkRules "Edit" (pathsWith "deny")
+              # matched on the command line only, the sandbox does not enforce these
+              ++ map (cmd: "Bash(${cmd} *)") agents.sandbox.deniedCommands;
             ask = [ ];
           };
           statusLine = lib.mkIf (lib.versionAtLeast config.programs.starship.package.version "1.25.0") {

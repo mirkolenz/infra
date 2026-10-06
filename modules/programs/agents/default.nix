@@ -89,6 +89,12 @@
           deniedEnvVars = [
             "SSH_AUTH_SOCK"
           ];
+          # The gh token lives in the keychain, which sandboxed commands can still read,
+          # so these keep agents from printing it or anything else stored there.
+          deniedCommands = [
+            "gh auth"
+            "security"
+          ];
           sessionVariables = {
             ASTRO_TELEMETRY_DISABLED = "1";
             # determinate-nix spawns a sentry crashpad_handler that cannot register its
