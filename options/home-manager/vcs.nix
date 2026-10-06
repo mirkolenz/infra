@@ -13,7 +13,9 @@ let
     delta.command = "${lib.getExe delta.finalPackage} --paging=never --width={{columnWidth}} --hyperlinks-file-link-format=\"lazygit-edit://{path}:{line}\"";
     diff-so-fancy.command = lib.getExe pkgs.diff-so-fancy;
     difftastic = {
-      command = "${lib.getExe difftastic.package} ${lib.cli.toCommandLineShellGNU { } difftastic.options}";
+      command = "${lib.getExe difftastic.package} ${
+        lib.cli.toCommandLineShellGNU { } difftastic.options
+      }";
       type = "extDiff";
     };
   };
