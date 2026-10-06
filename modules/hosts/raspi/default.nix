@@ -11,7 +11,7 @@ in
   configurations.nixos.raspi = {
     system = "aarch64-linux";
     module =
-      { pkgs, ... }:
+      { lib, pkgs, ... }:
       {
         imports = [
           nixos.default
@@ -19,6 +19,11 @@ in
         ];
 
         custom.features.unattended.enable = true;
+
+        # Cheaper on the Pi's CPU than zstd.
+        boot.zswap.compressor = "lz4";
+
+        powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
 
         # PoE+ HAT fan control at the overlay defaults; `board-type=0x11` is the Pi 4B.
         hardware.raspberry-pi.configtxt.deviceTreeOverlays."board-type=0x11" = [
