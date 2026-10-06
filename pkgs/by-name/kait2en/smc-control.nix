@@ -5,16 +5,21 @@
   lib,
   kait2en,
   glib,
+  libxml2,
   util-linux,
 }:
 kait2en.mkGtkApp {
   component = "smc-control";
   appId = "org.t2smccontrol.gtk";
+  inherit (kait2en.modules) src;
 
   cargoHash = "sha256-XPofREssRQHjnP+xLIxc/trbN31jX8jraIQk8BqP5gE=";
 
   # `build.rs` compiles the icon into a resource bundle.
-  nativeBuildInputs = [ glib ];
+  nativeBuildInputs = [
+    glib
+    libxml2
+  ];
 
   # Run through pkexec, which does not search a PATH.
   postPatch = ''

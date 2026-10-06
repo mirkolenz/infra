@@ -3,7 +3,7 @@
 Support for Macs with an Apple T2 security chip, taken from [KaiT2en](https://github.com/kaiT2en/KaiT2en-Fedora).
 Each package explains itself in its header, the NixOS module lives in `modules/hardware/apple-t2`.
 
-`modules.nix` pins the revision every package is built from.
+`modules.nix` pins the revision every runtime package is built from.
 The packages install upstream's systemd units, patched with `--replace-fail`, and the modules load them through `systemd.packages` and set `wantedBy`, since NixOS ignores `[Install]`.
 
 ## Licensing
@@ -16,7 +16,7 @@ Every package therefore installs upstream's license notices to `share/licenses/<
 
 Upstream is followed on `main`, the scheduled updater skips this package.
 
-1. Bump the pin, which also refreshes the cargo hashes of the subpackages in the `passthru` of `modules.nix`:
+1. Bump the shared source pin and refresh the Cargo hashes:
 
    ```shell
    nix-update kait2en.modules --system x86_64-linux --version=branch \
@@ -24,19 +24,31 @@ Upstream is followed on `main`, the scheduled updater skips this package.
      --subpackage=smc-control --subpackage=touchbar --subpackage=touchid
    ```
 
-2. Review the upstream range from the `reviewed-rev:` marker in `modules.nix` to the new `rev`:
+2. Run the upstream drift check, which compares standard Cargo metadata, Makefiles, service units and files under `systemd` and `integration` directories with `reviewedSrc`:
+
+   ```shell
+   nix build .#kait2en-upstream-check
+   ```
+
+   This only compares source files, it does not compile packages.
+   Added, removed or changed metadata fails with a diff.
+   It detects metadata changes for review, it does not infer native dependencies or validate service behavior.
+   Requirements hidden in implementation code still need manual review.
+
+3. Review the upstream range from `reviewedSrc.rev` in `upstream-check.nix` to the new `src.rev` in `modules.nix`:
 
    ```shell
    gh api repos/kaiT2en/KaiT2en-Fedora/compare/REVIEWED_REV...REV \
      -q '.files[] | "\(.status)\t\(.filename)"'
    ```
 
-3. Build every `kait2en-*` package.
+4. Build every runtime `kait2en-*` package.
    A failure reading `<ARRAY> in <file> changed upstream` means one of the lists in `modules.nix` has to follow upstream.
 
-4. Move the marker to the new `rev` in the same commit, keeping it short since nix-update replaces every occurrence of the full old `rev`.
+5. After reviewing, update `reviewedSrc` in `upstream-check.nix` to the new `src.rev` and `src.hash`, then rerun the drift check.
 
-The build cannot catch new upstream components, renamed or added units, or Fedora paths left unpatched.
+The drift check also runs through the flake's checks.
+The package builds cannot catch Fedora paths left unpatched.
 
 ## Deliberately not packaged
 

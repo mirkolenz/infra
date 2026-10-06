@@ -4,7 +4,10 @@
 {
   kait2en,
   coreutils,
+  e2fsprogs,
   gawk,
+  gnugrep,
+  systemd,
 }:
 kait2en.mkScript {
   pname = "kait2en-dgpu";
@@ -13,7 +16,10 @@ kait2en.mkScript {
 
   runtimeInputs = [
     coreutils
+    e2fsprogs
     gawk
+    gnugrep
+    systemd
   ];
 
   # The AMDGPU profile units are left out, `apple-t2/graphics.nix` caps a

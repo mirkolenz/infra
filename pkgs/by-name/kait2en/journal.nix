@@ -7,6 +7,7 @@
 }:
 kait2en.mkService {
   component = "journal";
+  inherit (kait2en.modules) src;
 
   cargoHash = "sha256-+t+Wm/YqL5YZsqFGyCZaJygGHRl2QbGweDoni9jx118=";
 

@@ -15,6 +15,7 @@
 kait2en.mkService {
   component = "touchbar";
   root = "apps/t2-touchbar";
+  inherit (kait2en.modules) src;
 
   cargoHash = "sha256-7gteyON5LRLgFc5doIa3Bka93iQaYwt916ZsUPUjPdQ=";
 

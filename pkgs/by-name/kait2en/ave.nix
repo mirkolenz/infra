@@ -9,6 +9,7 @@
 }:
 kait2en.mkService {
   component = "ave";
+  inherit (kait2en.modules) src;
 
   cargoHash = "sha256-aVKFnhAI52Am2LZNyJJN1Es06dvvN7a3FpcjUtfUPfE=";
 

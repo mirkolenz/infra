@@ -1,12 +1,10 @@
 # The Broadcom Wi-Fi and Bluetooth combo does not survive S3: this unloads the
-# loaded modules before sleep and restores those same ones after resume, which
-# is also when it writes the system time to the RTC.
+# loaded modules before sleep and restores those same ones after resume.
 # https://github.com/kaiT2en/KaiT2en-Fedora/blob/main/scripts/fedora/kait2en-suspend.sh
 {
   kait2en,
   coreutils,
   kmod,
-  util-linux,
 }:
 kait2en.mkScript {
   pname = "kait2en-suspend";
@@ -16,7 +14,6 @@ kait2en.mkScript {
   runtimeInputs = [
     coreutils
     kmod
-    util-linux
   ];
 
   # Upstream writes the unit from a heredoc in its installer.

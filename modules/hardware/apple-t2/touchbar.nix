@@ -38,8 +38,12 @@
         };
 
         services.udev.packages = [ package ];
+        services.upower.enable = true;
         systemd.packages = [ package ];
-        systemd.user.services.kait2en-touchbar.wantedBy = [ "graphical-session.target" ];
+        systemd.user.services.kait2en-touchbar = {
+          wantedBy = [ "graphical-session.target" ];
+          path = [ config.services.pipewire.wireplumber.package ];
+        };
 
         users.groups.${group} = { };
         users.users.${config.custom.user.login}.extraGroups = [ group ];

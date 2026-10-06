@@ -106,6 +106,8 @@
         (lib.mkIf (mode == "hybrid") {
           boot.extraModulePackages = [ pkgs.kait2en.amdgpu ];
           boot.extraModprobeConfig = pkgs.kait2en.amdgpu.modprobeConfig;
+          # GTK's Vulkan renderer opens the dGPU even on the iGPU's display.
+          environment.sessionVariables.GSK_RENDERER = "ngl";
           services.udev.extraRules = ''
             SUBSYSTEM=="pci", ATTR{vendor}=="0x1002", ATTR{class}=="0x03*", ATTR{power/control}="auto"
           '';

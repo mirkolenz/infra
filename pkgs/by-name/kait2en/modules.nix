@@ -108,18 +108,14 @@ stdenv.mkDerivation {
   pname = "kait2en-modules";
 
   # The pin every package here is built from. It cannot live in a file of its
-  # own: `nix-update` writes to wherever `meta.position` points.
-  version = "0.1.12-unstable-2026-10-04";
+  # own: `nix-update` writes to wherever the `src` attribute is declared.
+  version = "0.1.12-unstable-2026-10-05";
 
-  # A manual update moves `rev`, while the marker below moves after its diff
-  # has been reviewed. Keep it short, since nix-update replaces every
-  # occurrence of the full old `rev` in this file. See README.md.
-  # reviewed-rev: ed5a3613a493
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";
-    rev = "ed5a3613a49399a8b426850cdde8c3eaf43f71e9";
-    hash = "sha256-syEHbAwzVdDO5vbSBJ1d7+dYSg5r/i/uNpLoe0oYYFI=";
+    rev = "a88f36f452676bdcf840a5d958478e49d221c384";
+    hash = "sha256-uiD5JiahqC+VJmjlqoA1BILFMoC1kl6z8QhU4mn/rDQ=";
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies ++ [
@@ -227,8 +223,7 @@ stdenv.mkDerivation {
       ;
     # The set itself, so the NixOS module does not instantiate a second one.
     linuxPackages = linuxPackages_latest;
-    # A manual `nix-update --subpackage` refreshes these cargo hashes after
-    # moving the shared source pin.
+    # Refresh the Cargo hashes together with the shared source pin.
     inherit (kait2en)
       ave
       journal

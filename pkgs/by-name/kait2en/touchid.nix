@@ -5,11 +5,21 @@
 # https://github.com/kaiT2en/KaiT2en-Fedora/tree/main/t2-services/t2-touchid
 {
   kait2en,
+  libinput,
+  pkg-config,
+  udev,
 }:
 kait2en.mkService {
   component = "touchid";
+  inherit (kait2en.modules) src;
 
-  cargoHash = "sha256-AEIkigG0aFT5UK3RuNef6jThU1ygv/jYRJnWS+ARWys=";
+  cargoHash = "sha256-zkX6adYUZSZ5MzXcXaXvvV59M6tboLJnW1l4zNQRThk=";
+
+  nativeBuildInputs = [ pkg-config ];
+  buildInputs = [
+    libinput
+    udev
+  ];
 
   # Also the fprintd drop-in, and the D-Bus policy for the name announcing the
   # prompt to the Touch Bar.

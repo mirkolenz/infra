@@ -12,6 +12,7 @@
 kait2en.mkGtkApp {
   component = "power-explorer";
   appId = "org.t2powerexplorer.gtk";
+  inherit (kait2en.modules) src;
 
   cargoHash = "sha256-Z2DWaTgvjrBNQgxn4DiIl5kN/Ia0IJePzF5CzUXR56M=";
 

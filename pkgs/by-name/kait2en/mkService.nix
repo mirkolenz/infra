@@ -6,6 +6,7 @@
 # The Rust daemons under `t2-services` and `apps`: each crate sits in a
 # subdirectory, but its path dependencies reach out of it, so the whole tree is
 # unpacked.
+# Callers declare `src` so nix-update writes Cargo hashes to their files.
 lib.extendMkDerivation {
   constructDrv = rustPlatform.buildRustPackage;
   excludeDrvArgNames = [
@@ -27,7 +28,7 @@ lib.extendMkDerivation {
     }:
     {
       pname = "kait2en-${component}";
-      inherit (kait2en.modules) version src;
+      inherit (kait2en.modules) version;
 
       cargoRoot = root;
       buildAndTestSubdir = root;
