@@ -26,11 +26,9 @@
           "pyproject.toml"
           "uv.lock"
         ];
-        # uv-bump syncs with `--upgrade` before raising the bounds,
-        # so relocking only records the new bounds in the lockfile metadata
         text = ''
-          ${lib.getExe pkgs.uv-bump}
-          ${uv} lock
+          ${lib.getExe pkgs.uv-upgrade}
+          ${uv} sync --upgrade --all-extras --all-groups
         '';
       };
       home.activation = {
