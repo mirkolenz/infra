@@ -15,8 +15,8 @@ buildNpmPackage (finalAttrs: {
   src = fetchFromGitHub {
     owner = "maastrichtlawtech";
     repo = "legalviz.eu";
-    rev = "d4dae3b3f400595aadc09c269a29bc3814fe8219";
-    hash = "sha256-vhpPteSQyUFROe+nC92hkDUqvobIMOLSjYgPAz7CViM=";
+    rev = "d5fcb4c7802123908d0e63e42bb187f8c8e41519";
+    hash = "sha256-TAXw3kznSTuFmNKdwX9HIig5FwaJlhQhYOXuUXXtsZ8=";
   };
 
   sourceRoot = "${finalAttrs.src.name}/backend";
