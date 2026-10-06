@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: DeterminateSystems/determinate-nix-action@4eea0b33e3d1f02ecfe37cf16e7204c424009606 # v3
+      - uses: DeterminateSystems/determinate-nix-action@4d65ea9cab522b6d9f29a170aed23ededc1b27af # v3
         with:
           summarize: false
           extra-conf: |
@@ -62,7 +62,7 @@ jobs:
           for path in /Applications/Xcode*.app /Library/Developer "$RUNNER_TOOL_CACHE"; do
             sudo rm -rf "$path" &
           done
-      - uses: DeterminateSystems/determinate-nix-action@4eea0b33e3d1f02ecfe37cf16e7204c424009606 # v3
+      - uses: DeterminateSystems/determinate-nix-action@4d65ea9cab522b6d9f29a170aed23ededc1b27af # v3
         with:
           summarize: false
           # nix-fast-build does not pass `--max-jobs` on, so every build
