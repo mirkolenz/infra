@@ -27,10 +27,7 @@ in
         custom.features.unattended.enable = true;
 
         boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
-        boot.loader = {
-          systemd-boot.enable = true;
-          efi.efiSysMountPoint = "/boot";
-        };
+        boot.loader.systemd-boot.enable = true;
 
         virtualisation.libvirtd.enable = true;
 

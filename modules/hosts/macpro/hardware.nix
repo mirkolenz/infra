@@ -26,23 +26,6 @@
       boot.kernelModules = [ "kvm-intel" ];
       boot.extraModulePackages = [ ];
 
-      fileSystems."/" = {
-        device = "/dev/disk/by-label/root";
-        fsType = "ext4";
-      };
-
-      fileSystems."/boot" = {
-        device = "/dev/disk/by-label/boot";
-        fsType = "vfat";
-      };
-
-      fileSystems."/mnt/backup" = {
-        device = "/dev/disk/by-label/backup";
-        fsType = "ext4";
-      };
-
-      swapDevices = [ { device = "/dev/disk/by-label/swap"; } ];
-
       hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
     };
 }

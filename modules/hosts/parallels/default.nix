@@ -9,7 +9,7 @@ let
   };
 in
 {
-  # Shared parallels base (disko and users live in their own files).
+  # Shared parallels base (disk layout and users live in their own files).
   flake.modules.nixos.parallels = {
     custom.features = {
       graphical.desktopManager = "cosmic";
@@ -18,10 +18,7 @@ in
 
     security.sudo.wheelNeedsPassword = false;
 
-    boot.loader = {
-      systemd-boot.enable = true;
-      efi.efiSysMountPoint = "/boot";
-    };
+    boot.loader.systemd-boot.enable = true;
 
     hardware.parallels.enable = true;
   };

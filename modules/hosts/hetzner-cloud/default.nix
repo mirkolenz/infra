@@ -10,10 +10,7 @@ in
 
       custom.features.unattended.enable = true;
 
-      boot.loader = {
-        systemd-boot.enable = true;
-        efi.efiSysMountPoint = "/boot";
-      };
+      boot.loader.systemd-boot.enable = true;
     };
   };
 }

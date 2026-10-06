@@ -68,4 +68,6 @@
       size = 8 * 1024;
     }
   ];
+
+  boot.loader.efi.efiSysMountPoint = "/boot";
 }

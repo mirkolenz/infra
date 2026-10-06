@@ -49,5 +49,14 @@
         };
       };
     };
+
+    boot.loader.efi.efiSysMountPoint = "/boot";
+
+    swapDevices = [
+      {
+        device = "/swapfile";
+        size = 4 * 1024;
+      }
+    ];
   };
 }

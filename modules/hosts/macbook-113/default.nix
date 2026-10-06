@@ -24,18 +24,7 @@ in
       };
 
       boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
-      boot.loader = {
-        systemd-boot.enable = true;
-        efi.efiSysMountPoint = "/boot";
-      };
-
-      swapDevices = [
-        {
-          device = "/swapfile";
-          # >= RAM (16 GiB) so it can hold a hibernation image (see hibernate.nix).
-          size = 20 * 1024;
-        }
-      ];
+      boot.loader.systemd-boot.enable = true;
     };
   };
 }

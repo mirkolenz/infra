@@ -47,18 +47,10 @@ in
         };
 
         boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
-        boot.loader = {
-          systemd-boot.enable = true;
-          systemd-boot.configurationLimit = 3;
-          efi.efiSysMountPoint = "/boot";
+        boot.loader.systemd-boot = {
+          enable = true;
+          configurationLimit = 3;
         };
-
-        swapDevices = [
-          {
-            device = "/swapfile";
-            size = 4 * 1024;
-          }
-        ];
 
         environment.systemPackages = with pkgs; [
           brightnessctl

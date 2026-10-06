@@ -21,17 +21,7 @@ in
 
       custom.features.graphical.desktopManager = "cosmic";
 
-      boot.loader = {
-        systemd-boot.enable = true;
-        efi.efiSysMountPoint = "/boot";
-      };
-
-      swapDevices = [
-        {
-          device = "/swapfile";
-          size = 4 * 1024;
-        }
-      ];
+      boot.loader.systemd-boot.enable = true;
 
       boot.kernelParams = [
         "i915.modeset=0"

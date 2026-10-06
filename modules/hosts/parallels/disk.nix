@@ -51,5 +51,7 @@
           };
         };
       };
+
+      boot.loader.efi.efiSysMountPoint = "/boot";
     };
 }
