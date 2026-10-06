@@ -18,7 +18,8 @@
         installations.work = { };
         # https://developers.openai.com/codex/rules
         rules.denied = lib.concatMapStrings (
-          cmd: "prefix_rule(pattern = ${builtins.toJSON (lib.splitString " " cmd)}, decision = \"forbidden\")\n"
+          cmd:
+          "prefix_rule(pattern = ${builtins.toJSON (lib.splitString " " cmd)}, decision = \"forbidden\")\n"
         ) agents.sandbox.deniedCommands;
         # https://developers.openai.com/codex/config-reference
         # https://developers.openai.com/codex/config-schema.json
