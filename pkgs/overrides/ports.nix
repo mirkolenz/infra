@@ -17,19 +17,10 @@ final: prev:
 })
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
 
-  # libvirt.dylib is linked with -Wl,-flat_namespace, so its libxml2 imports bind to the system
-  # /usr/lib/libxml2.2.dylib that every CPython process maps. There xmlSchemaInitTypes() returns
-  # void instead of int, so libvirt reads an uninitialized register and fails schema validation
-  # at random. A failure also leaks the shared test:///default state into
-  # testDomainIDReturnsValidValue.
   pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
     (
       _: pyprev:
       {
-        libvirt-python = pyprev.libvirt-python.overridePythonAttrs (prevAttrs: {
-          disabledTests = (prevAttrs.disabledTests or [ ]) ++ [ "testCheckpointCreate" ];
-        });
-
         # licomp-toolkit is marked badPlatforms over licomp-oslc-handbook#4, where
         # `licenses/` and `LICENSES/` collide on a case-insensitive filesystem. That
         # collision only merges the yaml the matrix is generated from with the REUSE
