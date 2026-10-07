@@ -38,14 +38,16 @@ nix run github:mirkolenz/infra -- nixos-install MACHINE_NAME
 
 [The NixOS manual](https://nixos.org/manual/nixos/stable/#sec-installation-manual-installing) recommends activating swap before `nixos-install` on machines with limited memory, since its builds may need quite a bit of RAM.
 Swap partitions declared via disko are already activated by the mount mode.
-Hosts with only a swapfile can use a temporary one on the target disk after formatting it with disko.
+Hosts with a swapfile can create a temporary one at its `swapDevices` path below `/mnt` after formatting the disk with disko.
+NixOS recreates it on the first boot.
+`mkswap --file` works on any filesystem and sets the nocow attribute required by btrfs.
 
 ```shell
-mkswap --file /mnt/install.swap --size 8G
-swapon /mnt/install.swap
+mkswap --file /mnt/SWAPFILE --size 8G
+swapon /mnt/SWAPFILE
 # after nixos-install
-swapoff /mnt/install.swap
-rm /mnt/install.swap
+swapoff /mnt/SWAPFILE
+rm /mnt/SWAPFILE
 ```
 
 ### Secure Boot
