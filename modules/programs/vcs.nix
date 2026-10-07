@@ -350,7 +350,6 @@
             skipRewordInEditorWarning = false;
             skipStashWarning = false;
             splitDiff = "auto";
-            useHunkModeInStagingView = true;
           };
           git = {
             autoFetch = false;
