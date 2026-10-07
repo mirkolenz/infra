@@ -19,9 +19,6 @@
           hash-path = "legacyPackages.${pkgs.stdenv.hostPlatform.parsed.cpu.name}-linux.custom.hashedPackages";
           update-path = "custom.flattenedPackages";
         };
-        home-manager.program = pkgs.writeShellScriptBin "home-manager" /* bash */ ''
-          exec ${lib.getExe pkgs.home-manager} --flake "${self.outPath}" "$@"
-        '';
         neovide.program = pkgs.writeShellScriptBin "neovide" /* bash */ ''
           ${lib.getExe pkgs.neovide} --neovim-bin ${lib.getExe config.packages.nixvim-default} "$@"
         '';
