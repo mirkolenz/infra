@@ -127,7 +127,7 @@ in
           nix-sweep
         ];
       custom.bump.nix = {
-        files = [ "flake.lock" ];
+        pathspecs = [ "flake.lock" ];
         text = "${nix} flake update --commit-lock-file";
       };
       custom.commands = {

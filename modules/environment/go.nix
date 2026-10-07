@@ -18,7 +18,7 @@
         goreleaser
       ];
       custom.bump.go = {
-        files = [
+        pathspecs = [
           "go.mod"
           "go.sum"
         ];

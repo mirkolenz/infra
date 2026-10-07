@@ -34,21 +34,28 @@
         astro-language-server
       ];
       custom.bump.npm = {
-        files = [
-          "package.json"
+        pathspecs = [
+          ":(glob)**/package.json"
           "package-lock.json"
         ];
+        # ncu refuses --workspaces for projects without workspaces
         text = ''
-          ${lib.getExe pkgs.npm-check-updates} --interactive --format group --install never
+          ncu=(${lib.getExe pkgs.npm-check-updates} --interactive --format group --install never)
+
+          if ${lib.getExe config.programs.jq.package} -e .workspaces package.json > /dev/null; then
+            ncu+=(--workspaces)
+          fi
+
+          "''${ncu[@]}"
           ${lib.getExe' config.programs.npm.package "npm"} update
         '';
       };
       custom.bump.bun = {
-        files = [
-          "package.json"
+        pathspecs = [
+          ":(glob)**/package.json"
           "bun.lock"
         ];
-        text = "${lib.getExe config.programs.bun.package} update";
+        text = "${lib.getExe config.programs.bun.package} update --recursive";
       };
     };
 }

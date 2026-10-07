@@ -15,9 +15,9 @@ in
     type = types.attrsOf (
       types.submodule {
         options = {
-          files = mkOption {
+          pathspecs = mkOption {
             type = with types; nonEmptyListOf str;
-            description = "Files that the package manager updates, whose presence marks the projects using it.";
+            description = "Git pathspecs of the files that the package manager updates, which all match in the projects using it.";
           };
           text = mkOption {
             type = types.lines;
@@ -35,21 +35,21 @@ in
       # @describe Update the dependencies of the current project and commit them per package manager
       # @arg managers*[${lib.concatStringsSep "|" (lib.attrNames cfg)}]  Package managers, defaulting to those whose files exist
 
-      # Whether to update a package manager, given its name and files.
+      # Whether to update a package manager, given its name and pathspecs.
       selected() {
         if [ ''${#argc_managers[@]} -gt 0 ]; then
           [[ " ''${argc_managers[*]} " == *" $1 "* ]]
           return
         fi
 
-        for file in "''${@:2}"; do
-          if [ ! -e "$file" ]; then
+        for pathspec in "''${@:2}"; do
+          if [ -z "$(${git} ls-files --cached --others --exclude-standard -- "$pathspec")" ]; then
             return 1
           fi
         done
       }
 
-      # Commits the changed files of a package manager, given its name and files,
+      # Commits the changed files of a package manager, given its name and pathspecs,
       # which are unchanged if they are up to date or the package manager committed them.
       commit() {
         ${git} add -- "''${@:2}"
@@ -60,9 +60,9 @@ in
       }
 
       ${lib.concatMapAttrsStringSep "\n" (name: manager: ''
-        if selected ${name} ${lib.escapeShellArgs manager.files}; then
+        if selected ${name} ${lib.escapeShellArgs manager.pathspecs}; then
           ${manager.text}
-          commit ${name} ${lib.escapeShellArgs manager.files}
+          commit ${name} ${lib.escapeShellArgs manager.pathspecs}
         fi
       '') cfg}
     '';

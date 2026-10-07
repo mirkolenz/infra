@@ -22,13 +22,13 @@
       };
       home.shellAliases.py = "${uv} run";
       custom.bump.uv = {
-        files = [
-          "pyproject.toml"
+        pathspecs = [
+          ":(glob)**/pyproject.toml"
           "uv.lock"
         ];
         text = ''
           ${lib.getExe pkgs.uv-upgrade}
-          ${uv} sync --upgrade --all-extras --all-groups
+          ${uv} sync --upgrade --all-packages --all-extras --all-groups
         '';
       };
       home.activation = {

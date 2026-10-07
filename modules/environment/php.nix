@@ -17,7 +17,7 @@
         phpstan # legacy type checker
       ];
       custom.bump.composer = {
-        files = [
+        pathspecs = [
           "composer.json"
           "composer.lock"
         ];

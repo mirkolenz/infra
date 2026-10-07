@@ -1,5 +1,7 @@
 """Interactively bump the pyproject.toml bounds that exclude the latest versions.
 
+Covers every project of the workspace, so run it in the workspace root.
+
 Like npm-check-updates, bounds that already allow the latest version stay untouched,
 and the others keep their precision, so `>=2,<3` becomes `>=3,<4` instead of `>=3.1.4,<4`.
 """
@@ -11,6 +13,7 @@ from collections.abc import Iterator, Mapping
 from itertools import groupby
 from operator import itemgetter
 from pathlib import Path
+from typing import NotRequired, TypedDict
 
 import questionary
 import tomllib
@@ -22,6 +25,28 @@ from packaging.version import Version
 type Section = tuple[str, ...]
 
 
+class Node(TypedDict):
+    """A package of the `uv tree` resolution."""
+
+    name: NotRequired[str]
+    latest_version: NotRequired[str]
+
+
+class Member(TypedDict):
+    """A project of the `uv tree` workspace."""
+
+    name: str
+    path: str
+
+
+class Tree(TypedDict):
+    """The JSON output of `uv tree`."""
+
+    workspace_root: str
+    members: list[Member]
+    resolution: dict[str, Node]
+
+
 def uv(*args: str) -> str:
     """Run uv with the given arguments and return its standard output."""
     return subprocess.run(
@@ -29,9 +54,9 @@ def uv(*args: str) -> str:
     ).stdout
 
 
-def latest_versions() -> dict[str, Version]:
-    """Latest versions of the direct dependencies, honoring uv settings such as `exclude-newer`."""
-    tree = json.loads(
+def outdated_tree() -> Tree:
+    """The workspace dependencies with their latest versions, honoring settings such as `exclude-newer`."""
+    return json.loads(
         uv(
             "tree",
             "--outdated",
@@ -43,16 +68,34 @@ def latest_versions() -> dict[str, Version]:
         )
     )
 
+
+def latest_versions(tree: Tree) -> dict[str, Version]:
+    """Latest versions of the direct dependencies of all workspace projects."""
     return {
         canonicalize_name(node["name"]): Version(node["latest_version"])
         for node in tree["resolution"].values()
-        if "latest_version" in node
+        if "name" in node and "latest_version" in node
     }
 
 
-def sections() -> Iterator[tuple[Section, list[str]]]:
+def projects(tree: Tree) -> Iterator[tuple[str, Section, Path]]:
+    """The name, `uv add` arguments, and directory of each workspace project.
+
+    A virtual workspace root is no member, but may still declare dependency groups.
+    """
+    root = Path(tree["workspace_root"])
+    members = {Path(member["path"]): member["name"] for member in tree["members"]}
+
+    if root not in members:
+        yield "workspace", (), root
+
+    for path, name in members.items():
+        yield name, ("--package", name), path
+
+
+def sections(path: Path) -> Iterator[tuple[Section, list[str]]]:
     """The `uv add` arguments of each dependency section with its requirements."""
-    pyproject = tomllib.loads(Path("pyproject.toml").read_text())
+    pyproject = tomllib.loads((path / "pyproject.toml").read_text())
     project = pyproject.get("project", {})
     yield (), project.get("dependencies", [])
 
@@ -129,10 +172,14 @@ def upgrade(requirement: str, latest: Mapping[str, Version]) -> str | None:
 
 def main() -> None:
     """Prompt for the bumps and apply the selected ones with `uv add`."""
-    latest = latest_versions()
+    tree = outdated_tree()
+    latest = latest_versions(tree)
     choices = [
-        questionary.Choice(f"{old}  →  {new}", value=(section, new), checked=True)
-        for section, deps in sections()
+        questionary.Choice(
+            f"{name}: {old}  →  {new}", value=((*target, *section), new), checked=True
+        )
+        for name, target, path in projects(tree)
+        for section, deps in sections(path)
         for old in deps
         if (new := upgrade(old, latest))
     ]
