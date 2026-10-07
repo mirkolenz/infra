@@ -51,7 +51,13 @@ fromOverlay inputs.makejinja.overlays.default [ "makejinja" ]
 // fromOverlay inputs.opnix.overlays.default [ "opnix" ]
 // {
   inherit disko raspi-kernel;
-  disko-install = disko.overrideAttrs { name = "disko-install"; };
+  # the final disko with its other program as main one for `nix run`,
+  # merged by hand since `lib.addMetaAttrs` would rebuild it
+  disko-install = final.disko // {
+    meta = final.disko.meta // {
+      mainProgram = "disko-install";
+    };
+  };
 
   # not built by CI until a host enables lanzaboote
   lzbt = lib.dontDistribute (
