@@ -20,6 +20,14 @@ let
     "raise.dfki.de".publicKey =
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM1nnFyFYCUDMUQzia4jzpaFcSURq4Dn7Tkr4QUBd1ti";
   };
+  sshdSettings = {
+    # reap dead clients so their forwarded agent sockets vanish
+    ClientAliveInterval = 30;
+    KbdInteractiveAuthentication = false;
+    PasswordAuthentication = false;
+    PermitRootLogin = "no";
+    X11Forwarding = false;
+  };
 in
 {
   flake.modules.nixos.base =
@@ -39,14 +47,7 @@ in
         enable = lib.mkDefault true;
         authorizedKeysInHomedir = false;
         openFirewall = true;
-        settings = {
-          # reap dead clients so their forwarded agent sockets vanish
-          ClientAliveInterval = 30;
-          KbdInteractiveAuthentication = false;
-          PasswordAuthentication = false;
-          PermitRootLogin = "no";
-          X11Forwarding = false;
-        };
+        settings = sshdSettings;
         hostKeys = [
           {
             path = "/etc/ssh/ssh_host_ed25519_key";
@@ -69,13 +70,7 @@ in
       services.eternal-terminal.enable = false;
       services.openssh = {
         enable = true;
-        extraConfig = ''
-          ClientAliveInterval 30
-          KbdInteractiveAuthentication no
-          PasswordAuthentication no
-          PermitRootLogin no
-          X11Forwarding no
-        '';
+        settings = sshdSettings;
       };
     };
 
