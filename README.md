@@ -34,6 +34,20 @@ nix run github:mirkolenz/infra -- passwd --root /mnt MACHINE_NAME USER
 nix run github:mirkolenz/infra -- nixos-install MACHINE_NAME
 ```
 
+### Installer Swap
+
+[The NixOS manual](https://nixos.org/manual/nixos/stable/#sec-installation-manual-installing) recommends activating swap before `nixos-install` on machines with limited memory, since its builds may need quite a bit of RAM.
+Swap partitions declared via disko are already activated by the mount mode.
+Hosts with only a swapfile can use a temporary one on the target disk after formatting it with disko.
+
+```shell
+mkswap --file /mnt/install.swap --size 8G
+swapon /mnt/install.swap
+# after nixos-install
+swapoff /mnt/install.swap
+rm /mnt/install.swap
+```
+
 ### Secure Boot
 
 [Lanzaboote](https://github.com/nix-community/lanzaboote) replaces systemd-boot on UEFI hosts whose firmware can enroll custom keys via Setup Mode.
