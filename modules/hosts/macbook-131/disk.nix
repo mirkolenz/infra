@@ -2,7 +2,7 @@
   configurations.nixos.macbook-131.module = {
     disko.devices.disk.main = {
       type = "disk";
-      device = "/dev/nvme0n1";
+      device = "/dev/disk/by-id/nvme-APPLE_SSD_AP0256J_C08644301FFGXR4A0_1";
       content = {
         type = "gpt";
         partitions = {
