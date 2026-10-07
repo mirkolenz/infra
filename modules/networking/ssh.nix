@@ -122,8 +122,10 @@ in
           "${config.home.homeDirectory}/.orbstack/ssh/config"
         ];
         settings = {
-          # prefer a live forwarded agent over the IdentityAgent of `*` (1Password)
-          "Match exec 'test -S ${agentLink}'".IdentityAgent = agentLink;
+          # Prefer a live forwarded agent in shells over the IdentityAgent of `*` (1Password),
+          # GUI apps lack the link and stay with 1Password.
+          "Match exec 'test \"$SSH_AUTH_SOCK\" = ${agentLink} -a -S ${agentLink}'".IdentityAgent =
+            agentLink;
           "gpu" = {
             HostName = "gpu.wi2.uni-trier.de";
             ForwardAgent = true;
