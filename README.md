@@ -25,13 +25,13 @@ A module is one cohesive feature filed under one directory, the namespace of its
 # find device name and update this flake accordingly
 ls -l /dev/disk/by-id
 # format the disk
-nix run github:mirkolenz/infra#disko -- MACHINE_NAME --mode destroy,format,mount
+nix run github:mirkolenz/infra -- disko MACHINE_NAME --mode destroy,format,mount
 # print hardware config and verify it is in sync with the flake
 nixos-generate-config --no-filesystems --show-hardware-config
 # set up user passwords
 nix run github:mirkolenz/infra -- passwd /mnt/etc/nixos/secrets/USER.passwd
 # install the system
-nix run github:mirkolenz/infra#nixos-install -- MACHINE_NAME
+nix run github:mirkolenz/infra -- nixos-install MACHINE_NAME
 ```
 
 ### Secure Boot

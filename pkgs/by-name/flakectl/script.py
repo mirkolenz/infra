@@ -340,6 +340,26 @@ def run_flake_tool(ctx: typer.Context, package: str, name: str, *args: str) -> N
     )
 
 
+@app.command("disko", context_settings=PASSTHROUGH)
+def disko(ctx: typer.Context, machine: Annotated[str, typer.Argument()]):
+    """Partition, format, and mount the disks of `machine`."""
+    run_flake_tool(ctx, "disko", machine)
+
+
+@app.command("disko-install", context_settings=PASSTHROUGH)
+def disko_install(ctx: typer.Context, machine: Annotated[str, typer.Argument()]):
+    """Partition the disks of `machine` and install it in one go."""
+    run_flake_tool(ctx, "disko-install", machine)
+
+
+@app.command("nixos-install", context_settings=PASSTHROUGH)
+def nixos_install(ctx: typer.Context, machine: Annotated[str, typer.Argument()]):
+    """Install `machine` onto the disks that `disko` mounted."""
+    run_flake_tool(
+        ctx, "nixos-install", machine, "--no-channel-copy", "--no-root-password"
+    )
+
+
 def set_root_owned(path: Path, mode: int) -> None:
     """Hand `path` to root with `mode`, out of reach of every other user."""
     path.chmod(mode)
