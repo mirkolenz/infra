@@ -367,11 +367,16 @@ def set_root_owned(path: Path, mode: int) -> None:
 
 
 @app.command("passwd")
-def passwd(ctx: typer.Context, file: Annotated[Path, typer.Argument()]):
-    """Hash a prompted password into `file`, for `users.users.*.hashedPasswordFile`.
+def passwd(
+    ctx: typer.Context,
+    machine: Annotated[str, typer.Argument()],
+    user: Annotated[str, typer.Argument()],
+    root: Annotated[Path, typer.Option(help="Mount point of the target.")] = Path("/"),
+):
+    """Hash a prompted password into the `hashedPasswordFile` of `user` on `machine`.
 
-    Takes the path verbatim, so the same command serves a running system and an
-    installer target under /mnt.
+    The path comes from the NixOS configuration, so it cannot drift from the one
+    the system reads. Pass `--root /mnt` for an installer target.
     """
     cfg: Config = ctx.obj
 
@@ -381,6 +386,31 @@ def passwd(ctx: typer.Context, file: Annotated[Path, typer.Argument()]):
         typer.echo("passwd must run as root.", err=True)
         raise typer.Exit(1)
 
+    if not root.is_dir():
+        typer.echo(f"Root {root} is no directory.", err=True)
+        raise typer.Exit(1)
+
+    # Nix itself reports a missing machine or user, suggesting similar names.
+    target: str | None = nix_eval_json(
+        f"{flake_ref(cfg.flake, 'nixosConfigurations', machine)}"
+        f'.config.users.users."{user}".hashedPasswordFile',
+    )
+
+    if target is None:
+        typer.echo(f"{machine} sets no hashedPasswordFile for {user}.", err=True)
+        raise typer.Exit(1)
+
+    path = Path(target)
+
+    if not path.is_absolute() or path.is_relative_to("/nix/store"):
+        typer.echo(f"Refusing to write {path}, not a mutable path.", err=True)
+        raise typer.Exit(1)
+
+    file = root / path.relative_to("/")
+    # Fetched up front, so that hashing takes no wait once the password is typed,
+    # and the later `nix run` resolves it from the evaluation cache.
+    subprocess_stdout(nix_argv("build", "--no-link", f"{cfg.flake}#mkpasswd"))
+    typer.echo(f"Setting the password of {user}@{machine} in {file}", err=True)
     password = typer.prompt("New password", hide_input=True, confirmation_prompt=True)
 
     if not password:

@@ -29,7 +29,7 @@ nix run github:mirkolenz/infra -- disko MACHINE_NAME --mode destroy,format,mount
 # print hardware config and verify it is in sync with the flake
 nixos-generate-config --no-filesystems --show-hardware-config
 # set up user passwords
-nix run github:mirkolenz/infra -- passwd /mnt/etc/nixos/secrets/USER.passwd
+nix run github:mirkolenz/infra -- passwd --root /mnt MACHINE_NAME USER
 # install the system
 nix run github:mirkolenz/infra -- nixos-install MACHINE_NAME
 ```
@@ -289,10 +289,10 @@ sudo podman run --rm --subuidname=$USER ubuntu cat /proc/self/uid_map
 
 ### Password Hashing
 
-Prompts for a password and writes its yescrypt hash to the given `users.users.*.hashedPasswordFile`.
+Prompts for a password and writes its yescrypt hash to the `users.users.USER.hashedPasswordFile` that the configuration of `MACHINE_NAME` declares.
 
 ```shell
-sudo nix run github:mirkolenz/infra -- passwd /etc/nixos/secrets/USER.passwd
+sudo nix run github:mirkolenz/infra -- passwd MACHINE_NAME USER
 ```
 
 ### Zellij Web Tokens
