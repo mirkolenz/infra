@@ -124,15 +124,6 @@ in
         settings = {
           # prefer a live forwarded agent over the IdentityAgent of `*` (1Password)
           "Match exec 'test -S ${agentLink}'".IdentityAgent = agentLink;
-          "*" = {
-            # default config from home manager module
-            ForwardAgent = false;
-            Compression = false;
-            ServerAliveInterval = 0;
-            ServerAliveCountMax = 3;
-            HashKnownHosts = false;
-            UserKnownHostsFile = "~/.ssh/known_hosts";
-          };
           "gpu" = {
             HostName = "gpu.wi2.uni-trier.de";
             ForwardAgent = true;
