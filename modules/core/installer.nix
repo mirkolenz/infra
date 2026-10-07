@@ -54,6 +54,11 @@
         };
       };
 
+      # The settings above land in nix.custom.conf, which only the nix.conf written
+      # by determinate-nixd includes. Started on demand, the daemon writes it after
+      # the first client has already read its config on the fresh live system.
+      systemd.services.nix-daemon.wantedBy = [ "multi-user.target" ];
+
       system.installer.channel.enable = false;
     };
 }
