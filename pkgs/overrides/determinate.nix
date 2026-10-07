@@ -5,6 +5,7 @@ let
   inherit (prev) lib;
 in
 lib.genAttrs [
+  "disko"
   "nix-update"
   "nixos-rebuild-ng"
   "nixpkgs-review"
