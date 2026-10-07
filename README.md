@@ -2,10 +2,10 @@
 
 # Nix Setup
 
-This repo contains a custom wrapper to build NixOS/nix-darwin/home-manager:
+This repo contains `flakectl`, a wrapper to build, install, and update NixOS/nix-darwin/home-manager configurations:
 
 ```shell
-nix run github:mirkolenz/infra -- --wrapper-help
+nix run github:mirkolenz/infra -- --help
 ```
 
 ## Repository Structure
