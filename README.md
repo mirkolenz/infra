@@ -16,50 +16,7 @@ A module is one cohesive feature filed under one directory, the namespace of its
 
 ## NixOS Computers
 
-### Manual Terminal Setup
-
-- <https://www.adaltas.com/en/2022/02/08/nixos-installation/>
-- <https://wiki.nixos.org/wiki/NixOS_Installation_Guide>
-- <https://gist.github.com/Vincibean/baf1b76ca5147449a1a479b5fcc9a222>
-
-#### Partitioning
-
-```shell
-parted -l # find device name
-wipefs -a /dev/sda
-parted /dev/sda
-mklabel gpt
-mkpart boot fat32 0% 512MiB
-set 1 esp on
-unit GiB print free
-# determine the swap size by substractting the amount of your ram from the free size
-# for instance, free size here is 238GiB and the ram of the system is 8GiB
-mkpart root ext4 512MiB 230GiB
-mkpart swap linux-swap 230GiB 100%
-```
-
-#### Formatting
-
-```shell
-mkfs.fat -F 32 -n boot /dev/sda1
-mkfs.ext4 -L root /dev/sda2
-mkswap -L swap /dev/sda3
-```
-
-#### Mounting
-
-```shell
-mount /dev/disk/by-label/root /mnt
-swapon /dev/disk/by-label/swap
-mkdir -p /mnt/boot
-mount /dev/disk/by-label/boot /mnt/boot
-# generate hardware config with filesystems
-nixos-generate-config --root /mnt
-```
-
-The rest is identical to the disko-based setup after `nixos-generate-config`.
-
-### Disko Terminal Setup
+### Installation
 
 - <https://github.com/nix-community/disko/blob/master/docs/quickstart.md>
 - <https://github.com/nix-community/disko/blob/master/docs/reference.md>
@@ -69,8 +26,8 @@ The rest is identical to the disko-based setup after `nixos-generate-config`.
 ls -l /dev/disk/by-id
 # format the disk
 nix run github:mirkolenz/infra#disko -- MACHINE_NAME --mode destroy,format,mount
-# generate hardware config and verify /mnt/etc/nixos/hardware-configuration.nix is in sync with the flake
-nixos-generate-config --no-filesystems --root /mnt
+# print hardware config and verify it is in sync with the flake
+nixos-generate-config --no-filesystems --show-hardware-config
 # set up user passwords
 nix run github:mirkolenz/infra -- passwd /mnt/etc/nixos/secrets/USER.passwd
 # install the system
