@@ -9,7 +9,6 @@
         "alt-tab"
         "anydesk"
         "arq"
-        "balenaetcher"
         "betterdisplay"
         "chatgpt"
         "claude"

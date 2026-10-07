@@ -299,6 +299,12 @@ nix build github:mirkolenz/infra#.legacyPackages.aarch64-linux.installer-raspi.s
 nix build github:mirkolenz/infra#.legacyPackages.x86_64-linux.installer-apple-t2.iso-installer
 ```
 
+Flash the image to a USB drive or SD card with `caligula`:
+
+```shell
+sudo caligula burn --hash skip --compression auto result/iso/*.iso
+```
+
 ### Update Raspberry Pi
 
 <https://nix.dev/tutorials/installing-nixos-on-a-raspberry-pi#updating-firmware>

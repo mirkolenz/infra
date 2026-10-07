@@ -59,6 +59,7 @@
         harlequin
         flow-control
         google-lighthouse
+        caligula
         # markdown
         html2markdown
         md-tui
