@@ -468,11 +468,11 @@
     },
     "nixpkgs-darwin-stable": {
       "locked": {
-        "lastModified": 1791244311,
-        "narHash": "sha256-0LJ61OirLSJQvxTyd9uo7XbF6LiBDn0E6t/9ciUTeQ4=",
-        "rev": "2bd3427b41d10b8318383195efe502ed1baca6cd",
+        "lastModified": 1791447531,
+        "narHash": "sha256-ZoYGC8HplKguABLptjLjiBIYRFL0HM7Obp2J4QXRno4=",
+        "rev": "55afc4c3adc7194df3b96d43b7d18bf8131bfcfa",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixpkgs/26.05-darwin/nixpkgs-darwin-26.05pre1015562.2bd3427b41d1/nixexprs.tar.zst"
+        "url": "https://releases.nixos.org/nixpkgs/26.05-darwin/nixpkgs-darwin-26.05pre1015872.55afc4c3adc7/nixexprs.tar.zst"
       },
       "original": {
         "type": "tarball",
@@ -757,11 +757,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791474985,
-        "narHash": "sha256-nfQLQPbfB7ody6DY/qPg/rprpVhXVM+9dav+m/rUiRM=",
+        "lastModified": 1791490544,
+        "narHash": "sha256-qScE7Wz6Zg7eg8ItUpnkmKgst8weWschGe0E8jM4rj4=",
         "owner": "numtide",
         "repo": "treefmt-nix",
-        "rev": "2108ed809134967affc3f6ef203967c13af05a5f",
+        "rev": "4cfe8d7065cc8ca91c0a50361b6dd74920eeb1f5",
         "type": "github"
       },
       "original": {
