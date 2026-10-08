@@ -12,11 +12,9 @@
       # 7.2 is what the MacBookPro13,1 community setups validate S3 against.
       boot.kernelPackages = pkgs.linuxPackages_latest;
 
-      # The firmware cuts the SSD's power when its root port enters D3cold,
-      # and the kernel has no quirk for Apple's controller.
-      # Matched by ID because the controller does not report the NVMe class code.
+      # The firmware cuts power in D3cold that the kernel cannot restore, the SSD's included.
       services.udev.extraRules = ''
-        ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x106b", ATTR{device}=="0x2003", ATTR{d3cold_allowed}="0"
+        ACTION=="add", SUBSYSTEM=="pci", ATTR{d3cold_allowed}="0"
       '';
 
       # The BCM4350 loses power in S3 and brcmfmac never recovers it.
