@@ -14,6 +14,9 @@
 
       services.fwupd.enable = true;
 
+      # `nixos-hardware/apple` turns on this out-of-tree webcam driver, which breaks on new kernels.
+      hardware.facetimehd.enable = false;
+
       systemd.enableStrictShellChecks = true;
 
       documentation = {

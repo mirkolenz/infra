@@ -1,4 +1,4 @@
-# Graphics acceleration and MacBook peripherals (FaceTime HD camera, fan control).
+# Graphics acceleration and MacBook peripherals (fan control).
 {
   flake.modules.nixos.base =
     {
@@ -7,10 +7,7 @@
       ...
     }:
     lib.mkIf config.custom.features.graphical.enable {
-      hardware = {
-        graphics.enable = true;
-        facetimehd.withCalibration = true;
-      };
+      hardware.graphics.enable = true;
 
       services.mbpfan = {
         enable = false;
