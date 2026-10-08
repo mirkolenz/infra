@@ -17,15 +17,10 @@
         ACTION=="add", SUBSYSTEM=="pci", ATTR{d3cold_allowed}="0"
       '';
 
-      # The BCM4350 loses power in S3 and brcmfmac never recovers it.
-      # These commands also run on shutdown, so the chip is reset before a warm reboot as well.
-      # Loading brcmfmac arms ARPT again, so the wake sources are fixed up after the unload.
-      # XHC1, the root ports and Thunderbolt (RP05, XHC2) wake S3 spuriously.
-      # LID0 can come up disarmed, leaving no way to wake from deep.
-      # The keyboard (SPIT) wakes S3 spuriously too, but is the only way to wake s2idle with the lid open.
+      # All but LID0 wake S3 spuriously, and LID0 can come up disarmed.
+      # brcmfmac re-probes the BCM4350 after S3, which arms ARPT again.
+      # The keyboard (SPIT) is the only way to wake s2idle with the lid open.
       powerManagement.powerDownCommands = ''
-        ${pkgs.kmod}/bin/modprobe -r brcmfmac_wcc brcmfmac || true
-
         # Writing a device to /proc/acpi/wakeup toggles it.
         wakeup() {
           if ! grep -q "^$1\s.*\*$2" /proc/acpi/wakeup; then
@@ -46,9 +41,6 @@
           wakeup SPIT enabled
           echo s2idle > /sys/power/mem_sleep
         fi
-      '';
-      powerManagement.resumeCommands = ''
-        ${pkgs.kmod}/bin/modprobe brcmfmac
       '';
     };
 }
