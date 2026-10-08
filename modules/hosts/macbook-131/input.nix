@@ -7,14 +7,9 @@
       "intel_lpss_pci"
     ];
 
-    # Touchpad quirks to make "disable-while-typing" work, from nixos-hardware's 14-1.
+    # libinput ships the touchpad quirks, but its keyboard entry expects Apple's vendor ID,
+    # which applespi leaves unset. Without it "disable-while-typing" never pairs the two.
     environment.etc."libinput/local-overrides.quirks".text = ''
-      [MacBook(Pro) SPI Touchpads]
-      MatchName=*Apple SPI Touchpad*
-      ModelAppleTouchpad=1
-      AttrTouchSizeRange=200:150
-      AttrPalmSizeThreshold=1100
-
       [MacBook(Pro) SPI Keyboards]
       MatchName=*Apple SPI Keyboard*
       AttrKeyboardIntegration=internal
