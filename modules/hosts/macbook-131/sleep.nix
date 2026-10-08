@@ -9,33 +9,43 @@
   configurations.nixos.macbook-131.module =
     { pkgs, ... }:
     {
+      # 7.2 is what the MacBookPro13,1 community setups validate S3 against.
+      boot.kernelPackages = pkgs.linuxPackages_latest;
+
       # The firmware cuts the SSD's power when its root port enters D3cold,
       # and the kernel has no quirk for Apple's controller.
+      # Matched by ID because the controller does not report the NVMe class code.
       services.udev.extraRules = ''
-        ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x106b", ATTR{class}=="0x010802", ATTR{d3cold_allowed}="0"
+        ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x106b", ATTR{device}=="0x2003", ATTR{d3cold_allowed}="0"
       '';
 
       # The BCM4350 loses power in S3 and brcmfmac never recovers it.
       # These commands also run on shutdown, so the chip is reset before a warm reboot as well.
       # Loading brcmfmac arms ARPT again, so the wake sources are fixed up after the unload.
-      # XHC1, the root ports, Thunderbolt (RP05, XHC2) and the keyboard (SPIT) wake S3 spuriously.
+      # XHC1, the root ports and Thunderbolt (RP05, XHC2) wake S3 spuriously.
       # LID0 can come up disarmed, leaving no way to wake from deep.
+      # The keyboard (SPIT) wakes S3 spuriously too, but is the only way to wake s2idle with the lid open.
       powerManagement.powerDownCommands = ''
         ${pkgs.kmod}/bin/modprobe -r brcmfmac_wcc brcmfmac || true
 
-        for device in XHC1 ARPT RP01 RP05 RP09 RP10 XHC2 SPIT; do
-          if grep -q "^$device\s.*\*enabled" /proc/acpi/wakeup; then
-            echo "$device" > /proc/acpi/wakeup
+        # Writing a device to /proc/acpi/wakeup toggles it.
+        wakeup() {
+          if ! grep -q "^$1\s.*\*$2" /proc/acpi/wakeup; then
+            echo "$1" > /proc/acpi/wakeup
           fi
+        }
+
+        for device in XHC1 ARPT RP01 RP05 RP09 RP10 XHC2; do
+          wakeup "$device" disabled
         done
 
-        if grep -q "^LID0\s.*\*disabled" /proc/acpi/wakeup; then
-          echo LID0 > /proc/acpi/wakeup
-        fi
+        wakeup LID0 enabled
 
         if grep -q closed /proc/acpi/button/lid/LID0/state; then
+          wakeup SPIT disabled
           echo deep > /sys/power/mem_sleep
         else
+          wakeup SPIT enabled
           echo s2idle > /sys/power/mem_sleep
         fi
       '';
