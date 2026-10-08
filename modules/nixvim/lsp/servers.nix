@@ -1,5 +1,5 @@
 {
-  flake.modules.nixvim.default = { pkgs, ... }: {
+  flake.modules.nixvim.default = {
     plugins.lspconfig.enable = true;
     lsp = {
       inlayHints.enable = true;
@@ -18,11 +18,10 @@
         phpactor.enable = true;
         tailwindcss.enable = true;
         tombi.enable = true;
-        tsgo.enable = true;
+        tsc.enable = true;
         yamlls.enable = true;
         # keep-sorted end
       };
-      servers.tsgo.package = pkgs.typescript;
     };
   };
 }
