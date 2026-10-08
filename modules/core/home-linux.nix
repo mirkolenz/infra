@@ -38,12 +38,15 @@
           teams-for-linux
           stamp
           todoist-electron
-          libreoffice-stable
           # papers ships with the GNOME core apps but not with Cosmic
           papers
           # the desktop build bundles the server, so it needs no separate host
           stirling-pdf-desktop
         ];
+        programs.libreoffice = {
+          enable = true;
+          package = pkgs.libreoffice-stable;
+        };
         home.file.".face".source = ./mlenz.jpg;
       }
     )
