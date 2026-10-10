@@ -9,6 +9,7 @@ and the others keep their precision, so `>=2,<3` becomes `>=3,<4` instead of `>=
 import json
 import subprocess
 import sys
+import tomllib
 from collections.abc import Iterator, Mapping
 from itertools import groupby
 from operator import itemgetter
@@ -16,7 +17,6 @@ from pathlib import Path
 from typing import NotRequired, TypedDict
 
 import questionary
-import tomllib
 from packaging.requirements import Requirement
 from packaging.specifiers import Specifier, SpecifierSet
 from packaging.utils import canonicalize_name
