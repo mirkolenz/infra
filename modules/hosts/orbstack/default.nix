@@ -26,8 +26,6 @@ in
       # lxc imports installer/cd-dvd/channel.nix
       system.installer.channel.enable = false;
 
-      nix.settings.trusted-users = [ config.custom.user.login ];
-
       home-manager.users.${config.custom.user.login} = {
         programs.fish.functions.fish_greeting.body = lib.mkForce "";
       };

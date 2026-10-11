@@ -1,5 +1,5 @@
 # General desktop defaults: NetworkManager, the default keyboard layout, and
-# personal-workstation conveniences (Nix trust, nix-ld) for interactive machines.
+# personal-workstation conveniences (nix-ld) for interactive machines.
 {
   flake.modules.nixos.base =
     {
@@ -19,8 +19,6 @@
       # its wait-online times out and fails the rebuild.
       # NetworkManager-wait-online.service already gates network-online.target.
       systemd.network.wait-online.enable = false;
-
-      nix.settings.trusted-users = [ "@wheel" ];
 
       programs.nix-ld.enable = true;
 
