@@ -38,36 +38,6 @@ final: prev:
       runHook postInstall
     '';
   };
-
-  # semgrep's pyproject uses setuptools, which nixpkgs omits from the build system.
-  # Its pyjwt constraint also rejects nixpkgs' newer minor release.
-  # https://github.com/NixOS/nixpkgs/pull/548258#issuecomment-5912937007
-  pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
-    (
-      pyfinal: pyprev:
-      {
-        semgrep = pyprev.semgrep.overridePythonAttrs (prevAttrs: {
-          build-system = (prevAttrs.build-system or [ ]) ++ [ pyfinal.setuptools ];
-          pythonRelaxDeps = (prevAttrs.pythonRelaxDeps or [ ]) ++ [ "pyjwt" ];
-        });
-      }
-      // prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
-        # libvirt's test driver fails to load the libxml2 checkpoint schema on darwin,
-        # and reports the default domain as inactive with ID -1.
-        libvirt = pyprev.libvirt.overridePythonAttrs (prevAttrs: {
-          disabledTests = (prevAttrs.disabledTests or [ ]) ++ [
-            "testCheckpointCreate"
-            "testDomainIDReturnsValidValue"
-          ];
-        });
-
-        # nixpkgs hardcodes the lldb store path on darwin, so the test expecting a bare `lldb` fails.
-        debugpy = pyprev.debugpy.overridePythonAttrs (prevAttrs: {
-          disabledTests = (prevAttrs.disabledTests or [ ]) ++ [ "test_lldb_command" ];
-        });
-      }
-    )
-  ];
 }
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
 
@@ -96,6 +66,15 @@ final: prev:
 
 })
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
+
+  pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+    (_: pyprev: {
+      # nixpkgs hardcodes the lldb store path on darwin, so the test expecting a bare `lldb` fails.
+      debugpy = pyprev.debugpy.overridePythonAttrs (prevAttrs: {
+        disabledTests = (prevAttrs.disabledTests or [ ]) ++ [ "test_lldb_command" ];
+      });
+    })
+  ];
 
   # Replace the SVG driver's Windows-only header with POSIX headers, as Homebrew does.
   # https://github.com/Homebrew/homebrew-core/pull/261141
