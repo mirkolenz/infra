@@ -1,0 +1,14 @@
+{
+  "tag_name": "v0.79.0",
+  "assets": {
+    "nono-v0.79.0-aarch64-apple-darwin.tar.gz": {
+      "digest": "sha256:e46365b08aecff0acc9c7b86f5d4b1745c385034189d50822156e43881479168"
+    },
+    "nono-v0.79.0-aarch64-unknown-linux-gnu.tar.gz": {
+      "digest": "sha256:c4a4f4b9ae318574d30d352127a34dcc919c4d6682ee8fbd30bb8d2bd2e0e85d"
+    },
+    "nono-v0.79.0-x86_64-unknown-linux-gnu.tar.gz": {
+      "digest": "sha256:36dfeeb6e8c6a30c43f80ba239e2460af43047c008153af527fdd893c1f02392"
+    }
+  }
+}
