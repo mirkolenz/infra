@@ -123,14 +123,10 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
       manifest="$(
         curl -fsSL --compressed "${baseUrl}/$version/manifest.zst.json" \
-        | jq '{
+        | jq --argjson platforms '${builtins.toJSON (lib.attrValues platforms)}' '{
           version,
           platforms: .platforms | with_entries(
-            select(.key | test("^(darwin|linux)-(x64|arm64)$"))
-            | {
-              key,
-              value: { binary: .value.binary, checksum: .value.checksum }
-            }
+            select(.key | IN($platforms[])) | .value |= { binary, checksum }
           )
         }'
       )"
