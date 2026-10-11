@@ -157,6 +157,9 @@
             { "${dir}/${name}/SKILL.md" = mkAgentFile content; }
         ) skills;
 
+    # The opnix config of the host, a home-manager module reads it from its `args`.
+    osOpnix = args: args.osConfig.services.onepassword-secrets or { enable = false; };
+
     # Whether CI builds `drv`, following Hydra's `meta.hydraPlatforms` convention.
     # flakectl's `check-build` and `check-flake` split `checks` by the same rule.
     isHydraTarget = drv: lib.elem drv.system (drv.meta.hydraPlatforms or [ drv.system ]);

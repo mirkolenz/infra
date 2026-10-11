@@ -3,10 +3,6 @@
 # never enter the nix store or the git repo.
 {
   configurations.nixos.macbook-161.module = {
-    systemd.services.opnix-secrets = {
-      enableStrictShellChecks = false;
-    };
-
     services.onepassword-secrets = {
       enable = true;
       secrets = {

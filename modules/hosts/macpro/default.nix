@@ -71,6 +71,8 @@ in
           };
         };
 
+        services.onepassword-secrets.enable = true;
+
         services.tailscale = {
           extraSetFlags = [
             "--advertise-exit-node"

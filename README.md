@@ -227,21 +227,33 @@ sudo usermod -s $(which fish) "$USER"
 
 ## Utilities and Snippets
 
-### Nix Access Tokens
+### GitHub Tokens
 
-To avoid rate limiting, add a [GitHub access token](https://nix.dev/manual/nix/stable/command-ref/conf-file.html#conf-access-tokens).
-Add the following to `/etc/nix/nix.secrets.conf`:
+opnix renders two GitHub tokens from the item `GitHub` in the 1Password vault `NixOS` on the NixOS and macOS hosts that set `services.onepassword-secrets.enable`, other hosts get neither.
+Use a single fine-grained token for public repositories or selected ones, with read-only access to Contents, Metadata, Actions, Pull requests, Issues, and Commit statuses.
 
-```ini
-access-tokens = github.com=github_pat_XXX
-```
+- The field `nix-conf` holds the [access tokens](https://nix.dev/manual/nix/stable/command-ref/conf-file.html#conf-access-tokens) of nix, which avoid rate limits, as the line `access-tokens = github.com=github_pat_XXX`.
+  It lands in `/var/lib/opnix/nix/secrets.conf` on NixOS and `/usr/local/var/opnix/nix/secrets.conf` on macOS, owned by root and readable by the admin group, since the nix client fetches flakes as your user.
+  nix skips the include while the file is missing.
+- The field `credential` holds the bare token, which nono injects into the sandboxed agents as `GH_TOKEN`.
+  It lands in `/var/lib/opnix/agents/github-token` on NixOS and `/usr/local/var/opnix/agents/github-token` on macOS, owned by your user with mode `0400`.
+  nono aborts the launch of an agent while the file is missing, so provision it before the first start.
 
-Set permissions as follows:
+The agent sandbox denies the nix access tokens, and the nix daemon trusts no user but root, so nobody can hand the daemon other settings.
+Standalone home-manager hosts get neither token, their admin has to add an include to `/etc/nix/nix.custom.conf`.
+
+To provision a host, create a 1Password service account with read access to the vault `NixOS` and store its token on every host.
+`opnix token set` reads the token from stdin, so it also works headless, e.g. `sudo opnix token set < token.txt`.
 
 ```shell
-sudo chown root /etc/nix/nix.secrets.conf
-sudo chmod 640 /etc/nix/nix.secrets.conf
+sudo opnix token set
+# NixOS
+sudo systemctl restart opnix-secrets
+# macOS
+sudo launchctl kickstart -k system/org.nixos.opnix-secrets
 ```
+
+The service account token stays in `/etc/opnix-token`, readable by root only, since the group `onepassword-secrets` has no members.
 
 ### S3 Binary Cache
 

@@ -1,9 +1,13 @@
 # Nix wiring across home-manager, nixos and darwin: GC, store optimisation,
 # determinate hookup, the secrets include and the nix tooling.
 # The settings attrsets themselves live in settings.nix.
+{ lib, ... }:
 let
   # Age of the profile generations that garbage collection deletes.
   gcAge = "7d";
+
+  # The access tokens of nix on the machines that enable opnix, a missing file is skipped.
+  secretsInclude = opnix: lib.mkIf opnix.enable "!include ${opnix.secretPaths.nixAccessTokens}\n";
 in
 {
   flake.modules.nixos.base =
@@ -17,9 +21,7 @@ in
       nix = {
         package = lib.mkForce pkgs.determinate-nix;
         channel.enable = false;
-        extraOptions = ''
-          !include nix.secrets.conf
-        '';
+        extraOptions = secretsInclude config.services.onepassword-secrets;
         gc = {
           automatic = true;
           options = "--delete-older-than ${gcAge}";
@@ -60,7 +62,7 @@ in
     };
 
   flake.modules.darwin.base =
-    { lib, ... }:
+    { config, lib, ... }:
     {
       # https://github.com/DeterminateSystems/determinate/blob/main/modules/nix-darwin/default.nix
       determinateNix = {
@@ -74,9 +76,7 @@ in
           builder.state = lib.mkDefault "enabled";
         };
       };
-      environment.etc."nix/nix.custom.conf".text = ''
-        !include nix.secrets.conf
-      '';
+      environment.etc."nix/nix.custom.conf".text = secretsInclude config.services.onepassword-secrets;
       nix.enable = false;
     };
 
