@@ -133,6 +133,8 @@
             # breaks nix flake operations with path references
             # https://github.com/NixOS/nix/issues/11567
             fsmonitor = false;
+            # no hooks at all, so agents cannot plant one, as long as the repository config stays read-only
+            hooksPath = "/dev/null";
           };
           feature = {
             manyFiles = true;
