@@ -143,7 +143,7 @@
             schemes = {
               ftp = "Cyberduck";
               # http = "/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app";
-              http = "Vivaldi";
+              http = "Firefox";
               mailto = "Mail";
               sftp = "Cyberduck";
               ssh = "Ghostty";

@@ -46,7 +46,6 @@
         "vicinae"
         "viscosity"
         "visual-studio-code"
-        "vivaldi"
         "wifiman"
         "zed"
         "zoom"

@@ -17,13 +17,6 @@
     }:
     lib.mkIf config.custom.features.graphical.enable {
       programs._1password-gui.polkitPolicyOwners = [ config.custom.user.login ];
-
-      environment.etc."1password/custom_allowed_browsers" = {
-        text = ''
-          vivaldi-bin
-        '';
-        mode = "0755";
-      };
     };
 
   # The SSH agent and git signing rely on the 1Password app installed by the
