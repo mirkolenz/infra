@@ -1,4 +1,32 @@
+let
+  knownMarketplaces = {
+    claude-plugins-official = {
+      source = "github";
+      repo = "anthropics/claude-plugins-official";
+    };
+    openai-codex = {
+      source = "github";
+      repo = "openai/codex-plugin-cc";
+    };
+  };
+
+  # Policies that only managed settings enforce, for the CLI and the desktop app alike.
+  managedSettings =
+    { config, lib, ... }:
+    {
+      programs.claude-code.managedSettings =
+        lib.mkIf
+          config.home-manager.users.${config.custom.user.login}.programs.agents.enable
+          {
+            # the plugin of home-manager lives in `~/.claude/skills`, which any allowlist excludes otherwise
+            strictKnownMarketplaces = lib.attrValues knownMarketplaces ++ [ { source = "skills-dir"; } ];
+          };
+    };
+in
 {
+  flake.modules.darwin.base = managedSettings;
+  flake.modules.nixos.base = managedSettings;
+
   flake.modules.homeManager.default =
     {
       config,
@@ -32,17 +60,6 @@
         opus = "claude-opus-5-5";
         sonnet = "claude-sonnet-5-5";
         haiku = "claude-haiku-4-5";
-      };
-
-      knownMarketplaces = {
-        claude-plugins-official = {
-          source = "github";
-          repo = "anthropics/claude-plugins-official";
-        };
-        openai-codex = {
-          source = "github";
-          repo = "openai/codex-plugin-cc";
-        };
       };
     in
     lib.mkIf config.programs.agents.enable {
@@ -102,7 +119,6 @@
               }) resolved.unset;
             };
           };
-          strictKnownMarketplaces = lib.attrValues knownMarketplaces;
           extraKnownMarketplaces = lib.mapAttrs (_name: source: { inherit source; }) knownMarketplaces;
           enabledPlugins = {
             "code-simplifier@claude-plugins-official" = true;
