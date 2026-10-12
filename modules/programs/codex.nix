@@ -133,6 +133,8 @@
             "auth.openai.com"
             "chatgpt.com"
           ];
+          # the browser use of the ChatGPT app, whose in-app browser serves it here
+          unixSocketDirs = [ "/tmp/codex-browser-use" ];
         };
         # The project config, except for the skills.
         # Codex protects `.agents` natively, except for the skills of every agent there.

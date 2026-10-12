@@ -210,6 +210,7 @@
             # their content sits in the readable store anyway. The denies of `paths` only yield to `exemptFiles`.
             bypass_protection = managedFiles;
             unix_socket = sandbox.unixSockets;
+            unix_socket_dir = fromHarnesses "unixSocketDirs";
             # sockets tools create for themselves, such as the forkserver of Python's multiprocessing
             unix_socket_subtree_bind = [
               "/tmp"
@@ -236,6 +237,12 @@
                 ];
               }
           );
+          # Opened in the browser of the host by nono after checking the origin, for logins and dev servers.
+          # Unlike `allow_launch_services`, this cannot open files or apps.
+          open_urls = {
+            allow_origins = map (domain: "https://${domain}") harnessDomains;
+            allow_localhost = true;
+          };
           environment = {
             deny_vars = sandbox.unset;
             set_vars = sandbox.set;

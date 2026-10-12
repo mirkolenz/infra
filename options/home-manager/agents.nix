@@ -179,6 +179,16 @@
               default = [ ];
               description = "Hosts the harness itself talks to, reachable within nono.";
             };
+
+            unixSocketDirs = lib.mkOption {
+              type = with lib.types; listOf str;
+              default = [ ];
+              example = [ "/tmp/codex-browser-use" ];
+              description = ''
+                Directories whose sockets the harness connects to within nono, such as those
+                of a desktop app it drives, skipped while missing.
+              '';
+            };
           };
         }
       );

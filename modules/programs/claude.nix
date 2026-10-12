@@ -166,6 +166,8 @@
             "api.anthropic.com"
             "claude.ai"
             "platform.claude.com"
+            # Claude in Chrome, whose extension meets the session on this relay
+            "bridge.claudeusercontent.com"
           ];
         };
         # The project config, which claude would otherwise run outside of nono later,
