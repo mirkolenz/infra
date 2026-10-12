@@ -1,12 +1,12 @@
 ---
 name: my-commit
 description: |
-  Splits uncommitted changes into atomic commits, one logical change each, down to single lines within a file.
+  Splits uncommitted changes into commits, one semantically coherent change each, splitting within a file only when it mixes unrelated changes.
   The argument narrows the paths and defaults to the whole working tree.
   Use when the user asks to commit, to split changes into atomic commits, or to amend unpushed commits.
 ---
 
-Turn the working tree into a sequence of commits where each one does a single thing and can be reverted alone.
+Turn the working tree into a short sequence of commits where each one is a meaningful change that can be reverted alone.
 Invoking this skill is the permission to commit, but never push, and never modify the working tree.
 Only amend when the user asks, and only commits that are not on any remote.
 
@@ -44,8 +44,9 @@ Never touch context lines.
 ## Steps
 
 1. Group the hunks, and the lines inside a hunk, into commits.
-   - One reason per commit. If the message needs an "and", split further.
-   - Keep refactors and formatting apart from behavior changes.
+   - One purpose per commit, such as a feature, a fix, or a refactor, together with the edits that support it.
+   - Prefer fewer, larger commits. Split only where the parts make sense on their own, never into one-line commits for their own sake.
+   - Keep sizable refactors and formatting apart from behavior changes.
    - Keep generated files and lockfiles with the change that produced them.
    - Order commits so that each one only depends on earlier ones.
    - Leave debug output and scratch files uncommitted.
