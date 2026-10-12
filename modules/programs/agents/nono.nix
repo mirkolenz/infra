@@ -25,16 +25,26 @@
 
       mediateCommands = isDarwin && blockedCommands != [ ];
 
+      # Seatbelt filters. Seatbelt misses anchored alternatives within one regex,
+      # so every rule combines plain filters instead, each regex holding at most one anchor.
+      subpath = path: "(subpath ${lib.toJSON path})";
+      regex = pattern: ''(regex #"${pattern}")'';
+
+      # Denies `operations` on the paths matching `filter`, except for those matching any of `exceptions`.
+      deny =
+        operations: filter: exceptions:
+        "(deny ${operations} (require-all ${filter}${
+          lib.concatMapStrings (exception: " (require-not ${exception})") exceptions
+        }))";
+
       # Throwaway clones and caches, where a fresh repository needs its git config.
       # Seatbelt sees canonical paths, `/tmp` and `$TMPDIR` resolve below `/private`.
-      scratch = "^(${
-        lib.concatMapStringsSep "|" lib.escapeRegex [
-          "/private/tmp"
-          "/private/var/folders"
-          config.xdg.cacheHome
-          "${config.home.homeDirectory}/Library/Caches"
-        ]
-      })/";
+      scratch = map subpath [
+        "/private/tmp"
+        "/private/var/folders"
+        config.xdg.cacheHome
+        "${config.home.homeDirectory}/Library/Caches"
+      ];
 
       # A relative key as a regex, `**/` matching any directories and `*` within a path segment.
       keyRegex =
@@ -43,8 +53,9 @@
           part: lib.concatMapStringsSep "[^/]*" lib.escapeRegex (lib.splitString "*" part)
         ) (lib.splitString "**/" key);
 
-      # Relative keys as a regex for a path at or below any of them.
-      keysRegex = keys: "/(${lib.concatMapStringsSep "|" keyRegex keys})(/|$)";
+      # A path at or below a match of `key`, at any depth or directly within `root`.
+      keyFilter = key: regex "/${keyRegex key}(/|$)";
+      rootedKeyFilter = root: key: regex "^${lib.escapeRegex root}/${keyRegex key}(/|$)";
 
       writeKeys = namesWithValue "write" relative;
 
@@ -57,37 +68,22 @@
         deny = "file-read-data file-write*";
       };
 
-      # The restricted relative keys, grouped by their access and exemptions to share a rule.
-      restricted = lib.groupBy (key: "${relative.${key}} ${toString (exemptions key)}") (
-        lib.attrNames (lib.filterAttrs (_: access: access != "write") relative)
-      );
-
       # Relative keys apply at any depth, so repositories added later are covered as well.
       # The home directory holds the state of the agents.
-      seatbeltDeny =
-        keys:
-        let
-          exempt = exemptions (lib.head keys);
-        in
-        ''(deny ${seatbeltOperations.${relative.${lib.head keys}}} (require-all (regex #"${keysRegex keys}") (require-not (regex #"${
-          lib.concatStringsSep "|" (
-            [
-              scratch
-              "^${lib.escapeRegex config.home.homeDirectory}${keysRegex keys}"
-            ]
-            ++ lib.optional (exempt != [ ]) (keysRegex exempt)
-          )
-        }"))))'';
+      relativeRule =
+        key: access:
+        deny seatbeltOperations.${access} (keyFilter key) (
+          scratch ++ [ (rootedKeyFilter config.home.homeDirectory key) ] ++ map keyFilter (exemptions key)
+        );
 
       # Platform rules come last in the nono policy, so these denies win over its grants.
+      # nono cannot make a path read-only within a writable one, a bypass takes the access of every covering grant.
       seatbeltRules =
-        map seatbeltDeny (lib.attrValues restricted)
-        ++ lib.optional (readPaths != [ ]) "(deny file-write* ${
-          lib.concatMapStringsSep " " (path: "(subpath ${lib.toJSON path})") readPaths
-        })"
+        lib.mapAttrsToList relativeRule (lib.filterAttrs (_: access: access != "write") relative)
+        ++ map (path: deny "file-write*" (subpath path) [ ]) readPaths
         ++ [
           # Keeps the `.git` of every repository in place, a rename covers the source as well.
-          ''(deny file-write-unlink (require-all (regex #"/\.git$") (require-not (regex #"${scratch}"))))''
+          (deny "file-write-unlink" (regex ''/\.git$'') scratch)
         ];
 
       # agents may write drafts, which only `nono profile promote` outside of nono applies
