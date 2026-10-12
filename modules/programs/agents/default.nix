@@ -83,8 +83,6 @@
           paths = {
             # the whole store, which the nix daemon serves to every user anyway
             "/nix" = "read";
-            # hook environments that run outside the sandbox later, the agents get their own below
-            "${config.xdg.cacheHome}/pre-commit" = "read";
             "${config.home.homeDirectory}/.npm" = "write";
             "${config.xdg.cacheHome}" = "write";
             # nono grants it write-only, but agents and scripts read back what they put there
@@ -116,9 +114,6 @@
             ".git/modules/**/info" = "read";
             ".git/worktrees/*/config.worktree" = "read";
             ".gitmodules" = "read";
-            ".pre-commit-config.yaml" = "read";
-            ".husky" = "read";
-            "lefthook.yml" = "read";
             ".envrc" = "read";
             ".direnv" = "read";
             ".devcontainer" = "read";
@@ -148,7 +143,6 @@
             # those sockets, and the keys stay unreadable through their `deny` entry in `paths`.
             SSH_AUTH_SOCK = null;
             ASTRO_TELEMETRY_DISABLED = "1";
-            PRE_COMMIT_HOME = "${config.xdg.cacheHome}/pre-commit-agents";
             GH_CONFIG_DIR = "${config.xdg.cacheHome}/gh-agents";
             # determinate-nix spawns a sentry crashpad_handler that cannot register its
             # mach bootstrap port inside the sandbox, so disable it to avoid stderr noise
