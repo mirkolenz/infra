@@ -130,7 +130,7 @@ in
               type = with types; nullOr str;
               default = null;
               example = "--add-dir";
-              description = "Flag of the harness that adds a workspace directory, passed for every `NONO_ALLOW` entry.";
+              description = "Flag of the harness that adds a workspace directory, passed for every `NONO_ALLOW` entry, and whose own directories nono grants as well.";
             };
 
             # Granted like `programs.agents.sandbox.paths`, but within nono alone.

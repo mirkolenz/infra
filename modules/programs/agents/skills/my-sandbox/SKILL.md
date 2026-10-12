@@ -38,7 +38,7 @@ nono profile show agents
 
 Report what was denied and the rule behind it, then offer these options.
 
-1. For a one-off directory, the user restarts the agent with `NONO_ALLOW=/path/to/dir <agent>`, which grants read and write access.
+1. For a one-off directory, the user restarts the agent with `<agent> --add-dir /path/to/dir` or `NONO_ALLOW=/path/to/dir <agent>`, which grants read and write access.
 2. For read-only access, a file, or a host, request a profile draft, see below.
 3. For a lasting need, the user changes the `programs.agents.sandbox` options in `modules/programs/agents` of the infra repository and rebuilds.
 4. If nono itself is at fault, the user restarts the agent with `NO_NONO=1 <agent>` to use its native sandbox instead.

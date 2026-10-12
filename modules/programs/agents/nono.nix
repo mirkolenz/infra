@@ -156,6 +156,27 @@
               if [[ -f ''${NONO_CAP_FILE:-} ]]; then
                 exec ${agentCommand harness package}
               fi
+              ${lib.optionalString (harness.addDirFlag != null) ''
+
+                # The directories given through the flag of the harness, granted by nono as well.
+                flag=${lib.escapeShellArg harness.addDirFlag}
+                allow=''${NONO_ALLOW:-}
+                prev=
+
+                for arg in "$@"; do
+                  if [[ $prev == "$flag" ]]; then
+                    allow+=''${allow:+,}$arg
+                  elif [[ $arg == "$flag="* ]]; then
+                    allow+=''${allow:+,}''${arg#"$flag="}
+                  fi
+
+                  prev=$arg
+                done
+
+                if [[ -n $allow ]]; then
+                  export NONO_ALLOW=$allow
+                fi
+              ''}
 
               # A private temporary directory, the only place the session may bind and connect sockets,
               # such as the forkserver of Python's multiprocessing. Those of /tmp and the host stay out of reach.
