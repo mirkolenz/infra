@@ -26,7 +26,6 @@
 
       # Seatbelt filters. Seatbelt misses anchored alternatives within one regex,
       # so every rule combines plain filters instead, each regex holding at most one anchor.
-      literal = path: "(literal ${lib.toJSON path})";
       subpath = path: "(subpath ${lib.toJSON path})";
       regex = pattern: ''(regex #"${pattern}")'';
 
@@ -87,9 +86,7 @@
         ++ [
           # Keeps the `.git` of every repository in place, a rename covers the source as well.
           (deny "file-write-unlink" (regex ''/\.git$'') scratch)
-        ]
-        # the denies of nono keep the metadata readable, so the content of the link is the only gap
-        ++ map (file: "(allow file-read-data ${literal file})") exemptFiles;
+        ];
 
       # agents may write drafts, which only `nono profile promote` outside of nono applies
       profiles = "${config.xdg.configHome}/nono/profiles";
@@ -102,10 +99,12 @@
           lib.filter (file: file.enable && pred file) (lib.attrValues files)
         );
 
-      # The files home-manager links into the store, so tools find their config, ripgrep among them.
+      # The files home-manager links into the store, so tools find their config, ripgrep among them,
+      # except for those within a denied directory, such as `.ssh/rc`.
       # nono grants every hop of a symlink, so an out-of-store link grants its target as well.
       # A recursive directory holds unmanaged files too.
-      managedFiles = targets config.home.homeDirectory (file: !file.recursive) config.home.file;
+      homeFiles = targets config.home.homeDirectory (file: !file.recursive) config.home.file;
+      managedFiles = lib.subtractLists (lib.concatMap (below homeFiles) deniedPaths) homeFiles;
 
       # The copied files of the system config, none for a standalone home, which nono on Linux
       # keeps unreadable apart from a few. Symlinked ones resolve into the readable store,
@@ -117,12 +116,8 @@
           osConfig.determinate.enable or osConfig.determinateNix.enable or false
         ) "/etc/nix/nix.conf";
 
-      # the generated files within a denied directory, such as `.ssh/config`, which stay readable
-      exemptFiles = lib.unique (lib.concatMap (below managedFiles) deniedPaths);
-
       bwrapPolicy = pkgs.writers.writeJSON "nono-bwrap-policy.json" {
         inherit relative;
-        links = exemptFiles;
         deny = deniedPaths;
         read = readPaths;
         write = writePaths;
@@ -211,7 +206,7 @@
                 profiles
               ];
             # Exempts the generated files, such as `.npmrc` or the shell configs, from the deny groups of nono,
-            # their content sits in the readable store anyway. The denies of `paths` only yield to `exemptFiles`.
+            # their content sits in the readable store anyway.
             bypass_protection = managedFiles;
             unix_socket = sandbox.unixSockets;
             unix_socket_dir = fromHarnesses "unixSocketDirs";

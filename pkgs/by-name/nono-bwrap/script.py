@@ -2,8 +2,7 @@
 
 On Linux, nono grants but does not deny within granted directories, so bubblewrap mounts
 over the `deny`, `read` and `write` paths and the relative keys of every workspace root and
-its git directories,
-then recreates the `links` within denied directories.
+its git directories.
 The workspace roots are the working directory and those of `NONO_ALLOW`.
 The mounts cover paths that exist at launch.
 """
@@ -39,7 +38,6 @@ class Policy:
     """The relative and absolute sandbox paths."""
 
     relative: Mapping[str, Access]
-    links: tuple[Path, ...]
     deny: tuple[Path, ...]
     read: tuple[Path, ...]
     write: tuple[Path, ...]
@@ -51,7 +49,6 @@ class Policy:
 
         return cls(
             relative={key: Access(value) for key, value in data["relative"].items()},
-            links=tuple(map(Path, data["links"])),
             deny=tuple(map(Path, data["deny"])),
             read=tuple(map(Path, data["read"])),
             write=tuple(map(Path, data["write"])),
@@ -172,14 +169,6 @@ def canonical(mounts: Iterable[Mount]) -> list[Mount]:
     ]
 
 
-def relinked(links: Iterable[Path]) -> Iterator[str]:
-    """The arguments recreating each symlink among `links` on top of the mounts,
-    so a generated file stays readable within a denied directory."""
-    for link in links:
-        if link.is_symlink():
-            yield from ("--symlink", str(link.readlink()), str(link))
-
-
 def main(
     policy: Annotated[Path, typer.Option(exists=True, dir_okay=False)],
     command: list[str],
@@ -189,11 +178,11 @@ def main(
     workspace = Workspace.discover(
         [Path.cwd(), *(Path(root) for root in allowed if root)]
     )
-    parsed = Policy.load(policy)
     args = [
-        arg for mount in canonical(requested(parsed, workspace)) for arg in mount.args
+        arg
+        for mount in canonical(requested(Policy.load(policy), workspace))
+        for arg in mount.args
     ]
-    args += relinked(parsed.links)
 
     os.execv(
         BWRAP,
