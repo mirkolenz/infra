@@ -77,19 +77,25 @@
             "*.hf.co" = "deny";
           };
           paths = {
+            # the whole store, which the nix daemon serves to every user anyway
             "/nix" = "read";
-            # tool state that the agents confining reads would otherwise miss
-            "${config.xdg.configHome}/git" = "read";
-            "${config.xdg.configHome}/uv" = "read";
             # hook environments that run outside the sandbox later, the agents get their own below
             "${config.xdg.cacheHome}/pre-commit" = "read";
             "${config.home.homeDirectory}/.npm" = "write";
             "${config.xdg.cacheHome}" = "write";
+            # nono grants it write-only, but agents and scripts read back what they put there
+            "/tmp" = "write";
             "${config.xdg.configHome}/.wrangler/logs" = "write";
             "${config.xdg.configHome}/.semgrep" = "write";
             # codebook downloads its dictionaries here on first use
             "${config.xdg.dataHome}/codebook" = "write";
+            # the trusted flake settings, nono's runtime groups cover the profiles and toolchains
+            "${config.xdg.dataHome}/nix" = "read";
             "${config.home.homeDirectory}/.ssh" = "deny";
+            # registry tokens within the toolchain directories that nono's runtime groups grant
+            "${config.home.homeDirectory}/.cargo/credentials" = "deny";
+            "${config.home.homeDirectory}/.cargo/credentials.toml" = "deny";
+            "${config.xdg.dataHome}/uv/credentials" = "deny";
             # may hold the token of the host in plaintext, agents get a gh config of their own
             "${config.xdg.configHome}/gh" = "deny";
             # the netrc, token and socket of determinate-nixd, partly world-readable
@@ -123,6 +129,10 @@
           # orb would need "${config.home.homeDirectory}/.orbstack" here too
           // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
             "${config.home.homeDirectory}/Library/Caches" = "write";
+            "${config.home.homeDirectory}/Library/Fonts" = "read";
+          }
+          // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+            "${config.xdg.dataHome}/fonts" = "read";
           }
           // lib.genAttrs protected (_: "read");
           unixSockets = [

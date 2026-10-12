@@ -6,7 +6,7 @@
       config,
       pkgs,
       ...
-    }:
+    }@args:
     let
       inherit (pkgs.stdenv.hostPlatform) isDarwin isLinux;
       inherit (lib') namesWithValue;
@@ -22,11 +22,13 @@
       harnesses = lib.attrValues config.programs.agents.harnesses;
       fromHarnesses = attr: lib.concatMap (harness: harness.${attr}) harnesses;
       nono = config.programs.nono.finalPackage;
+      osConfig = args.osConfig or { };
 
       mediateCommands = isDarwin && blockedCommands != [ ];
 
       # Seatbelt filters. Seatbelt misses anchored alternatives within one regex,
       # so every rule combines plain filters instead, each regex holding at most one anchor.
+      literal = path: "(literal ${lib.toJSON path})";
       subpath = path: "(subpath ${lib.toJSON path})";
       regex = pattern: ''(regex #"${pattern}")'';
 
@@ -38,7 +40,7 @@
         }))";
 
       # Throwaway clones and caches, where a fresh repository needs its git config.
-      # Seatbelt sees canonical paths, `/tmp` and `$TMPDIR` resolve below `/private`.
+      # Seatbelt sees canonical paths, `/tmp` and the temporary directory of the host resolve below `/private`.
       scratch = map subpath [
         "/private/tmp"
         "/private/var/folders"
@@ -59,8 +61,8 @@
 
       writeKeys = namesWithValue "write" relative;
 
-      # The absolute `write` paths below `path`.
-      writableBelow = path: lib.filter (lib.hasPrefix "${path}/") writePaths;
+      # The ones of `paths` below `path`.
+      below = paths: path: lib.filter (lib.hasPrefix "${path}/") paths;
 
       # The relative `write` keys equal to or below the matches of `key`.
       exemptions = key: lib.filter (write: lib.match "${keyRegex key}(/.*)?" write != null) writeKeys;
@@ -83,18 +85,46 @@
       # nono cannot make a path read-only within a writable one, a bypass takes the access of every covering grant.
       seatbeltRules =
         lib.mapAttrsToList relativeRule (lib.filterAttrs (_: access: access != "write") relative)
-        ++ map (path: deny "file-write*" (subpath path) (map subpath (writableBelow path))) readPaths
+        ++ map (path: deny "file-write*" (subpath path) (map subpath (below writePaths path))) readPaths
         ++ [
           # Keeps the `.git` of every repository in place, a rename covers the source as well.
           (deny "file-write-unlink" (regex ''/\.git$'') scratch)
-        ];
+        ]
+        # the denies of nono keep the metadata readable, so the content of the link is the only gap
+        ++ map (file: "(allow file-read-data ${literal file})") exemptFiles;
 
       # agents may write drafts, which only `nono profile promote` outside of nono applies
       profiles = "${config.xdg.configHome}/nono/profiles";
       drafts = "${config.xdg.configHome}/nono/profile-drafts";
 
+      # The absolute targets of the enabled `files` matching `pred`, below `root`.
+      targets =
+        root: pred: files:
+        map (file: "${root}/${file.target}") (
+          lib.filter (file: file.enable && pred file) (lib.attrValues files)
+        );
+
+      # The files home-manager links into the store, so tools find their config, ripgrep among them.
+      # nono grants every hop of a symlink, so an out-of-store link grants its target as well.
+      # A recursive directory holds unmanaged files too.
+      managedFiles = targets config.home.homeDirectory (file: !file.recursive) config.home.file;
+
+      # The copied files of the system config, none for a standalone home, which nono on Linux
+      # keeps unreadable apart from a few. Symlinked ones resolve into the readable store,
+      # and macOS reads all of `/etc` anyway.
+      etcFiles =
+        targets "/etc" (file: file.mode or "symlink" != "symlink") (osConfig.environment.etc or { })
+        # determinate-nixd writes it itself, outside of `environment.etc`
+        ++ lib.optional (
+          osConfig.determinate.enable or osConfig.determinateNix.enable or false
+        ) "/etc/nix/nix.conf";
+
+      # the generated files within a denied directory, such as `.ssh/config`, which stay readable
+      exemptFiles = lib.unique (lib.concatMap (below managedFiles) deniedPaths);
+
       bwrapPolicy = pkgs.writers.writeJSON "nono-bwrap-policy.json" {
         inherit relative;
+        links = exemptFiles;
         deny = deniedPaths;
         read = readPaths;
         write = writePaths;
@@ -144,19 +174,40 @@
         environment.NONO_PROFILE = "agents";
         profiles.agents = {
           extends = "default";
-          groups.include = [ "git_config" ];
+          # the toolchains, nono skips the groups of the other platform
+          groups.include = [
+            "git_config"
+            "bun_runtime"
+            "go_runtime"
+            "go_runtime_linux"
+            "go_runtime_macos"
+            "java_runtime"
+            "nix_runtime"
+            "node_runtime"
+            "python_runtime"
+            "rust_runtime"
+          ];
           workdir.access = "readwrite";
           filesystem = {
-            # the main repository of a linked worktree, which commits write to
             allow =
               writePaths
               ++ [
+                # the main repository of a linked worktree, which commits write to
                 "@git:common-dir"
                 drafts
               ]
               ++ fromHarnesses "stateDirs";
-            # the base of a draft
-            read = readPaths ++ [ profiles ];
+            read =
+              readPaths
+              ++ managedFiles
+              ++ etcFiles
+              ++ [
+                # the base of a draft
+                profiles
+              ];
+            # Exempts the generated files, such as `.npmrc` or the shell configs, from the deny groups of nono,
+            # their content sits in the readable store anyway. The denies of `paths` only yield to `exemptFiles`.
+            bypass_protection = managedFiles;
             unix_socket = sandbox.unixSockets;
             # sockets tools create for themselves, such as the forkserver of Python's multiprocessing
             unix_socket_subtree_bind = [
