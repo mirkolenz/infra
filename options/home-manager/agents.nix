@@ -104,36 +104,30 @@
       };
 
       commands = lib.mkOption {
-        # a name nono accepts for command mediation, followed by arguments unless blocked
+        # an executable name, optionally followed by arguments
         type =
           with lib.types;
           addCheck
             (attrsOf (enum [
               "allow"
               "deny"
-              "block"
             ]))
             (
               commands:
-              lib.all (
-                { name, value }:
-                lib.match "[A-Za-z0-9._+-]+${lib.optionalString (value != "block") "( [^ ]+)*"}" name != null
-              ) (lib.attrsToList commands)
+              lib.all (name: lib.match "[A-Za-z0-9._+-]+( [^ ]+)*" name != null) (lib.attrNames commands)
             );
         default = { };
         example = {
           jq = "allow";
-          security = "block";
           "gh auth token" = "deny";
         };
         description = ''
           Commands that agents run without asking (`allow`) or refuse (`deny`), an executable
           name optionally followed by arguments, matched as a prefix of a plain command line of
-          their shell tool, not within scripts, aliases or `sh -c`. A `block` is a bare executable
-          name that agents refuse and nono blocks as well, for every process on macOS and for the
-          binaries on `PATH` on Linux.
+          their shell tool, not within scripts, aliases or `sh -c`.
         '';
       };
+
     };
 
     harnesses = lib.mkOption {

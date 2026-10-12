@@ -144,7 +144,7 @@
             deny =
               mkRules "Read" (withContent sandbox.deniedPaths)
               ++ mkRules "Edit" (withContent sandbox.deniedPaths)
-              # matched on the command line, nono enforces `block` ones as well
+              # matched on the command line
               ++ bashRules sandbox.deniedCommands;
             ask = [ ];
           };

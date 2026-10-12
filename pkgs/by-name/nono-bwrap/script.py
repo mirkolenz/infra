@@ -1,12 +1,11 @@
 """Run a command within bubblewrap, enforcing the agent sandbox where nono only grants.
 
 On Linux, nono grants but does not deny within granted directories, so bubblewrap mounts
-over the `deny`, `read` and `write` paths, the relative keys of every workspace root and
-its git directories, and the blocked commands on `PATH`,
+over the `deny`, `read` and `write` paths and the relative keys of every workspace root and
+its git directories,
 then recreates the `links` within denied directories.
 The workspace roots are the working directory and those of `NONO_ALLOW`.
-The mounts cover paths that exist at launch,
-so a fresh copy of a blocked command, such as one from `nix run`, still runs.
+The mounts cover paths that exist at launch.
 """
 
 import json
@@ -37,14 +36,13 @@ class Access(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class Policy:
-    """The relative and absolute sandbox paths and the commands nono blocks."""
+    """The relative and absolute sandbox paths."""
 
     relative: Mapping[str, Access]
     links: tuple[Path, ...]
     deny: tuple[Path, ...]
     read: tuple[Path, ...]
     write: tuple[Path, ...]
-    blocked_commands: frozenset[str]
 
     @classmethod
     def load(cls, path: Path) -> Self:
@@ -57,7 +55,6 @@ class Policy:
             deny=tuple(map(Path, data["deny"])),
             read=tuple(map(Path, data["read"])),
             write=tuple(map(Path, data["write"])),
-            blocked_commands=frozenset(data["blocked_commands"]),
         )
 
     def keys(self, access: Access, *, git: bool) -> list[str]:
@@ -138,19 +135,6 @@ class Workspace:
         return cls(frozenset(trees), frozenset(gitdirs))
 
 
-def executables(name: str) -> Iterator[Path]:
-    """Every canonical executable on `PATH` called `name`, except a multi-call binary such
-    as coreutils, which would take its other commands along."""
-    for directory in os.environ.get("PATH", "").split(os.pathsep):
-        candidate = Path(directory or ".", name)
-
-        if candidate.is_file() and os.access(candidate, os.X_OK):
-            target = candidate.resolve()
-
-            if target.name == name:
-                yield target
-
-
 def requested(policy: Policy, workspace: Workspace) -> Iterator[Mount]:
     """The mounts of the existing paths, in the order of precedence."""
     bases = [(tree, False) for tree in sorted(workspace.trees)]
@@ -168,9 +152,6 @@ def requested(policy: Policy, workspace: Workspace) -> Iterator[Mount]:
     yield from (Mount(Access.DENY, path) for path in policy.deny if path.exists())
     yield from (Mount(Access.READ, path) for path in policy.read if path.exists())
     yield from (Mount(Access.WRITE, path) for path in policy.write if path.exists())
-
-    for name in sorted(policy.blocked_commands):
-        yield from (Mount(Access.DENY, path) for path in executables(name))
 
 
 def canonical(mounts: Iterable[Mount]) -> list[Mount]:

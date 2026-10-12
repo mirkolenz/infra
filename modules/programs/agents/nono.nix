@@ -15,7 +15,6 @@
         readPaths
         writePaths
         deniedPaths
-        blockedCommands
         ;
 
       sandbox = lib'.splitSandbox config.programs.agents.sandbox;
@@ -24,8 +23,6 @@
       harnessDomains = lib.unique (fromHarnesses "domains");
       nono = config.programs.nono.finalPackage;
       osConfig = args.osConfig or { };
-
-      mediateCommands = isDarwin && blockedCommands != [ ];
 
       # Seatbelt filters. Seatbelt misses anchored alternatives within one regex,
       # so every rule combines plain filters instead, each regex holding at most one anchor.
@@ -129,7 +126,6 @@
         deny = deniedPaths;
         read = readPaths;
         write = writePaths;
-        blocked_commands = blockedCommands;
       };
 
       nonoCommand =
@@ -253,20 +249,6 @@
           unsafe_macos_seatbelt_rules = lib.mkIf isDarwin seatbeltRules;
           # makes `unix_socket` an allowlist on Linux as well, refusing every abstract socket
           linux.af_unix_mediation = "pathname";
-          # Refuses a `block` command by its name and canonical path, unlisted commands run unmediated.
-          # On Linux, mediation confines execution to the top level of the `PATH` directories
-          # and `executable_dirs` rejects the group-writable `/nix/store`, so bubblewrap enforces them.
-          command_policies = lib.mkIf mediateCommands {
-            commands = lib.genAttrs blockedCommands (_: {
-              from.session = "deny";
-            });
-          };
-          # with command mediation active, nono would deny their commands, rm, mv and npm among them
-          groups.exclude = lib.mkIf mediateCommands [
-            "dangerous_commands"
-            "dangerous_commands_macos"
-            "dangerous_commands_linux"
-          ];
         };
       };
 

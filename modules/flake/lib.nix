@@ -171,7 +171,7 @@
     # The agent `sandbox` with its `paths` split into `absolute` ones, by access as well,
     # and those `relative` to a workspace root, its `environment` into the variables to `set` and those to `unset`,
     # its `domains` into those agents may and may not reach, and its `commands` into those agents
-    # run without asking, those they refuse, and those nono blocks as well.
+    # run without asking and those they refuse.
     splitSandbox =
       sandbox:
       let
@@ -189,8 +189,7 @@
         allowedDomains = namesWithValue "allow" sandbox.domains;
         deniedDomains = namesWithValue "deny" sandbox.domains;
         allowedCommands = namesWithValue "allow" sandbox.commands;
-        deniedCommands = lib.attrNames (lib.filterAttrs (_: access: access != "allow") sandbox.commands);
-        blockedCommands = namesWithValue "block" sandbox.commands;
+        deniedCommands = namesWithValue "deny" sandbox.commands;
       };
 
     # Whether CI builds `drv`, following Hydra's `meta.hydraPlatforms` convention.
