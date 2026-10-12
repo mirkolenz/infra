@@ -107,30 +107,32 @@
       # winning `bin/<name>` over the harness.
       wrapperPackage =
         harness: name: package:
-        lib.hiPrio (pkgs.writeShellApplication {
-          inherit name;
-          text = /* bash */ ''
-            # the native sandbox of the harness instead, in case nono gets in the way
-            if [[ -n ''${NO_NONO:-} ]]; then
-              exec ${lib.getExe package} "$@"
-            fi
+        lib.hiPrio (
+          pkgs.writeShellApplication {
+            inherit name;
+            text = /* bash */ ''
+              # the native sandbox of the harness instead, in case nono gets in the way
+              if [[ -n ''${NO_NONO:-} ]]; then
+                exec ${lib.getExe package} "$@"
+              fi
 
-            args=(${lib.escapeShellArgs harness.sandboxArgs})
-            ${lib.optionalString (harness.addDirFlag != null) ''
-              IFS=, read -ra dirs <<<"''${NONO_ALLOW:-}"
+              args=(${lib.escapeShellArgs harness.sandboxArgs})
+              ${lib.optionalString (harness.addDirFlag != null) ''
+                IFS=, read -ra dirs <<<"''${NONO_ALLOW:-}"
 
-              for dir in "''${dirs[@]}"; do
-                args+=(${lib.escapeShellArg harness.addDirFlag} "$dir")
-              done
-            ''}
-            # nono sets NONO_CAP_FILE in every sandbox it starts.
-            if [[ -f ''${NONO_CAP_FILE:-} ]]; then
-              exec ${agentCommand package}
-            fi
+                for dir in "''${dirs[@]}"; do
+                  args+=(${lib.escapeShellArg harness.addDirFlag} "$dir")
+                done
+              ''}
+              # nono sets NONO_CAP_FILE in every sandbox it starts.
+              if [[ -f ''${NONO_CAP_FILE:-} ]]; then
+                exec ${agentCommand package}
+              fi
 
-            exec ${nonoCommand} run --no-audit --allow-cwd -- ${agentCommand package}
-          '';
-        });
+              exec ${nonoCommand} run --no-audit --allow-cwd -- ${agentCommand package}
+            '';
+          }
+        );
     in
     lib.mkIf config.programs.agents.enable {
       programs.nono = {
