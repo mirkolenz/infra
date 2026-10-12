@@ -136,7 +136,9 @@
         lib.optionalString isLinux "${lib.getExe pkgs.nono-bwrap} --policy ${bwrapPolicy} -- "
         + lib.getExe nono;
 
-      agentCommand = package: ''${lib.getExe package} "''${args[@]}" "$@"'';
+      agentCommand =
+        harness: package:
+        ''${lib.getExe package} "''${args[@]}" "$@" ${lib.escapeShellArgs harness.trailingSandboxArgs}'';
 
       # Runs the harness within nono, or directly when inside it already,
       # winning `bin/<name>` over the harness.
@@ -161,10 +163,10 @@
               ''}
               # nono sets NONO_CAP_FILE in every sandbox it starts.
               if [[ -f ''${NONO_CAP_FILE:-} ]]; then
-                exec ${agentCommand package}
+                exec ${agentCommand harness package}
               fi
 
-              exec ${nonoCommand} run --no-audit --allow-cwd -- ${agentCommand package}
+              exec ${nonoCommand} run --no-audit --allow-cwd -- ${agentCommand harness package}
             '';
           }
         );

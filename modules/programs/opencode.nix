@@ -26,46 +26,6 @@
 
       # resources are `<action>:<value>`
       denyRules = action: map (resource: "${action}:${resource}");
-
-      # the private servers of the sessions within nono
-      serverPorts = [
-        18100
-        18199
-      ];
-
-      # A private server runs inside nono, since the background service would not.
-      # `--standalone` serves on a random port as of opencode 2.0.27, which nono keeps closed.
-      launcher = pkgs.writeShellApplication {
-        name = "opencode";
-        text = /* bash */ ''
-          opencode=${lib.getExe config.programs.opencode.package}
-
-          # nono sets NONO_CAP_FILE in every sandbox it starts.
-          if [[ ! -f ''${NONO_CAP_FILE:-} ]]; then
-            exec "$opencode" "$@"
-          fi
-
-          # the first port nothing listens on
-          for port in {${lib.concatMapStringsSep ".." toString serverPorts}}; do
-            if ! true 2>/dev/null <"/dev/tcp/127.0.0.1/$port"; then
-              break
-            fi
-          done
-
-          printf -v OPENCODE_PASSWORD '%08x' "$SRANDOM" "$SRANDOM" "$SRANDOM" "$SRANDOM"
-          # The project config search resolves every parent up to `/`, which nono keeps unreadable.
-          export OPENCODE_PASSWORD OPENCODE_DISABLE_PROJECT_CONFIG=1
-          # With `--stdio`, the server reports its readiness and stops once this script exits.
-          coproc server { "$opencode" serve --stdio --hostname 127.0.0.1 --port "$port" 2>/dev/null; }
-
-          if ! read -r _ <&"''${server[0]}"; then
-            echo "opencode: the server failed to start on port $port" >&2
-            exit 1
-          fi
-
-          "$opencode" --server "http://127.0.0.1:$port" "$@"
-        '';
-      };
     in
     lib.mkIf config.programs.agents.enable {
       programs.opencode = {
@@ -112,7 +72,10 @@
       };
       programs.agents = {
         harnesses.opencode = {
-          launchers.opencode = launcher;
+          launchers.opencode = config.programs.opencode.package;
+          # A private server runs inside nono, the background service would not.
+          # Subcommands take the flag only after their name, `mcp`, `serve` and `service` not at all.
+          trailingSandboxArgs = [ "--standalone" ];
           # the `/connect` logins are kept in the database below `dataHome`
           stateDirs = [
             "${config.xdg.configHome}/opencode"
@@ -121,11 +84,12 @@
             "${config.xdg.stateHome}/opencode"
             "${config.home.homeDirectory}/.opencode"
           ];
-          # every plugin runs outside of nono as well
+          # every plugin runs outside of nono as well, and the background service gets the `env` of `service.json`
           protectedEntries = [
             "AGENTS.md"
             "opencode.json"
             "plugins"
+            "service.json"
             "skills"
           ];
           domains = [
@@ -146,11 +110,7 @@
           "opencode.json*" = "read";
         };
       };
-      # llama.cpp and the private servers, loopback is already in `NO_PROXY`.
-      # The profile is shared, since a nested session keeps the ports of the outer one.
-      programs.nono.profiles.agents.network = {
-        open_port = lib.optional llamaCpp.enable llamaCpp.settings.port;
-        open_port_range = [ serverPorts ];
-      };
+      # The project config search resolves every parent up to `/`, which nono keeps unreadable.
+      programs.nono.profiles.agents.environment.set_vars.OPENCODE_DISABLE_PROJECT_CONFIG = "1";
     };
 }

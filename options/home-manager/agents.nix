@@ -152,6 +152,13 @@
               description = "Arguments prepended to those of the harness, usually to disable its own sandbox.";
             };
 
+            trailingSandboxArgs = lib.mkOption {
+              type = with lib.types; listOf str;
+              default = [ ];
+              example = [ "--standalone" ];
+              description = "Arguments appended to those of the harness, for flags its subcommands accept only after their name.";
+            };
+
             addDirFlag = lib.mkOption {
               type = with lib.types; nullOr str;
               default = null;
