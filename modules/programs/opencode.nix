@@ -53,7 +53,8 @@
           done
 
           printf -v OPENCODE_PASSWORD '%08x' "$SRANDOM" "$SRANDOM" "$SRANDOM" "$SRANDOM"
-          export OPENCODE_PASSWORD
+          # The project config search resolves every parent up to `/`, which nono keeps unreadable.
+          export OPENCODE_PASSWORD OPENCODE_DISABLE_PROJECT_CONFIG=1
           # With `--stdio`, the server reports its readiness and stops once this script exits.
           coproc server { "$opencode" serve --stdio --hostname 127.0.0.1 --port "$port" 2>/dev/null; }
 
