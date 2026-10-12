@@ -31,6 +31,13 @@ mkGitHubBinary {
 
   nativeInstallCheckInputs = [ versionCheckHook ];
   doInstallCheck = true;
+  # The darwin sandbox hides the ICU data of the system libicucore.
+  env = lib.optionalAttrs stdenv.hostPlatform.isDarwin {
+    DOTNET_SYSTEM_GLOBALIZATION_INVARIANT = "1";
+  };
+  versionCheckKeepEnvironment = lib.optionals stdenv.hostPlatform.isDarwin [
+    "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT"
+  ];
 
   meta = {
     description = "Office suite for AI agents to read, edit, and automate Word, Excel, and PowerPoint files";
