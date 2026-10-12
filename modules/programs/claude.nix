@@ -180,6 +180,8 @@
           ".claude/rules" = "write";
           ".claude/skills" = "write";
           ".claude/worktrees" = "write";
+          # the skills claude syncs from claude.ai within the managed ones, shared by every installation
+          "${config.home.homeDirectory}/.claude/skills/synced" = "write";
         };
       };
       programs.nono.profiles.agents = {
