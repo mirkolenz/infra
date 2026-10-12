@@ -207,7 +207,7 @@
         };
       };
       # jj keeps the config of every repository here instead of within it, out of reach of agents
-      programs.agents.sandbox.paths."${config.xdg.configHome}/jj" = "read";
+      programs.agents.sandbox.paths.read = [ "${config.xdg.configHome}/jj" ];
       programs.jujutsu = {
         enable = true;
         # https://docs.jj-vcs.dev/latest/config/

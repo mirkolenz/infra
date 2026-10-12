@@ -3,8 +3,8 @@
 # gets the regular settings file with its overrides merged on top, the `sharedEntries`
 # of the regular config directory as symlinks, and a wrapper pointing `envVar` at its
 # directory. `settingsFile` is the `home.file` attribute upstream writes the settings to,
-# replaced by writable copies if `mutable`. Every installation joins the agent harness
-# of the program, with its managed entries read-only.
+# replaced by writable copies if `mutable`. `protectedEntries` are further entries of every
+# config directory that agents may only read, like the managed ones.
 {
   program,
   package,
@@ -12,6 +12,7 @@
   format,
   settingsFile,
   sharedEntries,
+  protectedEntries ? [ ],
   example,
   mutable ? false,
 }:
@@ -108,6 +109,30 @@ in
       internal = true;
       description = "Config directories of every installation, the regular one included.";
     };
+
+    protectedPaths = lib.mkOption {
+      type = with lib.types; listOf str;
+      default = lib.concatMap (
+        dir:
+        map (entry: "${dir}/${entry}") ([ (baseNameOf settingsFile) ] ++ sharedEntries ++ protectedEntries)
+      ) cfg.configDirs;
+      readOnly = true;
+      internal = true;
+      description = ''
+        The settings file, the shared entries and `protectedEntries` within the config directory
+        of every installation, which agents may only read.
+      '';
+    };
+
+    launchers = lib.mkOption {
+      type = lib.types.attrsOf lib.types.package;
+      default = installationLaunchers // {
+        ${exe} = package;
+      };
+      readOnly = true;
+      internal = true;
+      description = "Executables of every installation by name, the regular one included.";
+    };
   };
 
   config = lib.mkIf cfg.enable (
@@ -124,14 +149,6 @@ in
         ) named;
 
         home.packages = lib.attrValues installationLaunchers;
-
-        programs.agents.harnesses.${program} = {
-          launchers = installationLaunchers // {
-            ${exe} = package;
-          };
-          stateDirs = cfg.configDirs;
-          protectedEntries = [ (baseNameOf settingsFile) ] ++ sharedEntries;
-        };
       }
       (
         if mutable then

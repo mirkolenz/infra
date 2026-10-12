@@ -34,6 +34,11 @@ in
         "rules"
         "skills"
       ];
+      # the hooks and the app-server daemon, which codex would otherwise run outside of nono later
+      protectedEntries = [
+        "hooks.json"
+        "packages"
+      ];
       example.work.forced_chatgpt_workspace_id = "00000000-0000-0000-0000-000000000000";
     })
   ];

@@ -6,10 +6,10 @@
     in
     lib.mkIf config.programs.agents.enable {
       # the opnix service account token, which reads the whole vault, and the access tokens of nix
-      programs.agents.sandbox.paths = lib.mkIf opnix.enable {
-        ${opnix.tokenFile} = "deny";
-        ${opnix.secretPaths.nixAccessTokens} = "deny";
-      };
+      programs.agents.sandbox.paths.deny = lib.mkIf opnix.enable [
+        opnix.tokenFile
+        opnix.secretPaths.nixAccessTokens
+      ];
       # nono strips the host tokens and injects the read-only ones from opnix, aborting while a file is missing.
       # nix fetches in the client, which applies the `access-tokens` of `NIX_CONFIG`.
       programs.nono.profiles.agents = {

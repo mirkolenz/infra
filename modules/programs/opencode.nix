@@ -10,7 +10,7 @@
     let
       llamaCpp = args.osConfig.services.llama-cpp or { enable = false; };
       agents = config.programs.agents;
-      inherit (agents.sandbox) resolved;
+      inherit (agents) sandbox;
 
       # `*` also matches `/`
       withContent = lib'.withContent "*";
@@ -51,8 +51,8 @@
           # https://opencode.ai/v2/docs/permissions
           # upstream allows the workspace and asks for anything outside it
           permissions =
-            mkRules "allow" "external_directory" (withContent (resolved.readPaths ++ resolved.writePaths))
-            ++ mkRules "allow" "shell" (commandPatterns resolved.allowedCommands);
+            mkRules "allow" "external_directory" (withContent (sandbox.paths.read ++ sandbox.paths.write))
+            ++ mkRules "allow" "shell" (commandPatterns sandbox.commands.allow);
           # https://opencode.ai/v2/docs/policies
           # hard denies that neither an "Allow always" approval nor a project config lifts
           experimental.policies =
@@ -64,9 +64,9 @@
             ]
             ++ mkRules "deny" "tool.use" (
               # `*:` covers every path-based action
-              denyRules "*" (withContent resolved.deniedPaths)
-              ++ denyRules "edit" (withContent resolved.readPaths)
-              ++ denyRules "shell" (commandPatterns resolved.deniedCommands)
+              denyRules "*" (withContent sandbox.paths.deny)
+              ++ denyRules "edit" (withContent sandbox.paths.read)
+              ++ denyRules "shell" (commandPatterns sandbox.commands.deny)
             );
         };
       };
@@ -76,21 +76,26 @@
           # A private server runs inside nono, the background service would not.
           # Subcommands take the flag only after their name, `mcp`, `serve` and `service` not at all.
           trailingSandboxArgs = [ "--standalone" ];
-          # the `/connect` logins are kept in the database below `dataHome`
-          stateDirs = [
+          paths.write = [
             "${config.xdg.configHome}/opencode"
+            # the `/connect` logins are kept in the database here
             "${config.xdg.dataHome}/opencode"
             "${config.xdg.dataHome}/opentui"
             "${config.xdg.stateHome}/opencode"
             "${config.home.homeDirectory}/.opencode"
           ];
-          # every plugin runs outside of nono as well, and the background service gets the `env` of `service.json`
-          protectedEntries = [
-            "AGENTS.md"
-            "opencode.json"
-            "plugins"
-            "service.json"
-            "skills"
+          # Every plugin runs outside of nono as well, and the background service gets the `env` of `service.json`.
+          # The config search outside of nono reaches the home directory too.
+          paths.read = [
+            "${config.xdg.configHome}/opencode/AGENTS.md"
+            "${config.xdg.configHome}/opencode/opencode.json"
+            "${config.xdg.configHome}/opencode/plugins"
+            "${config.xdg.configHome}/opencode/service.json"
+            "${config.xdg.configHome}/opencode/skills"
+            "${config.home.homeDirectory}/.opencode/AGENTS.md"
+            "${config.home.homeDirectory}/.opencode/opencode.json"
+            "${config.home.homeDirectory}/.opencode/plugins"
+            "${config.home.homeDirectory}/.opencode/skills"
           ];
           domains = [
             "api.openai.com"
@@ -100,15 +105,17 @@
           ];
         };
         # The project config, every plugin there runs outside of nono as well, except for the prompts.
-        sandbox.paths = {
-          ".opencode" = "read";
-          # singular and plural names
-          ".opencode/agent*" = "write";
-          ".opencode/command*" = "write";
-          ".opencode/mode*" = "write";
-          ".opencode/skill*" = "write";
-          "opencode.json*" = "read";
-        };
+        sandbox.workspace.read = [
+          ".opencode"
+          "opencode.json*"
+        ];
+        # singular and plural names
+        sandbox.workspace.write = [
+          ".opencode/agent*"
+          ".opencode/command*"
+          ".opencode/mode*"
+          ".opencode/skill*"
+        ];
       };
       # The project config search resolves every parent up to `/`, which nono keeps unreadable.
       programs.nono.profiles.agents.environment.set_vars.OPENCODE_DISABLE_PROJECT_CONFIG = "1";

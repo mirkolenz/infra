@@ -38,7 +38,7 @@ in
     let
       agents = config.programs.agents;
       inherit (agents) sandbox;
-      inherit (sandbox) resolved;
+      cfg = config.programs.claude-code;
 
       withContent = lib'.withContent "**";
 
@@ -106,7 +106,8 @@ in
               # `strictAllowlist` is deliberately unset: it would make this list the whole
               # allowlist and have claude refuse the per-command host lists that auto mode
               # sends through the classifier, turning every unforeseen host into a dead end.
-              inherit (resolved) allowedDomains deniedDomains;
+              allowedDomains = sandbox.domains.allow;
+              deniedDomains = sandbox.domains.deny;
             };
             # `filesystem` is deliberately unset: an `Edit` allow rule grants the sandbox
             # the same write access as `allowWrite`, and a `Read` or `Edit` deny rule the
@@ -116,7 +117,7 @@ in
               envVars = map (name: {
                 inherit name;
                 mode = "deny";
-              }) resolved.unset;
+              }) sandbox.environment.unset;
             };
           };
           extraKnownMarketplaces = lib.mapAttrs (_name: source: { inherit source; }) knownMarketplaces;
@@ -126,7 +127,7 @@ in
             "frontend-design@claude-plugins-official" = true;
             "codex@openai-codex" = true;
           };
-          env = resolved.set // {
+          env = sandbox.environment.set // {
             ENABLE_CLAUDEAI_MCP_SERVERS = false;
             # suppresses the in-session rating/feedback survey popup
             CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = true;
@@ -151,18 +152,18 @@ in
             # stating only here. Claude reads outside the workspace freely, so a `Read`
             # allow rule merely skips the prompt.
             allow =
-              mkRules "Read" (withContent resolved.readPaths)
-              ++ mkRules "Edit" (withContent resolved.writePaths)
-              ++ bashRules resolved.allowedCommands;
+              mkRules "Read" (withContent sandbox.paths.read)
+              ++ mkRules "Edit" (withContent sandbox.paths.write)
+              ++ bashRules sandbox.commands.allow;
             # deny rules cover the built-in tools and are merged into the sandbox boundary,
             # so a single rule blocks both claude itself and any subprocess it spawns. A
             # `Read` deny already stops Edit and Write, but not NotebookEdit, hence the
             # `Edit` rule beside it.
             deny =
-              mkRules "Read" (withContent resolved.deniedPaths)
-              ++ mkRules "Edit" (withContent resolved.deniedPaths)
+              mkRules "Read" (withContent sandbox.paths.deny)
+              ++ mkRules "Edit" (withContent sandbox.paths.deny)
               # matched on the command line
-              ++ bashRules resolved.deniedCommands;
+              ++ bashRules sandbox.commands.deny;
             ask = [ ];
           };
           statusLine = lib.mkIf (lib.versionAtLeast config.programs.starship.package.version "1.25.0") {
@@ -173,6 +174,7 @@ in
       };
       programs.agents = {
         harnesses.claude-code = {
+          inherit (cfg) launchers;
           addDirFlag = "--add-dir";
           # nono takes over, merged above the user settings without writing them
           sandboxArgs = [
@@ -186,22 +188,26 @@ in
             # Claude in Chrome, whose extension meets the session on this relay
             "bridge.claudeusercontent.com"
           ];
+          paths.write = cfg.configDirs ++ [
+            # the skills claude syncs from claude.ai within the managed ones, shared by every installation
+            "${config.home.homeDirectory}/.claude/skills/synced"
+          ];
+          # the managed config of every installation, which claude would otherwise run outside of nono later
+          paths.read = cfg.protectedPaths;
         };
         # The project config, which claude would otherwise run outside of nono later,
         # except for the prompts, the subagent memory and the worktrees claude creates.
-        sandbox.paths = {
-          ".claude" = "read";
-          ".claude/agent-memory*" = "write";
-          ".claude/agents" = "write";
-          ".claude/CLAUDE.md" = "write";
-          ".claude/commands" = "write";
-          ".claude/output-styles" = "write";
-          ".claude/rules" = "write";
-          ".claude/skills" = "write";
-          ".claude/worktrees" = "write";
-          # the skills claude syncs from claude.ai within the managed ones, shared by every installation
-          "${config.home.homeDirectory}/.claude/skills/synced" = "write";
-        };
+        sandbox.workspace.read = [ ".claude" ];
+        sandbox.workspace.write = [
+          ".claude/agent-memory*"
+          ".claude/agents"
+          ".claude/CLAUDE.md"
+          ".claude/commands"
+          ".claude/output-styles"
+          ".claude/rules"
+          ".claude/skills"
+          ".claude/worktrees"
+        ];
       };
       programs.nono.profiles.agents = {
         # `.claude.json` stays writable, since claude rewrites it all the time, so an agent
@@ -210,10 +216,10 @@ in
           allow = [ keychain ];
           # the login of claude, as in the upstream pack, which exposes every item `security` may read
           bypass_protection = [ keychain ];
-          allow_file = map (file: "${config.home.homeDirectory}/${file}") [
-            ".claude.json"
-            ".claude.json.lock"
-            ".claude.lock"
+          allow_file = [
+            "${config.home.homeDirectory}/.claude.json"
+            "${config.home.homeDirectory}/.claude.json.lock"
+            "${config.home.homeDirectory}/.claude.lock"
           ];
         };
       };

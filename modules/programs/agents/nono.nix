@@ -2,26 +2,28 @@
   flake.modules.homeManager.default =
     {
       lib,
-      lib',
       config,
       pkgs,
       ...
     }@args:
     let
       inherit (pkgs.stdenv.hostPlatform) isDarwin isLinux;
-      inherit (lib') namesWithValue;
       inherit (config.programs.agents) sandbox;
-      inherit (sandbox) resolved;
-      inherit (resolved)
-        relative
-        readPaths
-        writePaths
-        deniedPaths
-        ;
+      inherit (sandbox) workspace;
 
       harnesses = lib.attrValues config.programs.agents.harnesses;
-      fromHarnesses = attr: lib.concatMap (harness: harness.${attr}) harnesses;
-      harnessDomains = lib.unique (fromHarnesses "domains");
+      fromHarnesses = path: lib.concatMap (lib.getAttrFromPath path) harnesses;
+      harnessDomains = lib.unique (fromHarnesses [ "domains" ]);
+
+      # the absolute paths of the sandbox and of every harness
+      readPaths = sandbox.paths.read ++ fromHarnesses [
+        "paths"
+        "read"
+      ];
+      writePaths = sandbox.paths.write ++ fromHarnesses [
+        "paths"
+        "write"
+      ];
       nono = config.programs.nono.finalPackage;
       osConfig = args.osConfig or { };
 
@@ -46,7 +48,7 @@
         "${config.home.homeDirectory}/Library/Caches"
       ];
 
-      # A relative key as a regex, `**/` matching any directories and `*` within a path segment.
+      # A workspace key as a regex, `**/` matching any directories and `*` within a path segment.
       keyRegex =
         key:
         lib.concatMapStringsSep "(.*/)?" (
@@ -57,33 +59,32 @@
       keyFilter = key: regex "/${keyRegex key}(/|$)";
       rootedKeyFilter = root: key: regex "^${lib.escapeRegex root}/${keyRegex key}(/|$)";
 
-      writeKeys = namesWithValue "write" relative;
+      # The ones of `paths` below any of `roots`.
+      within = roots: lib.filter (path: lib.any (root: lib.hasPrefix "${root}/" path) roots);
 
-      # The ones of `paths` below `path`.
-      below = paths: path: lib.filter (lib.hasPrefix "${path}/") paths;
+      # nono cannot make a path read-only within a writable one, a grant takes the access of every covering one.
+      readOnlyPaths = within writePaths readPaths;
 
-      # The relative `write` keys equal to or below the matches of `key`.
-      exemptions = key: lib.filter (write: lib.match "${keyRegex key}(/.*)?" write != null) writeKeys;
+      # The `write` workspace keys equal to or below the matches of `key`.
+      exemptions =
+        key: lib.filter (write: lib.match "${keyRegex key}(/.*)?" write != null) workspace.write;
 
-      # Metadata stays readable, so listing a directory or `git status` keeps working.
-      seatbeltOperations = {
-        read = "file-write*";
-        deny = "file-read-data file-write*";
-      };
-
-      # Relative keys apply at any depth, so repositories added later are covered as well.
+      # Workspace keys apply at any depth, so repositories added later are covered as well.
       # The home directory holds the state of the agents.
-      relativeRule =
-        key: access:
-        deny seatbeltOperations.${access} (keyFilter key) (
+      workspaceRule =
+        operations: key:
+        deny operations (keyFilter key) (
           scratch ++ [ (rootedKeyFilter config.home.homeDirectory key) ] ++ map keyFilter (exemptions key)
         );
 
       # Platform rules come last in the nono policy, so these denies win over its grants.
-      # nono cannot make a path read-only within a writable one, a bypass takes the access of every covering grant.
+      # Metadata stays readable, so listing a directory or `git status` keeps working.
       seatbeltRules =
-        lib.mapAttrsToList relativeRule (lib.filterAttrs (_: access: access != "write") relative)
-        ++ map (path: deny "file-write*" (subpath path) (map subpath (below writePaths path))) readPaths
+        map (workspaceRule "file-write*") workspace.read
+        ++ map (workspaceRule "file-read-data file-write*") workspace.deny
+        ++ map (
+          path: deny "file-write*" (subpath path) (map subpath (within [ path ] writePaths))
+        ) readOnlyPaths
         ++ [
           # Keeps the `.git` of every repository in place, a rename covers the source as well.
           (deny "file-write-unlink" (regex ''/\.git$'') scratch)
@@ -105,7 +106,7 @@
       # nono grants every hop of a symlink, so an out-of-store link grants its target as well.
       # A recursive directory holds unmanaged files too.
       homeFiles = targets config.home.homeDirectory (file: !file.recursive) config.home.file;
-      managedFiles = lib.subtractLists (lib.concatMap (below homeFiles) deniedPaths) homeFiles;
+      managedFiles = lib.subtractLists (within sandbox.paths.deny homeFiles) homeFiles;
 
       # The copied files of the system config, none for a standalone home, which nono on Linux
       # keeps unreadable apart from a few. Symlinked ones resolve into the readable store,
@@ -117,10 +118,9 @@
         ) "/etc/nix/nix.conf";
 
       bwrapPolicy = pkgs.writers.writeJSON "nono-bwrap-policy.json" {
-        inherit relative;
-        deny = deniedPaths;
-        read = readPaths;
-        write = writePaths;
+        inherit workspace;
+        read = readOnlyPaths;
+        write = within readOnlyPaths writePaths;
       };
 
       nonoCommand =
@@ -174,19 +174,8 @@
         environment.NONO_PROFILE = "agents";
         profiles.agents = {
           extends = "default";
-          # the toolchains, nono skips the groups of the other platform
-          groups.include = [
-            "git_config"
-            "bun_runtime"
-            "go_runtime"
-            "go_runtime_linux"
-            "go_runtime_macos"
-            "java_runtime"
-            "nix_runtime"
-            "node_runtime"
-            "python_runtime"
-            "rust_runtime"
-          ];
+          # No groups beyond those of `default`, `programs.agents.sandbox.paths` grants the git config,
+          # nix and the toolchain caches instead, so the native sandboxes of the harnesses get them too.
           workdir.access = "readwrite";
           filesystem = {
             allow =
@@ -195,27 +184,29 @@
                 # the main repository of a linked worktree, which commits write to
                 "@git:common-dir"
                 drafts
-              ]
-              ++ fromHarnesses "stateDirs";
-            read =
+              ];
+            # managed files may be granted already, such as the git config
+            read = lib.unique (
               readPaths
               ++ managedFiles
               ++ etcFiles
               ++ [
                 # the base of a draft
                 profiles
-              ];
+              ]
+            );
             # Exempts the generated files, such as `.npmrc` or the shell configs, from the deny groups of nono,
             # their content sits in the readable store anyway.
             bypass_protection = managedFiles;
             unix_socket = sandbox.unixSockets;
-            unix_socket_dir = fromHarnesses "unixSocketDirs";
-            # on Linux nono refuses denies within granted directories, bubblewrap enforces them
-            deny = lib.mkIf isDarwin deniedPaths;
+            unix_socket_dir = fromHarnesses [ "unixSocketDirs" ];
+            # On Linux nono refuses to start with a deny within a granted directory,
+            # so denied paths stay outside of every grant.
+            deny = sandbox.paths.deny;
           };
           network = {
-            allow_domain = lib.unique (resolved.allowedDomains ++ harnessDomains);
-            deny_domain = resolved.deniedDomains;
+            allow_domain = lib.unique (sandbox.domains.allow ++ harnessDomains);
+            deny_domain = sandbox.domains.deny;
           }
           # macOS caps port ranges, but its wildcard stays on localhost
           // lib.optionalAttrs sandbox.localhost (
@@ -238,8 +229,8 @@
             allow_localhost = true;
           };
           environment = {
-            deny_vars = resolved.unset;
-            set_vars = resolved.set;
+            deny_vars = sandbox.environment.unset;
+            set_vars = sandbox.environment.set;
           };
           unsafe_macos_seatbelt_rules = lib.mkIf isDarwin seatbeltRules;
           # makes `unix_socket` an allowlist on Linux as well, refusing every abstract socket

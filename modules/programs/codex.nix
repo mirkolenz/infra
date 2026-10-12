@@ -9,12 +9,10 @@
     let
       agents = config.programs.agents;
       inherit (agents) sandbox;
-      inherit (sandbox) resolved;
+      cfg = config.programs.codex;
 
-      prefixRule = cmd: access: ''
-        prefix_rule(pattern = ${lib.toJSON (lib.splitString " " cmd)}, decision = "${
-          if access == "allow" then "allow" else "forbidden"
-        }")
+      prefixRule = decision: cmd: ''
+        prefix_rule(pattern = ${lib.toJSON (lib.splitString " " cmd)}, decision = "${decision}")
       '';
     in
     lib.mkIf config.programs.agents.enable {
@@ -25,7 +23,10 @@
         inherit (agents) context skills;
         installations.work = { };
         # https://developers.openai.com/codex/rules
-        rules.commands = lib.concatStrings (lib.mapAttrsToList prefixRule sandbox.commands);
+        rules.commands = lib.concatStrings (
+          map (prefixRule "allow") sandbox.commands.allow
+          ++ map (prefixRule "forbidden") sandbox.commands.deny
+        );
         # https://developers.openai.com/codex/config-reference
         # https://developers.openai.com/codex/config-schema.json
         settings = {
@@ -61,8 +62,10 @@
                 ".git" = "write";
               };
             }
+            // lib.genAttrs sandbox.paths.read (_: "read")
+            // lib.genAttrs sandbox.paths.write (_: "write")
             # deny wins over the read granted by :workspace, keeping ssh keys unreadable
-            // resolved.absolute;
+            // lib.genAttrs sandbox.paths.deny (_: "deny");
             network = {
               enabled = true;
               # also the connections to localhost and private networks
@@ -70,7 +73,9 @@
               # Codex has no counterpart to claude's `strictAllowlist`: the one switch that
               # would let it ask for a host beyond this list is `sandbox_approval`, which
               # also reopens `require_escalated`, so the list stays the whole boundary.
-              inherit (sandbox) domains;
+              domains =
+                lib.genAttrs sandbox.domains.allow (_: "allow")
+                // lib.genAttrs sandbox.domains.deny (_: "deny");
               unix_sockets = lib.genAttrs sandbox.unixSockets (_: "allow");
             };
           };
@@ -89,8 +94,8 @@
             hide_rate_limit_model_nudge = true;
           };
           shell_environment_policy = {
-            filters = lib.genAttrs resolved.unset (_: "exclude");
-            inherit (resolved) set;
+            filters = lib.genAttrs sandbox.environment.unset (_: "exclude");
+            inherit (sandbox.environment) set;
           };
           desktop = {
             followUpQueueMode = "queue";
@@ -117,6 +122,7 @@
       programs.agents = {
         # the login is kept in `auth.json`
         harnesses.codex = {
+          inherit (cfg) launchers;
           addDirFlag = "--add-dir";
           # nono takes over, and a running daemon would serve the session outside of it
           sandboxArgs = [
@@ -124,25 +130,23 @@
             "-c"
             ''default_permissions=":danger-full-access"''
           ];
-          # the app-server daemon and the hooks, which codex would otherwise run outside of nono later
-          protectedEntries = [
-            "hooks.json"
-            "packages"
-          ];
           domains = [
             "auth.openai.com"
             "chatgpt.com"
           ];
           # the browser use of the ChatGPT app, whose in-app browser serves it here
           unixSocketDirs = [ "/tmp/codex-browser-use" ];
+          paths.write = cfg.configDirs;
+          # the managed config, the hooks and the app-server daemon of every installation
+          paths.read = cfg.protectedPaths;
         };
         # The project config, except for the skills.
         # Codex protects `.agents` natively, except for the skills of every agent there.
-        sandbox.paths = {
-          ".agents/skills" = "write";
-          ".codex" = "read";
-          ".codex/skills" = "write";
-        };
+        sandbox.workspace.read = [ ".codex" ];
+        sandbox.workspace.write = [
+          ".agents/skills"
+          ".codex/skills"
+        ];
       };
     };
 }

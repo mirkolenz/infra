@@ -1,14 +1,19 @@
-{
-  config,
-  lib,
-  lib',
-  ...
-}:
+{ lib, ... }:
 let
-  inherit (lib') namesWithValue;
+  inherit (lib) mkOption types;
 
-  sandbox = config.programs.agents.sandbox;
-  absolute = lib.filterAttrs (key: _: lib.hasPrefix "/" key) sandbox.paths;
+  absolutePath = types.pathWith { absolute = true; };
+
+  # an executable name, optionally followed by arguments
+  command = types.strMatching "[A-Za-z0-9._+-]+( [^ ]+)*";
+
+  listOption =
+    elemType: description:
+    mkOption {
+      type = types.listOf elemType;
+      default = [ ];
+      inherit description;
+    };
 in
 {
   meta.maintainers = with lib.maintainers; [ mirkolenz ];
@@ -19,15 +24,15 @@ in
   options.programs.agents = {
     enable = lib.mkEnableOption "the agents, run within nono with the shared sandbox";
 
-    context = lib.mkOption {
-      type = with lib.types; either lines path;
+    context = mkOption {
+      type = with types; either lines path;
       default = "";
       example = lib.literalExpression "./AGENTS.md";
       description = "Shared instructions, either inline or as a markdown file, handed to every agent as its global context.";
     };
 
-    skills = lib.mkOption {
-      type = with lib.types; either (attrsOf (either lines path)) path;
+    skills = mkOption {
+      type = with types; either (attrsOf (either lines path)) path;
       default = { };
       example = lib.literalExpression "./skills";
       description = ''
@@ -39,22 +44,13 @@ in
     };
 
     sandbox = {
-      domains = lib.mkOption {
-        type =
-          with lib.types;
-          attrsOf (enum [
-            "allow"
-            "deny"
-          ]);
-        default = { };
-        example = {
-          "*.githubusercontent.com" = "allow";
-          "pypi.org" = "deny";
-        };
-        description = ''
-          Hosts agents may (`allow`) or may not (`deny`) reach, honoured by nono and every agent
-          that sandboxes its network. A leading `*.` matches subdomains only, a bare `*` every host.
-          A deny wins over every allow and also refuses a host that an agent would otherwise ask for.
+      # Honoured by nono and every agent that sandboxes its network.
+      # A leading `*.` matches subdomains only, a bare `*` every host.
+      domains = {
+        allow = listOption types.str "Hosts agents may reach.";
+        deny = listOption types.str ''
+          Hosts agents may not reach, winning over every allowed one,
+          refused even when an agent would otherwise ask for them.
         '';
       };
 
@@ -64,143 +60,92 @@ in
         to every host there, while the privileged ones, HTTP and HTTPS among them, stay with the proxy
       '';
 
-      paths = lib.mkOption {
-        type =
-          with lib.types;
-          attrsOf (enum [
-            "read"
-            "write"
-            "deny"
-          ]);
-        default = { };
-        example = {
-          "/nix" = "read";
-          "/home/user/.ssh" = "deny";
-          ".env.*" = "deny";
-          ".env.example" = "write";
+      # Absolute paths, covering everything below.
+      paths = {
+        read = listOption absolutePath ''
+          Paths agents may read, read-only even within a writable path, which only nono enforces.
+        '';
+        write = listOption absolutePath "Paths agents may read and write.";
+        deny = listOption absolutePath ''
+          Paths hidden from agents. nono on Linux refuses to start with one within a granted path.
+        '';
+      };
+
+      # Paths relative to the workspaces, where `*` matches within a path segment and `**/` any directories.
+      # Only nono enforces them, on macOS at any depth outside of temporary and writable absolute paths,
+      # on Linux at the workspace roots and their git directories.
+      workspace = {
+        read = listOption types.str "Workspace paths agents may only read.";
+        write = listOption types.str "Workspace paths exempt from a broader `read` or `deny` one.";
+        deny = listOption types.str "Workspace paths hidden from agents.";
+      };
+
+      unixSockets = listOption types.str ''
+        Unix sockets reachable from a sandbox, as the path it sees after symlink resolution.
+        Everything else stays out of a subprocess' reach, under nono on Linux abstract sockets too.
+      '';
+
+      environment = {
+        set = mkOption {
+          type = with types; attrsOf str;
+          default = { };
+          example.ASTRO_TELEMETRY_DISABLED = "1";
+          description = "Variables set for the agents and their subprocesses.";
         };
-        description = ''
-          Paths and the access agents get to them, covering everything below. An absolute key
-          is granted (`read`, `write`) or hidden (`deny`), and `read` stays read-only within a
-          writable directory. Other keys are relative, where `*` matches within a path segment
-          and `**/` any directories, `read` and `deny` restrict the path, and `write` exempts it
-          from a broader relative key. Only nono enforces relative keys, on macOS at any depth
-          outside of temporary and writable absolute paths, on Linux at the workspace roots
-          and their git directories.
-        '';
+        unset = listOption types.str "Variables stripped from the agents and their subprocesses.";
       };
 
-      unixSockets = lib.mkOption {
-        type = with lib.types; listOf str;
-        default = [ ];
-        description = ''
-          Unix sockets reachable from a sandbox, as the path it sees after symlink resolution.
-          Everything else stays out of a subprocess' reach, under nono on Linux abstract sockets too.
-        '';
-      };
-
-      environment = lib.mkOption {
-        type = with lib.types; attrsOf (nullOr str);
-        default = { };
-        example = {
-          SSH_AUTH_SOCK = null;
-          ASTRO_TELEMETRY_DISABLED = "1";
-        };
-        description = ''
-          Variables set for the agents and their subprocesses, or stripped when `null`.
-        '';
-      };
-
-      commands = lib.mkOption {
-        # an executable name, optionally followed by arguments
-        type =
-          with lib.types;
-          addCheck
-            (attrsOf (enum [
-              "allow"
-              "deny"
-            ]))
-            (
-              commands:
-              lib.all (name: lib.match "[A-Za-z0-9._+-]+( [^ ]+)*" name != null) (lib.attrNames commands)
-            );
-        default = { };
-        example = {
-          jq = "allow";
-          "gh auth token" = "deny";
-        };
-        description = ''
-          Commands that agents run without asking (`allow`) or refuse (`deny`), an executable
-          name optionally followed by arguments, matched as a prefix of a plain command line of
-          their shell tool, not within scripts, aliases or `sh -c`.
-        '';
-      };
-
-      resolved = lib.mkOption {
-        type = with lib.types; lazyAttrsOf (either (listOf str) (attrsOf str));
-        readOnly = true;
-        internal = true;
-        description = ''
-          The other options split for the modules translating them, `paths` into the `absolute`
-          and `relative` ones and the absolute ones by access, `environment` into the variables
-          to `set` and `unset`, and `domains` and `commands` by access.
-        '';
+      # Matched as a prefix of a plain command line of the shell tool of an agent,
+      # not within scripts, aliases or `sh -c`.
+      commands = {
+        allow = listOption command "Commands that agents run without asking.";
+        deny = listOption command "Commands that agents refuse to run.";
       };
     };
 
-    harnesses = lib.mkOption {
-      type = lib.types.attrsOf (
-        lib.types.submodule {
+    harnesses = mkOption {
+      type = types.attrsOf (
+        types.submodule {
           options = {
-            launchers = lib.mkOption {
-              type = with lib.types; attrsOf package;
+            launchers = mkOption {
+              type = with types; attrsOf package;
               description = "Executables of the harness by name, each shadowed by a wrapper.";
             };
 
-            sandboxArgs = lib.mkOption {
-              type = with lib.types; listOf str;
+            sandboxArgs = mkOption {
+              type = with types; listOf str;
               default = [ ];
               example = [ "--no-sandbox" ];
               description = "Arguments prepended to those of the harness, usually to disable its own sandbox.";
             };
 
-            trailingSandboxArgs = lib.mkOption {
-              type = with lib.types; listOf str;
+            trailingSandboxArgs = mkOption {
+              type = with types; listOf str;
               default = [ ];
               example = [ "--standalone" ];
               description = "Arguments appended to those of the harness, for flags its subcommands accept only after their name.";
             };
 
-            addDirFlag = lib.mkOption {
-              type = with lib.types; nullOr str;
+            addDirFlag = mkOption {
+              type = with types; nullOr str;
               default = null;
               example = "--add-dir";
               description = "Flag of the harness that adds a workspace directory, passed for every `NONO_ALLOW` entry.";
             };
 
-            stateDirs = lib.mkOption {
-              type = with lib.types; listOf str;
-              default = [ ];
-              description = "Directories holding the state and login of the harness, writable within nono.";
-            };
-
-            protectedEntries = lib.mkOption {
-              type = with lib.types; listOf str;
-              default = [ ];
-              description = ''
-                Entries of every one of `stateDirs` that agents may only read, the managed config
-                and everything else the harness would run outside of nono later.
+            # Granted like `programs.agents.sandbox.paths`, but within nono alone.
+            paths = {
+              read = listOption absolutePath ''
+                Paths of the harness that it only reads within nono, such as the managed config
+                within its state directories, which it would run outside of nono later.
               '';
+              write = listOption absolutePath "Paths of the harness that it writes, such as its state and login.";
             };
 
-            domains = lib.mkOption {
-              type = with lib.types; listOf str;
-              default = [ ];
-              description = "Hosts the harness itself talks to, reachable within nono.";
-            };
+            domains = listOption types.str "Hosts the harness itself talks to, reachable within nono.";
 
-            unixSocketDirs = lib.mkOption {
-              type = with lib.types; listOf str;
+            unixSocketDirs = mkOption {
+              type = with types; listOf str;
               default = [ ];
               example = [ "/tmp/codex-browser-use" ];
               description = ''
@@ -219,19 +164,5 @@ in
         to the harness through its `addDirFlag`.
       '';
     };
-  };
-
-  config.programs.agents.sandbox.resolved = {
-    inherit absolute;
-    relative = lib.filterAttrs (key: _: !lib.hasPrefix "/" key) sandbox.paths;
-    readPaths = namesWithValue "read" absolute;
-    writePaths = namesWithValue "write" absolute;
-    deniedPaths = namesWithValue "deny" absolute;
-    set = lib.filterAttrs (_: value: value != null) sandbox.environment;
-    unset = namesWithValue null sandbox.environment;
-    allowedDomains = namesWithValue "allow" sandbox.domains;
-    deniedDomains = namesWithValue "deny" sandbox.domains;
-    allowedCommands = namesWithValue "allow" sandbox.commands;
-    deniedCommands = namesWithValue "deny" sandbox.commands;
   };
 }

@@ -8,14 +8,7 @@
       ...
     }:
     let
-      # the protected entries of every harness in each of its state directories
-      protected = lib.concatMap (
-        harness:
-        lib.mapCartesianProduct ({ dir, entry }: "${dir}/${entry}") {
-          dir = harness.stateDirs;
-          entry = harness.protectedEntries;
-        }
-      ) (lib.attrValues config.programs.agents.harnesses);
+      inherit (pkgs.stdenv.hostPlatform) isDarwin isLinux;
     in
     {
       programs.agents = {
@@ -24,124 +17,134 @@
         skills = ./skills;
         sandbox = {
           localhost = true;
-          domains = {
+          domains.allow = [
             # Every host apart from the denied ones.
             # The allowed ones below are what the skills and tools need once this is dropped.
-            "*" = "allow";
-            "github.com" = "allow";
-            "*.github.com" = "allow";
-            "*.githubusercontent.com" = "allow";
+            "*"
+            "github.com"
+            "*.github.com"
+            "*.githubusercontent.com"
             # nix
-            "*.nixos.org" = "allow";
-            "*.cachix.org" = "allow";
-            "*.flakehub.com" = "allow";
+            "*.nixos.org"
+            "*.cachix.org"
+            "*.flakehub.com"
             # my-legal skill: EUR-Lex, CELLAR, the Commission guidance and the CJEU all sit
             # under one domain, and the BSI technical guidelines under the federal one
-            "*.europa.eu" = "allow";
-            "www.gesetze-im-internet.de" = "allow";
-            "*.bund.de" = "allow";
+            "*.europa.eu"
+            "www.gesetze-im-internet.de"
+            "*.bund.de"
             # my-license skill: the scanoss knowledge base its snippet matching queries.
             # it uploads winnowing fingerprints of the files, never their contents
-            "api.osskb.org" = "allow";
+            "api.osskb.org"
             # my-review, my-legal and my-security skills: the semgrep rule registry,
             # which `--config auto` reads the rules from
-            "semgrep.dev" = "allow";
+            "semgrep.dev"
             # my-security skill: the advisory databases, all of them public read-only feeds.
             # without these the scanners do not fail, they report a clean tree, which is worse
-            "*.anchore.io" = "allow";
-            "*.osv.dev" = "allow";
-            "osv-vulnerabilities.storage.googleapis.com" = "allow";
-            "*.deps.dev" = "allow";
-            "vuln.go.dev" = "allow";
-            "*.nist.gov" = "allow";
+            "*.anchore.io"
+            "*.osv.dev"
+            "osv-vulnerabilities.storage.googleapis.com"
+            "*.deps.dev"
+            "vuln.go.dev"
+            "*.nist.gov"
             # the sigstore public-good instance, for verifying a release chain
-            "*.sigstore.dev" = "allow";
+            "*.sigstore.dev"
             # the trivy database, published as an image. its fallback is ghcr.io, which stays
             # denied, so the mirror is what keeps trivy working without reopening that registry
-            "mirror.gcr.io" = "allow";
-
-            # Package registries, kept shut: an agent that pulls from one is running code
-            # nobody reviewed. Denying beats omitting, because an omitted host is still one
-            # a per-command request could open. Nix is the deliberate exception, since a
-            # flake input is pinned and reviewable.
-            "pypi.org" = "deny";
-            "*.pythonhosted.org" = "deny";
-            "registry.npmjs.org" = "deny";
+            "mirror.gcr.io"
+          ];
+          # Package registries, kept shut: an agent that pulls from one is running code
+          # nobody reviewed. Denying beats omitting, because an omitted host is still one
+          # a per-command request could open. Nix is the deliberate exception, since a
+          # flake input is pinned and reviewable.
+          domains.deny = [
+            "pypi.org"
+            "*.pythonhosted.org"
+            "registry.npmjs.org"
             # the only registry here that `*.github.com` would otherwise allow
-            "npm.pkg.github.com" = "deny";
-            "crates.io" = "deny";
-            "*.crates.io" = "deny";
-            "proxy.golang.org" = "deny";
+            "npm.pkg.github.com"
+            "crates.io"
+            "*.crates.io"
+            "proxy.golang.org"
             # ghcr also serves homebrew bottles
-            "*.docker.io" = "deny";
-            "ghcr.io" = "deny";
-            "*.brew.sh" = "deny";
+            "*.docker.io"
+            "ghcr.io"
+            "*.brew.sh"
             # model weights
-            "huggingface.co" = "deny";
-            "*.hf.co" = "deny";
-          };
-          paths = {
+            "huggingface.co"
+            "*.hf.co"
+          ];
+          # nix talks to the daemon for everything else, the database and the gc roots among it
+          paths.read = [
             # the whole store, which the nix daemon serves to every user anyway
-            "/nix" = "read";
-            "${config.home.homeDirectory}/.npm" = "write";
-            "${config.xdg.cacheHome}" = "write";
+            "/nix/store"
+            # the system, default and user profiles, through which every tool is on `PATH`
+            "/nix/var/nix/profiles"
+            config.home.profileDirectory
+            # the build logs, which `nix log` reads directly instead of through the daemon
+            "/nix/var/log/nix"
+            # the trusted flake settings
+            "${config.xdg.dataHome}/nix"
+            # the git config, without the `credentials` of its credential store
+            "${config.xdg.configHome}/git/config"
+            "${config.xdg.configHome}/git/ignore"
+            "${config.xdg.configHome}/git/attributes"
+            # the module cache, the toolchains themselves come from the dev shells
+            "${config.home.homeDirectory}/go/pkg/mod"
+          ]
+          ++ lib.optionals (!config.custom.standalone) [ "/run/current-system/sw" ]
+          ++ lib.optionals isDarwin [ "${config.home.homeDirectory}/Library/Fonts" ]
+          ++ lib.optionals isLinux [ "${config.xdg.dataHome}/fonts" ];
+          paths.write = [
+            "${config.home.homeDirectory}/.npm"
+            config.xdg.cacheHome
             # nono grants it write-only, but agents and scripts read back what they put there
-            "/tmp" = "write";
-            "${config.xdg.configHome}/.wrangler/logs" = "write";
-            "${config.xdg.configHome}/.semgrep" = "write";
+            "/tmp"
+            "${config.xdg.configHome}/.wrangler/logs"
+            "${config.xdg.configHome}/.semgrep"
             # codebook downloads its dictionaries here on first use
-            "${config.xdg.dataHome}/codebook" = "write";
-            # the trusted flake settings, nono's runtime groups cover the profiles and toolchains
-            "${config.xdg.dataHome}/nix" = "read";
-            "${config.home.homeDirectory}/.ssh" = "deny";
-            # registry tokens within the toolchain directories that nono's runtime groups grant
-            "${config.home.homeDirectory}/.cargo/credentials" = "deny";
-            "${config.home.homeDirectory}/.cargo/credentials.toml" = "deny";
-            "${config.xdg.dataHome}/uv/credentials" = "deny";
-            # may hold the token of the host in plaintext, agents get a gh config of their own
-            "${config.xdg.configHome}/gh" = "deny";
-            # the netrc, token and socket of determinate-nixd, partly world-readable
-            "/nix/var/determinate" = "deny";
-            # Files that configure code running outside the sandbox later, by git, hook managers,
-            # direnv, editors or agents, and the secrets of a project.
-            ".git/config" = "read";
-            ".git/config.worktree" = "read";
-            ".git/hooks" = "read";
-            ".git/info" = "read";
-            # submodules are named after their path, nested ones live in `modules` of their parent
-            ".git/modules/**/config" = "read";
-            ".git/modules/**/hooks" = "read";
-            ".git/modules/**/info" = "read";
-            ".git/worktrees/*/config.worktree" = "read";
-            ".gitmodules" = "read";
-            ".envrc" = "read";
-            ".direnv" = "read";
-            ".devcontainer" = "read";
-            ".vscode" = "read";
-            ".zed" = "read";
-            ".idea" = "read";
-            ".mcp.json" = "read";
-            ".env" = "deny";
-            ".env.*" = "deny";
-            ".env.example" = "write";
-          }
+            "${config.xdg.dataHome}/codebook"
+          ]
           # orb would need "${config.home.homeDirectory}/.orbstack" here too
-          // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
-            "${config.home.homeDirectory}/Library/Caches" = "write";
-            "${config.home.homeDirectory}/Library/Fonts" = "read";
-          }
-          // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
-            "${config.xdg.dataHome}/fonts" = "read";
-          }
-          // lib.genAttrs protected (_: "read");
+          ++ lib.optionals isDarwin [ "${config.home.homeDirectory}/Library/Caches" ];
+          paths.deny = [
+            "${config.home.homeDirectory}/.ssh"
+            # may hold the token of the host in plaintext, agents get a gh config of their own
+            "${config.xdg.configHome}/gh"
+            # the netrc, token and socket of determinate-nixd, partly world-readable
+            "/nix/var/determinate"
+          ];
+          # Files that configure code running outside the sandbox later, by git, hook managers,
+          # direnv, editors or agents.
+          workspace.read = [
+            ".git/config"
+            ".git/config.worktree"
+            ".git/hooks"
+            ".git/info"
+            # submodules are named after their path, nested ones live in `modules` of their parent
+            ".git/modules/**/config"
+            ".git/modules/**/hooks"
+            ".git/modules/**/info"
+            ".git/worktrees/*/config.worktree"
+            ".gitmodules"
+            ".envrc"
+            ".direnv"
+            ".devcontainer"
+            ".vscode"
+            ".zed"
+            ".idea"
+            ".mcp.json"
+          ];
+          # the secrets of a project
+          workspace.deny = [
+            ".env"
+            ".env.*"
+          ];
+          workspace.write = [ ".env.example" ];
           unixSockets = [
             (lib'.nixDaemonSocket pkgs.stdenv)
           ];
-          environment = {
-            # Hides the forwarded agent link from modules/networking/ssh.nix.
-            # `IdentityAgent` in ssh_config bypasses the variable, `unixSockets` blocks
-            # those sockets, and the keys stay unreadable through their `deny` entry in `paths`.
-            SSH_AUTH_SOCK = null;
+          environment.set = {
             ASTRO_TELEMETRY_DISABLED = "1";
             GH_CONFIG_DIR = "${config.xdg.cacheHome}/gh-agents";
             # determinate-nix spawns a sentry crashpad_handler that cannot register its
@@ -150,13 +153,19 @@
             GH_PROMPT_DISABLED = "1";
             GH_NO_UPDATE_NOTIFIER = "1";
           };
-          commands = {
+          environment.unset = [
+            # Hides the forwarded agent link from modules/networking/ssh.nix.
+            # `IdentityAgent` in ssh_config bypasses the variable, `unixSockets` blocks
+            # those sockets, and the keys stay unreadable through their entry in `paths.deny`.
+            "SSH_AUTH_SOCK"
+          ];
+          commands.deny = [
             # would print the keychain, the gh token of the host among it
-            security = "deny";
+            "security"
             # keep the injected tokens out of the transcripts, their read-only scope is the boundary
-            "gh auth" = "deny";
-            "nix config show" = "deny";
-          };
+            "gh auth"
+            "nix config show"
+          ];
         };
       };
     };

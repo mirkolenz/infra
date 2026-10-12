@@ -157,9 +157,6 @@
             { "${dir}/${name}/SKILL.md" = mkAgentFile content; }
         ) skills;
 
-    # Names of the attributes of `attrs` whose value is `value`.
-    namesWithValue = value: attrs: lib.attrNames (lib.filterAttrs (_: v: v == value) attrs);
-
     # Each of `paths` followed by `glob` below it.
     withContent =
       glob:

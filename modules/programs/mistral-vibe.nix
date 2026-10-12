@@ -59,24 +59,24 @@
         harnesses.vibe = lib.mkIf cfg.enable {
           launchers.vibe = cfg.package;
           addDirFlag = "--add-dir";
-          # the API key is kept in `.vibe/.env`
-          stateDirs = [ "${config.home.homeDirectory}/.vibe" ];
+          # the API key is kept in `.env`
+          paths.write = [ "${config.home.homeDirectory}/.vibe" ];
           # the hooks run outside of nono
-          protectedEntries = [
-            "AGENTS.md"
-            "config.toml"
-            "hooks.toml"
-            "skills"
+          paths.read = [
+            "${config.home.homeDirectory}/.vibe/AGENTS.md"
+            "${config.home.homeDirectory}/.vibe/config.toml"
+            "${config.home.homeDirectory}/.vibe/hooks.toml"
+            "${config.home.homeDirectory}/.vibe/skills"
           ];
           domains = [ "api.mistral.ai" ];
         };
         # The project config applies to other agents as well, and its hooks run outside of nono.
         # The prompts stay writable.
-        sandbox.paths = {
-          ".vibe" = "read";
-          ".vibe/prompts" = "write";
-          ".vibe/skills" = "write";
-        };
+        sandbox.workspace.read = [ ".vibe" ];
+        sandbox.workspace.write = [
+          ".vibe/prompts"
+          ".vibe/skills"
+        ];
       };
     };
 }

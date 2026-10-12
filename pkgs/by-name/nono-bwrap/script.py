@@ -1,8 +1,8 @@
 """Run a command within bubblewrap, enforcing the agent sandbox where nono only grants.
 
-On Linux, nono grants but does not deny within granted directories, so bubblewrap mounts
-over the `deny`, `read` and `write` paths and the relative keys of every workspace root and
-its git directories.
+On Linux, nono grants but does not restrict within granted directories, so bubblewrap mounts
+over the `read` paths within writable ones, the `write` paths within those,
+and the workspace keys of every workspace root and its git directories.
 The workspace roots are the working directory and those of `NONO_ALLOW`.
 The mounts cover paths that exist at launch.
 """
@@ -35,10 +35,9 @@ class Access(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class Policy:
-    """The relative and absolute sandbox paths."""
+    """The workspace keys by access and the absolute sandbox paths."""
 
-    relative: Mapping[str, Access]
-    deny: tuple[Path, ...]
+    workspace: Mapping[Access, tuple[str, ...]]
     read: tuple[Path, ...]
     write: tuple[Path, ...]
 
@@ -48,18 +47,19 @@ class Policy:
         data = json.loads(path.read_bytes())
 
         return cls(
-            relative={key: Access(value) for key, value in data["relative"].items()},
-            deny=tuple(map(Path, data["deny"])),
+            workspace={
+                Access(access): tuple(keys) for access, keys in data["workspace"].items()
+            },
             read=tuple(map(Path, data["read"])),
             write=tuple(map(Path, data["write"])),
         )
 
     def keys(self, access: Access, *, git: bool) -> list[str]:
-        """The relative keys with `access`, those within a git directory relative to it."""
+        """The workspace keys with `access`, those within a git directory relative to it."""
         return [
             key.removeprefix(GIT_DIR_PREFIX)
-            for key, value in sorted(self.relative.items())
-            if value is access and key.startswith(GIT_DIR_PREFIX) == git
+            for key in sorted(self.workspace[access])
+            if key.startswith(GIT_DIR_PREFIX) == git
         ]
 
 
@@ -146,7 +146,6 @@ def requested(policy: Policy, workspace: Workspace) -> Iterator[Mount]:
         if git:
             yield Mount(Access.WRITE, base)
 
-    yield from (Mount(Access.DENY, path) for path in policy.deny if path.exists())
     yield from (Mount(Access.READ, path) for path in policy.read if path.exists())
     yield from (Mount(Access.WRITE, path) for path in policy.write if path.exists())
 

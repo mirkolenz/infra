@@ -23,11 +23,11 @@
           };
         };
       };
-      programs.agents.sandbox.paths = {
+      programs.agents.sandbox = {
         # read by `wt` within the sandbox, holding the approvals of the project hooks as well
-        "${config.xdg.configHome}/worktrunk" = "read";
+        paths.read = [ "${config.xdg.configHome}/worktrunk" ];
         # project hooks that `wt` runs outside the sandbox later
-        ".config/wt.toml" = "read";
+        workspace.read = [ ".config/wt.toml" ];
       };
     };
 }
