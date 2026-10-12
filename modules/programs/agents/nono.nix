@@ -113,8 +113,7 @@
       etcFiles =
         targets "/etc" (file: file.mode or "symlink" != "symlink") (osConfig.environment.etc or { })
         # determinate-nixd writes it itself, outside of `environment.etc`
-        ++ lib.optional (
-          osConfig.determinate.enable or osConfig.determinateNix.enable or false
+        ++ lib.optional (osConfig.determinate.enable or osConfig.determinateNix.enable or false
         ) "/etc/nix/nix.conf";
 
       bwrapPolicy = pkgs.writers.writeJSON "nono-bwrap-policy.json" {
