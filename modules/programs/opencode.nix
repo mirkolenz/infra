@@ -6,8 +6,9 @@
       config,
       pkgs,
       ...
-    }:
+    }@args:
     let
+      llamaCpp = args.osConfig.services.llama-cpp or { enable = false; };
       agents = config.programs.agents;
       sandbox = lib'.splitSandbox agents.sandbox;
 
@@ -25,8 +26,6 @@
 
       # resources are `<action>:<value>`
       denyRules = action: map (resource: "${action}:${resource}");
-
-      llamaCppPort = 18000;
 
       # the private servers of the sessions within nono
       serverPorts = [
@@ -76,11 +75,11 @@
         settings = {
           share = "disabled";
           update = "disable";
-          model = "llama-cpp/qwen3.6-35b-a3b";
-          providers.llama-cpp = {
+          model = lib.mkIf llamaCpp.enable "llama-cpp/qwen3.6-35b-a3b";
+          providers.llama-cpp = lib.mkIf llamaCpp.enable {
             name = "llama.cpp";
             package = "@opencode/ai/providers/openai-compatible";
-            settings.baseURL = "http://127.0.0.1:${toString llamaCppPort}/v1";
+            settings.baseURL = "http://127.0.0.1:${toString llamaCpp.settings.port}/v1";
             models."qwen3.6-35b-a3b".name = "Qwen 3.6 MoE";
           };
           # home-manager's `enableMcpIntegration` still renders the V1 shape
@@ -149,7 +148,7 @@
       # llama.cpp and the private servers, loopback is already in `NO_PROXY`.
       # The profile is shared, since a nested session keeps the ports of the outer one.
       programs.nono.profiles.agents.network = {
-        open_port = [ llamaCppPort ];
+        open_port = lib.optional llamaCpp.enable llamaCpp.settings.port;
         open_port_range = [ serverPorts ];
       };
     };
