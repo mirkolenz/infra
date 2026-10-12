@@ -10,7 +10,7 @@
     let
       llamaCpp = args.osConfig.services.llama-cpp or { enable = false; };
       agents = config.programs.agents;
-      sandbox = lib'.splitSandbox agents.sandbox;
+      inherit (agents.sandbox) resolved;
 
       # `*` also matches `/`
       withContent = lib'.withContent "*";
@@ -51,8 +51,8 @@
           # https://opencode.ai/v2/docs/permissions
           # upstream allows the workspace and asks for anything outside it
           permissions =
-            mkRules "allow" "external_directory" (withContent (sandbox.readPaths ++ sandbox.writePaths))
-            ++ mkRules "allow" "shell" (commandPatterns sandbox.allowedCommands);
+            mkRules "allow" "external_directory" (withContent (resolved.readPaths ++ resolved.writePaths))
+            ++ mkRules "allow" "shell" (commandPatterns resolved.allowedCommands);
           # https://opencode.ai/v2/docs/policies
           # hard denies that neither an "Allow always" approval nor a project config lifts
           experimental.policies =
@@ -64,9 +64,9 @@
             ]
             ++ mkRules "deny" "tool.use" (
               # `*:` covers every path-based action
-              denyRules "*" (withContent sandbox.deniedPaths)
-              ++ denyRules "edit" (withContent sandbox.readPaths)
-              ++ denyRules "shell" (commandPatterns sandbox.deniedCommands)
+              denyRules "*" (withContent resolved.deniedPaths)
+              ++ denyRules "edit" (withContent resolved.readPaths)
+              ++ denyRules "shell" (commandPatterns resolved.deniedCommands)
             );
         };
       };

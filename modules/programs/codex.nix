@@ -9,7 +9,8 @@
     }:
     let
       agents = config.programs.agents;
-      sandbox = lib'.splitSandbox agents.sandbox;
+      inherit (agents) sandbox;
+      inherit (sandbox) resolved;
 
       prefixRule = cmd: access: ''
         prefix_rule(pattern = ${lib.toJSON (lib.splitString " " cmd)}, decision = "${
@@ -62,7 +63,7 @@
               };
             }
             # deny wins over the read granted by :workspace, keeping ssh keys unreadable
-            // sandbox.absolute;
+            // resolved.absolute;
             network = {
               enabled = true;
               # also the connections to localhost and private networks
@@ -89,8 +90,8 @@
             hide_rate_limit_model_nudge = true;
           };
           shell_environment_policy = {
-            filters = lib.genAttrs sandbox.unset (_: "exclude");
-            inherit (sandbox) set;
+            filters = lib.genAttrs resolved.unset (_: "exclude");
+            inherit (resolved) set;
           };
           desktop = {
             followUpQueueMode = "queue";

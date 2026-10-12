@@ -10,14 +10,15 @@
     let
       inherit (pkgs.stdenv.hostPlatform) isDarwin isLinux;
       inherit (lib') namesWithValue;
-      inherit (sandbox)
+      inherit (config.programs.agents) sandbox;
+      inherit (sandbox) resolved;
+      inherit (resolved)
         relative
         readPaths
         writePaths
         deniedPaths
         ;
 
-      sandbox = lib'.splitSandbox config.programs.agents.sandbox;
       harnesses = lib.attrValues config.programs.agents.harnesses;
       fromHarnesses = attr: lib.concatMap (harness: harness.${attr}) harnesses;
       harnessDomains = lib.unique (fromHarnesses "domains");
@@ -214,8 +215,8 @@
             deny = lib.mkIf isDarwin deniedPaths;
           };
           network = {
-            allow_domain = lib.unique (sandbox.allowedDomains ++ harnessDomains);
-            deny_domain = sandbox.deniedDomains;
+            allow_domain = lib.unique (resolved.allowedDomains ++ harnessDomains);
+            deny_domain = resolved.deniedDomains;
           }
           # macOS caps port ranges, but its wildcard stays on localhost
           // lib.optionalAttrs sandbox.localhost (
@@ -238,8 +239,8 @@
             allow_localhost = true;
           };
           environment = {
-            deny_vars = sandbox.unset;
-            set_vars = sandbox.set;
+            deny_vars = resolved.unset;
+            set_vars = resolved.set;
           };
           unsafe_macos_seatbelt_rules = lib.mkIf isDarwin seatbeltRules;
           # makes `unix_socket` an allowlist on Linux as well, refusing every abstract socket

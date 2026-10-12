@@ -9,7 +9,8 @@
     }:
     let
       agents = config.programs.agents;
-      sandbox = lib'.splitSandbox agents.sandbox;
+      inherit (agents) sandbox;
+      inherit (sandbox) resolved;
 
       withContent = lib'.withContent "**";
 
@@ -88,7 +89,7 @@
               # `strictAllowlist` is deliberately unset: it would make this list the whole
               # allowlist and have claude refuse the per-command host lists that auto mode
               # sends through the classifier, turning every unforeseen host into a dead end.
-              inherit (sandbox) allowedDomains deniedDomains;
+              inherit (resolved) allowedDomains deniedDomains;
             };
             # `filesystem` is deliberately unset: an `Edit` allow rule grants the sandbox
             # the same write access as `allowWrite`, and a `Read` or `Edit` deny rule the
@@ -98,7 +99,7 @@
               envVars = map (name: {
                 inherit name;
                 mode = "deny";
-              }) sandbox.unset;
+              }) resolved.unset;
             };
           };
           strictKnownMarketplaces = lib.attrValues knownMarketplaces;
@@ -109,7 +110,7 @@
             "frontend-design@claude-plugins-official" = true;
             "codex@openai-codex" = true;
           };
-          env = sandbox.set // {
+          env = resolved.set // {
             ENABLE_CLAUDEAI_MCP_SERVERS = false;
             # suppresses the in-session rating/feedback survey popup
             CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = true;
@@ -134,18 +135,18 @@
             # stating only here. Claude reads outside the workspace freely, so a `Read`
             # allow rule merely skips the prompt.
             allow =
-              mkRules "Read" (withContent sandbox.readPaths)
-              ++ mkRules "Edit" (withContent sandbox.writePaths)
-              ++ bashRules sandbox.allowedCommands;
+              mkRules "Read" (withContent resolved.readPaths)
+              ++ mkRules "Edit" (withContent resolved.writePaths)
+              ++ bashRules resolved.allowedCommands;
             # deny rules cover the built-in tools and are merged into the sandbox boundary,
             # so a single rule blocks both claude itself and any subprocess it spawns. A
             # `Read` deny already stops Edit and Write, but not NotebookEdit, hence the
             # `Edit` rule beside it.
             deny =
-              mkRules "Read" (withContent sandbox.deniedPaths)
-              ++ mkRules "Edit" (withContent sandbox.deniedPaths)
+              mkRules "Read" (withContent resolved.deniedPaths)
+              ++ mkRules "Edit" (withContent resolved.deniedPaths)
               # matched on the command line
-              ++ bashRules sandbox.deniedCommands;
+              ++ bashRules resolved.deniedCommands;
             ask = [ ];
           };
           statusLine = lib.mkIf (lib.versionAtLeast config.programs.starship.package.version "1.25.0") {

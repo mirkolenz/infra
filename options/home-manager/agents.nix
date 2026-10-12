@@ -1,7 +1,15 @@
 {
+  config,
   lib,
+  lib',
   ...
 }:
+let
+  inherit (lib') namesWithValue;
+
+  sandbox = config.programs.agents.sandbox;
+  absolute = lib.filterAttrs (key: _: lib.hasPrefix "/" key) sandbox.paths;
+in
 {
   meta.maintainers = with lib.maintainers; [ mirkolenz ];
 
@@ -128,6 +136,16 @@
         '';
       };
 
+      resolved = lib.mkOption {
+        type = with lib.types; lazyAttrsOf (either (listOf str) (attrsOf str));
+        readOnly = true;
+        internal = true;
+        description = ''
+          The other options split for the modules translating them, `paths` into the `absolute`
+          and `relative` ones and the absolute ones by access, `environment` into the variables
+          to `set` and `unset`, and `domains` and `commands` by access.
+        '';
+      };
     };
 
     harnesses = lib.mkOption {
@@ -201,5 +219,19 @@
         to the harness through its `addDirFlag`.
       '';
     };
+  };
+
+  config.programs.agents.sandbox.resolved = {
+    inherit absolute;
+    relative = lib.filterAttrs (key: _: !lib.hasPrefix "/" key) sandbox.paths;
+    readPaths = namesWithValue "read" absolute;
+    writePaths = namesWithValue "write" absolute;
+    deniedPaths = namesWithValue "deny" absolute;
+    set = lib.filterAttrs (_: value: value != null) sandbox.environment;
+    unset = namesWithValue null sandbox.environment;
+    allowedDomains = namesWithValue "allow" sandbox.domains;
+    deniedDomains = namesWithValue "deny" sandbox.domains;
+    allowedCommands = namesWithValue "allow" sandbox.commands;
+    deniedCommands = namesWithValue "deny" sandbox.commands;
   };
 }
