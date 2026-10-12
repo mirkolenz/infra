@@ -9,11 +9,7 @@
       ...
     }:
     lib.mkIf config.custom.features.graphical.enable {
-      # there is an issue with wpa_supplicant and broadcom-wl (used in Macs)
-      networking.networkmanager = {
-        enable = true;
-        wifi.backend = "iwd";
-      };
+      networking.networkmanager.enable = true;
 
       # NetworkManager owns the interfaces here, so networkd manages nothing and
       # its wait-online times out and fails the rebuild.
