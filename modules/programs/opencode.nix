@@ -101,7 +101,7 @@
               "llama-cpp"
               "openai"
             ]
-            ++ mkRules "deny" "permission" (
+            ++ mkRules "deny" "tool.use" (
               # `*:` covers every path-based action
               denyRules "*" (withContent sandbox.deniedPaths)
               ++ denyRules "edit" (withContent sandbox.readPaths)
@@ -131,7 +131,7 @@
             "api.openai.com"
             "auth.openai.com"
             "chatgpt.com"
-            "models.dev"
+            "models.opencode.ai"
           ];
         };
         # The project config, every plugin there runs outside of nono as well, except for the prompts.
