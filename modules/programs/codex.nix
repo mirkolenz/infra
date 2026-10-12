@@ -65,7 +65,8 @@
             // sandbox.absolute;
             network = {
               enabled = true;
-              allow_local_binding = true;
+              # also the connections to localhost and private networks
+              allow_local_binding = sandbox.localhost;
               # Codex has no counterpart to claude's `strictAllowlist`: the one switch that
               # would let it ask for a host beyond this list is `sandbox_approval`, which
               # also reopens `require_escalated`, so the list stays the whole boundary.

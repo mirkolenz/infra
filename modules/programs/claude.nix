@@ -79,7 +79,7 @@
             allowUnsandboxedCommands = false;
             enableWeakerNetworkIsolation = true;
             network = {
-              allowLocalBinding = true;
+              allowLocalBinding = sandbox.localhost;
               allowUnixSockets = sandbox.unixSockets;
               # Read access to the macOS network configuration, which codex's network policy
               # already grants. Older reqwest releases read the system proxies through it and

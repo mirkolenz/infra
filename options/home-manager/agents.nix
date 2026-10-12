@@ -45,10 +45,16 @@
         };
         description = ''
           Hosts agents may (`allow`) or may not (`deny`) reach, honoured by nono and every agent
-          that sandboxes its network. A leading `*.` matches subdomains only. A deny also refuses
-          a host that an agent would otherwise ask for.
+          that sandboxes its network. A leading `*.` matches subdomains only, a bare `*` every host.
+          A deny wins over every allow and also refuses a host that an agent would otherwise ask for.
         '';
       };
+
+      localhost = lib.mkEnableOption ''
+        connecting to and listening on localhost, for local models and dev servers.
+        nono on Linux matches ports but not addresses, so it opens the unprivileged ports
+        to every host there, while the privileged ones, HTTP and HTTPS among them, stay with the proxy
+      '';
 
       paths = lib.mkOption {
         type =

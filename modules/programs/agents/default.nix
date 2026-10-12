@@ -23,7 +23,11 @@
         context = ./AGENTS.md;
         skills = ./skills;
         sandbox = {
+          localhost = true;
           domains = {
+            # Every host apart from the denied ones.
+            # The allowed ones below are what the skills and tools need once this is dropped.
+            "*" = "allow";
             "github.com" = "allow";
             "*.github.com" = "allow";
             "*.githubusercontent.com" = "allow";

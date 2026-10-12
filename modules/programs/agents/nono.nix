@@ -21,6 +21,7 @@
       sandbox = lib'.splitSandbox config.programs.agents.sandbox;
       harnesses = lib.attrValues config.programs.agents.harnesses;
       fromHarnesses = attr: lib.concatMap (harness: harness.${attr}) harnesses;
+      harnessDomains = lib.unique (fromHarnesses "domains");
       nono = config.programs.nono.finalPackage;
       osConfig = args.osConfig or { };
 
@@ -218,9 +219,23 @@
             deny = lib.mkIf isDarwin deniedPaths;
           };
           network = {
-            allow_domain = lib.unique (sandbox.allowedDomains ++ fromHarnesses "domains");
+            allow_domain = lib.unique (sandbox.allowedDomains ++ harnessDomains);
             deny_domain = sandbox.deniedDomains;
-          };
+          }
+          # macOS caps port ranges, but its wildcard stays on localhost
+          // lib.optionalAttrs sandbox.localhost (
+            if isDarwin then
+              { open_port = [ 0 ]; }
+            else
+              {
+                open_port_range = [
+                  [
+                    1024
+                    65535
+                  ]
+                ];
+              }
+          );
           environment = {
             deny_vars = sandbox.unset;
             set_vars = sandbox.set;
