@@ -166,7 +166,13 @@
                 exec ${agentCommand harness package}
               fi
 
-              exec ${nonoCommand} run --no-audit --allow-cwd -- ${agentCommand harness package}
+              # A private temporary directory, the only place the session may bind and connect sockets,
+              # such as the forkserver of Python's multiprocessing. Those of /tmp and the host stay out of reach.
+              tmp=$(mktemp -d)
+              trap 'rm -rf "$tmp"' EXIT
+
+              TMPDIR=$tmp ${nonoCommand} run --no-audit --allow-cwd \
+                --allow-unix-socket-subtree-bind "$tmp" -- ${agentCommand harness package}
             '';
           }
         );
@@ -213,11 +219,6 @@
             bypass_protection = managedFiles;
             unix_socket = sandbox.unixSockets;
             unix_socket_dir = fromHarnesses "unixSocketDirs";
-            # sockets tools create for themselves, such as the forkserver of Python's multiprocessing
-            unix_socket_subtree_bind = [
-              "/tmp"
-              "$TMPDIR"
-            ];
             # on Linux nono refuses denies within granted directories, bubblewrap enforces them
             deny = lib.mkIf isDarwin deniedPaths;
           };
