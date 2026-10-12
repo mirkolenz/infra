@@ -442,11 +442,11 @@ def passwd(
 def access_tokens() -> Mapping[str, str]:
     """The credentials nix itself uses to fetch inputs, as `scope -> token`.
 
-    An exported GITHUB_TOKEN wins outright, otherwise nix.conf supplies its
-    `access-tokens`, printed as space-separated `scope=token` pairs. Cached
-    because neither source can change within a run.
+    An exported GITHUB_TOKEN or GH_TOKEN wins outright, otherwise nix.conf
+    supplies its `access-tokens`, printed as space-separated `scope=token` pairs.
+    Cached because neither source can change within a run.
     """
-    if token := os.environ.get("GITHUB_TOKEN"):
+    if token := os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN"):
         return {GITHUB_HOST: token}
 
     result = subprocess_capture(nix_argv("config", "show", "access-tokens"))

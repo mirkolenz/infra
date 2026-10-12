@@ -4,16 +4,26 @@
       config,
       pkgs,
       lib,
+      lib',
       ...
     }:
     let
       agents = config.programs.agents;
+      sandbox = lib'.splitSandbox agents.sandbox;
 
-      pathsWith = access: lib.attrNames (lib.filterAttrs (_: a: a == access) agents.sandbox.paths);
+      withContent = lib'.withContent "**";
 
       # Absolute paths need the `//` prefix, otherwise a rule is read as relative
       # to the project root.
-      mkRules = tool: paths: map (path: "${tool}(/${path}/**)") paths;
+      mkRules = tool: map (pattern: "${tool}(/${pattern})");
+
+      # a trailing ` *` matches the bare command as well
+      bashRules = map (cmd: "Bash(${cmd} *)");
+
+      keychain = {
+        path = "$HOME/Library/Keychains";
+        when = "macos";
+      };
 
       # https://code.claude.com/docs/en/model-config
       models = {
@@ -34,7 +44,7 @@
         };
       };
     in
-    lib.mkIf config.custom.features.extras.enable {
+    lib.mkIf config.programs.agents.enable {
       # https://code.claude.com/docs/en/settings-reference
       programs.claude-code = {
         enable = true;
@@ -70,7 +80,7 @@
             enableWeakerNetworkIsolation = true;
             network = {
               allowLocalBinding = true;
-              allowUnixSockets = agents.sandbox.allowedUnixSockets;
+              allowUnixSockets = sandbox.unixSockets;
               # Read access to the macOS network configuration, which codex's network policy
               # already grants. Older reqwest releases read the system proxies through it and
               # panic when the lookup is denied, which breaks hydra-check among others.
@@ -78,7 +88,7 @@
               # `strictAllowlist` is deliberately unset: it would make this list the whole
               # allowlist and have claude refuse the per-command host lists that auto mode
               # sends through the classifier, turning every unforeseen host into a dead end.
-              inherit (agents.sandbox) allowedDomains deniedDomains;
+              inherit (sandbox) allowedDomains deniedDomains;
             };
             # `filesystem` is deliberately unset: an `Edit` allow rule grants the sandbox
             # the same write access as `allowWrite`, and a `Read` or `Edit` deny rule the
@@ -88,7 +98,7 @@
               envVars = map (name: {
                 inherit name;
                 mode = "deny";
-              }) agents.sandbox.deniedEnvVars;
+              }) sandbox.unset;
             };
           };
           strictKnownMarketplaces = lib.attrValues knownMarketplaces;
@@ -99,7 +109,7 @@
             "frontend-design@claude-plugins-official" = true;
             "codex@openai-codex" = true;
           };
-          env = agents.sandbox.sessionVariables // {
+          env = sandbox.set // {
             ENABLE_CLAUDEAI_MCP_SERVERS = false;
             # suppresses the in-session rating/feedback survey popup
             CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = true;
@@ -123,22 +133,67 @@
             # `Edit` allow rule doubles as the sandbox's write grant, so a write path needs
             # stating only here. Claude reads outside the workspace freely, so a `Read`
             # allow rule merely skips the prompt.
-            allow = mkRules "Read" (pathsWith "read") ++ mkRules "Edit" (pathsWith "write");
+            allow =
+              mkRules "Read" (withContent sandbox.readPaths)
+              ++ mkRules "Edit" (withContent sandbox.writePaths)
+              ++ bashRules sandbox.allowedCommands;
             # deny rules cover the built-in tools and are merged into the sandbox boundary,
             # so a single rule blocks both claude itself and any subprocess it spawns. A
             # `Read` deny already stops Edit and Write, but not NotebookEdit, hence the
             # `Edit` rule beside it.
             deny =
-              mkRules "Read" (pathsWith "deny")
-              ++ mkRules "Edit" (pathsWith "deny")
-              # matched on the command line only, the sandbox does not enforce these
-              ++ map (cmd: "Bash(${cmd} *)") agents.sandbox.deniedCommands;
+              mkRules "Read" (withContent sandbox.deniedPaths)
+              ++ mkRules "Edit" (withContent sandbox.deniedPaths)
+              # matched on the command line, nono enforces `block` ones as well
+              ++ bashRules sandbox.deniedCommands;
             ask = [ ];
           };
           statusLine = lib.mkIf (lib.versionAtLeast config.programs.starship.package.version "1.25.0") {
             type = "command";
             command = "${lib.getExe config.programs.starship.package} statusline claude-code";
           };
+        };
+      };
+      programs.agents = {
+        harnesses.claude-code = {
+          addDirFlag = "--add-dir";
+          # nono takes over, merged above the user settings without writing them
+          sandboxArgs = [
+            "--settings"
+            (lib.toJSON { sandbox.enabled = false; })
+          ];
+          domains = [
+            "api.anthropic.com"
+            "claude.ai"
+            "platform.claude.com"
+          ];
+        };
+        # The project config, which claude would otherwise run outside of nono later,
+        # except for the prompts, the subagent memory and the worktrees claude creates.
+        sandbox.paths = {
+          ".claude" = "read";
+          ".claude/agent-memory*" = "write";
+          ".claude/agents" = "write";
+          ".claude/CLAUDE.md" = "write";
+          ".claude/commands" = "write";
+          ".claude/output-styles" = "write";
+          ".claude/rules" = "write";
+          ".claude/skills" = "write";
+          ".claude/worktrees" = "write";
+        };
+      };
+      programs.nono.profiles.agents = {
+        # `.claude.json` stays writable, since claude rewrites it all the time, so an agent
+        # could still add an MCP server there that runs without nono later.
+        filesystem = {
+          allow = [ keychain ];
+          # the login of claude, as in the upstream pack, which exposes every item `security` may read
+          bypass_protection = [ keychain ];
+          allow_file = map (file: "${config.home.homeDirectory}/${file}") [
+            ".claude.json"
+            ".claude.json.lock"
+            ".claude.lock"
+          ];
         };
       };
       home.shellAliases = lib.mapAttrs (_name: model: "claude --model ${model}") models;

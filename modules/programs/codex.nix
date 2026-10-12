@@ -3,13 +3,21 @@
     {
       config,
       lib,
+      lib',
       pkgs,
       ...
     }:
     let
       agents = config.programs.agents;
+      sandbox = lib'.splitSandbox agents.sandbox;
+
+      prefixRule = cmd: access: ''
+        prefix_rule(pattern = ${lib.toJSON (lib.splitString " " cmd)}, decision = "${
+          if access == "allow" then "allow" else "forbidden"
+        }")
+      '';
     in
-    lib.mkIf config.custom.features.extras.enable {
+    lib.mkIf config.programs.agents.enable {
       programs.codex = {
         enable = true;
         package = pkgs.codex-bin;
@@ -17,10 +25,7 @@
         inherit (agents) context skills;
         installations.work = { };
         # https://developers.openai.com/codex/rules
-        rules.denied = lib.concatMapStrings (
-          cmd:
-          "prefix_rule(pattern = ${builtins.toJSON (lib.splitString " " cmd)}, decision = \"forbidden\")\n"
-        ) agents.sandbox.deniedCommands;
+        rules.commands = lib.concatStrings (lib.mapAttrsToList prefixRule sandbox.commands);
         # https://developers.openai.com/codex/config-reference
         # https://developers.openai.com/codex/config-schema.json
         settings = {
@@ -55,26 +60,21 @@
               ":workspace_roots" = {
                 ".git" = "write";
               };
-              # tool state codex reads that the other agents reach through their
-              # broader default read access
-              "${config.xdg.configHome}/gh" = "read";
-              "${config.xdg.configHome}/git" = "read";
-              "${config.xdg.configHome}/uv" = "read";
             }
             # deny wins over the read granted by :workspace, keeping ssh keys unreadable
-            // agents.sandbox.paths;
+            // sandbox.absolute;
             network = {
               enabled = true;
               allow_local_binding = true;
               # Codex has no counterpart to claude's `strictAllowlist`: the one switch that
               # would let it ask for a host beyond this list is `sandbox_approval`, which
               # also reopens `require_escalated`, so the list stays the whole boundary.
-              domains =
-                lib.genAttrs agents.sandbox.allowedDomains (_: "allow")
-                // lib.genAttrs agents.sandbox.deniedDomains (_: "deny");
-              unix_sockets = lib.genAttrs agents.sandbox.allowedUnixSockets (_: "allow");
+              inherit (sandbox) domains;
+              unix_sockets = lib.genAttrs sandbox.unixSockets (_: "allow");
             };
           };
+          # the domain rules above need it to apply
+          features.network_proxy = true;
           tui = {
             notifications = true;
             vim_mode_default = false;
@@ -88,8 +88,8 @@
             hide_rate_limit_model_nudge = true;
           };
           shell_environment_policy = {
-            filters = lib.genAttrs agents.sandbox.deniedEnvVars (_: "exclude");
-            set = agents.sandbox.sessionVariables;
+            filters = lib.genAttrs sandbox.unset (_: "exclude");
+            inherit (sandbox) set;
           };
           desktop = {
             followUpQueueMode = "queue";
@@ -111,6 +111,34 @@
               "max"
             ];
           };
+        };
+      };
+      programs.agents = {
+        # the login is kept in `auth.json`
+        harnesses.codex = {
+          addDirFlag = "--add-dir";
+          # nono takes over, and a running daemon would serve the session outside of it
+          sandboxArgs = [
+            "--no-daemon"
+            "-c"
+            ''default_permissions=":danger-full-access"''
+          ];
+          # the app-server daemon and the hooks, which codex would otherwise run outside of nono later
+          protectedEntries = [
+            "hooks.json"
+            "packages"
+          ];
+          domains = [
+            "auth.openai.com"
+            "chatgpt.com"
+          ];
+        };
+        # The project config, except for the skills.
+        # Codex protects `.agents` natively, except for the skills of every agent there.
+        sandbox.paths = {
+          ".agents/skills" = "write";
+          ".codex" = "read";
+          ".codex/skills" = "write";
         };
       };
     };

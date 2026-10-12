@@ -9,6 +9,8 @@
   # it. Nothing here writes a file on its own, so an agent whose home-manager module
   # lacks the matching option stays unconfigured until it gains one.
   options.programs.agents = {
+    enable = lib.mkEnableOption "the agents, run within nono with the shared sandbox";
+
     context = lib.mkOption {
       type = with lib.types; either lines path;
       default = "";
@@ -29,25 +31,22 @@
     };
 
     sandbox = {
-      allowedDomains = lib.mkOption {
-        type = with lib.types; listOf str;
-        default = [ ];
-        example = [ "*.githubusercontent.com" ];
+      domains = lib.mkOption {
+        type =
+          with lib.types;
+          attrsOf (enum [
+            "allow"
+            "deny"
+          ]);
+        default = { };
+        example = {
+          "*.githubusercontent.com" = "allow";
+          "pypi.org" = "deny";
+        };
         description = ''
-          Hosts agents may reach, honoured by every agent that sandboxes its network. A
-          leading `*.` matches subdomains only, so an apex that is itself contacted has
-          to be listed on its own.
-        '';
-      };
-
-      deniedDomains = lib.mkOption {
-        type = with lib.types; listOf str;
-        default = [ ];
-        example = [ "pypi.org" ];
-        description = ''
-          Hosts agents may not reach, overriding `allowedDomains`. A deny is stronger
-          than an omission: an agent that can otherwise ask for an unforeseen host, or
-          name one per command, is refused these without a prompt.
+          Hosts agents may (`allow`) or may not (`deny`) reach, honoured by nono and every agent
+          that sandboxes its network. A leading `*.` matches subdomains only. A deny also refuses
+          a host that an agent would otherwise ask for.
         '';
       };
 
@@ -62,53 +61,128 @@
         default = { };
         example = {
           "/nix" = "read";
-          "~/.ssh" = "deny";
+          "/home/user/.ssh" = "deny";
+          ".env.*" = "deny";
+          ".env.example" = "write";
         };
         description = ''
-          Directories outside the workspace and the access agents get to them. An agent
-          that confines reads enforces `read` as its allowlist; one that reads freely by
-          default only pre-approves its permission prompt with it. `deny` is enforced
-          either way and overrides the other two.
+          Paths and the access agents get to them, covering everything below. An absolute key
+          is granted (`read`, `write`) or hidden (`deny`), and `read` stays read-only within a
+          writable directory. Other keys are relative, where `*` matches within a path segment
+          and `**/` any directories, `read` and `deny` restrict the path, and `write` exempts it
+          from a broader relative key. Only nono enforces relative keys, on macOS at any depth
+          outside of temporary and writable absolute paths, on Linux at the workspace roots
+          and their git directories.
         '';
       };
 
-      allowedUnixSockets = lib.mkOption {
+      unixSockets = lib.mkOption {
         type = with lib.types; listOf str;
         default = [ ];
         description = ''
-          Unix sockets reachable from a sandbox, given as the path a sandbox sees after
-          symlink resolution. Everything absent is a socket an escaped process cannot
-          reach, so this list is what keeps agent sockets out of a subprocess' hands.
+          Unix sockets reachable from a sandbox, as the path it sees after symlink resolution.
+          Everything else stays out of a subprocess' reach, under nono on Linux abstract sockets too.
         '';
       };
 
-      deniedEnvVars = lib.mkOption {
-        type = with lib.types; listOf str;
-        default = [ ];
-        example = [ "SSH_AUTH_SOCK" ];
-        description = "Variables stripped from the environment agents hand to a subprocess.";
-      };
-
-      deniedCommands = lib.mkOption {
-        type = with lib.types; listOf str;
-        default = [ ];
-        example = [ "gh auth" ];
-        description = ''
-          Command prefixes, words separated by single spaces, that agents refuse to run.
-          Matching happens on the command line before it runs, so this guards against
-          mistakes rather than a determined workaround such as a script doing the same.
-        '';
-      };
-
-      sessionVariables = lib.mkOption {
-        type = with lib.types; attrsOf str;
+      environment = lib.mkOption {
+        type = with lib.types; attrsOf (nullOr str);
         default = { };
+        example = {
+          SSH_AUTH_SOCK = null;
+          ASTRO_TELEMETRY_DISABLED = "1";
+        };
         description = ''
-          Variables set in the environment agents hand to a subprocess. Values are
-          strings because that is what every agent writes into a process environment,
-          whatever its own config format would allow.
+          Variables set for the agents and their subprocesses, or stripped when `null`.
         '';
       };
+
+      commands = lib.mkOption {
+        # a name nono accepts for command mediation, followed by arguments unless blocked
+        type =
+          with lib.types;
+          addCheck
+            (attrsOf (enum [
+              "allow"
+              "deny"
+              "block"
+            ]))
+            (
+              commands:
+              lib.all (
+                { name, value }:
+                lib.match "[A-Za-z0-9._+-]+${lib.optionalString (value != "block") "( [^ ]+)*"}" name != null
+              ) (lib.attrsToList commands)
+            );
+        default = { };
+        example = {
+          jq = "allow";
+          security = "block";
+          "gh auth token" = "deny";
+        };
+        description = ''
+          Commands that agents run without asking (`allow`) or refuse (`deny`), an executable
+          name optionally followed by arguments, matched as a prefix of a plain command line of
+          their shell tool, not within scripts, aliases or `sh -c`. A `block` is a bare executable
+          name that agents refuse and nono blocks as well, for every process on macOS and for the
+          binaries on `PATH` on Linux.
+        '';
+      };
+    };
+
+    harnesses = lib.mkOption {
+      type = lib.types.attrsOf (
+        lib.types.submodule {
+          options = {
+            launchers = lib.mkOption {
+              type = with lib.types; attrsOf package;
+              description = "Executables of the harness by name, each shadowed by a wrapper.";
+            };
+
+            sandboxArgs = lib.mkOption {
+              type = with lib.types; listOf str;
+              default = [ ];
+              example = [ "--no-sandbox" ];
+              description = "Arguments prepended to those of the harness, usually to disable its own sandbox.";
+            };
+
+            addDirFlag = lib.mkOption {
+              type = with lib.types; nullOr str;
+              default = null;
+              example = "--add-dir";
+              description = "Flag of the harness that adds a workspace directory, passed for every `NONO_ALLOW` entry.";
+            };
+
+            stateDirs = lib.mkOption {
+              type = with lib.types; listOf str;
+              default = [ ];
+              description = "Directories holding the state and login of the harness, writable within nono.";
+            };
+
+            protectedEntries = lib.mkOption {
+              type = with lib.types; listOf str;
+              default = [ ];
+              description = ''
+                Entries of every one of `stateDirs` that agents may only read, the managed config
+                and everything else the harness would run outside of nono later.
+              '';
+            };
+
+            domains = lib.mkOption {
+              type = with lib.types; listOf str;
+              default = [ ];
+              description = "Hosts the harness itself talks to, reachable within nono.";
+            };
+          };
+        }
+      );
+      default = { };
+      description = ''
+        Agent harnesses, whose launchers are shadowed by commands running them inside `nono run`
+        with the profile of `NONO_PROFILE`, or directly inside nono.
+        The directories of the comma-separated `NONO_ALLOW` are granted by nono and passed
+        to the harness through its `addDirFlag`.
+      '';
     };
   };
 }

@@ -3,7 +3,8 @@
 # gets the regular settings file with its overrides merged on top, the `sharedEntries`
 # of the regular config directory as symlinks, and a wrapper pointing `envVar` at its
 # directory. `settingsFile` is the `home.file` attribute upstream writes the settings to,
-# replaced by writable copies if `mutable`.
+# replaced by writable copies if `mutable`. Every installation joins the agent harness
+# of the program, with its managed entries read-only.
 {
   program,
   package,
@@ -24,7 +25,8 @@
 let
   cfg = config.programs.${program};
 
-  exe = baseNameOf (lib.getExe package);
+  # the name `lib.getExe` resolves, without the context of its store path
+  exe = package.meta.mainProgram or (lib.getName package);
   settings = config.home.file.${settingsFile}.source;
   settingsDir = dirOf settingsFile;
   dir =
@@ -53,7 +55,7 @@ let
             jq
             yj
           ];
-          overrides = builtins.toJSON overrides;
+          overrides = lib.toJSON overrides;
           passAsFile = [ "overrides" ];
         }
         ''
@@ -69,6 +71,16 @@ let
   all = named // {
     default = { inherit dir settings; };
   };
+
+  installationLaunchers = lib.mapAttrs' (
+    name: installation:
+    lib.nameValuePair "${exe}-${name}" (
+      pkgs.writeShellScriptBin "${exe}-${name}" ''
+        export ${envVar}=${installation.dir}
+        exec ${lib.getExe package} "$@"
+      ''
+    )
+  ) named;
 
   optionType = lib.types.attrsOf (pkgs.formats.${format} { }).type;
 in
@@ -111,13 +123,15 @@ in
           )
         ) named;
 
-        home.packages = lib.mapAttrsToList (
-          name: installation:
-          pkgs.writeShellScriptBin "${exe}-${name}" ''
-            export ${envVar}=${installation.dir}
-            exec ${lib.getExe package} "$@"
-          ''
-        ) named;
+        home.packages = lib.attrValues installationLaunchers;
+
+        programs.agents.harnesses.${program} = {
+          launchers = installationLaunchers // {
+            ${exe} = package;
+          };
+          stateDirs = cfg.configDirs;
+          protectedEntries = [ (baseNameOf settingsFile) ] ++ sharedEntries;
+        };
       }
       (
         if mutable then

@@ -20,7 +20,12 @@ let
   # that enable opnix, outside of outputDir, which darwin keeps untraversable for the users.
   # nix fetches flakes in the client, so the admins read its access tokens.
   opnix =
-    { config, pkgs, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       dir = dirOf config.services.onepassword-secrets.outputDir;
     in
@@ -32,7 +37,7 @@ let
           group = if pkgs.stdenv.hostPlatform.isDarwin then "admin" else "wheel";
           mode = "0640";
         };
-        agentsGithubToken = {
+        agentsGithubToken = lib.mkIf config.home-manager.users.${config.custom.user.login}.programs.agents.enable {
           reference = "op://NixOS/GitHub/credential";
           path = "${dir}/agents/github-token";
           owner = config.custom.user.login;
@@ -59,17 +64,4 @@ in
     shared
     opnix
   ];
-
-  # the opnix service account token, which reads the whole vault, and the access tokens of nix
-  flake.modules.homeManager.default =
-    { lib, lib', ... }@args:
-    let
-      opnix = lib'.osOpnix args;
-    in
-    lib.mkIf opnix.enable {
-      programs.agents.sandbox.paths = {
-        ${opnix.tokenFile} = "deny";
-        ${opnix.secretPaths.nixAccessTokens} = "deny";
-      };
-    };
 }
