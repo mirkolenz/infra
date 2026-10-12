@@ -1,10 +1,10 @@
 """Run a command within bubblewrap, enforcing the agent sandbox where nono only grants.
 
 On Linux, nono grants but does not deny within granted directories, so bubblewrap mounts
-over the `deny` paths, the relative keys of every workspace root and its git directories,
-and the blocked commands on `PATH`. The workspace roots are the working directory and
-those of `NONO_ALLOW`. The mounts cover paths that exist at launch, so a fresh copy of a
-blocked command, such as one from `nix run`, still runs.
+over the `deny`, `read` and `write` paths, the relative keys of every workspace root and
+its git directories, and the blocked commands on `PATH`. The workspace roots are the
+working directory and those of `NONO_ALLOW`. The mounts cover paths that exist at launch,
+so a fresh copy of a blocked command, such as one from `nix run`, still runs.
 """
 
 import json
@@ -40,6 +40,7 @@ class Policy:
     relative: Mapping[str, Access]
     deny: tuple[Path, ...]
     read: tuple[Path, ...]
+    write: tuple[Path, ...]
     blocked_commands: frozenset[str]
 
     @classmethod
@@ -51,6 +52,7 @@ class Policy:
             relative={key: Access(value) for key, value in data["relative"].items()},
             deny=tuple(map(Path, data["deny"])),
             read=tuple(map(Path, data["read"])),
+            write=tuple(map(Path, data["write"])),
             blocked_commands=frozenset(data["blocked_commands"]),
         )
 
@@ -161,6 +163,7 @@ def requested(policy: Policy, workspace: Workspace) -> Iterator[Mount]:
 
     yield from (Mount(Access.DENY, path) for path in policy.deny if path.exists())
     yield from (Mount(Access.READ, path) for path in policy.read if path.exists())
+    yield from (Mount(Access.WRITE, path) for path in policy.write if path.exists())
 
     for name in sorted(policy.blocked_commands):
         yield from (Mount(Access.DENY, path) for path in executables(name))

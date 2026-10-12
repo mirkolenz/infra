@@ -59,6 +59,9 @@
 
       writeKeys = namesWithValue "write" relative;
 
+      # The absolute `write` paths below `path`.
+      writableBelow = path: lib.filter (lib.hasPrefix "${path}/") writePaths;
+
       # The relative `write` keys equal to or below the matches of `key`.
       exemptions = key: lib.filter (write: lib.match "${keyRegex key}(/.*)?" write != null) writeKeys;
 
@@ -80,7 +83,7 @@
       # nono cannot make a path read-only within a writable one, a bypass takes the access of every covering grant.
       seatbeltRules =
         lib.mapAttrsToList relativeRule (lib.filterAttrs (_: access: access != "write") relative)
-        ++ map (path: deny "file-write*" (subpath path) [ ]) readPaths
+        ++ map (path: deny "file-write*" (subpath path) (map subpath (writableBelow path))) readPaths
         ++ [
           # Keeps the `.git` of every repository in place, a rename covers the source as well.
           (deny "file-write-unlink" (regex ''/\.git$'') scratch)
@@ -94,6 +97,7 @@
         inherit relative;
         deny = deniedPaths;
         read = readPaths;
+        write = writePaths;
         blocked_commands = blockedCommands;
       };
 
