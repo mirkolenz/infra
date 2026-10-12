@@ -6,15 +6,18 @@
   bubblewrap,
   gitMinimal,
 }:
-(writers.writePython3Bin "nono-bwrap" {
-  libraries = with python3Packages; [ typer ];
-  doCheck = false;
-} (
-  replaceVars ./script.py {
-    bwrap = lib.getExe bubblewrap;
-    git = lib.getExe gitMinimal;
+(writers.writePython3Bin "nono-bwrap"
+  {
+    libraries = with python3Packages; [ typer ];
+    doCheck = false;
   }
-)).overrideAttrs
+  (
+    replaceVars ./script.py {
+      bwrap = lib.getExe bubblewrap;
+      git = lib.getExe gitMinimal;
+    }
+  )
+).overrideAttrs
   (prev: {
     meta = prev.meta // {
       description = "Run a command within bubblewrap, enforcing the agent sandbox where nono only grants";
