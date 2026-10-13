@@ -45,7 +45,6 @@
         "tiptoi-manager"
         "vicinae"
         "viscosity"
-        "visual-studio-code"
         "wifiman"
         "zed"
         "zoom"

@@ -182,21 +182,15 @@
             # not compatible with jujutsu
             # origin.fetch = "+refs/tags/v*:refs/tags/v*";
           };
-          difftool = {
-            guiDefault = "auto";
-            prompt = false;
-          };
+          difftool.prompt = false;
           diff = {
             algorithm = "histogram";
             colorMoved = "default";
-            guitool = "vscode";
+            tool = "nvimdiff";
           };
-          mergetool = {
-            guiDefault = "auto";
-            prompt = false;
-          };
+          mergetool.prompt = false;
           merge = {
-            guitool = "vscode";
+            tool = "nvimdiff";
             conflictstyle = "diff3";
             # not compatible with mergiraf
             # conflictstyle = "zdiff3";
