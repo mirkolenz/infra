@@ -36,7 +36,6 @@ let
           maple-mono.truetype
           monaspace
           nerd-fonts.blex-mono
-          nerd-fonts.caskaydia-cove
           nerd-fonts.fira-code
           nerd-fonts.intone-mono
           nerd-fonts.jetbrains-mono

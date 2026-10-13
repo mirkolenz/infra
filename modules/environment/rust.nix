@@ -7,7 +7,6 @@
       ...
     }:
     lib.mkIf config.custom.features.extras.enable {
-      home.sessionVariables.RUST_SRC_PATH = pkgs.rustPlatform.rustLibSrc;
       home.packages = with pkgs; [
         rustc
         cargo

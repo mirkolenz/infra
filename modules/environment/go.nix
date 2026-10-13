@@ -14,7 +14,6 @@
       home.packages = with pkgs; [
         gopls
         delve
-        go-outline
         goreleaser
       ];
       custom.bump.go = {

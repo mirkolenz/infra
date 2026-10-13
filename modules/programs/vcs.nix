@@ -13,9 +13,7 @@
     {
       home.packages = with pkgs; [
         gibo
-        git-ignore
         git-filter-repo
-        lazyjj
         diffedit3
         glab
       ];
@@ -318,11 +316,6 @@
       };
       programs.jjui = {
         enable = true;
-      };
-      programs.gitui = {
-        enable = true;
-        package = pkgs.gitui-bin;
-        keyConfig = "${pkgs.gitui.src}/vim_style_key_config.ron";
       };
       programs.lazygit = {
         enable = true;

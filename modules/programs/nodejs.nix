@@ -23,10 +23,8 @@
         };
       };
       home.packages = with pkgs; [
-        prettier
         svgo
         npm-check-updates
-        biome
         oxfmt
         oxlint
         tsgolint

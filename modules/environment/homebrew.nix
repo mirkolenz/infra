@@ -65,7 +65,6 @@
         "cascadia-code"
         "cascadia-code-nf"
         "cascadia-mono"
-        "caskaydia-cove-nerd-font"
         "eagle-lake"
         "eb-garamond"
         "expletus-sans"

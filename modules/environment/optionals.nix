@@ -16,7 +16,6 @@
       programs = {
         gradle.enable = true;
         java.enable = true;
-        mods.enable = true;
       };
       custom.bump = {
         buf = {

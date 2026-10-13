@@ -7,12 +7,9 @@
       ...
     }:
     lib.mkIf config.custom.features.extras.enable {
+      # tlrc refreshes its cache on its own once it is older than two weeks
       home.packages = with pkgs; [
         tlrc
       ];
-      services.tldr-update = {
-        enable = true;
-        package = pkgs.tlrc;
-      };
     };
 }

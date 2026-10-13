@@ -14,7 +14,6 @@
         phpPackages.composer
         frankenphp
         phpactor # legacy language server
-        phpstan # legacy type checker
       ];
       custom.bump.composer = {
         pathspecs = [
