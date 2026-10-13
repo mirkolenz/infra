@@ -21,7 +21,6 @@ in
           "${inputs.nixos-hardware}/apple"
           "${inputs.nixos-hardware}/common/cpu/intel/cpu-only.nix"
           "${inputs.nixos-hardware}/common/gpu/amd"
-          "${inputs.nixos-hardware}/common/pc/ssd"
         ];
 
         custom.features.unattended.enable = true;
@@ -79,8 +78,6 @@ in
           ];
           useRoutingFeatures = "server";
         };
-
-        powerManagement.cpuFreqGovernor = "powersave";
       };
   };
 }
