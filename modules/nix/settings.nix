@@ -1,5 +1,5 @@
-# Nix settings merged straight into the canonical paths: nix.settings for nixos
-# and standalone home-manager, determinateNix.customSettings for darwin.
+# Nix settings merged straight into the canonical paths: nix.settings for nixos,
+# the installer and standalone home-manager, determinateNix.customSettings for darwin.
 # The daemon trusts no user but root, so flake configs and client options cannot
 # reconfigure it (https://github.com/archie-judd/agent-sandbox.nix).
 # https://nixos.org/manual/nix/unstable/command-ref/conf-file.html#available-settings
@@ -53,6 +53,9 @@ in
     allowed-users = [ "@wheel" ];
     sandbox = true;
   };
+
+  # The live system runs as root, so the daemon-level settings apply as well.
+  flake.modules.nixos.installer.nix.settings = sharedSettings;
 
   flake.modules.darwin.base.determinateNix.customSettings = sharedSettings // {
     allowed-users = [ "@admin" ];
