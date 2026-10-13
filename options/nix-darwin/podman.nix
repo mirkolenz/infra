@@ -1,3 +1,7 @@
+# Mirrors the client-side part of the NixOS module, see
+# https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/virtualisation/podman/default.nix
+# Podman on darwin is a remote client of the podman machine VM,
+# so sockets, networks and pruning are configured inside the VM.
 {
   config,
   lib,
@@ -6,87 +10,25 @@
 }:
 let
   cfg = config.virtualisation.podman;
-  tomlFormat = pkgs.formats.toml { };
-  jsonFormat = pkgs.formats.json { };
+
+  # Provides a fake "docker" binary mapping to podman
+  dockerCompat = pkgs.runCommand "${cfg.package.pname}-docker-compat-${cfg.package.version}" {
+    inherit (cfg.package) meta;
+    preferLocalBuild = true;
+  } "mkdir -p $out/bin && ln -s ${lib.getExe cfg.package} $out/bin/docker";
 in
 {
   options.virtualisation.podman = {
-    enable = lib.mkEnableOption "Podman";
+    enable = lib.mkEnableOption "Podman, a daemonless container engine";
 
-    # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/virtualisation/containers.nix
-    containersConf = lib.mkOption {
-      type = tomlFormat.type;
-      default = { };
-      description = "containers.conf configuration";
-    };
+    dockerCompat = lib.mkEnableOption "an alias mapping {command}`docker` to {command}`podman`";
 
-    storageConf = lib.mkOption {
-      type = tomlFormat.type;
-      default = { };
-      description = "storage.conf configuration";
-    };
-
-    registries = {
-      search = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [
-          "docker.io"
-        ];
-        description = ''
-          List of repositories to search.
-        '';
-      };
-      insecure = lib.mkOption {
-        default = [ ];
-        type = lib.types.listOf lib.types.str;
-        description = ''
-          List of insecure repositories.
-        '';
-      };
-      block = lib.mkOption {
-        default = [ ];
-        type = lib.types.listOf lib.types.str;
-        description = ''
-          List of blocked repositories.
-        '';
-      };
-    };
-
-    policy = lib.mkOption {
-      default = { };
-      type = jsonFormat.type;
-      description = ''
-        Signature verification policy file.
-        If this option is empty the default policy file from
-        `skopeo` will be used.
-      '';
-    };
+    package = lib.mkPackageOption pkgs "podman" { };
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = with pkgs; [
-      podman
-    ];
+    environment.systemPackages = [ cfg.package ] ++ lib.optional cfg.dockerCompat dockerCompat;
 
-    virtualisation.podman.storageConf.storage = {
-      driver = lib.mkDefault "overlay";
-      graphroot = lib.mkDefault "/var/lib/containers/storage";
-      runroot = lib.mkDefault "/run/containers/storage";
-    };
-
-    environment.etc = {
-      "containers/containers.conf".source = tomlFormat.generate "containers.conf" cfg.containersConf;
-      "containers/storage.conf".source = tomlFormat.generate "storage.conf" cfg.storageConf;
-
-      "containers/registries.conf".source = tomlFormat.generate "registries.conf" {
-        registries = lib.mapAttrs (n: v: { registries = v; }) cfg.registries;
-      };
-
-      "containers/policy.json".source =
-        if cfg.policy != { } then
-          jsonFormat.generate "policy.json" cfg.policy
-        else
-          "${pkgs.skopeo.policy}/default-policy.json";
-    };
+    virtualisation.containers.enable = true;
   };
 }
