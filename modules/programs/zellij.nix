@@ -11,6 +11,7 @@
           default_mode = "normal";
           on_force_close = "detach";
           pane_frames = false;
+          scroll_buffer_size = 50000;
           session_serialization = false;
           show_release_notes = false;
           show_startup_tips = false;
