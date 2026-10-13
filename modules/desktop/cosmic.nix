@@ -19,8 +19,6 @@
           system76-scheduler.enable = true;
         };
 
-        security.pam.services.greetd.enableGnomeKeyring = true;
-
         environment.sessionVariables.NIXOS_OZONE_WL = "1";
       };
 
@@ -28,6 +26,7 @@
     {
       lib,
       config,
+      pkgs,
       cosmicLib,
       ...
     }:
@@ -97,8 +96,10 @@
           };
         };
         programs = {
+          # The default package is the renamed `cosmic-applibrary` alias, which warns.
           cosmic-applibrary = {
             enable = true;
+            package = pkgs.cosmic-app-library;
             settings.groups = [ ];
           };
           cosmic-edit = {

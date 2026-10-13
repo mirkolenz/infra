@@ -2,12 +2,7 @@
 # personal-workstation conveniences (nix-ld) for interactive machines.
 {
   flake.modules.nixos.base =
-    {
-      lib,
-      config,
-      pkgs,
-      ...
-    }:
+    { lib, config, ... }:
     lib.mkIf config.custom.features.graphical.enable {
       networking.networkmanager.enable = true;
 
@@ -17,13 +12,6 @@
       systemd.network.wait-online.enable = false;
 
       programs.nix-ld.enable = true;
-
-      # X server foundation shared by every desktop environment; each DE module
-      # (cosmic/gnome/xfce) only adds its own session and display manager.
-      services.xserver = {
-        enable = true;
-        excludePackages = with pkgs; [ xterm ];
-      };
     };
 
   flake.modules.nixos.default =

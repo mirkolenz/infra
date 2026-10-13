@@ -17,10 +17,7 @@
         services = {
           displayManager.gdm.enable = true;
           desktopManager.gnome.enable = true;
-          gnome.core-apps.enable = true;
         };
-
-        programs.dconf.enable = true;
 
         environment.sessionVariables = {
           NIXOS_OZONE_WL = "1";
@@ -130,13 +127,6 @@
             speed = 0.3;
             tap-to-click = true;
             natural-scroll = true;
-          };
-
-          "org/gnome/mutter" = {
-            experimental-features = [
-              "scale-monitor-framebuffer"
-              "xwayland-native-scaling"
-            ];
           };
 
           # The delays and durations mirror the macOS dock settings in

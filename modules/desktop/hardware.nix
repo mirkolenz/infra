@@ -9,9 +9,7 @@
     lib.mkIf config.custom.features.graphical.enable {
       hardware.graphics.enable = true;
 
-      services.mbpfan = {
-        enable = false;
-        aggressive = false;
-      };
+      # `nixos-hardware/apple` turns this on by default.
+      services.mbpfan.enable = false;
     };
 }

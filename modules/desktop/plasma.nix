@@ -23,10 +23,6 @@
           };
         };
 
-        # Auto-unlock the KDE wallet on login, mirroring the gnome-keyring wiring
-        # of the other desktop environments.
-        security.pam.services.sddm.kwallet.enable = true;
-
         environment.sessionVariables.NIXOS_OZONE_WL = "1";
       };
 

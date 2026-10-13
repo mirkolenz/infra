@@ -1,4 +1,4 @@
-# XFCE desktop environment: the NixOS session (XFCE, LightDM, xfconf/dconf) and
+# XFCE desktop environment: the NixOS session (XFCE, LightDM, X server) and
 # the home-manager user configuration (appearance and fonts via xfconf).
 # https://wiki.nixos.org/wiki/Xfce
 {
@@ -14,19 +14,15 @@
         config.custom.features.graphical.enable && config.custom.features.graphical.desktopManager == "xfce"
       )
       {
+        # LightDM is the only display manager here that still needs the X server.
         services.xserver = {
+          enable = true;
+          excludePackages = [ pkgs.xterm ];
           desktopManager.xfce.enable = true;
           displayManager.lightdm.enable = true;
         };
 
-        # xfconf is required for the home-manager xfconf.settings below to apply;
-        # dconf backs GTK application settings.
-        programs.xfconf.enable = true;
-        programs.dconf.enable = true;
-
-        security.pam.services.lightdm.enableGnomeKeyring = true;
-
-        environment.xfce.excludePackages = with pkgs.xfce; [ parole ];
+        environment.xfce.excludePackages = [ pkgs.parole ];
       };
 
   flake.modules.homeManager.linux =
