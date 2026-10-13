@@ -7,6 +7,10 @@
       "https://mirkolenz.cachix.org"
       "https://install.determinate.systems"
     ];
+    extra-trusted-public-keys = [
+      "mirkolenz.cachix.org-1:R0dgCJ93t33K/gncNbKgUdJzwgsYVXeExRsZNz5jpho="
+      "cache.flakehub.com-3:hJuILl5sVK4iKm86JzgdXW12Y2Hwd5G07qKtHTOcDCM="
+    ];
   };
 
   inputs = {
