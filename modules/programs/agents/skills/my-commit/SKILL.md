@@ -53,6 +53,7 @@ Never touch context lines.
 2. For each commit, stage whole files with `git add` and partial files through a patch.
 3. Check `git diff --cached` holds exactly that commit.
 4. Commit with `git commit -m "<type>(<scope>): <title>"`, a conventional message with a concise title and an empty body.
+   Leave out articles such as `the`, `a`, and `an` in the title.
    When the user asked to amend and the change belongs to an unpushed commit, amend that commit instead.
    Never use `--no-verify`, and when a hook fails, fix the issue and commit again.
 
