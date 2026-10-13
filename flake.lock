@@ -1,5 +1,63 @@
 {
   "nodes": {
+    "arguebuf": {
+      "inputs": {
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "flocken": [
+          "flocken"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "pyproject-build-systems": [
+          "pyproject-build-systems"
+        ],
+        "pyproject-nix": [
+          "pyproject-nix"
+        ],
+        "systems": [
+          "systems"
+        ],
+        "treefmt-nix": [
+          "treefmt-nix"
+        ],
+        "uv2nix": [
+          "uv2nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1750745187,
+        "narHash": "sha256-BMof7ZuHaHyAOdzjaiMvMxzDNXKXBkTFUezRRfeO1Ow=",
+        "owner": "recap-utr",
+        "repo": "arguebuf-python",
+        "rev": "ac32c385472212909ba41b78e67500f1a150c188",
+        "type": "github"
+      },
+      "original": {
+        "owner": "recap-utr",
+        "ref": "v2",
+        "repo": "arguebuf-python",
+        "type": "github"
+      }
+    },
+    "ast-grep-mcp": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1787617425,
+        "narHash": "sha256-G2bnsfmzpirQmcllr+wmrvR6n5exe/5OrHnfXDXoyPg=",
+        "owner": "ast-grep",
+        "repo": "ast-grep-mcp",
+        "rev": "149e20d47bb7125fb0c1451feea2f48a98742034",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ast-grep",
+        "repo": "ast-grep-mcp",
+        "type": "github"
+      }
+    },
     "bdwgc": {
       "flake": false,
       "locked": {
@@ -683,6 +741,8 @@
     },
     "root": {
       "inputs": {
+        "arguebuf": "arguebuf",
+        "ast-grep-mcp": "ast-grep-mcp",
         "cosmic-manager": "cosmic-manager",
         "determinate": "determinate",
         "disko": "disko",

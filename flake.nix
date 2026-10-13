@@ -15,6 +15,23 @@
 
   inputs = {
     # keep-sorted start block=yes
+    arguebuf = {
+      url = "github:recap-utr/arguebuf-python/v2";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-parts.follows = "flake-parts";
+        flocken.follows = "flocken";
+        treefmt-nix.follows = "treefmt-nix";
+        pyproject-nix.follows = "pyproject-nix";
+        uv2nix.follows = "uv2nix";
+        pyproject-build-systems.follows = "pyproject-build-systems";
+        systems.follows = "systems";
+      };
+    };
+    ast-grep-mcp = {
+      url = "github:ast-grep/ast-grep-mcp";
+      flake = false;
+    };
     cosmic-manager = {
       url = "github:heitoraugustoln/cosmic-manager";
       inputs = {

@@ -58,6 +58,7 @@
         flow-control
         google-lighthouse
         caligula
+        icloud-photos-sync
         # markdown
         html2markdown
         md-tui
@@ -83,7 +84,10 @@
         tombi
         vscode-langservers-extracted
         yaml-language-server
+        # mcp servers
+        ast-grep-mcp
         # my own packages
+        arguebuf
         makejinja
       ];
     };

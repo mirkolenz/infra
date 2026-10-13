@@ -45,6 +45,10 @@ let
     };
 in
 fromOverlay inputs.makejinja.overlays.default [ "makejinja" ]
+// {
+  # the wrapped build puts the d2 and graphviz renderers on its PATH
+  arguebuf = (inputs.arguebuf.overlays.default final prev).arguebuf-wrapped;
+}
 // lib.mapAttrs (_: lib.dontDistribute) (
   fromOverlay inputs.neovim-nightly-overlay.overlays.default [ "neovim-unwrapped" ]
 )

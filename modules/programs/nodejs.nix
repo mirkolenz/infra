@@ -30,6 +30,8 @@
         tsgolint
         typescript
         astro-language-server
+        shadcn
+        mcp-inspector
       ];
       custom.bump.npm = {
         pathspecs = [
