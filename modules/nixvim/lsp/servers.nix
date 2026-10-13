@@ -11,7 +11,7 @@
         docker_language_server.enable = true;
         gopls.enable = true;
         html.enable = true;
-        java_language_server.enable = true;
+        jdtls.enable = true;
         jsonls.enable = true;
         lemminx.enable = true;
         marksman.enable = true;
