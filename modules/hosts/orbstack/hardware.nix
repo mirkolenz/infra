@@ -11,22 +11,15 @@
       # /etc/nixos/configuration.nix
       security.sudo.wheelNeedsPassword = false;
 
-      networking = {
-        dhcpcd.enable = false;
-        useDHCP = false;
-        useHostResolvConf = false;
-      };
+      networking.useDHCP = false;
 
-      systemd.network = {
-        enable = true;
-        networks."50-eth0" = {
-          name = "eth0";
-          networkConfig = {
-            DHCP = "ipv4";
-            IPv6AcceptRA = true;
-          };
-          linkConfig.RequiredForOnline = "routable";
+      systemd.network.networks."50-eth0" = {
+        name = "eth0";
+        networkConfig = {
+          DHCP = "ipv4";
+          IPv6AcceptRA = true;
         };
+        linkConfig.RequiredForOnline = "routable";
       };
 
       users.users.${config.custom.user.login} = {
@@ -74,35 +67,30 @@
       networking.resolvconf.enable = false;
       environment.etc."resolv.conf".source = "/opt/orbstack-guest/etc/resolv.conf";
 
-      # Faster DHCP - OrbStack uses SLAAC exclusively
-      networking.dhcpcd.extraConfig = ''
-        noarp
-        noipv6
-      '';
-
       # Disable sshd
       services.openssh.enable = false;
 
       # systemd
-      systemd.services."systemd-oomd".serviceConfig.WatchdogSec = 0;
-      systemd.services."systemd-userdbd".serviceConfig.WatchdogSec = 0;
-      systemd.services."systemd-udevd".serviceConfig.WatchdogSec = 0;
-      systemd.services."systemd-timesyncd".serviceConfig.WatchdogSec = 0;
-      systemd.services."systemd-timedated".serviceConfig.WatchdogSec = 0;
-      systemd.services."systemd-portabled".serviceConfig.WatchdogSec = 0;
-      systemd.services."systemd-nspawn@".serviceConfig.WatchdogSec = 0;
-      systemd.services."systemd-machined".serviceConfig.WatchdogSec = 0;
-      systemd.services."systemd-localed".serviceConfig.WatchdogSec = 0;
-      systemd.services."systemd-logind".serviceConfig.WatchdogSec = 0;
-      systemd.services."systemd-journald@".serviceConfig.WatchdogSec = 0;
-      systemd.services."systemd-journald".serviceConfig.WatchdogSec = 0;
-      systemd.services."systemd-journal-remote".serviceConfig.WatchdogSec = 0;
-      systemd.services."systemd-journal-upload".serviceConfig.WatchdogSec = 0;
-      systemd.services."systemd-importd".serviceConfig.WatchdogSec = 0;
-      systemd.services."systemd-hostnamed".serviceConfig.WatchdogSec = 0;
-      systemd.services."systemd-homed".serviceConfig.WatchdogSec = 0;
-      systemd.services."systemd-networkd".serviceConfig.WatchdogSec =
-        lib.mkIf config.systemd.network.enable 0;
+      systemd.services = lib.genAttrs (map (name: "systemd-${name}") [
+        "oomd"
+        "userdbd"
+        "udevd"
+        "timesyncd"
+        "timedated"
+        "portabled"
+        "nspawn@"
+        "machined"
+        "localed"
+        "logind"
+        "journald@"
+        "journald"
+        "journal-remote"
+        "journal-upload"
+        "importd"
+        "hostnamed"
+        "homed"
+        "networkd"
+      ]) (_: { serviceConfig.WatchdogSec = 0; });
 
       # ssh config
       programs.ssh.extraConfig = ''

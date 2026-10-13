@@ -23,7 +23,6 @@ in
           # for the Intel graphics, which nothing else configures, and it sets
           # the same `i915.enable_guc=2` KaiT2en asks for.
           "${inputs.nixos-hardware}/common/cpu/intel/coffee-lake"
-          "${inputs.nixos-hardware}/common/pc/ssd"
         ];
 
         custom.apple-t2 = {

@@ -15,7 +15,6 @@ in
         "${inputs.nixos-hardware}/apple"
         "${inputs.nixos-hardware}/common/cpu/intel/haswell/cpu-only.nix"
         "${inputs.nixos-hardware}/common/pc/laptop"
-        "${inputs.nixos-hardware}/common/pc/ssd"
       ];
 
       custom.features = {

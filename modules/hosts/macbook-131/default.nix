@@ -15,7 +15,6 @@ in
         imports = [
           nixos.default
           "${inputs.nixos-hardware}/apple/macbook-pro"
-          "${inputs.nixos-hardware}/common/pc/ssd"
         ];
 
         # nixos-hardware's Skylake GPU profile without its `i915.enable_guc=2`.
