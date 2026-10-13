@@ -39,12 +39,11 @@ let
       "wi2trier.cachix.org-1:8wJvKtRD8XUqYZMdjECTsN1zWxHy9kvp5aoPQiAm1fY="
       "dfki-ebls.cachix.org-1:hImWYLrtbzgibnK8e09XXT2EID923m6D08fHmASB/kE="
     ];
+    # Hard-links at build time, the only mechanism that also works on darwin,
+    # where determinate-nixd runs the daemon and nix.optimise is unavailable.
     auto-optimise-store = true;
     download-buffer-size = 1000 * 1000 * 1000; # 1 GB
-    keep-derivations = true;
-    keep-failed = false;
     keep-going = true;
-    keep-outputs = false;
     log-lines = 200;
   };
 in

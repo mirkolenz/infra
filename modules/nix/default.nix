@@ -26,9 +26,6 @@ in
           automatic = true;
           options = "--delete-older-than ${gcAge}";
         };
-        optimise = {
-          automatic = true;
-        };
       };
       # we do this ourselves
       nixpkgs.flake = {
