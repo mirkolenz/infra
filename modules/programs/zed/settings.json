@@ -80,8 +80,7 @@
     "mode": "eager",
     "allow_data_collection": "no",
     // Served by the local llama.cpp instance (services.llama-cpp, port 18000);
-    // `model` must name one of its presets. No ollama block: that service is
-    // explicitly disabled in favour of llama.cpp.
+    // `model` must name one of its presets.
     "open_ai_compatible_api": {
       "api_url": "http://localhost:18000/v1",
       "max_output_tokens": 16,
