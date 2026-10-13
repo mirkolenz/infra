@@ -2,7 +2,6 @@
 let
   systemUsers = {
     _llamacpp = 551;
-    _ollama = 552;
   };
 in
 {
