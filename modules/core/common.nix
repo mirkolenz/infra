@@ -37,14 +37,12 @@ let
           group = if pkgs.stdenv.hostPlatform.isDarwin then "admin" else "wheel";
           mode = "0640";
         };
-        agentsGithubToken =
-          lib.mkIf config.home-manager.users.${config.custom.user.login}.programs.agents.enable
-            {
-              reference = "op://NixOS/GitHub/credential";
-              path = "${dir}/agents/github-token";
-              owner = config.custom.user.login;
-              mode = "0400";
-            };
+        agentsGithubToken = lib.mkIf config.custom.features.agents.enable {
+          reference = "op://NixOS/GitHub/credential";
+          path = "${dir}/agents/github-token";
+          owner = config.custom.user.login;
+          mode = "0400";
+        };
       };
     };
 in

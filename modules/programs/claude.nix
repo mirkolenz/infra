@@ -14,13 +14,10 @@ let
   managedSettings =
     { config, lib, ... }:
     {
-      programs.claude-code.managedSettings =
-        lib.mkIf
-          config.home-manager.users.${config.custom.user.login}.programs.agents.enable
-          {
-            # the plugin of home-manager lives in `~/.claude/skills`, which any allowlist excludes otherwise
-            strictKnownMarketplaces = lib.attrValues knownMarketplaces ++ [ { source = "skills-dir"; } ];
-          };
+      programs.claude-code.managedSettings = lib.mkIf config.custom.features.agents.enable {
+        # the plugin of home-manager lives in `~/.claude/skills`, which any allowlist excludes otherwise
+        strictKnownMarketplaces = lib.attrValues knownMarketplaces ++ [ { source = "skills-dir"; } ];
+      };
     };
 in
 {

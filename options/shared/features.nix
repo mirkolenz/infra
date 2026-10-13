@@ -6,6 +6,11 @@
   options.custom.features = {
     unattended.enable = lib.mkEnableOption "unattended operation (always-on host: no sleep, auto-upgrade)";
     extras.enable = lib.mkEnableOption "extra packages beyond the base set";
+    agents.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = config.custom.features.extras.enable;
+      description = "Whether to set up the coding agents, read by both the system and home-manager.";
+    };
     graphical = {
       enable = lib.mkOption {
         type = lib.types.bool;

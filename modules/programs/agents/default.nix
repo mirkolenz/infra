@@ -12,7 +12,7 @@
     in
     {
       programs.agents = {
-        enable = lib.mkDefault config.custom.features.extras.enable;
+        enable = lib.mkDefault config.custom.features.agents.enable;
         context = ./AGENTS.md;
         skills = ./skills;
         sandbox = {
