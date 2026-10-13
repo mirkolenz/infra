@@ -12,7 +12,7 @@
       "effort": "high",
       "enable_thinking": true,
       "provider": "zed.dev",
-      "model": "gpt-5.6-sol",
+      "model": "gpt-6.1-sol",
       "speed": "standard"
     },
     "sandbox_permissions": {
