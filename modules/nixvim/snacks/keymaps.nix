@@ -6,6 +6,10 @@
       config,
       ...
     }:
+    let
+      # The tagged keywords that the treesitter `comment` parser highlights, e.g. `TODO(user):`.
+      todo = "[[\\b(TODO|WIP|NOTE|XXX|INFO|DOCS|PERF|TEST|HACK|WARNING|WARN|FIX|FIXME|BUG|ERROR)(\\([^)]*\\))?:]]";
+    in
     {
       keymaps = lib.mkIf config.plugins.snacks.enable (
         lib'.mkVimKeymaps
@@ -32,11 +36,6 @@
               options.desc = "Grep";
             }
             {
-              key = "<leader>:";
-              action = "picker.command_history()";
-              options.desc = "Command History";
-            }
-            {
               key = "<leader>mm";
               action = "picker.notifications()";
               options.desc = "Notification History";
@@ -51,11 +50,6 @@
               key = "<leader>fb";
               action = "picker.buffers()";
               options.desc = "Buffers";
-            }
-            {
-              key = "<leader>fc";
-              action = "picker.files({ cwd = vim.fn.stdpath(\"config\") })";
-              options.desc = "Find Config File";
             }
             {
               key = "<leader>ff";
@@ -236,11 +230,6 @@
               options.desc = "Man Pages";
             }
             {
-              key = "<leader>sp";
-              action = "picker.lazy()";
-              options.desc = "Search for Plugin Spec";
-            }
-            {
               key = "<leader>sq";
               action = "picker.qflist()";
               options.desc = "Quickfix List";
@@ -249,6 +238,16 @@
               key = "<leader>sR";
               action = "picker.resume()";
               options.desc = "Resume";
+            }
+            {
+              key = "<leader>st";
+              action = "picker.grep({ search = ${todo}, live = false })";
+              options.desc = "Todo Comments";
+            }
+            {
+              key = "<leader>sT";
+              action = "picker.grep({ search = ${todo}, live = false, dirs = { vim.api.nvim_buf_get_name(0) } })";
+              options.desc = "Buffer Todo Comments";
             }
             {
               key = "<leader>su";

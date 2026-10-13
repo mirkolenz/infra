@@ -17,25 +17,10 @@
         options.desc = "Paste from system clipboard";
       }
       {
-        key = "<Esc>";
-        mode = "n";
-        action = "<cmd>nohlsearch<CR>";
-        options.desc = "Clear search highlights";
-      }
-      {
         key = "<Esc><Esc>";
         mode = "t";
         action = "<C-\\><C-n>";
         options.desc = "Exit terminal mode";
-      }
-      {
-        key = "<leader>a";
-        mode = [
-          "n"
-          "x"
-        ];
-        action = "ggVG";
-        options.desc = "Select all";
       }
       {
         key = "<leader>p";

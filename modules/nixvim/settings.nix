@@ -1,8 +1,13 @@
 {
   flake.modules.nixvim.default = {
     clipboard.register = "";
+    # Optional runtime packages: nohlsearch clears the search highlight once the
+    # cursor moves on, nvim.difftool provides `:DiffTool` for directory diffs.
+    extraConfigLua = ''
+      vim.cmd.packadd("nohlsearch")
+      vim.cmd.packadd("nvim.difftool")
+    '';
     opts = {
-      autoindent = true;
       breakindent = true;
       breakindentopt = "shift:2"; # indent wrapped lines by two spaces
       cmdheight = 0; # only really usable under ui2, see lua/ui2.lua
