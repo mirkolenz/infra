@@ -42,7 +42,6 @@
         treefmt-nix
         llm
         # janice
-        protobuf-language-server
         touying
         mcp-proxy
         pdfpc

@@ -217,6 +217,9 @@
     "Plain Text": {
       "soft_wrap": "editor_width"
     },
+    "Proto": {
+      "language_servers": ["buf"]
+    },
     "Python": {
       "tab_size": 4,
       "language_servers": ["ruff", "ty"],
