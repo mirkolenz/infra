@@ -7,10 +7,8 @@
       ...
     }:
     {
-      home.shell.enableShellIntegration = true;
       programs.fish = {
         enable = true;
-        generateCompletions = true;
         functions.fish_greeting.body = ''
           if set -q SSH_CONNECTION
             ${lib.getExe config.programs.fastfetch.package}
@@ -27,13 +25,11 @@
       programs.zsh = {
         enable = true;
         autosuggestion.enable = true;
-        enableCompletion = true;
         fastSyntaxHighlighting.enable = true;
         shellAliases.sudo = lib.mkDefault "sudo ";
       };
       programs.bash = {
         enable = true;
-        enableCompletion = true;
         shellAliases.sudo = lib.mkDefault "sudo ";
       };
       # this is slow

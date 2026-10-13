@@ -189,7 +189,6 @@
           diff = {
             algorithm = "histogram";
             colorMoved = "default";
-            renames = true;
             guitool = "vscode";
           };
           mergetool = {
@@ -302,8 +301,6 @@
             "closest_nonempty(to)" = "heads(::to ~ empty())";
           };
           ui = {
-            default-command = "log";
-            diff-editor = ":builtin";
             merge-editor = "mergiraf";
             # editor = "micro";
           };

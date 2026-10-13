@@ -163,7 +163,7 @@ in
               ++ bashRules sandbox.commands.deny;
             ask = [ ];
           };
-          statusLine = lib.mkIf (lib.versionAtLeast config.programs.starship.package.version "1.25.0") {
+          statusLine = {
             type = "command";
             command = "${lib.getExe config.programs.starship.package} statusline claude-code";
           };

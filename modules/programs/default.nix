@@ -5,7 +5,6 @@
       programs = {
         # keep-sorted start
         btop.enable = true;
-        carapace.enable = false;
         home-manager.enable = true;
         htop.enable = true;
         jq.enable = true;

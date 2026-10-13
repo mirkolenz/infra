@@ -6,15 +6,12 @@
       programs.zoxide = {
         enable = true;
         options = [
-          "--cmd"
-          "z"
           "--hook"
           "prompt"
         ];
       };
       home.sessionVariables = {
         _ZO_ECHO = true;
-        _ZO_MAXAGE = 10000;
         _ZO_RESOLVE_SYMLINKS = true;
       };
       home.sessionSearchVariables = {

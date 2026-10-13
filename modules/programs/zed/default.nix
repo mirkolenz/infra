@@ -8,8 +8,6 @@
       ...
     }:
     lib.mkIf config.custom.features.graphical.enable {
-      programs.zed-editor.enable = false;
-
       home.packages = lib.mkIf pkgs.stdenv.hostPlatform.isLinux [
         pkgs.zed-editor
       ];
