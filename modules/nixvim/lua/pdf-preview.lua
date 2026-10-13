@@ -7,32 +7,35 @@
 -- to a page, G to the last, q closes. Toggled by the PdfPreview command (bound
 -- to <leader>tp) and shared by every PDF-producing filetype.
 
+local async = vim.async
+local system = require("my.system")
+
 local DPI = 150
 -- Neovim's API reports no cell size, so assume cells are twice as tall as wide.
 local CELL_ASPECT = 2
+-- Compilers write the PDF in bursts, so wait for a quiet period before reading it.
+local DEBOUNCE_MS = 200
 
 local previews = {}
 
 local function source_pdf()
-  return vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":r") .. ".pdf"
+  return vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p:r") .. ".pdf"
 end
 
-local function pdf_info(pdf, on_done)
-  vim.system({ "pdfinfo", pdf }, { text = true }, vim.schedule_wrap(function(out)
-    local width, height = out.stdout:match("Page size:%s*([%d.]+) x ([%d.]+)")
+local function pdf_info(pdf)
+  local out = system({ "pdfinfo", pdf }, { text = true })
+  local width, height = out.stdout:match("Page size:%s*([%d.]+) x ([%d.]+)")
 
-    on_done(tonumber(out.stdout:match("Pages:%s*(%d+)")) or 1, (tonumber(height) or 842) / (tonumber(width) or 595))
-  end))
+  return tonumber(out.stdout:match("Pages:%s*(%d+)")) or 1, (tonumber(height) or 842) / (tonumber(width) or 595)
 end
 
-local function rasterise(pdf, page, on_done)
+local function rasterise(pdf, page)
   local nr = tostring(page)
-
-  vim.system({
+  local out = system({
     "pdftoppm", "-png", "-singlefile", "-r", tostring(DPI), "-f", nr, "-l", nr, pdf,
-  }, vim.schedule_wrap(function(out)
-    on_done(out.code == 0 and out.stdout or nil)
-  end))
+  })
+
+  return out.code == 0 and out.stdout or nil
 end
 
 local function box(state)
@@ -78,51 +81,62 @@ local function place(state)
   end
 end
 
--- Only one pdftoppm runs at a time: a turn requested mid-flight just marks the
+-- Only one task renders at a time: a turn requested mid-flight just marks the
 -- state pending, so holding ] costs one rasterise rather than one per keypress.
--- `stamp` is the file revision, so a rebuild still re-renders the current page
+-- `rev` counts the rebuilds, so a rebuild still re-renders the current page
 -- while a keypress that resolves to what is already shown does not.
+-- A hidden preview renders nothing and catches up once it is back in view.
+-- The task is detached, so it outlives the callback that started it.
 local function render(state)
-  if not (state.pages and visible(state)) then
+  if not visible(state) then
     return
   end
 
-  local pages = state.pages
+  -- Skip the task for a keypress that resolves to the page already shown.
+  if state.info_rev == state.rev then
+    state.page = math.min(math.max(state.page, 1), state.pages)
 
-  state.page = math.min(math.max(state.page, 1), pages)
-
-  local page = state.page
-  local key = page .. ":" .. tostring(state.stamp)
-
-  if key == state.shown then
-    return
+    if state.page .. ":" .. state.rev == state.shown then
+      return
+    end
   end
 
-  if state.busy then
+  if state.task and not state.task:completed() then
     state.pending = true
     return
   end
 
-  state.busy = true
-
-  rasterise(state.pdf, page, function(png)
-    state.busy = false
-
-    if not png then
-      state.stamp = nil -- let the next poll retry, the file may still be mid-write
-    elseif vim.api.nvim_win_is_valid(state.win) then
-      state.shown, state.png = key, png
-      vim.wo[state.win].winbar = (" %s  page %d of %d"):format(vim.fn.fnamemodify(state.pdf, ":t"), page, pages)
-      -- New bytes need a new placement.
-      hide(state)
-      place(state)
-    end
-
-    if state.pending then
+  state.task = async.run(function()
+    repeat
       state.pending = false
-      render(state)
-    end
-  end)
+
+      if not visible(state) then
+        return
+      end
+
+      if state.info_rev ~= state.rev then
+        state.info_rev = state.rev
+        state.pages, state.aspect = pdf_info(state.pdf)
+      end
+
+      state.page = math.min(math.max(state.page, 1), state.pages)
+
+      local page = state.page
+      local key = page .. ":" .. state.rev
+
+      if key ~= state.shown then
+        local png = rasterise(state.pdf, page)
+
+        if png and vim.api.nvim_win_is_valid(state.win) then
+          state.shown, state.png = key, png
+          vim.wo[state.win].winbar = (" %s  page %d of %d"):format(vim.fs.basename(state.pdf), page, state.pages)
+          -- New bytes need a new placement.
+          hide(state)
+          place(state)
+        end
+      end
+    until not state.pending
+  end):detach()
 end
 
 local function close(pdf)
@@ -133,8 +147,13 @@ local function close(pdf)
   end
 
   previews[pdf] = nil
-  state.timer:stop()
-  state.timer:close()
+  state.watcher:close()
+  state.debounce:close()
+
+  if state.task then
+    state.task:close()
+  end
+
   hide(state)
 
   if vim.api.nvim_win_is_valid(state.win) then
@@ -148,7 +167,7 @@ local function open(pdf)
     return
   end
 
-  local state = { pdf = pdf, page = 1 }
+  local state = { pdf = pdf, page = 1, rev = 0 }
   previews[pdf] = state
 
   local source = vim.api.nvim_get_current_win()
@@ -199,34 +218,38 @@ local function open(pdf)
     end,
   })
 
-  state.timer = assert(vim.uv.new_timer())
-  state.timer:start(0, 500, vim.schedule_wrap(function()
-    if not vim.api.nvim_win_is_valid(state.win) then
-      close(pdf)
+  -- Compilers often replace the PDF by renaming a temporary file over it, which
+  -- a watch on the file itself would lose, so watch its directory instead.
+  -- The filename check runs in the fast callback, so unrelated writes such as
+  -- aux and log files never reach the main loop. Restarting the timer debounces.
+  local name = vim.fs.basename(pdf)
+  state.debounce = assert(vim.uv.new_timer())
+  state.watcher = assert(vim.uv.new_fs_event())
+  state.watcher:start(vim.fs.dirname(pdf), {}, function(err, filename)
+    if err or filename ~= name then
       return
     end
 
-    local stat = vim.uv.fs_stat(pdf)
-    local mtime = stat and (stat.mtime.sec .. ":" .. stat.mtime.nsec)
+    state.debounce:start(DEBOUNCE_MS, 0, vim.schedule_wrap(function()
+      state.rev = state.rev + 1
+      render(state)
+    end))
+  end)
 
-    -- Rasterising for a hidden window is wasted, and leaving `stamp` alone makes
-    -- a later tick pick the rebuild up once the tab is back in view.
-    if mtime and mtime ~= state.stamp and visible(state) then
-      state.stamp = mtime
-      pdf_info(pdf, function(pages, aspect)
-        state.pages, state.aspect = pages, aspect
-        render(state)
-      end)
-    end
-  end))
+  render(state)
 end
 
 -- Placements are absolute screen rectangles, so any reflow invalidates them.
+-- Visibility only changes with the tab, which is when a hidden preview catches up.
 vim.api.nvim_create_autocmd({ "VimResized", "WinResized", "WinNew", "WinClosed", "TabEnter" }, {
   group = vim.api.nvim_create_augroup("pdf-preview", { clear = true }),
-  callback = vim.schedule_wrap(function()
+  callback = vim.schedule_wrap(function(ev)
     for _, state in pairs(previews) do
       place(state)
+
+      if ev.event == "TabEnter" then
+        render(state)
+      end
     end
   end),
 })

@@ -2,25 +2,31 @@
 -- mirroring the zed tasks. The compiled PDF is viewed inline via the shared
 -- PdfPreview command (see pdf-preview.lua).
 
+local async = vim.async
+local system = require("my.system")
+
+-- One watch task per buffer, closing it terminates the process.
 local watches = {}
 
 local function kill_watch(buf)
-  local handle = watches[buf]
+  local task = watches[buf]
 
-  if handle then
-    handle:kill(15)
+  if task then
+    task:close()
     watches[buf] = nil
   end
 
-  return handle ~= nil
+  return task ~= nil
 end
 
-local function typst(args, on_exit)
+-- The project root bounds what the document may import, so packages and shared
+-- assets above the document's own directory still resolve.
+local function typst_cmd(subcommand)
   vim.cmd("silent update")
-  local cmd = { "typst" }
-  vim.list_extend(cmd, args)
-  vim.list_extend(cmd, { "--root", ".", vim.api.nvim_buf_get_name(0) })
-  return vim.system(cmd, { text = true }, vim.schedule_wrap(on_exit))
+  local file = vim.api.nvim_buf_get_name(0)
+  local root = vim.fs.root(0, { "typst.toml", ".git" }) or vim.fs.dirname(file)
+
+  return { "typst", subcommand, "--root", root, file }
 end
 
 local function notify_exit(prefix, obj)
@@ -32,8 +38,10 @@ local function notify_exit(prefix, obj)
 end
 
 local function typst_compile()
-  typst({ "compile" }, function(obj)
-    notify_exit("typst compile", obj)
+  local cmd = typst_cmd("compile")
+
+  async.run(function()
+    notify_exit("typst compile", system(cmd, { text = true }))
   end)
 end
 
@@ -45,10 +53,24 @@ local function typst_watch()
     return
   end
 
-  watches[buf] = typst({ "watch" }, function(obj)
+  local cmd = typst_cmd("watch")
+
+  watches[buf] = async.run(function()
+    -- The watch reports every recompile, so only the latest output is kept for
+    -- a crash report instead of buffering it all for the life of the process.
+    local stderr = ""
+    local obj = system(cmd, {
+      text = true,
+      stdout = false,
+      stderr = function(_, data)
+        stderr = data or stderr
+      end,
+    })
+    obj.stderr = stderr
     watches[buf] = nil
 
-    -- Report crashes, but stay quiet on a deliberate SIGTERM.
+    -- A closed task never gets here, so only report crashes and stay quiet on
+    -- a SIGTERM from elsewhere.
     if obj.signal == 0 and obj.code ~= 0 then
       notify_exit("typst watch", obj)
     end
