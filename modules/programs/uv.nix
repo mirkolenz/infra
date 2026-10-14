@@ -22,10 +22,8 @@
       };
       home.shellAliases.py = "${uv} run";
       custom.bump.uv = {
-        pathspecs = [
-          ":(glob)**/pyproject.toml"
-          "uv.lock"
-        ];
+        lockfile = "uv.lock";
+        pathspecs = [ ":(glob)**/pyproject.toml" ];
         text = ''
           ${lib.getExe pkgs.bump-ranges} python
           ${uv} sync --upgrade --all-packages --all-extras --all-groups

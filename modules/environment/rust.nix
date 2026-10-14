@@ -15,7 +15,7 @@
         rust-analyzer
       ];
       custom.bump.cargo = {
-        pathspecs = [ "Cargo.lock" ];
+        lockfile = "Cargo.lock";
         text = "${lib.getExe pkgs.cargo} update";
       };
     };

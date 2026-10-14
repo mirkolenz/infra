@@ -37,20 +37,16 @@
         mcp-inspector
       ];
       custom.bump.npm = {
-        pathspecs = [
-          ":(glob)**/package.json"
-          "package-lock.json"
-        ];
+        lockfile = "package-lock.json";
+        pathspecs = [ ":(glob)**/package.json" ];
         text = ''
           ${lib.getExe pkgs.bump-ranges} node
           ${lib.getExe' config.programs.npm.package "npm"} update
         '';
       };
       custom.bump.bun = {
-        pathspecs = [
-          ":(glob)**/package.json"
-          "bun.lock"
-        ];
+        lockfile = "bun.lock";
+        pathspecs = [ ":(glob)**/package.json" ];
         text = ''
           ${lib.getExe pkgs.bump-ranges} node
           ${lib.getExe config.programs.bun.package} update --recursive

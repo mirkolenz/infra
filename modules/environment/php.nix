@@ -16,10 +16,8 @@
         phpactor # legacy language server
       ];
       custom.bump.composer = {
-        pathspecs = [
-          "composer.json"
-          "composer.lock"
-        ];
+        lockfile = "composer.lock";
+        pathspecs = [ "composer.json" ];
         text = ''
           ${lib.getExe pkgs.bump-ranges} php
           ${lib.getExe pkgs.phpPackages.composer} update

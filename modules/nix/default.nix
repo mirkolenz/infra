@@ -124,8 +124,8 @@ in
           nix-sweep
         ];
       custom.bump.nix = {
-        pathspecs = [ "flake.lock" ];
-        text = "${nix} flake update --commit-lock-file";
+        lockfile = "flake.lock";
+        text = "${nix} flake update --commit-lock-file --commit-lock-file-summary \"$message\"";
       };
       custom.commands = {
         gc.text = /* bash */ ''

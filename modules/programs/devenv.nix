@@ -4,7 +4,7 @@
     {
       programs.devenv.enable = true;
       custom.bump.devenv = {
-        pathspecs = [ "devenv.lock" ];
+        lockfile = "devenv.lock";
         text = "${lib.getExe config.programs.devenv.package} update";
       };
     };

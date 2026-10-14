@@ -17,10 +17,9 @@
         goreleaser
       ];
       custom.bump.go = {
-        pathspecs = [
-          "go.mod"
-          "go.sum"
-        ];
+        # modules without dependencies have no go.sum, but nothing to update either
+        lockfile = "go.sum";
+        pathspecs = [ "go.mod" ];
         text = ''
           ${go} get -u -t ./...
           ${go} mod tidy
