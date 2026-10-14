@@ -230,9 +230,12 @@ in
         nix-flake-input.text = /* bash */ ''
           # @describe Print the store path of an input of the flake in the working directory
           # @arg input!     Name of the flake input
-          # @arg nix-args~  Further arguments of nix flake prefetch
+          # @arg nix-args~  Further arguments of nix eval
 
-          ${nix} flake prefetch --inputs-from . "$argc_input" --json "''${argc_nix_args[@]}" | ${jq} -r .storePath
+          # `nix flake prefetch` lists /Users and `--impure` stats the channels dir,
+          # both of which the agent sandbox denies, so fetch the locked node purely
+          locked="$(${jq} -c --arg input "$argc_input" '.nodes[.nodes.root.inputs[$input] // error("unknown input: \($input)")].locked' flake.lock)"
+          ${nix} eval --raw --expr "(builtins.fetchTree (builtins.fromJSON '''$locked''')).outPath" "''${argc_nix_args[@]}"
         '';
       };
     };
