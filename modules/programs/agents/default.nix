@@ -65,6 +65,8 @@
             "npm.pkg.github.com"
             "crates.io"
             "*.crates.io"
+            "packagist.org"
+            "*.packagist.org"
             "proxy.golang.org"
             # ghcr also serves homebrew bottles
             "*.docker.io"
