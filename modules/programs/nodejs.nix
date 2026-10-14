@@ -24,7 +24,6 @@
       };
       home.packages = with pkgs; [
         svgo
-        npm-check-updates
         oxfmt
         oxlint
         tsgolint
@@ -38,15 +37,8 @@
           ":(glob)**/package.json"
           "package-lock.json"
         ];
-        # ncu refuses --workspaces for projects without workspaces
         text = ''
-          ncu=(${lib.getExe pkgs.npm-check-updates} --interactive --format group --install never)
-
-          if ${lib.getExe config.programs.jq.package} -e .workspaces package.json > /dev/null; then
-            ncu+=(--workspaces)
-          fi
-
-          "''${ncu[@]}"
+          ${lib.getExe pkgs.bump-ranges} node
           ${lib.getExe' config.programs.npm.package "npm"} update
         '';
       };
@@ -55,7 +47,10 @@
           ":(glob)**/package.json"
           "bun.lock"
         ];
-        text = "${lib.getExe config.programs.bun.package} update --recursive";
+        text = ''
+          ${lib.getExe pkgs.bump-ranges} node
+          ${lib.getExe config.programs.bun.package} update --recursive
+        '';
       };
     };
 }

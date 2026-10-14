@@ -27,7 +27,7 @@
           "uv.lock"
         ];
         text = ''
-          ${lib.getExe pkgs.uv-upgrade}
+          ${lib.getExe pkgs.bump-ranges} python
           ${uv} sync --upgrade --all-packages --all-extras --all-groups
         '';
       };

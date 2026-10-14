@@ -20,7 +20,10 @@
           "composer.json"
           "composer.lock"
         ];
-        text = "${lib.getExe pkgs.phpPackages.composer} update";
+        text = ''
+          ${lib.getExe pkgs.bump-ranges} php
+          ${lib.getExe pkgs.phpPackages.composer} update
+        '';
       };
     };
 }
