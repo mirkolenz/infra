@@ -15,7 +15,7 @@
         package = pkgs.uv-bin;
         # https://docs.astral.sh/uv/reference/settings/
         settings = {
-          exclude-newer = "3 days";
+          exclude-newer = "${toString config.custom.minReleaseAge} days";
           python-downloads = "manual";
           python-preference = "system";
         };

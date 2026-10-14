@@ -7,7 +7,11 @@
       ...
     }:
     lib.mkIf config.custom.features.extras.enable {
-      programs.bun.enable = true;
+      programs.bun = {
+        enable = true;
+        # https://bun.com/docs/runtime/bunfig
+        settings.install.minimumReleaseAge = config.custom.minReleaseAge * 24 * 60 * 60; # seconds
+      };
       programs.npm = {
         enable = true;
         # https://blog.npmjs.org/post/141702881055/package-install-scripts-vulnerability
@@ -15,7 +19,7 @@
         settings = {
           prefix = "\${HOME}/.npm";
           ignore-scripts = true;
-          min-release-age = 3; # days
+          min-release-age = config.custom.minReleaseAge; # days
           allow-directory = "none";
           allow-file = "none";
           allow-git = "none";

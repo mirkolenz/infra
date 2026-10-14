@@ -13,6 +13,15 @@
       description = "Path to the nix config on the machine.";
     };
 
+    minReleaseAge = lib.mkOption {
+      type = lib.types.ints.positive;
+      default = 3;
+      description = ''
+        Days a package release must age before the package managers that support a cooldown install it,
+        which are uv, npm, and bun, but neither cargo nor composer.
+      '';
+    };
+
     standalone = lib.mkOption {
       type = lib.types.bool;
       internal = true;
