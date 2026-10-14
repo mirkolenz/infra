@@ -7,6 +7,7 @@ description: |
 ---
 
 Turn the working tree into a short sequence of commits where each one is a meaningful change that can be reverted alone.
+Semantic release derives the changelog and the next version from these commits, so the sequence must read as a sensible release note.
 Invoking this skill is the permission to commit, but never push, and never modify the working tree.
 Only amend when the user asks, and only commits that are not on any remote.
 
