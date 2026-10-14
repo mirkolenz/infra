@@ -71,26 +71,31 @@
       services.openssh.enable = false;
 
       # systemd
-      systemd.services = lib.genAttrs (map (name: "systemd-${name}") [
-        "oomd"
-        "userdbd"
-        "udevd"
-        "timesyncd"
-        "timedated"
-        "portabled"
-        "nspawn@"
-        "machined"
-        "localed"
-        "logind"
-        "journald@"
-        "journald"
-        "journal-remote"
-        "journal-upload"
-        "importd"
-        "hostnamed"
-        "homed"
-        "networkd"
-      ]) (_: { serviceConfig.WatchdogSec = 0; });
+      systemd.services =
+        lib.genAttrs
+          (map (name: "systemd-${name}") [
+            "oomd"
+            "userdbd"
+            "udevd"
+            "timesyncd"
+            "timedated"
+            "portabled"
+            "nspawn@"
+            "machined"
+            "localed"
+            "logind"
+            "journald@"
+            "journald"
+            "journal-remote"
+            "journal-upload"
+            "importd"
+            "hostnamed"
+            "homed"
+            "networkd"
+          ])
+          (_: {
+            serviceConfig.WatchdogSec = 0;
+          });
 
       # ssh config
       programs.ssh.extraConfig = ''

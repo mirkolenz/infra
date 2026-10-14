@@ -16,14 +16,18 @@
       harnessDomains = lib.unique (fromHarnesses [ "domains" ]);
 
       # the absolute paths of the sandbox and of every harness
-      readPaths = sandbox.paths.read ++ fromHarnesses [
-        "paths"
-        "read"
-      ];
-      writePaths = sandbox.paths.write ++ fromHarnesses [
-        "paths"
-        "write"
-      ];
+      readPaths =
+        sandbox.paths.read
+        ++ fromHarnesses [
+          "paths"
+          "read"
+        ];
+      writePaths =
+        sandbox.paths.write
+        ++ fromHarnesses [
+          "paths"
+          "write"
+        ];
       nono = config.programs.nono.finalPackage;
       osConfig = args.osConfig or { };
 
@@ -199,13 +203,11 @@
           # nix and the toolchain caches instead, so the native sandboxes of the harnesses get them too.
           workdir.access = "readwrite";
           filesystem = {
-            allow =
-              writePaths
-              ++ [
-                # the main repository of a linked worktree, which commits write to
-                "@git:common-dir"
-                drafts
-              ];
+            allow = writePaths ++ [
+              # the main repository of a linked worktree, which commits write to
+              "@git:common-dir"
+              drafts
+            ];
             # managed files may be granted already, such as the git config
             read = lib.unique (
               readPaths

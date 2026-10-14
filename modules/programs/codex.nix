@@ -74,8 +74,7 @@
               # would let it ask for a host beyond this list is `sandbox_approval`, which
               # also reopens `require_escalated`, so the list stays the whole boundary.
               domains =
-                lib.genAttrs sandbox.domains.allow (_: "allow")
-                // lib.genAttrs sandbox.domains.deny (_: "deny");
+                lib.genAttrs sandbox.domains.allow (_: "allow") // lib.genAttrs sandbox.domains.deny (_: "deny");
               unix_sockets = lib.genAttrs sandbox.unixSockets (_: "allow");
             };
           };

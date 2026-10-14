@@ -48,7 +48,8 @@ class Policy:
 
         return cls(
             workspace={
-                Access(access): tuple(keys) for access, keys in data["workspace"].items()
+                Access(access): tuple(keys)
+                for access, keys in data["workspace"].items()
             },
             read=tuple(map(Path, data["read"])),
             write=tuple(map(Path, data["write"])),
