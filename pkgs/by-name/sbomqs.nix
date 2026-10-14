@@ -8,16 +8,16 @@
 # go.mod requires a newer toolchain than the nixpkgs default
 buildGo127Module (finalAttrs: {
   pname = "sbomqs";
-  version = "2.1.2";
+  version = "2.1.3";
 
   src = fetchFromGitHub {
     owner = "interlynk-io";
     repo = "sbomqs";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-S0CcvnvbtHzN7vm5TF8vm0uGEklTjeqcJFcF7/H6l3M=";
+    hash = "sha256-KlN0e6+rXtjRC/w7Or0TAaYh55h40eee8yXh7hL19v8=";
   };
 
-  vendorHash = "sha256-EK/2keML/TlKLTppwSKZtkQNfrL/PE+hGKMFSjYDRew=";
+  vendorHash = "sha256-bToPMTlsolTDqCsNf6+jXXiesxgIY+Tfb2bgmMYNyjU=";
 
   ldflags = [
     "-s"

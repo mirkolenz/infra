@@ -25,21 +25,21 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "mcp-inspector";
-  version = "2.10.1";
+  version = "2.11.0";
 
   src = fetchFromGitHub {
     owner = "modelcontextprotocol";
     repo = "inspector";
     tag = finalAttrs.version;
-    hash = "sha256-dTAD8sBnaAD77fFgrGH/ISRTlXsSur9aLSX+77xouRY=";
+    hash = "sha256-VDwF7YRXeUX8zrOhruKZ13WMC3+zKNgEjZI0PywLLP8=";
   };
 
   npmDepsHashes = {
-    root = "sha256-twig8tHo5mYr4E34HSVkGxg5dEu0/K6RnJ2wlEVzFdU=";
-    web = "sha256-mirfNcX4u1NX7m02OqE1w7LK/ReZZ1SDcDxycZgz59Y=";
-    cli = "sha256-5TNLH5A6xKhnqVc6I8puwUmkpLIXoDiHH5pdg07fuN0=";
-    mcpdo = "sha256-UAlNXRwb9g0mgaxZLnZjMDiyOsmvjk9G83djmlfjDjE=";
-    tui = "sha256-MSzCWw7XLxP/Px9lhS/xJVmAIrLSzByXdg+gtfhpJLY=";
+    root = "sha256-3E/FDudI4OJXXaqJjdtVAoaPnpPgrSVfB6RXO6eOSuM=";
+    web = "sha256-N0TP6q+LwY8l+7uCFssNdBQ0y9sa4Z6CVD3HQZjY+BA=";
+    cli = "sha256-LsVh3IqraqrdpkUylUe9Ftit9roKkwuzn3u9qfbkRBA=";
+    mcpdo = "sha256-4mXVRh5BkPrv9SPufFx7HkODB1xjtmL5P5risGcHj5g=";
+    tui = "sha256-g42ZSWS7yQDiJ35wiIap0J/b5+KK7nVz/fsI/hXwE5U=";
   };
 
   # the root lockfile holds the runtime dependencies of every client

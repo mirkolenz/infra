@@ -12,13 +12,13 @@
 }:
 stdenv.mkDerivation (finalAttrs: {
   pname = "shadcn";
-  version = "4.21.4";
+  version = "4.21.5";
 
   src = fetchFromGitHub {
     owner = "shadcn-ui";
     repo = "ui";
     tag = "shadcn@${finalAttrs.version}";
-    hash = "sha256-ZBNfnimYKdnSwxinealLwuJ3vBpwca+i1y5H66MorQQ=";
+    hash = "sha256-6STMoHPrtj+WJgbEyVhrwfWutUsUiDHlMutnwV6tEDY=";
   };
 
   pnpmWorkspaces = [ "shadcn..." ];
@@ -32,7 +32,7 @@ stdenv.mkDerivation (finalAttrs: {
       ;
     pnpm = pnpm_10;
     fetcherVersion = 4;
-    hash = "sha256-crGJw2kWYiM8vVfkUefQvAhBS2YHYUkFAGeprA1kGrg=";
+    hash = "sha256-N4QUOrhXFCaWK8V6Qwb/M2J2wPM27rbhI1KV3FfQrqU=";
   };
 
   nativeBuildInputs = [
