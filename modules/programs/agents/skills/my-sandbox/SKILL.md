@@ -31,6 +31,7 @@ nono profile show agents
 ## Steps
 
 1. Check the failed path or host with the tools, since generic errors such as `Operation not permitted` do not prove a sandbox denial.
+   When the error names no path, rerun the command with its verbose or debug flags, and run its sibling subcommands to narrow the step that fails.
 2. On a denial, do not retry or work around it through another path, a copy, a different tool, or the terminal of the user, and do not suggest chmod, sudo, or Full Disk Access.
 3. Never edit the profiles in `~/.config/nono/profiles` or run `nono profile promote`, only the user may grant access.
 
