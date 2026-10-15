@@ -7,6 +7,8 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+permissions: {}
+cache-mode: none
 # The branch rule requires only the aggregate `check-all` job:
 # https://github.com/mirkolenz/infra/settings/rules/3352950
 # check-flake evaluates everything the build jobs leave out, the build jobs
@@ -18,11 +20,16 @@ concurrency:
 # keep more of nixpkgs cached than four. The build jobs evaluate in seconds.
 jobs:
   check-flake:
+    name: check-flake
     # 4 vCPU, 16 GB RAM
     runs-on: ubuntu-26.04
     timeout-minutes: 30
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - uses: DeterminateSystems/determinate-nix-action@d0c908e6cbe9f89f36ed8205a3ab6f092636916a # v3
         with:
           summarize: false
@@ -35,6 +42,8 @@ jobs:
     name: check-build-${{ matrix.system }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 180
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -53,6 +62,8 @@ jobs:
             max-jobs: 3
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - name: reclaim linux disk space
         if: runner.os == 'Linux'
         uses: wimpysworld/nothing-but-nix@687c797a730352432950c707ab493fcc951818d7 # v10
@@ -82,8 +93,11 @@ jobs:
           authToken: ${{ secrets.CACHIX_TOKEN }}
           # build-only cargo vendor trees and debug symbols nothing references
           pushFilter: "(-vendor|-debug)$"
-      - run: nix run . -- check-build --max-memory-size 2048 --no-nom --max-jobs ${{ matrix.max-jobs }}
+      - run: nix run . -- check-build --max-memory-size 2048 --no-nom --max-jobs "$MAX_JOBS"
+        env:
+          MAX_JOBS: ${{ matrix.max-jobs }}
   check-all:
+    name: check-all
     needs:
       - check-flake
       - check-build
