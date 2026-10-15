@@ -19,9 +19,26 @@
       ];
       programs.gh = {
         enable = true;
+        extensions = [ pkgs.gh-actions-lock-bin ];
         settings = {
           git_protocol = "ssh";
         };
+      };
+      # Pins to branches or partial versions such as `v4` only move with `--relock`.
+      # The flags match those of renovate, which neither narrows refs such as `v4` to `v4.2.1`
+      # nor migrates local actions.
+      custom.bump.actions = {
+        lockfile = ".github/workflows/actions.lock";
+        # the files that bump-ranges and gh actions-lock edit
+        pathspecs = [
+          ":(glob).github/workflows/*.y*ml"
+          ":(glob).github/actions/**/action.y*ml"
+          ":(glob)action.y*ml"
+        ];
+        text = ''
+          ${lib.getExe pkgs.bump-ranges} actions
+          ${gh} actions-lock --relock --no-interactive --no-narrow --no-migrate-local-actions
+        '';
       };
       programs.gh-dash = {
         enable = true;

@@ -1,5 +1,7 @@
 { lib, config, ... }:
 {
+  config.home.sessionVariables.BUMP_RANGES_MIN_AGE = config.custom.minReleaseAge;
+
   options.custom = {
     projectsPath = lib.mkOption {
       type = lib.types.path;
@@ -18,7 +20,8 @@
       default = 3;
       description = ''
         Days a package release must age before the package managers that support a cooldown install it,
-        which are uv, npm, and bun, but neither cargo nor composer.
+        which are uv, npm, and bun, but neither cargo nor composer,
+        and before `bump-ranges` offers it as the new tag of a GitHub Action or flake input.
       '';
     };
 
