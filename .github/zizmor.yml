@@ -1,0 +1,6 @@
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        # tags suffice, since .github/workflows/actions.lock pins the commits they resolve to
+        "*": ref-pin

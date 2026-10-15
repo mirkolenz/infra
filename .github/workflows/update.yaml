@@ -16,21 +16,21 @@ jobs:
       contents: write # merges the update pull request once its checks pass
       pull-requests: write # enables auto-merge on the update pull request
     steps:
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+      - uses: actions/create-github-app-token@v3
         id: generate-token
         with:
           client-id: ${{ secrets.APP_CLIENT_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           permission-contents: write
           permission-pull-requests: write
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: set up git user
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-      - uses: DeterminateSystems/determinate-nix-action@d0c908e6cbe9f89f36ed8205a3ab6f092636916a # v3
+      - uses: DeterminateSystems/determinate-nix-action@v3
         with:
           extra-conf: |
             accept-flake-config = true
@@ -43,7 +43,7 @@ jobs:
         run: git restore .
       - name: build pr body
         run: git log --reverse --format='## %s%n%n%b' "$GITHUB_SHA..HEAD" > "$RUNNER_TEMP/pr-body.md"
-      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8 # zizmor: ignore[superfluous-actions]
+      - uses: peter-evans/create-pull-request@v8 # zizmor: ignore[superfluous-actions]
         id: pr
         with:
           token: ${{ steps.generate-token.outputs.token }}

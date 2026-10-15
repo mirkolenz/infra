@@ -27,10 +27,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: DeterminateSystems/determinate-nix-action@d0c908e6cbe9f89f36ed8205a3ab6f092636916a # v3
+      - uses: DeterminateSystems/determinate-nix-action@v3
         with:
           summarize: false
           extra-conf: |
@@ -61,12 +61,12 @@ jobs:
             runner: macos-26
             max-jobs: 3
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: reclaim linux disk space
         if: runner.os == 'Linux'
-        uses: wimpysworld/nothing-but-nix@687c797a730352432950c707ab493fcc951818d7 # v10
+        uses: wimpysworld/nothing-but-nix@v10
       - name: reclaim darwin disk space
         if: runner.os == 'macOS'
         background: true
@@ -74,7 +74,7 @@ jobs:
           for path in /Applications/Xcode*.app /Library/Developer "$RUNNER_TOOL_CACHE"; do
             sudo rm -rf "$path"
           done
-      - uses: DeterminateSystems/determinate-nix-action@d0c908e6cbe9f89f36ed8205a3ab6f092636916a # v3
+      - uses: DeterminateSystems/determinate-nix-action@v3
         with:
           summarize: false
           # nix-fast-build does not pass `--max-jobs` on, so every build
@@ -88,7 +88,7 @@ jobs:
             keep-going = true
             log-lines = 200
             max-jobs = 1
-      - uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
+      - uses: cachix/cachix-action@v17
         with:
           name: mirkolenz
           authToken: ${{ secrets.CACHIX_TOKEN }}
