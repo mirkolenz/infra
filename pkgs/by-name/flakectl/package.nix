@@ -5,11 +5,12 @@
   python3Packages,
   gitMinimal,
   determinate-nix,
+  bump-ranges,
+  gh,
 }:
 let
   flakectl = writers.writePython3Bin "flakectl" {
     libraries = with python3Packages; [
-      httpx2
       obstore
       typer
     ];
@@ -22,6 +23,8 @@ let
       (lib.makeBinPath [
         determinate-nix
         gitMinimal
+        bump-ranges
+        gh
       ])
       "--add-flag"
       "--update-scripts-nix=${./update-scripts.nix}"

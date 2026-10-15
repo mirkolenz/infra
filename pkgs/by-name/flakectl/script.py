@@ -16,31 +16,21 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Annotated, Any
 
-import httpx2
 import obstore
 import typer
 from obstore.exceptions import BaseError
 from obstore.store import S3Store
 
-# Host that `access-tokens` entries are keyed by, and its REST API.
+# Host that `access-tokens` entries are keyed by.
 GITHUB_HOST = "github.com"
-GITHUB_API = "https://api.github.com"
-
-# Pinned alongside the one in pkgs/by-name/mkGitHubBinary.nix.
-GITHUB_API_VERSION = "2026-03-10"
 
 GITHUB_ACTIONS = os.environ.get("GITHUB_ACTIONS") == "true"
 
 # Flags passed to every `nix` invocation.
 NIX_FLAGS = ["--extra-experimental-features", "nix-command flakes"]
 
-# Match github inputs pinned to a semver ref (e.g. v1.2.3, release-1.2.3-rc1).
 # The store directory and hash of a store path, which logs leave out.
 STORE_PATH_PREFIX = re.compile(r"/nix/store/[0-9a-z]{32}-")
-
-GITHUB_SEMVER_REF = re.compile(
-    r'url = "github:(?P<owner>[^/"]+)/(?P<repo>[^/"]+)/(?P<ref>[^/"]*\d+\.\d+\.\d+[^/"]*)"'
-)
 
 
 TARGET_APPLY = "builtins.mapAttrs (_: drv: drv.drvPath)"
@@ -479,83 +469,6 @@ def github_token(*scope: str) -> str | None:
     return None
 
 
-def github_client() -> httpx2.Client:
-    """A pooled client for the GitHub REST API, credentials left to each request."""
-    return httpx2.Client(
-        base_url=GITHUB_API,
-        timeout=30,
-        follow_redirects=True,
-        headers={
-            "accept": "application/vnd.github+json",
-            "x-github-api-version": GITHUB_API_VERSION,
-        },
-    )
-
-
-def get_latest_release(client: httpx2.Client, owner: str, repo: str) -> str | None:
-    """The latest release tag from the GitHub API, or None if there is none.
-
-    Any failure answers None rather than raising: unauthenticated runs hit the
-    rate limit and archived repos have no release, neither of which should stop
-    the remaining inputs from being updated."""
-    token = github_token(owner, repo)
-
-    try:
-        response = client.get(
-            f"/repos/{owner}/{repo}/releases/latest",
-            headers={"authorization": f"Bearer {token}"} if token else None,
-        )
-        response.raise_for_status()
-        release: Any = response.json()
-    except (httpx2.HTTPError, ValueError):
-        return None
-
-    tag = release.get("tag_name") if isinstance(release, dict) else None
-
-    return tag if isinstance(tag, str) and tag else None
-
-
-def latest_releases(cfg: Config, content: str) -> Mapping[tuple[str, str], str | None]:
-    """The latest tag of every repo `content` pins, fetched concurrently.
-
-    Resolving up front keeps the substitution itself a pure lookup, so the
-    requests overlap while the log still reports them in flake.nix order, and a
-    repo pinned by several inputs costs a single request."""
-    repos = sorted(
-        {(m["owner"], m["repo"]) for m in GITHUB_SEMVER_REF.finditer(content)}
-    )
-
-    if not repos:
-        return {}
-
-    with (
-        github_client() as client,
-        concurrent.futures.ThreadPoolExecutor(
-            max_workers=min(len(repos), cfg.max_workers)
-        ) as pool,
-    ):
-        tags = pool.map(lambda repo: get_latest_release(client, *repo), repos)
-
-        return dict(zip(repos, tags, strict=True))
-
-
-def replace_github_ref(
-    latest: Mapping[tuple[str, str], str | None], match: re.Match[str]
-) -> str:
-    owner, repo, current = match.group("owner", "repo", "ref")
-    tag = latest[owner, repo]
-
-    if tag is None:
-        typer.echo(f"{owner}/{repo}: no release found", err=True)
-        return match[0]
-    if tag == current:
-        typer.echo(f"{owner}/{repo}: up to date ({current})", err=True)
-        return match[0]
-
-    typer.echo(f"{owner}/{repo}: {current} -> {tag}", err=True)
-    return f'url = "github:{owner}/{repo}/{tag}"'
-
-
 def is_worktree_of(flake: str) -> bool:
     """Whether the cwd is the working copy of the flake we were resolved from.
 
@@ -626,21 +539,14 @@ def update_flake(
     cfg.require_worktree()
     flake_file = Path("flake.nix")
     content = flake_file.read_text()
-    latest = latest_releases(cfg, content)
-    new_content = GITHUB_SEMVER_REF.sub(
-        lambda m: replace_github_ref(latest, m), content
-    )
+    # bumps the version tags of the github inputs, honoring BUMP_RANGES_MIN_AGE
+    run_logged(["bump-ranges", "--dry-run" if dry_run else "--accept=major", "nix"])
 
     if dry_run:
         typer.echo("Dry run, no changes written", err=True)
         raise typer.Exit(0)
 
-    flake_changed = new_content != content
-
-    if flake_changed:
-        flake_file.write_text(new_content)
-    else:
-        typer.echo("No changes needed", err=True)
+    flake_changed = flake_file.read_text() != content
 
     nix_cmd = nix_argv("flake", "update" if update else "lock")
     if commit:
