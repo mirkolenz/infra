@@ -17,12 +17,27 @@
         goreleaser
       ];
       custom.bump.go = {
-        # modules without dependencies have no go.sum, but nothing to update either
-        lockfile = "go.sum";
-        pathspecs = [ "go.mod" ];
+        lockfile = "go.mod";
+        # the directories that go ignores when matching packages
+        excludes = [
+          "**/testdata/**"
+          "**/vendor/**"
+          "**/_*/**"
+          "**/.*/**"
+        ];
+        pathspecs = [
+          "go.sum"
+          "vendor"
+        ];
+        # updates each module on its own, since a workspace would record its checksums in go.work.sum
         text = ''
+          export GOWORK=off
           ${go} get -u -t ./...
           ${go} mod tidy
+
+          if [ -f vendor/modules.txt ]; then
+            ${go} mod vendor
+          fi
         '';
       };
     };
