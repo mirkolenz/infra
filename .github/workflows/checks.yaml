@@ -69,9 +69,10 @@ jobs:
         uses: wimpysworld/nothing-but-nix@687c797a730352432950c707ab493fcc951818d7 # v10
       - name: reclaim darwin disk space
         if: runner.os == 'macOS'
+        background: true
         run: |
           for path in /Applications/Xcode*.app /Library/Developer "$RUNNER_TOOL_CACHE"; do
-            sudo rm -rf "$path" &
+            sudo rm -rf "$path"
           done
       - uses: DeterminateSystems/determinate-nix-action@d0c908e6cbe9f89f36ed8205a3ab6f092636916a # v3
         with:
