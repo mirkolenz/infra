@@ -6,6 +6,7 @@
 (writers.writePython3Bin "bump-ranges" {
   libraries = with python3Packages; [
     packaging
+    pyyaml
     questionary
     typer
   ];

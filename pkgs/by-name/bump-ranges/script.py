@@ -4,23 +4,29 @@ Covers every project of the workspace, so run it in the workspace root.
 
 Ranges that already allow the latest version stay untouched, the others keep their precision.
 So `>=2,<3` becomes `>=3,<4` instead of `>=3.1.4,<4`, like with npm-check-updates.
-The package managers resolve the latest versions and edit the manifests, honoring their minimum release ages.
+The package managers resolve the latest versions and edit the manifests, honoring their minimum release ages,
+while the tags of GitHub Actions and flake inputs follow the releases older than `--min-age`.
 """
 
 import json
+import shlex
 import subprocess
-import sys
 import tomllib
 from collections.abc import Callable, Container, Iterable, Iterator, Mapping, Sequence
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from functools import cache
 from itertools import groupby, takewhile
 from operator import attrgetter
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
+import click
 import questionary
 import typer
+import yaml
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
 from packaging.utils import canonicalize_name
@@ -31,32 +37,231 @@ type Args = tuple[str, ...]
 OPERATORS = "^~=<>!"
 # operators whose version moves to the latest one, with `<` moving one past it
 BUMPED = {"", "=", "==", "^", "~", "~=", ">=", "<"}
+# operators of exact versions, which a shorter version would change instead of widen
+EXACT = {"", "=", "=="}
 WILDCARDS = {"x", "X", "*"}
 NODE_SECTIONS = ("dependencies", "devDependencies", "optionalDependencies")
 PHP_SECTIONS: dict[str, Args] = {"require": (), "require-dev": ("--dev",)}
+# replaced by the new ref in the template of a tagged ref, and spelled out in FLAKE_INPUTS
+PLACEHOLDER = "__ref__"
+# the inputs of a flake with a ref, their url, the url with the placeholder as ref, and the position of the url
+FLAKE_INPUTS = """
+flake:
+builtins.mapAttrs (
+  name: input:
+  let
+    ref = builtins.parseFlakeRef input.url;
+  in
+  if input ? url && ref ? ref then
+    {
+      inherit (input) url;
+      inherit ref;
+      template = builtins.flakeRefToString (ref // { ref = "__ref__"; });
+      pos = builtins.unsafeGetAttrPos "url" input;
+    }
+  else
+    null
+) flake.inputs
+"""
+ACTION_FILES = (
+    ".github/workflows/*.y*ml",
+    ".github/actions/**/action.y*ml",
+    "action.y*ml",
+)
 STYLE = questionary.Style(
     [
         ("separator", "fg:ansiblue bold"),
-        ("old", "fg:ansired"),
+        ("old", "fg:ansibrightblack"),
         ("arrow", "fg:ansibrightblack"),
-        ("new", "fg:ansigreen bold"),
+        ("major", "fg:ansired bold"),
+        ("minor", "fg:ansiyellow bold"),
+        ("patch", "fg:ansigreen bold"),
     ]
 )
 
 app = typer.Typer(help=__doc__, no_args_is_help=True, add_completion=False)
 
 
+class Level(StrEnum):
+    """The level of a version change, from the most to the least severe."""
+
+    MAJOR = "major"
+    MINOR = "minor"
+    PATCH = "patch"
+
+    @property
+    def rank(self) -> int:
+        """The position from the most to the least severe level."""
+        return list(Level).index(self)
+
+
+@dataclass(frozen=True, slots=True)
+class Precision:
+    """The components of a version to keep up to a level, counted after leading zeros unless they are minor ones."""
+
+    level: Level
+    zero_major: bool = True
+
+    def length(self, numbers: Sequence[int]) -> int:
+        """The number of components to keep of a version.
+
+        >>> Precision(Level.MAJOR).length([0, 29, 1])
+        2
+        >>> Precision(Level.MAJOR, zero_major=False).length([0, 29, 1])
+        1
+        """
+        zeros = leading_zeros(numbers) if self.zero_major else 0
+
+        return min(zeros, len(numbers) - 1) + self.level.rank + 1
+
+
+@dataclass(frozen=True, slots=True)
+class Replace:
+    """A replacement of a text within a line of a file."""
+
+    path: Path
+    line: int
+    old: str
+
+    def __call__(self, new: str) -> None:
+        """Replace the text with the new one, failing if the file changed in the meantime."""
+        lines = self.path.read_text().splitlines(keepends=True)
+
+        if self.old not in lines[self.line]:
+            raise click.ClickException(
+                f"{self.path}:{self.line + 1} no longer holds {self.old}"
+            )
+
+        lines[self.line] = lines[self.line].replace(self.old, new, 1)
+        self.path.write_text("".join(lines))
+
+
 @dataclass(frozen=True, slots=True)
 class Bump:
-    """A dependency range to move, with the command applying it and its argument."""
+    """A dependency range to move, by its comparators, with the command or replacement applying it and its argument.
+
+    The selected bumps sharing a command apply together.
+    """
 
     project: str
     section: str
     name: str
-    old: str
-    new: str
-    command: Args
+    old: tuple[str, ...]
+    new: tuple[str, ...]
+    edit: Args | Replace
     arg: str
+
+    def level(self, zero_major: bool) -> Level:
+        """The most severe change among the comparators of the range."""
+        changes = (
+            change(old, new, zero_major)
+            for old, new in zip(self.old, self.new, strict=True)
+            if old != new
+        )
+
+        return min(changes, key=attrgetter("rank"), default=Level.MAJOR)
+
+    @property
+    def qualified(self) -> bool:
+        """Whether every comparator of the range names a full version, such as `1.2.3`."""
+        return all(len(parse(old)[1]) >= 3 for old in self.old)
+
+
+@dataclass(frozen=True, slots=True)
+class Mode:
+    """Which bumps to offer, at which precision, up to which level to accept them without prompting, or whether to only list them."""
+
+    accept: Level | None
+    qualified: bool
+    precision: Precision
+    dry_run: bool
+
+    def apply(self, bumps: Iterable[Bump]) -> None:
+        """Apply the bumps of the mode, running each command once."""
+        bumps = [bump for bump in bumps if bump.qualified or not self.qualified]
+
+        if self.accept is not None:
+            rank = self.accept.rank
+            bumps = [
+                bump
+                for bump in bumps
+                if bump.level(self.precision.zero_major).rank >= rank
+            ]
+
+        if not bumps:
+            typer.echo("No dependency ranges to bump.")
+            return
+
+        if self.dry_run:
+            for bump in bumps:
+                old, new = ",".join(bump.old), ",".join(bump.new)
+                level = bump.level(self.precision.zero_major)
+                typer.echo(
+                    f"{bump.project} · {bump.section}: {bump.name} {old} → {new} ({level})"
+                )
+
+            return
+
+        if (
+            selected := bumps if self.accept is not None else self.select(bumps)
+        ) is None:
+            raise typer.Exit(1)
+
+        commands: dict[Args, list[str]] = {}
+
+        for bump in selected:
+            match bump.edit:
+                case Replace() as replace:
+                    replace(bump.arg)
+                case command:
+                    commands.setdefault(command, []).append(bump.arg)
+
+        for command, args in commands.items():
+            run(*command, *args)
+
+    def select(self, bumps: Sequence[Bump]) -> list[Bump] | None:
+        """Prompt for the bumps to apply, grouped by project and section, with their new versions colored by level."""
+        name_width = max(len(bump.name) for bump in bumps)
+        old_width = max(len(",".join(bump.old)) for bump in bumps)
+        choices: list[questionary.Choice | questionary.Separator] = []
+
+        for (project, section), group in groupby(
+            bumps, key=attrgetter("project", "section")
+        ):
+            choices.append(questionary.Separator(f"── {project} · {section}"))
+            choices.extend(
+                questionary.Choice(
+                    [
+                        ("", f"{bump.name:<{name_width}}  "),
+                        ("class:old", f"{','.join(bump.old):>{old_width}}"),
+                        ("class:arrow", "  →  "),
+                        (
+                            f"class:{bump.level(self.precision.zero_major)}",
+                            ",".join(bump.new),
+                        ),
+                    ],
+                    value=bump,
+                    checked=True,
+                )
+                for bump in group
+            )
+
+        return questionary.checkbox(
+            "Select the ranges to bump", choices, style=STYLE
+        ).ask()
+
+
+@dataclass(frozen=True, slots=True)
+class Tagged:
+    """A ref of a GitHub repository within a line of a file, with the template of the text holding it."""
+
+    project: str
+    section: str
+    name: str
+    repo: str
+    ref: str
+    edit: Replace
+    template: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -79,19 +284,69 @@ class Outdated:
 
 type Edit = Callable[[Outdated, str, str], tuple[Args, str]]
 
+MinAge = Annotated[
+    int,
+    typer.Option(
+        envvar="BUMP_RANGES_MIN_AGE",
+        help="Days a release must age before it is offered.",
+    ),
+]
 
-def run(*args: str, codes: Container[int] = (0,)) -> str:
-    """Run a command and return its standard output, exiting with its code on failure."""
-    process = subprocess.run(args, check=False, stdout=subprocess.PIPE, text=True)
+
+class CommandError(click.ClickException):
+    """A command that failed, exiting with its code and its standard error if captured."""
+
+    def __init__(self, args: Sequence[str], code: int, stderr: str) -> None:
+        """Describe the command by its first two arguments, the later ones may span lines."""
+        self.stderr = stderr.strip()
+        detail = f": {self.stderr}" if self.stderr else ""
+        super().__init__(f"`{shlex.join(args[:2])}` exited with code {code}{detail}")
+        self.exit_code = code
+
+
+def run(*args: str, codes: Container[int] = (0,), capture: bool = False) -> str:
+    """Run a command and return its standard output, capturing its standard error if asked."""
+    stderr = subprocess.PIPE if capture else None
+    process = subprocess.run(
+        args, check=False, stdout=subprocess.PIPE, stderr=stderr, text=True
+    )
 
     if process.returncode not in codes:
-        raise typer.Exit(process.returncode)
+        raise CommandError(args, process.returncode, process.stderr or "")
 
     return process.stdout
 
 
-def bump_range(comparator: str, latest: str) -> str:
+def run_json(*args: str, codes: Container[int] = (0,), capture: bool = False) -> Any:
+    """Run a command and return its standard output parsed as JSON."""
+    output = run(*args, codes=codes, capture=capture)
+
+    try:
+        return json.loads(output)
+    except json.JSONDecodeError as error:
+        raise click.ClickException(
+            f"`{shlex.join(args[:2])}` printed no JSON: {error}"
+        ) from error
+
+
+def parse(comparator: str) -> tuple[str, list[int], list[str]]:
+    """The operator with an optional `v` prefix, the leading numeric components, and the other components of a comparator or tag.
+
+    >>> parse("^v0.12.x")
+    ('^v', [0, 12], ['x'])
+    """
+    version = comparator.lstrip(OPERATORS).removeprefix("v")
+    parts = version.split(".")
+    numbers = list(takewhile(str.isdigit, parts))
+
+    return comparator.removesuffix(version), [*map(int, numbers)], parts[len(numbers) :]
+
+
+def bump_range(comparator: str, latest: str, precision: Precision | None = None) -> str:
     """The comparator moved to `latest` at its precision, unchanged unless it is a plain one.
+
+    A precision shortens the moved version of a range, as long as its lower bound
+    allows no older version than before, so exact versions and `~=` keep their length.
 
     >>> bump_range(">=0.12", "0.14.1")
     '>=0.14'
@@ -101,43 +356,99 @@ def bump_range(comparator: str, latest: str) -> str:
     '~3.12'
     >>> bump_range("1.0.*", "3.1.4")
     '3.1.*'
+    >>> bump_range("v4", "v5.0.1")
+    'v5'
     >>> bump_range("!=1.3", "2.5.0")
     '!=1.3'
     >>> bump_range("^1 || ^2", "3.1.4")
     '^1 || ^2'
+    >>> major = Precision(Level.MAJOR)
+    >>> bump_range("^3.2.1", "4.5.0", major)
+    '^4'
+    >>> bump_range(">=4.1", "4.5.0", major)
+    '>=4.5'
+    >>> bump_range("<3.2.1", "4.5.0", major)
+    '<5'
+    >>> bump_range("<0.2", "0.3.0", major)
+    '<0.4'
+    >>> bump_range("~=1.2.3", "2.5.0", major)
+    '~=2.5'
+    >>> bump_range("==1.2.3", "2.5.0", major)
+    '==2.5.0'
     """
-    version = comparator.lstrip(OPERATORS)
-    operator = comparator.removesuffix(version)
-    parts = version.split(".")
-    precision = len(list(takewhile(str.isdigit, parts)))
-    wildcards = parts[precision:]
+    head, numbers, rest = parse(comparator)
+    operator = head.removesuffix("v")
 
-    if operator not in BUMPED or not precision or not WILDCARDS.issuperset(wildcards):
+    if operator not in BUMPED or not numbers or not WILDCARDS.issuperset(rest):
         return comparator
 
     try:
-        release = [*Version(latest).release, *[0] * precision][:precision]
+        release = [*Version(latest).release, *[0] * len(numbers)][: len(numbers)]
     except InvalidVersion:
         return comparator
 
+    if precision is not None and (operator not in EXACT or rest):
+        length = max(precision.length(release), 2 if operator == "~=" else 1)
+        shortened = release[:length]
+
+        # zeros pad the shorter version to compare it with the old lower bound
+        if (
+            operator == "<"
+            or [*shortened, *[0] * len(numbers)][: len(numbers)] >= numbers
+        ):
+            release = shortened
+
     release[-1] += operator == "<"
 
-    return operator + ".".join([*map(str, release), *wildcards])
+    return head + ".".join([*map(str, release), *rest])
 
 
-def uv_bumps() -> Iterator[Bump]:
+def leading_zeros(numbers: Sequence[int]) -> int:
+    """The number of leading zeros of the components of a version."""
+    return len(list(takewhile(lambda part: part == 0, numbers)))
+
+
+def change(old: str, new: str, zero_major: bool = True) -> Level:
+    """The level of the first component in which the releases of two comparators differ.
+
+    Like caret ranges, it counts from the first component that is not zero unless told otherwise,
+    so a change before 1.0 is a major one.
+
+    >>> change("^1.2", "^2.0")
+    <Level.MAJOR: 'major'>
+    >>> change("v1.10.0", "v1.13.0")
+    <Level.MINOR: 'minor'>
+    >>> change("v4", "v4.3.1")
+    <Level.MINOR: 'minor'>
+    >>> change("<0.13", "<0.15")
+    <Level.MAJOR: 'major'>
+    >>> change("0.29.1", "0.30.0", zero_major=False)
+    <Level.MINOR: 'minor'>
+    >>> change(">=1.2.3", ">=1.2.5")
+    <Level.PATCH: 'patch'>
+    """
+    old_release, new_release = parse(old)[1], parse(new)[1]
+    zeros = leading_zeros(old_release) if zero_major else 0
+    diff = next(
+        (i for i, (a, b) in enumerate(zip(old_release, new_release)) if a != b),
+        len(old_release),
+    )
+    levels = list(Level)
+
+    return levels[min(max(diff - zeros, 0), len(levels) - 1)]
+
+
+def uv_bumps(precision: Precision) -> Iterator[Bump]:
     """The bumps of a uv workspace."""
-    match json.loads(
-        run(
-            "uv",
-            "tree",
-            "--outdated",
-            "--universal",
-            "--all-groups",
-            "--depth=1",
-            "--format=json",
-            "--preview-features=json-output",
-        )
+    match run_json(
+        "uv",
+        "tree",
+        "--outdated",
+        "--universal",
+        "--all-groups",
+        "--depth=1",
+        "--format=json",
+        "--preview-features=json-output",
     ):
         case {
             "workspace_root": str(root),
@@ -155,12 +466,12 @@ def uv_bumps() -> Iterator[Bump]:
                 if "latest_version" in node
             }
         case output:
-            sys.exit(f"Unexpected output of `uv tree`: {output}")
+            raise click.ClickException(f"Unexpected output of `uv tree`: {output}")
 
     yield from filter(
         None,
         (
-            requirement_bump(project, target, section, dep, latest)
+            requirement_bump(project, target, section, dep, latest, precision)
             for path, (project, target) in projects.items()
             for section in pyproject_sections(path)
             for dep in section.requirements
@@ -186,7 +497,12 @@ def pyproject_sections(path: Path) -> Iterator[Section]:
 
 
 def requirement_bump(
-    project: str, target: Args, section: Section, dep: str, latest: Mapping[str, str]
+    project: str,
+    target: Args,
+    section: Section,
+    dep: str,
+    latest: Mapping[str, str],
+    precision: Precision,
 ) -> Bump | None:
     """The bump of a requirement, if it excludes the latest version."""
     req = Requirement(dep)
@@ -195,10 +511,10 @@ def requirement_bump(
     if version is None or req.specifier.contains(version, prereleases=True):
         return None
 
-    specs = [str(spec) for spec in req.specifier]
-    new = ",".join(bump_range(spec, version) for spec in specs)
+    specs = tuple(str(spec) for spec in req.specifier)
+    new = tuple(bump_range(spec, version, precision) for spec in specs)
 
-    if not SpecifierSet(new).contains(version, prereleases=True):
+    if not SpecifierSet(",".join(new)).contains(version, prereleases=True):
         return None
 
     # built by hand to keep the order of the specifiers, which `str(req)` sorts
@@ -210,10 +526,10 @@ def requirement_bump(
         project,
         section.name,
         req.name,
-        ",".join(specs),
+        specs,
         new,
         command,
-        f"{req.name}{extras}{new}{marker}",
+        f"{req.name}{extras}{','.join(new)}{marker}",
     )
 
 
@@ -224,7 +540,11 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def manifest_bumps(
-    outdated: Iterable[Outdated], filename: str, sections: Iterable[str], edit: Edit
+    outdated: Iterable[Outdated],
+    filename: str,
+    sections: Iterable[str],
+    edit: Edit,
+    precision: Precision,
 ) -> Iterator[Bump]:
     """The bumps of JSON manifests, given the sections and the edit setting a range."""
     for package in outdated:
@@ -234,23 +554,27 @@ def manifest_bumps(
         for section in sections:
             old = manifest.get(section, {}).get(package.name)
 
-            if old is not None and (new := bump_range(old, package.latest)) != old:
-                yield Bump(
-                    project,
-                    section,
-                    package.name,
-                    old,
-                    new,
-                    *edit(package, section, new),
-                )
+            if not isinstance(old, str) or old == (
+                new := bump_range(old, package.latest, precision)
+            ):
+                continue
+
+            yield Bump(
+                project,
+                section,
+                package.name,
+                (old,),
+                (new,),
+                *edit(package, section, new),
+            )
 
 
 def npm_outdated() -> Iterator[Outdated]:
     """The dependencies whose latest versions npm resolves outside their ranges."""
     # npm exits with 1 if anything is outdated
-    match json.loads(run("npm", "outdated", "--json", "--long", codes=(0, 1))):
+    match run_json("npm", "outdated", "--json", "--long", codes=(0, 1)):
         case {"error": {"summary": str(summary)}}:
-            sys.exit(summary)
+            raise click.ClickException(summary)
         case dict(packages):
             # npm lists a dependency of several workspaces once per workspace
             entries = [
@@ -259,7 +583,7 @@ def npm_outdated() -> Iterator[Outdated]:
                 for entry in (value if isinstance(value, list) else [value])
             ]
         case output:
-            sys.exit(f"Unexpected output of `npm outdated`: {output}")
+            raise click.ClickException(f"Unexpected output of `npm outdated`: {output}")
 
     for name, entry in entries:
         match entry:
@@ -282,9 +606,7 @@ def npm_edit(package: Outdated, section: str, new: str) -> tuple[Args, str]:
 def composer_outdated() -> Iterator[Outdated]:
     """The dependencies whose latest versions composer resolves beyond their major versions."""
     # composer prints an empty list instead of an object without locked packages
-    match json.loads(
-        run("composer", "outdated", "--direct", "--locked", "--format=json")
-    ):
+    match run_json("composer", "outdated", "--direct", "--locked", "--format=json"):
         case {"locked": list(packages)}:
             for package in packages:
                 match package:
@@ -303,71 +625,305 @@ def composer_edit(package: Outdated, section: str, new: str) -> tuple[Args, str]
     return command, f"{package.name}:{new}"
 
 
-def select(bumps: Sequence[Bump]) -> list[Bump] | None:
-    """Prompt for the bumps to apply, grouped by project and section."""
-    name_width = max(len(bump.name) for bump in bumps)
-    old_width = max(len(bump.old) for bump in bumps)
-    choices: list[questionary.Choice | questionary.Separator] = []
+def action_bumps(min_age: int, precision: Precision) -> Iterator[Bump]:
+    """The bumps of the version tags of the GitHub Actions used by the workflows and composite actions."""
+    # git skips ignored files, unlike a glob
+    pathspecs = (f":(glob){pattern}" for pattern in ACTION_FILES)
+    output = run(
+        "git",
+        "ls-files",
+        "-z",
+        "--cached",
+        "--others",
+        "--exclude-standard",
+        "--",
+        *pathspecs,
+    )
+    paths = sorted(Path(path) for path in output.split("\0") if path)
 
-    for (project, section), group in groupby(
-        bumps, key=attrgetter("project", "section")
-    ):
-        choices.append(questionary.Separator(f"── {project} · {section}"))
-        choices.extend(
-            questionary.Choice(
-                [
-                    ("", f"{bump.name:<{name_width}}  "),
-                    ("class:old", f"{bump.old:>{old_width}}"),
-                    ("class:arrow", "  →  "),
-                    ("class:new", bump.new),
-                ],
-                value=bump,
-                checked=True,
+    yield from tag_bumps(
+        [
+            Tagged(
+                str(path.parent),
+                path.name,
+                action,
+                "/".join(action.split("/")[:2]),
+                ref,
+                Replace(path, line, f"{quote}{value}{quote}"),
+                f"{quote}{action}@{PLACEHOLDER}{quote}",
             )
-            for bump in group
+            for path in paths
+            for line, value, quote in uses_values(compose(path))
+            for action, sep, ref in [value.rpartition("@")]
+            # local actions and docker images have no ref
+            if sep
+        ],
+        min_age,
+        precision,
+    )
+
+
+def compose(path: Path) -> yaml.Node | None:
+    """The parsed YAML document of a file."""
+    try:
+        return yaml.compose(path.read_text(), Loader=yaml.SafeLoader)
+    except yaml.YAMLError as error:
+        raise click.ClickException(f"{path} holds no valid YAML: {error}") from error
+
+
+def uses_values(node: yaml.Node | None) -> Iterator[tuple[int, str, str]]:
+    """The values of the `uses` keys of a YAML document, with their lines and quotes."""
+    match node:
+        case yaml.MappingNode(value=list(pairs)):
+            for key, value in pairs:
+                match key, value:
+                    case yaml.ScalarNode(value="uses"), yaml.ScalarNode(
+                        value=str(text), start_mark=yaml.Mark(line=int(line))
+                    ):
+                        yield line, text, value.style or ""
+                    case _:
+                        yield from uses_values(value)
+        case yaml.SequenceNode(value=list(items)):
+            for item in items:
+                yield from uses_values(item)
+
+
+def flake_bumps(min_age: int, precision: Precision) -> Iterator[Bump]:
+    """The bumps of the version tags of the GitHub inputs of a flake."""
+    path = Path("flake.nix")
+    inputs = run_json(
+        "nix", "eval", "--json", "--file", str(path), "--apply", FLAKE_INPUTS
+    )
+    tagged: list[Tagged] = []
+
+    for name, spec in inputs.items():
+        match spec:
+            case {
+                "url": str(url),
+                "ref": {
+                    "type": "github",
+                    "owner": str(owner),
+                    "repo": str(repo),
+                    "ref": str(ref),
+                },
+                "template": str(template),
+                "pos": {"line": int(line)},
+            }:
+                # the url follows its attribute on the same line
+                edit = Replace(path, line - 1, f'"{url}"')
+                tagged.append(
+                    Tagged(
+                        ".",
+                        "inputs",
+                        name,
+                        f"{owner}/{repo}",
+                        ref,
+                        edit,
+                        f'"{template}"',
+                    )
+                )
+
+    yield from tag_bumps(tagged, min_age, precision)
+
+
+def tag_bumps(
+    tagged: Sequence[Tagged], min_age: int, precision: Precision
+) -> Iterator[Bump]:
+    """The bumps of tagged refs, looked up concurrently per repository."""
+    refs: dict[str, set[str]] = {}
+
+    for item in tagged:
+        refs.setdefault(item.repo, set()).add(item.ref)
+
+    def resolve(repo: str) -> dict[str, str | None]:
+        """The new tags of the refs of a repository, from its latest release."""
+        tag = latest_release(repo, min_age)
+        return {ref: bump_tag(repo, ref, tag, precision) for ref in refs[repo]}
+
+    with ThreadPoolExecutor() as pool:
+        tags = dict(zip(refs, pool.map(resolve, refs)))
+
+    for item in tagged:
+        if new := tags[item.repo][item.ref]:
+            arg = item.template.replace(PLACEHOLDER, new)
+            yield Bump(
+                item.project,
+                item.section,
+                item.name,
+                (item.ref,),
+                (new,),
+                item.edit,
+                arg,
+            )
+
+
+def bump_tag(repo: str, ref: str, tag: str | None, precision: Precision) -> str | None:
+    """The version tag of a GitHub repository replacing a ref, given its latest release, if it differs.
+
+    The precision first shortens a full ref, such as `v7.0.1` to `v7`.
+    Publishers do not always maintain floating tags, such as `v5` next to `v5.0.1`,
+    so the full tag of the release replaces the ref then, if it is a newer one.
+    """
+    if tag is None:
+        return None
+
+    target = shorten(ref, precision)
+    new = bump_range(target, tag)
+
+    # releases may be published out of order, such as backports to an older major version
+    if new == ref or Version(new) < Version(target):
+        return None
+
+    if new == tag or has_tag(repo, new):
+        return new
+
+    return tag if Version(tag) > Version(ref) else None
+
+
+def shorten(ref: str, precision: Precision) -> str:
+    """The ref cut to the components of a precision, unless it is shorter or no plain version.
+
+    >>> shorten("v7.0.1", Precision(Level.MAJOR))
+    'v7'
+    >>> shorten("v0.29.1", Precision(Level.MAJOR))
+    'v0.29'
+    >>> shorten("v7", Precision(Level.MINOR))
+    'v7'
+    >>> shorten("v1.0.0-beta.1", Precision(Level.MAJOR))
+    'v1.0.0-beta.1'
+    """
+    head, numbers, rest = parse(ref)
+
+    if rest or not numbers:
+        return ref
+
+    return head + ".".join(map(str, numbers[: precision.length(numbers)]))
+
+
+def latest_release(repo: str, min_age: int) -> str | None:
+    """The tag of the newest stable release of a GitHub repository that is at least `min_age` days old."""
+    cutoff = datetime.now(UTC) - timedelta(days=min_age)
+
+    try:
+        releases = run_json(
+            "gh",
+            "release",
+            "list",
+            f"--repo={repo}",
+            "--exclude-drafts",
+            "--exclude-pre-releases",
+            "--json=tagName,publishedAt",
+            capture=True,
         )
+    except CommandError as error:
+        # a missing or inaccessible repository only skips its refs, unlike a missing login with code 4
+        if error.exit_code != 1:
+            raise
 
-    return questionary.checkbox("Select the ranges to bump", choices, style=STYLE).ask()
+        typer.echo(f"Skipping {repo}: {error.stderr}", err=True)
+        return None
+
+    return next(
+        (
+            release["tagName"]
+            for release in releases
+            if datetime.fromisoformat(release["publishedAt"]) <= cutoff
+        ),
+        None,
+    )
 
 
-def apply(bumps: Iterable[Bump]) -> None:
-    """Prompt for the bumps and apply the selected ones, with one command per target."""
-    if not (bumps := list(bumps)):
-        typer.echo("All dependency ranges allow the latest versions.")
-        return
+@cache
+def has_tag(repo: str, tag: str) -> bool:
+    """Whether a GitHub repository has a tag."""
+    refs = run_json(
+        "gh", "api", f"repos/{repo}/git/matching-refs/tags/{tag}", capture=True
+    )
 
-    if (selected := select(bumps)) is None:
-        raise typer.Exit(1)
+    return any(ref.get("ref") == f"refs/tags/{tag}" for ref in refs)
 
-    commands: dict[Args, list[str]] = {}
 
-    for bump in selected:
-        commands.setdefault(bump.command, []).append(bump.arg)
-
-    for command, args in commands.items():
-        run(*command, *args)
+@app.callback()
+def main(
+    ctx: typer.Context,
+    accept: Annotated[
+        Level | None,
+        typer.Option(
+            help="Accept the bumps up to this level without prompting and skip the others, so `minor` skips the major ones."
+        ),
+    ] = None,
+    qualified: Annotated[
+        bool,
+        typer.Option(
+            help="Only bump full versions such as `1.2.3`, leaving floating ones such as `v2` or `^1.2` alone."
+        ),
+    ] = False,
+    precision: Annotated[
+        Level,
+        typer.Option(
+            help="Write the moved versions with at most this precision, counted like the levels, such as `^4` for `major`, unless that allows older versions, while version tags such as `v7.0.1` shorten to their floating tag `v7` even without a newer release. `patch` keeps the precision of versions with up to three components."
+        ),
+    ] = Level.MAJOR,
+    zero_major: Annotated[
+        bool,
+        typer.Option(
+            "--zero-major/--zero-minor",
+            help="Whether a change after leading zeros, such as from `0.29.1` to `0.30.0`, is a major or a minor one.",
+        ),
+    ] = True,
+    dry_run: Annotated[
+        bool,
+        typer.Option(
+            "--dry-run",
+            "-n",
+            help="List the bumps that would be applied without applying them.",
+        ),
+    ] = False,
+) -> None:
+    """Choose which bumps to apply and how."""
+    ctx.obj = Mode(accept, qualified, Precision(precision, zero_major), dry_run)
 
 
 @app.command()
-def python() -> None:
+def python(ctx: typer.Context) -> None:
     """Bump the ranges of a uv workspace, honoring settings such as `exclude-newer`."""
-    apply(uv_bumps())
+    ctx.obj.apply(uv_bumps(ctx.obj.precision))
 
 
 @app.command()
-def node() -> None:
+def node(ctx: typer.Context) -> None:
     """Bump the ranges of an npm or bun workspace with installed packages, honoring `min-release-age` of npm."""
-    apply(manifest_bumps(npm_outdated(), "package.json", NODE_SECTIONS, npm_edit))
-
-
-@app.command()
-def php() -> None:
-    """Bump the ranges of a composer project."""
-    apply(
+    ctx.obj.apply(
         manifest_bumps(
-            composer_outdated(), "composer.json", PHP_SECTIONS, composer_edit
+            npm_outdated(), "package.json", NODE_SECTIONS, npm_edit, ctx.obj.precision
         )
     )
+
+
+@app.command()
+def php(ctx: typer.Context) -> None:
+    """Bump the ranges of a composer project."""
+    ctx.obj.apply(
+        manifest_bumps(
+            composer_outdated(),
+            "composer.json",
+            PHP_SECTIONS,
+            composer_edit,
+            ctx.obj.precision,
+        )
+    )
+
+
+@app.command()
+def actions(ctx: typer.Context, min_age: MinAge = 0) -> None:
+    """Bump the version tags of the GitHub Actions in a repository at the chosen precision."""
+    ctx.obj.apply(action_bumps(min_age, ctx.obj.precision))
+
+
+@app.command()
+def nix(ctx: typer.Context, min_age: MinAge = 0) -> None:
+    """Bump the version tags of the GitHub inputs of a flake at the chosen precision."""
+    ctx.obj.apply(flake_bumps(min_age, ctx.obj.precision))
 
 
 if __name__ == "__main__":
