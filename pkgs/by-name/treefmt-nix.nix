@@ -22,8 +22,14 @@ inputs.treefmt-nix.lib.mkWrapper pkgs {
     rustfmt.enable = true;
     texfmt.enable = true;
     typstyle.enable = true;
+    zizmor.enable = true;
     # keep-sorted end
   };
+  # offline, since the checks build without network access
+  settings.formatter.zizmor.options = [
+    "--offline"
+    "--persona=pedantic"
+  ];
   programs.nixf-diagnose = {
     variableLookup = true;
     ignore = [
