@@ -17,10 +17,7 @@ mkGitHubBinary {
   };
   versionPrefix = "v";
 
-  sourceRoot = ".";
-
-  # The asset is the bare executable, so it only needs its final name.
-  unpackCmd = ''cp "$curSrc" officecli'';
+  bareExecutable = true;
 
   # strip corrupts the embedded .NET single-file bundle
   dontStrip = true;

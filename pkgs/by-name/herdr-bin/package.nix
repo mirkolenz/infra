@@ -14,10 +14,7 @@ mkGitHubBinary {
   };
   versionPrefix = "v";
 
-  sourceRoot = ".";
-
-  # The asset is the bare executable, so it only needs its final name.
-  unpackCmd = ''cp "$curSrc" herdr'';
+  bareExecutable = true;
 
   nativeInstallCheckInputs = [ versionCheckHook ];
   doInstallCheck = true;

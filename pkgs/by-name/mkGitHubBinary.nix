@@ -24,6 +24,7 @@ lib.extendMkDerivation {
     "versionPrefix"
     "versionSuffix"
     "allowPrereleases"
+    "bareExecutable"
   ];
   extendDrvArgs =
     finalAttrs:
@@ -37,6 +38,8 @@ lib.extendMkDerivation {
       versionPrefix ? "",
       versionSuffix ? "",
       allowPrereleases ? false,
+      # Whether the asset is the executable itself instead of an archive holding it.
+      bareExecutable ? false,
       # Scheduled as a post-phase (runs after fixupPhase) so the binary is
       # already patched by autoPatchelfHook when the snippet executes it.
       installShellCompletionPhase ? "",
@@ -186,5 +189,15 @@ lib.extendMkDerivation {
         hydraPlatforms = [ ];
       }
       // meta;
+    }
+    # The bare executable only needs its final name.
+    // lib.optionalAttrs bareExecutable {
+      sourceRoot = ".";
+      # asserted lazily, since the binaries default to the final pname
+      unpackCmd =
+        assert lib.assertMsg (
+          lib.length assetNames == 1 && lib.length (lib.attrNames binaryPaths) == 1
+        ) "mkGitHubBinary: a bare executable needs exactly one asset and one binary";
+        ''cp "$curSrc" ${lib.escapeShellArg (lib.head (lib.attrValues binaryPaths))}'';
     };
 }
