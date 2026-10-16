@@ -87,7 +87,7 @@
         # mcp servers
         ast-grep-mcp
         # my own packages
-        # arguebuf
+        arguebuf
         makejinja
       ];
     };

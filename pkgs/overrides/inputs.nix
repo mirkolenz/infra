@@ -44,7 +44,8 @@ let
       '';
     };
 in
-fromOverlay inputs.makejinja.overlays.default [ "makejinja" ]
+fromOverlay inputs.arguebuf.overlays.default [ "arguebuf" ]
+// fromOverlay inputs.makejinja.overlays.default [ "makejinja" ]
 // lib.mapAttrs (_: lib.dontDistribute) (
   fromOverlay inputs.neovim-nightly-overlay.overlays.default [ "neovim-unwrapped" ]
 )
