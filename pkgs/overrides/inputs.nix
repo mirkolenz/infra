@@ -5,7 +5,7 @@ final: prev:
 let
   inherit (prev) lib;
   inherit (final) inputs;
-  fromOverlay = overlay: names: lib.getAttrs names (overlay final prev);
+  overlay = input: inputs.${input}.overlays.default final prev;
 
   # the kernel `nixos-hardware/raspberry-pi/4` gives the raspi host, built by CI
   # without evaluating that host
@@ -24,7 +24,7 @@ let
     inherit (inputs.lanzaboote.inputs) rust-overlay;
   };
 
-  vicinae = inputs.vicinae.overlays.default final prev;
+  vicinae = overlay "vicinae";
   # the upstream overlay takes numen from numen's own package set
   numen = (inputs.vicinae.inputs.numen.overlays.default final prev).numen.override {
     withRepl = false;
@@ -44,13 +44,15 @@ let
       '';
     };
 in
-fromOverlay inputs.arguebuf.overlays.default [ "arguebuf" ]
-// fromOverlay inputs.makejinja.overlays.default [ "makejinja" ]
-// lib.mapAttrs (_: lib.dontDistribute) (
-  fromOverlay inputs.neovim-nightly-overlay.overlays.default [ "neovim-unwrapped" ]
-)
-// fromOverlay inputs.opnix.overlays.default [ "opnix" ]
+# packages named like the input providing them
+lib.genAttrs [
+  "arguebuf"
+  "makejinja"
+  "opnix"
+] (name: (overlay name).${name})
 // {
+  neovim-unwrapped = lib.dontDistribute (overlay "neovim-nightly-overlay").neovim-unwrapped;
+
   inherit disko raspi-kernel;
   # the final disko with its other program as main one for `nix run`,
   # merged by hand since `lib.addMetaAttrs` would rebuild it
