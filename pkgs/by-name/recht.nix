@@ -77,6 +77,10 @@ let
       # behind it, which is four gigabytes of haddock
       postInstall = ''
         remove-references-to -t ${haskellPackages.pandoc-types} "$out/bin/recht"
+
+        # the default strip keeps the global symbols, which ghc emits for every
+        # closure, while nothing links against the executable
+        $STRIP "$out/bin/recht"
       '';
 
       executableHaskellDepends = [
