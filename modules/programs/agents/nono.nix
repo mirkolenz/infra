@@ -187,7 +187,7 @@
               tmp=$(mktemp -d)
               trap 'rm -rf "$tmp"' EXIT
 
-              TMPDIR=$tmp ${nonoCommand} run --no-audit --allow-cwd \
+              TMPDIR=$tmp ${nonoCommand} --silent run --no-audit --allow-cwd \
                 --allow-unix-socket-subtree-bind "$tmp" -- ${agentCommand harness package}
             '';
           }
