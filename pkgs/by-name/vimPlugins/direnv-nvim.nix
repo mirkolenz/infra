@@ -16,6 +16,8 @@ vimUtils.buildVimPlugin {
   meta = {
     homepage = "https://github.com/NotAShelf/direnv.nvim";
     maintainers = with lib.maintainers; [ mirkolenz ];
+    # a plain copy of the source, cheaper to refetch than to cache
+    hydraPlatforms = [ ];
   };
   passthru.updateScript = nix-update-script {
     extraArgs = [ "--version=branch" ];

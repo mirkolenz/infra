@@ -16,6 +16,8 @@ vimUtils.buildVimPlugin rec {
   meta = {
     homepage = "https://github.com/github/copilot.vim";
     maintainers = with lib.maintainers; [ mirkolenz ];
+    # a plain copy of the source, cheaper to refetch than to cache
+    hydraPlatforms = [ ];
   };
   passthru.updateScript = nix-update-script { };
   strictDeps = true;
