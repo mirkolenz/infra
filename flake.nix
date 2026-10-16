@@ -16,7 +16,7 @@
   inputs = {
     # keep-sorted start block=yes
     arguebuf = {
-      url = "github:recap-utr/arguebuf-python/v2";
+      url = "github:recap-utr/arguebuf-python/v3";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";

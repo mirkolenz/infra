@@ -28,16 +28,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1750745187,
-        "narHash": "sha256-BMof7ZuHaHyAOdzjaiMvMxzDNXKXBkTFUezRRfeO1Ow=",
+        "lastModified": 1792146645,
+        "narHash": "sha256-NSzUOJGapQAVaLWNMlo3xbx+Yfybj/0tGZTBzkIG41Q=",
         "owner": "recap-utr",
         "repo": "arguebuf-python",
-        "rev": "ac32c385472212909ba41b78e67500f1a150c188",
+        "rev": "81f1d8cc124bc918214716e9ef85d8aca52c16be",
         "type": "github"
       },
       "original": {
         "owner": "recap-utr",
-        "ref": "v2",
+        "ref": "v3",
         "repo": "arguebuf-python",
         "type": "github"
       }
@@ -840,11 +840,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791981146,
-        "narHash": "sha256-PeENT3Fu7a7YrX5zIHjdxai8GzPcxpKn+nQsgByhwNo=",
+        "lastModified": 1792151315,
+        "narHash": "sha256-PMtgvHuGijoIAtPtrBm7kJOI6fxzX4LYPAIK+QVGY+Y=",
         "owner": "pyproject-nix",
         "repo": "uv2nix",
-        "rev": "a541fda20d6784d88789cfcb221638b7c25a23dd",
+        "rev": "7aba73a3d85454f1118f8cf9de97979b4d26bcac",
         "type": "github"
       },
       "original": {
