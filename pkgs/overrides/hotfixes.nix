@@ -67,14 +67,33 @@ final: prev:
 })
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
 
-  pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
-    (_: pyprev: {
-      # nixpkgs hardcodes the lldb store path on darwin, so the test expecting a bare `lldb` fails.
-      debugpy = pyprev.debugpy.overridePythonAttrs (prevAttrs: {
-        disabledTests = (prevAttrs.disabledTests or [ ]) ++ [ "test_lldb_command" ];
-      });
-    })
-  ];
+  # The unsandboxed e2e bash sources the host's /etc/bashrc, whose nix-darwin PATH runs the
+  # system atuin instead of the one being built, so `filtered_commands_leave_no_captured_output`
+  # captures nothing. The wrapper must be named bash, the pty proxy picks the integration by name.
+  # https://github.com/NixOS/nixpkgs/pull/574509
+  atuin = prev.atuin.overrideAttrs (prevAttrs: {
+    env = (prevAttrs.env or { }) // {
+      ATUIN_E2E_BASH = prev.lib.getExe (
+        final.writeShellScriptBin "bash" ''
+          NOSYSBASHRC=1 exec ${prev.lib.getExe final.bashInteractive} "$@"
+        ''
+      );
+    };
+  });
+
+  # NetBSD 11.0 stripped trailing whitespace from getent.c, so two hunks of nixpkgs' getent.patch
+  # (written against 7.1.2) no longer match. Ignoring whitespace applies it cleanly.
+  # https://github.com/NixOS/nixpkgs/commit/f18569de77
+  netbsd = prev.netbsd.overrideScope (
+    _: nprev: {
+      getent = nprev.getent.overrideAttrs {
+        patchFlags = [
+          "-p1"
+          "-l"
+        ];
+      };
+    }
+  );
 
   # Replace the SVG driver's Windows-only header with POSIX headers, as Homebrew does.
   # https://github.com/Homebrew/homebrew-core/pull/261141
