@@ -1,16 +1,19 @@
 {
   lib,
-  stdenv,
+  stdenvNoCC,
   fetchFromGitHub,
   fetchPnpmDeps,
   nodejs,
   pnpm_11,
   pnpmConfigHook,
   makeBinaryWrapper,
+  jq,
+  moreutils,
+  yq,
   versionCheckHook,
   nix-update-script,
 }:
-stdenv.mkDerivation (finalAttrs: {
+stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "knip";
   version = "6.41.0";
 
@@ -21,11 +24,27 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-rutQtsrwDmAF+QGMBJqNKhQXxrQ8/w95D1uMZUE6CPk=";
   };
 
+  pnpmWorkspaces = [ "knip" ];
+
+  # pnpm always installs the workspace root, which holds the repository tooling,
+  # so it is dropped from the manifest and the lockfile importer with the tools
+  # that `fetchPnpmDeps` provides
+  prePnpmInstall = ''
+    jq 'del(.dependencies, .devDependencies)' package.json | sponge package.json
+    yq -yi 'del(.importers["."].dependencies, .importers["."].devDependencies)' pnpm-lock.yaml
+  '';
+
   pnpmDeps = fetchPnpmDeps {
-    inherit (finalAttrs) pname version src;
+    inherit (finalAttrs)
+      pname
+      version
+      src
+      pnpmWorkspaces
+      prePnpmInstall
+      ;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-4ir2BB/JzXpwydGuML9+9j++rfbUS00SiekTX+pRPCg=";
+    hash = "sha256-W/9+MqLosEHczTLynv7N6J8k0CAa0WOhmnQP1p3iUis=";
   };
 
   nativeBuildInputs = [
@@ -33,6 +52,9 @@ stdenv.mkDerivation (finalAttrs: {
     pnpm_11
     pnpmConfigHook
     makeBinaryWrapper
+    jq
+    moreutils
+    yq
   ];
 
   # `build` also triggers the package's `prebuild`, which generates the plugin
@@ -49,8 +71,8 @@ stdenv.mkDerivation (finalAttrs: {
   # root, and each package in it relies on its siblings being reachable from the same
   # directory. `pnpm deploy` would flatten that, but re-resolves against the registry,
   # which the offline store cannot answer, so keep the workspace layout verbatim and
-  # let the relative links stay valid. The workspace install also holds the toolchain
-  # and the docs site, so only the production dependencies of the cli are reinstalled.
+  # let the relative links stay valid. The workspace install also holds the build
+  # toolchain, so only the production dependencies of the cli are reinstalled.
   installPhase = ''
     runHook preInstall
 
