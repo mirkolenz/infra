@@ -1,16 +1,19 @@
 {
   lib,
-  stdenv,
+  stdenvNoCC,
   fetchFromGitHub,
   fetchPnpmDeps,
   nodejs,
   pnpm_10,
   pnpmConfigHook,
   makeBinaryWrapper,
+  jq,
+  moreutils,
+  yq,
   versionCheckHook,
   nix-update-script,
 }:
-stdenv.mkDerivation (finalAttrs: {
+stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "shadcn";
   version = "4.22.0";
 
@@ -23,16 +26,25 @@ stdenv.mkDerivation (finalAttrs: {
 
   pnpmWorkspaces = [ "shadcn..." ];
 
+  # pnpm always installs the workspace root, which holds the repository tooling,
+  # so it is dropped from the manifest and the lockfile importer with the tools
+  # that `fetchPnpmDeps` provides
+  prePnpmInstall = ''
+    jq 'del(.dependencies, .devDependencies)' package.json | sponge package.json
+    yq -yi 'del(.importers["."].dependencies, .importers["."].devDependencies)' pnpm-lock.yaml
+  '';
+
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs)
       pname
       version
       src
       pnpmWorkspaces
+      prePnpmInstall
       ;
     pnpm = pnpm_10;
     fetcherVersion = 4;
-    hash = "sha256-CkT+/Wt0PisnEPISWPtxWtjDvOEYGYMjhT4zqZvPrdI=";
+    hash = "sha256-46pM2orBM6ta9c37rvB9jyHEMg2/EbzW7BvRiGnQwFE=";
   };
 
   nativeBuildInputs = [
@@ -40,6 +52,9 @@ stdenv.mkDerivation (finalAttrs: {
     pnpm_10
     pnpmConfigHook
     makeBinaryWrapper
+    jq
+    moreutils
+    yq
   ];
 
   # the cli depends on the `@shadcn/registry` workspace package, which `shadcn...`
