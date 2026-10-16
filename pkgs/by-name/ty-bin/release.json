@@ -1,14 +1,14 @@
 {
-  "tag_name": "0.0.88",
+  "tag_name": "0.0.89",
   "assets": {
     "ty-aarch64-apple-darwin.tar.gz": {
-      "digest": "sha256:6d1c7dc1385f7e42c355e6bc32d5e8bf68f54efef3f64dfb593105be1fcb1e06"
+      "digest": "sha256:c0535481dd2ca2653dbf804bb008ca2286f9ae7f284c12f52158a1853fcdc06f"
     },
     "ty-aarch64-unknown-linux-gnu.tar.gz": {
-      "digest": "sha256:22de1540df66b99796686a435ff4370785388649d8d5a389e30e05a2c023531d"
+      "digest": "sha256:b53305003b07690f9adae354ba69ae428c317411fbf90991cafeb008c101de39"
     },
     "ty-x86_64-unknown-linux-gnu.tar.gz": {
-      "digest": "sha256:acbfa2b23e93d75eb47a2b764c2ad80621d9b6385f1aa5213cef05d734c3ad65"
+      "digest": "sha256:85d1bb663cf67e3e8078fb646327f0d88a377d66c9fc3aa11f6ad08c874d6512"
     }
   }
 }
