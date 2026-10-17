@@ -83,7 +83,7 @@ final: prev:
 
   # NetBSD 11.0 stripped trailing whitespace from getent.c, so two hunks of nixpkgs' getent.patch
   # (written against 7.1.2) no longer match. Ignoring whitespace applies it cleanly.
-  # https://github.com/NixOS/nixpkgs/commit/f18569de77
+  # https://github.com/NixOS/nixpkgs/commit/b1b2a77e10
   netbsd = prev.netbsd.overrideScope (
     _: nprev: {
       getent = nprev.getent.overrideAttrs {
