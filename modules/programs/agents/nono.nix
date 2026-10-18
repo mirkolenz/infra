@@ -36,6 +36,14 @@
       subpath = path: "(subpath ${lib.toJSON path})";
       regex = pattern: ''(regex #"${pattern}")'';
 
+      # Lists the directory at the JSON-encoded path itself, not the content of what it holds.
+      # TODO: the list-only grant of nono once it has one, https://github.com/nolabs-ai/nono/issues/457
+      listable = encoded: "(allow file-read-data (literal ${encoded}))";
+
+      # The ancestors of an absolute path, except for `/`, which nono grants in full.
+      ancestors =
+        path: lib.optionals (dirOf path != "/") (ancestors (dirOf path) ++ [ (dirOf path) ]);
+
       # Denies `operations` on the paths matching `filter`, except for those matching any of `exceptions`.
       deny =
         operations: filter: exceptions:
@@ -83,8 +91,13 @@
 
       # Platform rules come last in the nono policy, so these denies win over its grants.
       # Metadata stays readable, so listing a directory or `git status` keeps working.
+      # Without `O_PATH`, Nix and Bun open every ancestor of a path they resolve,
+      # the wrapper adds those of the working directory.
       seatbeltRules =
-        map (workspaceRule "file-write*") workspace.read
+        map (path: listable (lib.toJSON path)) (
+          lib.unique (lib.concatMap ancestors (readPaths ++ writePaths))
+        )
+        ++ map (workspaceRule "file-write*") workspace.read
         ++ map (workspaceRule "file-read-data file-write*") workspace.deny
         ++ map (
           path: deny "file-write*" (subpath path) (map subpath (within [ path ] writePaths))
@@ -186,7 +199,28 @@
               # such as the forkserver of Python's multiprocessing. Those of /tmp and the host stay out of reach.
               tmp=$(mktemp -d)
               trap 'rm -rf "$tmp"' EXIT
+              ${lib.optionalString isDarwin ''
 
+                # The ancestors of the working directory and the added ones, see `seatbeltRules`.
+                IFS=, read -ra added <<<"''${NONO_ALLOW:-}"
+                ancestors=()
+
+                for dir in "$PWD" "''${added[@]}"; do
+                  dir=$(cd "$dir" 2>/dev/null && pwd -P) || continue
+
+                  while dir=''${dir%/*}; [[ -n $dir ]]; do
+                    ancestors+=("$dir")
+                  done
+                done
+
+                profile=$tmp/profile.json
+                ${lib.getExe pkgs.jq} -n '{
+                  meta: {name: "agents-session"},
+                  extends: ($ENV.NONO_PROFILE // "agents"),
+                  unsafe_macos_seatbelt_rules: [$ARGS.positional | unique[] | "${listable "\\(tojson)"}"]
+                }' --args "''${ancestors[@]}" >"$profile"
+                export NONO_PROFILE=$profile
+              ''}
               TMPDIR=$tmp ${nonoCommand} --silent run --no-audit --allow-cwd \
                 --allow-unix-socket-subtree-bind "$tmp" -- ${agentCommand harness package}
             '';

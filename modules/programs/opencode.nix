@@ -118,13 +118,9 @@
         ];
       };
       programs.nono.profiles.agents = {
-        # The project config search resolves every parent up to `/`, which nono keeps unreadable.
+        # The project config search opens every parent up to `/`, which nono keeps unreadable on Linux,
+        # and a config found there stays unreadable on macOS.
         environment.set_vars.OPENCODE_DISABLE_PROJECT_CONFIG = "1";
-        # The instruction discovery resolves the home directory, which Bun's `realpath` opens,
-        # otherwise every session fails. This exposes the names within the home directory, not their content.
-        unsafe_macos_seatbelt_rules = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin [
-          "(allow file-read-data (literal ${lib.toJSON config.home.homeDirectory}))"
-        ];
       };
     };
 }
