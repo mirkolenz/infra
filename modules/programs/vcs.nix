@@ -16,6 +16,8 @@
         git-filter-repo
         diffedit3
         glab
+        # for `bump-ranges actions`, the gh extension stays off the path
+        gh-actions-lock-bin
       ];
       programs.gh = {
         enable = true;
@@ -24,21 +26,15 @@
           git_protocol = "ssh";
         };
       };
-      # Pins to branches or partial versions such as `v4` only move with `--relock`.
-      # The flags match those of renovate, which neither narrows refs such as `v4` to `v4.2.1`
-      # nor migrates local actions.
       custom.bump.actions = {
         lockfile = ".github/workflows/actions.lock";
-        # the files that bump-ranges and gh actions-lock edit
+        # the files that bump-ranges edits, including through gh actions-lock
         pathspecs = [
           ":(glob).github/workflows/*.y*ml"
           ":(glob).github/actions/**/action.y*ml"
           ":(glob)action.y*ml"
         ];
-        text = ''
-          ${lib.getExe pkgs.bump-ranges} actions
-          ${gh} actions-lock --relock --no-interactive --no-narrow --no-migrate-local-actions
-        '';
+        text = "${lib.getExe pkgs.bump-ranges} actions";
       };
       programs.gh-dash = {
         enable = true;

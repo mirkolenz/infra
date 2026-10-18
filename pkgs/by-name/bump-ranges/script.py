@@ -5,7 +5,8 @@ Covers every project of the workspace, so run it in the workspace root.
 Ranges that already allow the latest version stay untouched, the others keep their precision.
 So `>=2,<3` becomes `>=3,<4` instead of `>=3.1.4,<4`, like with npm-check-updates.
 The package managers resolve the latest versions and edit the manifests, honoring their minimum release ages,
-while the tags of GitHub Actions and flake inputs follow the releases older than `--min-age`.
+while the tags of GitHub Actions and flake inputs follow the releases older than `--min-age`
+whose commits reached a branch at least as long ago, which also gates relocking an `actions.lock`.
 """
 
 import json
@@ -68,6 +69,13 @@ ACTION_FILES = (
     ".github/actions/**/action.y*ml",
     "action.y*ml",
 )
+ACTIONS_LOCK = Path(".github/workflows/actions.lock")
+# like renovate, neither narrow refs such as `v4` to `v4.2.1` nor migrate local actions
+LOCK_FLAGS = ("--no-interactive", "--no-narrow", "--no-migrate-local-actions")
+# the `before` of a new branch and the `after` of a deleted one
+NULL_COMMIT = "0" * 40
+# the time periods of the activity log by their days
+PERIODS = {"day": 1, "week": 7, "month": 30, "quarter": 90, "year": 365}
 STYLE = questionary.Style(
     [
         ("separator", "fg:ansiblue bold"),
@@ -647,7 +655,7 @@ def action_bumps(min_age: int, precision: Precision) -> Iterator[Bump]:
                 str(path.parent),
                 path.name,
                 action,
-                "/".join(action.split("/")[:2]),
+                action_repo(action),
                 ref,
                 Replace(path, line, f"{quote}{value}{quote}"),
                 f"{quote}{action}@{PLACEHOLDER}{quote}",
@@ -661,6 +669,11 @@ def action_bumps(min_age: int, precision: Precision) -> Iterator[Bump]:
         min_age,
         precision,
     )
+
+
+def action_repo(action: str) -> str:
+    """The GitHub repository of an action, which may live in a directory of it."""
+    return "/".join(action.split("/")[:2])
 
 
 def compose(path: Path) -> yaml.Node | None:
@@ -735,16 +748,21 @@ def tag_bumps(
     for item in tagged:
         refs.setdefault(item.repo, set()).add(item.ref)
 
-    def resolve(repo: str) -> dict[str, str | None]:
-        """The new tags of the refs of a repository, from its latest release."""
+    def resolve(repo: str) -> dict[str, str]:
+        """The new tags of the refs of a repository, from its latest release, once their commits settled."""
         tag = latest_release(repo, min_age)
-        return {ref: bump_tag(repo, ref, tag, precision) for ref in refs[repo]}
+        return {
+            ref: new
+            for ref in refs[repo]
+            if (new := bump_tag(repo, ref, tag, precision))
+            and settled(repo, new, min_age)
+        }
 
     with ThreadPoolExecutor() as pool:
         tags = dict(zip(refs, pool.map(resolve, refs)))
 
     for item in tagged:
-        if new := tags[item.repo][item.ref]:
+        if new := tags[item.repo].get(item.ref):
             arg = item.template.replace(PLACEHOLDER, new)
             yield Bump(
                 item.project,
@@ -843,6 +861,128 @@ def has_tag(repo: str, tag: str) -> bool:
     return any(ref.get("ref") == f"refs/tags/{tag}" for ref in refs)
 
 
+@cache
+def head(repo: str, ref: str) -> str:
+    """The commit a ref of a GitHub repository points to, `HEAD` for its default branch."""
+    return run(
+        "gh", "api", f"repos/{repo}/commits/{ref}", "--jq=.sha", capture=True
+    ).strip()
+
+
+@cache
+def branch_spans(repo: str, min_age: int) -> list[tuple[str, str]]:
+    """The commits of the branches of a GitHub repository before and after their pushes and merges within the last `min_age` days."""
+    cutoff = datetime.now(UTC) - timedelta(days=min_age)
+    period = next((name for name, days in PERIODS.items() if days >= min_age), None)
+    query = "per_page=100" + (f"&time_period={period}" if period else "")
+    pages = run_json(
+        "gh",
+        "api",
+        "--paginate",
+        "--slurp",
+        f"repos/{repo}/activity?{query}",
+        capture=True,
+    )
+
+    spans: dict[str, tuple[str, str]] = {}
+
+    # newest first, so a branch keeps its first `after` and its last `before`
+    for activity in (activity for page in pages for activity in page):
+        if (
+            activity["after"] == NULL_COMMIT
+            or datetime.fromisoformat(activity["timestamp"]) <= cutoff
+        ):
+            continue
+
+        _, after = spans.get(activity["ref"], ("", activity["after"]))
+        spans[activity["ref"]] = (activity["before"], after)
+
+    return list(spans.values())
+
+
+@cache
+def contains(repo: str, tip: str, commit: str) -> bool:
+    """Whether a commit is in the history of another one of a GitHub repository, which no unknown commit is."""
+    if tip == commit:
+        return True
+
+    # an unknown commit fails with code 1, the commits beyond the first are of no interest
+    status = run(
+        "gh",
+        "api",
+        f"repos/{repo}/compare/{tip}...{commit}?per_page=1",
+        "--jq=.status",
+        codes=(0, 1),
+        capture=True,
+    )
+
+    return status.strip() in ("behind", "identical")
+
+
+def settled(repo: str, ref: str, min_age: int) -> bool:
+    """Whether the commit of a ref of a GitHub repository reached a branch at least `min_age` days ago.
+
+    Unlike the dates of commits and tags, which their authors choose, the activity log
+    records with the time of the server when a push or merge moved a branch.
+    A branch brought the commit if its newest head of that time has it but its oldest one lacks it,
+    so a commit without a recent activity counts as settled,
+    and a new branch only brings the commits missing from the default branch.
+    """
+    if min_age <= 0:
+        return True
+
+    commit = head(repo, ref)
+
+    return not any(
+        contains(repo, after, commit)
+        and not contains(
+            repo, head(repo, "HEAD") if before == NULL_COMMIT else before, commit
+        )
+        for before, after in branch_spans(repo, min_age)
+    )
+
+
+def relock(min_age: int) -> None:
+    """Advance the floating refs of the lockfile, except for the workflows depending on a commit that has not settled yet."""
+    lock = yaml.safe_load(ACTIONS_LOCK.read_text())
+    workflows: Mapping[str, Sequence[str]] = lock.get("workflows") or {}
+    dependencies: Mapping[str, Mapping[str, Any]] = lock.get("dependencies") or {}
+
+    def unsettled(key: str) -> bool:
+        """Whether the ref of a dependency moved to a commit that has not settled yet."""
+        action, _, ref = key.rpartition("@")
+        repo = action_repo(action)
+        locked = dependencies[key]["commit"].partition("-")[2]
+
+        return (
+            min_age > 0
+            and ref != locked
+            and head(repo, ref) != locked
+            and not settled(repo, ref, min_age)
+        )
+
+    def closure(keys: Iterable[str]) -> Iterator[str]:
+        """The dependencies and their transitive ones."""
+        for key in keys:
+            yield key
+            yield from closure(dependencies[key].get("uses") or ())
+
+    with ThreadPoolExecutor() as pool:
+        held = {
+            key
+            for key, hold in zip(dependencies, pool.map(unsettled, dependencies))
+            if hold
+        }
+
+    for key in sorted(held):
+        typer.echo(f"Holding back {key}, its new commit has not settled yet.", err=True)
+
+    paths = [path for path, keys in workflows.items() if held.isdisjoint(closure(keys))]
+
+    if paths:
+        run("gh-actions-lock", "--relock", *LOCK_FLAGS, *paths)
+
+
 @app.callback()
 def main(
     ctx: typer.Context,
@@ -916,8 +1056,19 @@ def php(ctx: typer.Context) -> None:
 
 @app.command()
 def actions(ctx: typer.Context, min_age: MinAge = 0) -> None:
-    """Bump the version tags of the GitHub Actions in a repository at the chosen precision."""
-    ctx.obj.apply(action_bumps(min_age, ctx.obj.precision))
+    """Bump the version tags of the GitHub Actions in a repository at the chosen precision, then relock its `actions.lock` if it has one.
+
+    The floating refs, such as `v7`, only advance once their new commits settled.
+    """
+    mode: Mode = ctx.obj
+    mode.apply(action_bumps(min_age, mode.precision))
+
+    if mode.dry_run or not ACTIONS_LOCK.is_file():
+        return
+
+    # locks the bumped refs and prunes the replaced ones
+    run("gh-actions-lock", *LOCK_FLAGS)
+    relock(min_age)
 
 
 @app.command()
