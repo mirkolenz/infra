@@ -1,6 +1,6 @@
 {
   flake.modules.nixos.apple-t2 =
-    { pkgs, ... }:
+    { config, pkgs, ... }:
     let
       drivers = pkgs.kait2en.modules;
     in
@@ -17,6 +17,6 @@
       boot.blacklistedKernelModules = drivers.replacedModules;
 
       # Declared and checked against upstream in `kait2en/modules.nix`.
-      boot.kernelParams = drivers.kernelParams;
+      boot.kernelParams = drivers.kernelParamsFor config.custom.apple-t2.model;
     };
 }

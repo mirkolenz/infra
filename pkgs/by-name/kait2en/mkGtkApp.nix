@@ -54,6 +54,13 @@ lib.extendMkDerivation {
         install -Dm444 -t $out/share/applications ${root}/${appId}.desktop
         install -Dm444 -t $out/share/icons/hicolor/scalable/apps \
           ${root}/assets/icons/hicolor/scalable/apps/${appId}.svg
+
+        # The units of a daemon mode of the same binary.
+        if [ -d ${root}/systemd ]; then
+          install -Dm444 -t $out/lib/systemd/system ${root}/systemd/*.service
+          substituteInPlace $out/lib/systemd/system/*.service \
+            --replace-fail /usr/local/bin/ $out/bin/
+        fi
       ''
       + postInstall;
 

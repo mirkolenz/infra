@@ -29,16 +29,20 @@ let
     "t2gmux"
     "t2thunderbolt"
     "t2smp"
+    "t2sbs"
   ];
 
   # The keyboard sits behind the T2's virtual USB host controller, and t2smc
-  # registers the SMC-backed clock that keeps the initrd off the epoch.
+  # registers the SMC-backed clock that keeps the initrd off the epoch. t2sbs
+  # follows it so the battery already has its charge limit when UPower first
+  # probes it.
   earlyModules = [
     "t2bce_dma"
     "t2bce_core"
     "t2bce_vhci"
     "t2hid"
     "t2smc"
+    "t2sbs"
   ];
 
   # Each claims a device one of the packages above drives, and whichever binds
@@ -55,6 +59,7 @@ let
     "apple_bce"
     "apple_mfi_fastcharge"
     "apple_gmux"
+    "sbs"
   ];
 
   kernelParams = [
@@ -83,6 +88,20 @@ let
     "initcall_blacklist=cmos_init,magicmouse_driver_init"
   ];
 
+  # Upstream filters `ADD_ARGS` by the DMI product name after building it.
+  kernelParamsFor =
+    model:
+    lib.subtractLists (
+      # The Ethernet controllers of the iMacs do not survive forced ASPM.
+      lib.optional (lib.hasPrefix "iMac" model) "pcie_aspm=force"
+      # The Navi 14 of this model drops off the PCIe bus under load.
+      ++ lib.optionals (model == "MacBookPro16,1") [
+        "amdgpu.aspm=1"
+        "pcie_aspm=force"
+        "pcie_aspm.policy=powersave"
+      ]
+    ) kernelParams;
+
   # Each list above mirrors the array an upstream installer script has built
   # once its assignments ran, which `postPatch` diffs against it so a bump fails
   # loudly instead of silently.
@@ -109,13 +128,13 @@ stdenv.mkDerivation {
 
   # The pin every package here is built from. It cannot live in a file of its
   # own: `nix-update` writes to wherever the `src` attribute is declared.
-  version = "0.1.12-unstable-2026-10-05";
+  version = "0.1.12-unstable-2026-10-18";
 
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";
-    rev = "a88f36f452676bdcf840a5d958478e49d221c384";
-    hash = "sha256-uiD5JiahqC+VJmjlqoA1BILFMoC1kl6z8QhU4mn/rDQ=";
+    rev = "d249a03291861dfb2a13d55e83b3764b500e2e2e";
+    hash = "sha256-w7jhBHne0v7HJnboUl2kw/IaOT/ACDkqGpV9qOlxWvM=";
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies ++ [
@@ -218,7 +237,7 @@ stdenv.mkDerivation {
     inherit
       earlyModules
       kernel
-      kernelParams
+      kernelParamsFor
       replacedModules
       ;
     # The set itself, so the NixOS module does not instantiate a second one.

@@ -9,8 +9,8 @@ runCommand "kait2en-upstream-check"
     # Kept outside modules.nix so nix-update cannot advance the reviewed pin.
     reviewedSrc = fetchFromGitHub {
       inherit (kait2en.modules.src) owner repo;
-      rev = "a88f36f452676bdcf840a5d958478e49d221c384";
-      hash = "sha256-uiD5JiahqC+VJmjlqoA1BILFMoC1kl6z8QhU4mn/rDQ=";
+      rev = "d249a03291861dfb2a13d55e83b3764b500e2e2e";
+      hash = "sha256-w7jhBHne0v7HJnboUl2kw/IaOT/ACDkqGpV9qOlxWvM=";
     };
     inherit (kait2en.modules) src;
     meta = {

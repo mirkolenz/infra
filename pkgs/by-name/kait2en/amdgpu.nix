@@ -16,6 +16,10 @@ let
 
   # Upstream writes it from a heredoc in its installer, checked in `postPatch`.
   modprobeConfig = "softdep amdgpu pre: t2gmux";
+
+  # Backported in a form the reverse dry run below misses, so upstream's
+  # installer skips them by kernel version too.
+  merged = lib.optional (lib.versionAtLeast kernel.version "7.2.10") "0001-drm-amdgpu-reset-VI-ASIC-on-MacBookPro15-1.patch";
 in
 stdenv.mkDerivation {
   pname = "kait2en-amdgpu";
@@ -47,7 +51,9 @@ stdenv.mkDerivation {
 
       file="${patches}/$entry"
 
-      if patch -p1 --dry-run --batch --reverse --fuzz=3 < "$file" > /dev/null; then
+      if [[ " ${toString merged} " == *" $entry "* ]]; then
+        echo "$entry is merged in ${kernel.version}"
+      elif patch -p1 --dry-run --batch --reverse --fuzz=3 < "$file" > /dev/null; then
         echo "$entry is already present in ${kernel.version}"
       else
         patch -p1 --batch --forward --fuzz=3 --no-backup-if-mismatch < "$file"

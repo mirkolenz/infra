@@ -1,5 +1,6 @@
 # Shows the fans, temperatures, power figures and battery state `t2smc`
-# exposes.
+# exposes. Its daemon lifts the charge limit for a full charge from time to
+# time, like powerd on macOS, so the battery gauge can recalibrate.
 # https://github.com/kaiT2en/KaiT2en-Fedora/tree/main/apps/t2-smc-control
 {
   lib,
