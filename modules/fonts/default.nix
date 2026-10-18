@@ -38,6 +38,7 @@ let
           nerd-fonts.blex-mono
           nerd-fonts.fira-code
           nerd-fonts.intone-mono
+          nerd-fonts.iosevka-term
           nerd-fonts.jetbrains-mono
           nerd-fonts.monaspace
           nerd-fonts.ubuntu

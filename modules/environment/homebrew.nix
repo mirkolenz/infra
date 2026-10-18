@@ -84,6 +84,7 @@
         "inter"
         "intone-mono-nerd-font"
         "iosevka"
+        "iosevka-term-nerd-font"
         "jetbrains-mono"
         "jetbrains-mono-nerd-font"
         "jost"
