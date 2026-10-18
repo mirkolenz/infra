@@ -3,11 +3,13 @@
     { lib, ... }:
     {
       options.custom.apple-t2.model = lib.mkOption {
-        type = lib.types.str;
+        type = lib.types.nullOr lib.types.str;
+        default = null;
         example = "MacBookPro16,1";
         description = ''
           The DMI product name, which upstream's installer selects the speaker
-          DSP by.
+          DSP and kernel parameters by.
+          Null builds a generic image without the speaker DSP.
         '';
       };
 

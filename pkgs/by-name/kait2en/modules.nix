@@ -88,12 +88,13 @@ let
     "initcall_blacklist=cmos_init,magicmouse_driver_init"
   ];
 
-  # Upstream filters `ADD_ARGS` by the DMI product name after building it.
+  # Upstream filters `ADD_ARGS` by the DMI product name after building it,
+  # a null model keeps all of them like on an unknown machine.
   kernelParamsFor =
     model:
     lib.subtractLists (
       # The Ethernet controllers of the iMacs do not survive forced ASPM.
-      lib.optional (lib.hasPrefix "iMac" model) "pcie_aspm=force"
+      lib.optional (model != null && lib.hasPrefix "iMac" model) "pcie_aspm=force"
       # The Navi 14 of this model drops off the PCIe bus under load.
       ++ lib.optionals (model == "MacBookPro16,1") [
         "amdgpu.aspm=1"

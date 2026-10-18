@@ -38,7 +38,9 @@
         # The filter graphs are a pipewire fragment, the node rules and the
         # default output policy a wireplumber one.
         services.pipewire = {
-          configPackages = [ (dsp.forModel config.custom.apple-t2.model) ];
+          configPackages = lib.optional (config.custom.apple-t2.model != null) (
+            dsp.forModel config.custom.apple-t2.model
+          );
           wireplumber.configPackages = [ dsp ];
         };
       })
