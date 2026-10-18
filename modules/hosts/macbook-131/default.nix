@@ -35,6 +35,9 @@ in
           extras.enable = true;
         };
 
+        # Blocks DMA attacks through Thunderbolt, the firmware does not opt into the IOMMU.
+        boot.kernelParams = [ "intel_iommu=on" ];
+
         boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
         boot.loader.systemd-boot.enable = true;
       };
