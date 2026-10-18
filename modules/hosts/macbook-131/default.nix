@@ -14,6 +14,7 @@ in
       {
         imports = [
           nixos.default
+          nixos.low-memory
           "${inputs.nixos-hardware}/apple/macbook-pro"
         ];
 

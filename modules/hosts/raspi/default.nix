@@ -15,6 +15,7 @@ in
       {
         imports = [
           nixos.default
+          nixos.low-memory
           "${inputs.nixos-hardware}/raspberry-pi/4"
         ];
 

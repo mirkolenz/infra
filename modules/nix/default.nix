@@ -27,6 +27,9 @@ in
           options = "--delete-older-than ${gcAge}";
         };
       };
+      # Builds overflowing this go to swap or fail on their own instead of taking the system down.
+      # MemoryHigh alone would only stall them.
+      systemd.services.nix-daemon.serviceConfig.MemoryMax = "75%";
       # we do this ourselves
       nixpkgs.flake = {
         setFlakeRegistry = false;
