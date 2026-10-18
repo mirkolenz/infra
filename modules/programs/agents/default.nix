@@ -87,6 +87,8 @@
             "/nix/var/log/nix"
             # the trusted flake settings
             "${config.xdg.dataHome}/nix"
+            # the user profiles and channels, which nix looks up while evaluating
+            "${config.xdg.stateHome}/nix"
             # the git config, without the `credentials` of its credential store
             "${config.xdg.configHome}/git/config"
             "${config.xdg.configHome}/git/ignore"
