@@ -18,6 +18,7 @@
         generic-extlinux-compatible.configurationLimit = lib.mkDefault 10;
         grub.configurationLimit = lib.mkDefault 10;
         systemd-boot.configurationLimit = lib.mkDefault 10;
+        systemd-boot.editor = false;
         efi.canTouchEfiVariables = true;
       };
 
