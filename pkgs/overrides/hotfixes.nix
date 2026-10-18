@@ -41,12 +41,6 @@ final: prev:
 }
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
 
-  # Zotero's Gecko patches target ESR 140, and fail against nixpkgs' ESR 153.
-  # https://github.com/NixOS/nixpkgs/pull/569006
-  zotero = prev.zotero.override {
-    firefox-esr-153-unwrapped = final.stable.firefox-esr-140-unwrapped;
-  };
-
   # Vicinae pins GCC 15, but numen uses GCC 16 and requires GLIBCXX_3.4.36.
   # https://github.com/vicinaehq/vicinae/issues/2040
   vicinae = prev.vicinae.override { gcc15Stdenv = final.stdenv; };

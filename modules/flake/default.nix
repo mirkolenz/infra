@@ -1,6 +1,7 @@
 {
   inputs,
   config,
+  lib,
   self,
   lib',
   ...
@@ -21,6 +22,8 @@
     nixpkgsConfig = {
       allowUnfree = true;
       nvidia.acceptLicense = true;
+      # Zotero 10 embeds Gecko from ESR 140, which reached end-of-life on 2026-10-13.
+      allowInsecurePredicate = pkg: lib.getName pkg == "firefox-esr-140-bin-unwrapped";
     };
     overlayArgs = {
       inherit self inputs lib';
