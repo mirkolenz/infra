@@ -23,6 +23,7 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           permission-contents: write
           permission-pull-requests: write
+          permission-workflows: write # pushes the bumped actions
       - uses: actions/checkout@v7
         with:
           persist-credentials: false

@@ -7,6 +7,7 @@
   determinate-nix,
   bump-ranges,
   gh,
+  gh-actions-lock-bin,
 }:
 let
   flakectl = writers.writePython3Bin "flakectl" {
@@ -25,6 +26,7 @@ let
         gitMinimal
         bump-ranges
         gh
+        gh-actions-lock-bin
       ])
       "--add-flag"
       "--update-scripts-nix=${./update-scripts.nix}"

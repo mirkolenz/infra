@@ -478,7 +478,7 @@ def is_worktree_of(flake: str) -> bool:
     included, since `nix run .` snapshots uncommitted edits too.
 
     Answering this is only sound before we edit anything, which is why `main`
-    settles it once at startup: `update-flake` rewrites flake.nix, so asking
+    settles it once at startup: `update-deps` rewrites flake.nix, so asking
     again afterwards compares against a snapshot our own bump just made stale.
     """
     target = Path("flake.nix")
@@ -515,32 +515,34 @@ def restore_worktree(snapshot: str, paths: Iterable[str]) -> None:
     run_logged(["git", "restore", f"--source={snapshot}", "--", *paths])
 
 
-def commit_pkgs(message: str) -> None:
-    """Commit anything that changed under pkgs/, if anything did."""
-    status = subprocess_stdout(["git", "status", "--porcelain", "--", "pkgs/"])
+def commit_dir(path: str, message: str) -> None:
+    """Commit anything that changed under a directory, if anything did."""
+    status = subprocess_stdout(["git", "status", "--porcelain", "--", path])
 
     if not status:
-        typer.echo("No pkgs/ changes to commit.", err=True)
+        typer.echo(f"No {path} changes to commit.", err=True)
         return
 
-    run_logged(["git", "add", "--all", "--", "pkgs/"])
-    run_logged(["git", "commit", "-m", message, "--", "pkgs/"])
+    run_logged(["git", "add", "--all", "--", path])
+    run_logged(["git", "commit", "-m", message, "--", path])
 
 
-@app.command("update-flake")
-def update_flake(
+@app.command("update-deps")
+def update_deps(
     ctx: typer.Context,
     dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
     commit: Annotated[bool, typer.Option("--commit", "-c")] = False,
     update: Annotated[bool, typer.Option("--update", "-u")] = True,
 ):
-    """Update flake.nix github inputs and lockfile; refresh pinned hashes."""
+    """Update the flake inputs and GitHub Actions with their lockfiles; refresh pinned hashes."""
     cfg: Config = ctx.obj
     cfg.require_worktree()
     flake_file = Path("flake.nix")
     content = flake_file.read_text()
-    # bumps the version tags of the github inputs, honoring BUMP_RANGES_MIN_AGE
-    run_logged(["bump-ranges", "--dry-run" if dry_run else "--accept=major", "nix"])
+    # bumps the version tags of the github inputs and actions, honoring BUMP_RANGES_MIN_AGE
+    bump = ["bump-ranges", "--dry-run" if dry_run else "--accept=major"]
+    run_logged([*bump, "nix"])
+    run_logged([*bump, "actions"])
 
     if dry_run:
         typer.echo("Dry run, no changes written", err=True)
@@ -553,9 +555,12 @@ def update_flake(
         nix_cmd.append("--commit-lock-file")
     run_logged(nix_cmd)
 
-    # Amend into nix's lockfile commit to preserve its auto-generated message.
-    if commit and flake_changed:
-        run_logged(["git", "commit", "--amend", "--no-edit", str(flake_file)])
+    if commit:
+        # Amend into nix's lockfile commit to preserve its auto-generated message.
+        if flake_changed:
+            run_logged(["git", "commit", "--amend", "--no-edit", str(flake_file)])
+
+        commit_dir(".github/", "chore(deps/actions): update")
 
     if cfg.hash_path:
         # `fix hashes` repairs what nix journaled while building, so a failed build
@@ -586,7 +591,7 @@ def update_flake(
                 raise
 
     if commit:
-        commit_pkgs("chore(deps/pkgs): hashing")
+        commit_dir("pkgs/", "chore(deps/pkgs): hashing")
 
 
 @app.command("check-build", context_settings=EXTRA_ARGS)
@@ -1203,7 +1208,7 @@ def update_pkgs(
         if bumps:
             message += "\n\nPackage updates:\n\n" + "\n".join(bumps) + "\n"
 
-        commit_pkgs(message)
+        commit_dir("pkgs/", message)
 
     if failures:
         typer.echo(f"Failed: {', '.join(failures)}", err=True)
@@ -1215,8 +1220,8 @@ def update_all(
     commit: Annotated[bool, typer.Option("--commit", "-c")] = True,
     dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
 ):
-    """Run update-flake then update-pkgs in sequence."""
-    update_flake(ctx, commit=commit, dry_run=dry_run)
+    """Run update-deps then update-pkgs in sequence."""
+    update_deps(ctx, commit=commit, dry_run=dry_run)
     update_pkgs(ctx, commit=commit, dry_run=dry_run)
 
 
