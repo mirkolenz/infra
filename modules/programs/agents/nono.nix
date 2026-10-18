@@ -41,8 +41,7 @@
       listable = encoded: "(allow file-read-data (literal ${encoded}))";
 
       # The ancestors of an absolute path, except for `/`, which nono grants in full.
-      ancestors =
-        path: lib.optionals (dirOf path != "/") (ancestors (dirOf path) ++ [ (dirOf path) ]);
+      ancestors = path: lib.optionals (dirOf path != "/") (ancestors (dirOf path) ++ [ (dirOf path) ]);
 
       # Denies `operations` on the paths matching `filter`, except for those matching any of `exceptions`.
       deny =
