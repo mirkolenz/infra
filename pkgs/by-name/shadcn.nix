@@ -15,13 +15,13 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "shadcn";
-  version = "4.22.0";
+  version = "4.22.1";
 
   src = fetchFromGitHub {
     owner = "shadcn-ui";
     repo = "ui";
     tag = "shadcn@${finalAttrs.version}";
-    hash = "sha256-GuIhnlVKBe1+LPqlbO8ZvytlEJBeURU/kAkFCiIglBI=";
+    hash = "sha256-NRgrHbXiBaahID+difP2S4Jag+F/aF7GgQIOs3jfUb0=";
   };
 
   pnpmWorkspaces = [ "shadcn..." ];
