@@ -250,6 +250,7 @@ stdenv.mkDerivation {
       smc-control
       touchbar
       touchid
+      zone-power
       ;
   };
 

@@ -33,6 +33,7 @@ in
           touchid.enable = true;
           touchbar.enable = true;
           ave.enable = true;
+          zone-power.enable = true;
         };
 
         # The Intel GPU module loads i915 from the initrd, which would put a

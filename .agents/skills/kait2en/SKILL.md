@@ -23,7 +23,8 @@ Upstream rejects issues and pull requests it believes an AI wrote, so never open
    ```sh
    nix-update kait2en.modules --system x86_64-linux --version=branch \
      --subpackage=ave --subpackage=journal --subpackage=power-explorer \
-     --subpackage=smc-control --subpackage=touchbar --subpackage=touchid
+     --subpackage=smc-control --subpackage=touchbar --subpackage=touchid \
+     --subpackage=zone-power
    ```
 
 2. Run the drift check, which diffs Cargo metadata, Makefiles, and service and integration files against `reviewedSrc`.

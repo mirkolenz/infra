@@ -17,6 +17,6 @@ Every package therefore installs upstream's license notices to `share/licenses/<
 
 - `t2-dgpu-control` and `t2-hybrid-gpu-control` are replaced by `custom.apple-t2.graphics.mode`.
 - `t2-force-click` is replaced by `trackpad.nix`.
-- `t2-fan-control`, `t2-cpu-control` and `t2-power-tune` change limits the firmware already manages.
+- `t2-fan-control` and `t2-power-tune` change limits the firmware already manages.
 - `t2-kernel-builder` needs a patched Fedora kernel.
 - `install-acpi-fixes.sh` needs the machine's own patched AML, check `journalctl -kb | grep -E 'AE_AML_BUFFER_LIMIT|Marking method.*_PDC'` first.
