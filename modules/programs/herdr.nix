@@ -110,6 +110,8 @@
         )
         SHOW_PROGRAM_ARGS=0
         TITLE_CONDENSE=1
+        # https://github.com/qu8n/herdr-automatic-rename/blob/v0.13.1/naming.sh#L175-L176
+        WRAPPER_PROGRAMS=(bash node bun deno npx bunx npm pnpm yarn python python3 uv uvx pipx ruby)
       '';
 
       programs.herdr = {
