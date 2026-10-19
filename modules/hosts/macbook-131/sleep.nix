@@ -16,10 +16,9 @@
       # 7.2 is what the MacBookPro13,1 community setups validate S3 against.
       boot.kernelPackages = pkgs.linuxPackages_latest;
 
-      # The firmware cuts power to the SSD in D3cold, which the kernel cannot restore.
-      # https://github.com/Dunedan/mbp-2016-linux#suspend--hibernation
+      # The firmware cuts power in D3cold that the kernel cannot restore, the SSD's included.
       services.udev.extraRules = ''
-        ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x106b", ATTR{device}=="0x2003", ATTR{d3cold_allowed}="0"
+        ACTION=="add", SUBSYSTEM=="pci", ATTR{d3cold_allowed}="0"
       '';
 
       # All but LID0 wake S3 spuriously, and LID0 can come up disarmed.
