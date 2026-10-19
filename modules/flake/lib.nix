@@ -157,14 +157,6 @@
             { "${dir}/${name}/SKILL.md" = mkAgentFile content; }
         ) skills;
 
-    # Each of `paths` followed by `glob` below it.
-    withContent =
-      glob:
-      lib.concatMap (path: [
-        path
-        "${path}/${glob}"
-      ]);
-
     # Whether CI builds `drv`, following Hydra's `meta.hydraPlatforms` convention.
     # flakectl's `check-build` and `check-flake` split `checks` by the same rule.
     isHydraTarget = drv: lib.elem drv.system (drv.meta.hydraPlatforms or [ drv.system ]);

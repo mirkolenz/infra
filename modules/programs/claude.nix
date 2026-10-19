@@ -29,7 +29,6 @@ in
       config,
       pkgs,
       lib,
-      lib',
       ...
     }:
     let
@@ -37,10 +36,8 @@ in
       inherit (agents) sandbox;
       cfg = config.programs.claude-code;
 
-      withContent = lib'.withContent "**";
-
       # Absolute paths need the `//` prefix, otherwise a rule is read as relative
-      # to the project root.
+      # to the project root. Rules follow gitignore semantics, so a directory covers its content.
       mkRules = tool: map (pattern: "${tool}(/${pattern})");
 
       # a trailing ` *` matches the bare command as well
@@ -146,19 +143,20 @@ in
             blockReadsOutsideWorkingDirectories = false;
             # `Edit` is the matcher every file-writing built-in is checked against, and an
             # `Edit` allow rule doubles as the sandbox's write grant, so a write path needs
-            # stating only here. Claude reads outside the workspace freely, so a `Read`
-            # allow rule merely skips the prompt.
-            allow =
-              mkRules "Read" (withContent sandbox.paths.read)
-              ++ mkRules "Edit" (withContent sandbox.paths.write)
-              ++ bashRules sandbox.commands.allow;
+            # stating only here. Claude reads outside the workspace freely, so a bare `Read`
+            # merely skips the remaining prompts, and the deny rules below still win.
+            # Claude scans the paths of `Read` rules, which made `/nix/store` one costly.
+            allow = [ "Read" ] ++ mkRules "Edit" sandbox.paths.write
+            ++ bashRules sandbox.commands.allow;
             # deny rules cover the built-in tools and are merged into the sandbox boundary,
             # so a single rule blocks both claude itself and any subprocess it spawns. A
             # `Read` deny already stops Edit and Write, but not NotebookEdit, hence the
             # `Edit` rule beside it.
             deny =
-              mkRules "Read" (withContent sandbox.paths.deny)
-              ++ mkRules "Edit" (withContent sandbox.paths.deny)
+              lib.concatMap (tool: mkRules tool sandbox.paths.deny) [
+                "Read"
+                "Edit"
+              ]
               # matched on the command line
               ++ bashRules sandbox.commands.deny;
             ask = [ ];

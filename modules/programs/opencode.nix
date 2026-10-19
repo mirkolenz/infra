@@ -2,7 +2,6 @@
   flake.modules.homeManager.default =
     {
       lib,
-      lib',
       config,
       pkgs,
       ...
@@ -12,8 +11,12 @@
       agents = config.programs.agents;
       inherit (agents) sandbox;
 
-      # `*` also matches `/`
-      withContent = lib'.withContent "*";
+      # Each of `paths` followed by its content, since resources match the whole path.
+      # `*` also matches `/`.
+      withContent = lib.concatMap (path: [
+        path
+        "${path}/*"
+      ]);
 
       # a trailing ` *` matches the bare command as well
       commandPatterns = map (cmd: "${cmd} *");
@@ -49,10 +52,8 @@
             command = [ server.command ] ++ server.args or [ ];
           }) config.programs.mcp.servers;
           # https://opencode.ai/v2/docs/permissions
-          # upstream allows the workspace and asks for anything outside it
-          permissions =
-            mkRules "allow" "external_directory" (withContent (sandbox.paths.read ++ sandbox.paths.write))
-            ++ mkRules "allow" "shell" (commandPatterns sandbox.commands.allow);
+          # upstream allows `external_directory`, so paths outside the workspace need no rule
+          permissions = mkRules "allow" "shell" (commandPatterns sandbox.commands.allow);
           # https://opencode.ai/v2/docs/policies
           # hard denies that neither an "Allow always" approval nor a project config lifts
           experimental.policies =
