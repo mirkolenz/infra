@@ -41,7 +41,7 @@ in
         default = { };
         description = ''
           Configuration written to
-          {file}`$XDG_CONFIG_HOME/1password/ssh/agent.toml`.
+          {file}`$XDG_CONFIG_HOME/1Password/ssh/agent.toml`.
           See <https://developer.1password.com/docs/ssh/agent/config>
           for more information.
         '';
@@ -81,7 +81,7 @@ in
       settings."*".IdentityAgent = ''"${cfg.sshAgent.socket}"'';
     };
 
-    xdg.configFile."1password/ssh/agent.toml" = lib.mkIf cfg.sshAgent.enable {
+    xdg.configFile."1Password/ssh/agent.toml" = lib.mkIf cfg.sshAgent.enable {
       source = tomlFormat.generate "1password-ssh-agent.toml" cfg.sshAgent.settings;
     };
 
