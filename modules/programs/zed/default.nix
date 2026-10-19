@@ -17,17 +17,20 @@
       home.activation.setupZedFiles = lib'.mkMutableFiles {
         inherit config;
         files =
-          map
-            (name: {
-              source = ./. + "/${name}";
+          lib.mapAttrsToList
+            (name: source: {
+              inherit source;
               target = "${config.xdg.configHome}/zed/${name}";
             })
-            [
-              "debug.json"
-              "keymap.json"
-              "settings.json"
-              "tasks.json"
-            ];
+            {
+              "debug.json" = ./debug.json;
+              "keymap.json" = ./keymap.json;
+              "settings.json" = pkgs.replaceVars ./settings.json {
+                fontFamily = config.custom.font.family;
+                fontSize = config.custom.font.size;
+              };
+              "tasks.json" = ./tasks.json;
+            };
       };
 
       home.shellAliases = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {

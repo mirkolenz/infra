@@ -70,8 +70,8 @@
               pointSize = 11;
             };
             fixedWidth = {
-              family = "JetBrains Mono";
-              pointSize = 11;
+              family = config.custom.font.family;
+              pointSize = config.custom.font.size;
             };
           };
 

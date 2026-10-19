@@ -42,7 +42,7 @@
             "Net/ThemeName" = "Adwaita-dark";
             "Net/IconThemeName" = "Adwaita";
             "Gtk/FontName" = "Inter 11";
-            "Gtk/MonospaceFontName" = "JetBrains Mono 11";
+            "Gtk/MonospaceFontName" = "${config.custom.font.family} ${toString config.custom.font.size}";
           };
 
           xfwm4 = {

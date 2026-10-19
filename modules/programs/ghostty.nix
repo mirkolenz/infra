@@ -16,8 +16,8 @@
           auto-update-channel = "tip";
           background-blur = false;
           cursor-click-to-move = true;
-          font-family = "JetBrainsMono Nerd Font";
-          font-size = if pkgs.stdenv.hostPlatform.isDarwin then 13 else 11;
+          font-family = config.custom.font.family;
+          font-size = config.custom.font.size;
           font-thicken = true;
           macos-option-as-alt = "left";
           macos-titlebar-style = "tabs";

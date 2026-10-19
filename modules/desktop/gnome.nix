@@ -102,7 +102,7 @@
             enable-hot-corners = false;
             font-name = "Inter 11";
             document-font-name = "Inter 11";
-            monospace-font-name = "JetBrains Mono 11";
+            monospace-font-name = "${config.custom.font.family} ${toString config.custom.font.size}";
             titlebar-font = "Inter Bold 11";
             clock-format = "24h";
             clock-show-weekday = true;

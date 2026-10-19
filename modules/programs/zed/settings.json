@@ -58,8 +58,8 @@
   },
   "auto_signature_help": true,
   "base_keymap": "Zed",
-  "buffer_font_family": "JetBrainsMono Nerd Font",
-  "buffer_font_size": 13,
+  "buffer_font_family": "@fontFamily@",
+  "buffer_font_size": @fontSize@,
   "code_lens": "on",
   "collaboration_panel": {
     "dock": "right",
@@ -449,7 +449,7 @@
     "quick_actions": false,
     "selections_menu": false
   },
-  // "ui_font_family": "JetBrainsMono Nerd Font",
+  // "ui_font_family": "@fontFamily@",
   "ui_font_size": 15,
   "use_smartcase_search": true,
   "use_system_path_prompts": false,
