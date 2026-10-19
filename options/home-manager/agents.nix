@@ -105,56 +105,66 @@ in
 
     harnesses = mkOption {
       type = types.attrsOf (
-        types.submodule {
-          options = {
-            launchers = mkOption {
-              type = with types; attrsOf package;
-              description = "Executables of the harness by name, each shadowed by a wrapper.";
-            };
+        types.submodule (
+          { name, ... }:
+          {
+            options = {
+              herdrAgent = mkOption {
+                type = types.str;
+                default = name;
+                defaultText = lib.literalMD "the attribute name";
+                description = "Agent label by which herdr identifies the harness, unknown ones are ignored.";
+              };
 
-            sandboxArgs = mkOption {
-              type = with types; listOf str;
-              default = [ ];
-              example = [ "--no-sandbox" ];
-              description = "Arguments prepended to those of the harness, usually to disable its own sandbox.";
-            };
+              launchers = mkOption {
+                type = with types; attrsOf package;
+                description = "Executables of the harness by name, each shadowed by a wrapper.";
+              };
 
-            trailingSandboxArgs = mkOption {
-              type = with types; listOf str;
-              default = [ ];
-              example = [ "--standalone" ];
-              description = "Arguments appended to those of the harness, for flags its subcommands accept only after their name.";
-            };
+              sandboxArgs = mkOption {
+                type = with types; listOf str;
+                default = [ ];
+                example = [ "--no-sandbox" ];
+                description = "Arguments prepended to those of the harness, usually to disable its own sandbox.";
+              };
 
-            addDirFlag = mkOption {
-              type = with types; nullOr str;
-              default = null;
-              example = "--add-dir";
-              description = "Flag of the harness that adds a workspace directory, passed for every `NONO_ALLOW` entry, and whose own directories nono grants as well.";
-            };
+              trailingSandboxArgs = mkOption {
+                type = with types; listOf str;
+                default = [ ];
+                example = [ "--standalone" ];
+                description = "Arguments appended to those of the harness, for flags its subcommands accept only after their name.";
+              };
 
-            # Granted like `programs.agents.sandbox.paths`, but within nono alone.
-            paths = {
-              read = listOption absolutePath ''
-                Paths of the harness that it only reads within nono, such as the managed config
-                within its state directories, which it would run outside of nono later.
-              '';
-              write = listOption absolutePath "Paths of the harness that it writes, such as its state and login.";
-            };
+              addDirFlag = mkOption {
+                type = with types; nullOr str;
+                default = null;
+                example = "--add-dir";
+                description = "Flag of the harness that adds a workspace directory, passed for every `NONO_ALLOW` entry, and whose own directories nono grants as well.";
+              };
 
-            domains = listOption types.str "Hosts the harness itself talks to, reachable within nono.";
+              # Granted like `programs.agents.sandbox.paths`, but within nono alone.
+              paths = {
+                read = listOption absolutePath ''
+                  Paths of the harness that it only reads within nono, such as the managed config
+                  within its state directories, which it would run outside of nono later.
+                '';
+                write = listOption absolutePath "Paths of the harness that it writes, such as its state and login.";
+              };
 
-            unixSocketDirs = mkOption {
-              type = with types; listOf str;
-              default = [ ];
-              example = [ "/tmp/codex-browser-use" ];
-              description = ''
-                Directories whose sockets the harness connects to within nono, such as those
-                of a desktop app it drives, skipped while missing.
-              '';
+              domains = listOption types.str "Hosts the harness itself talks to, reachable within nono.";
+
+              unixSocketDirs = mkOption {
+                type = with types; listOf str;
+                default = [ ];
+                example = [ "/tmp/codex-browser-use" ];
+                description = ''
+                  Directories whose sockets the harness connects to within nono, such as those
+                  of a desktop app it drives, skipped while missing.
+                '';
+              };
             };
-          };
-        }
+          }
+        )
       );
       default = { };
       description = ''

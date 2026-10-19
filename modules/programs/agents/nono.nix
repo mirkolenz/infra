@@ -220,7 +220,9 @@
                 }' --args "''${ancestors[@]}" >"$profile"
                 export NONO_PROFILE=$profile
               ''}
-              TMPDIR=$tmp ${nonoCommand} --silent run --no-audit --allow-cwd \
+              # The agent runs on a pty of nono, so herdr identifies it by this hint on nono,
+              # or by the name of the launcher, which misses those of further installations.
+              TMPDIR=$tmp HERDR_AGENT=${lib.escapeShellArg harness.herdrAgent} ${nonoCommand} --silent run --no-audit --allow-cwd \
                 --allow-unix-socket-subtree-bind "$tmp" -- ${agentCommand harness package}
             '';
           }
