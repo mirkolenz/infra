@@ -340,6 +340,8 @@
             filterMode = "fuzzy";
             mainPanelSplitMode = "horizontal";
             nerdFontsVersion = "3";
+            portraitModeAutoMaxWidth = 80;
+            portraitModeAutoMinHeight = 20;
             showCommandLog = false;
             showFileTree = true;
             showNumstatInFilesView = true;
