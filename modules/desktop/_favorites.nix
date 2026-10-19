@@ -21,7 +21,7 @@ lib.filter (app: app != null) [
   # Chrome also ships com.google.Chrome.desktop for the portal app id,
   # but that one is NoDisplay=true and therefore invisible to every launcher.
   "google-chrome"
-  "1password"
+  "com.onepassword.OnePassword"
   "org.tabos.stamp" # Mail, Calendar, Contacts
   "todoist"
   "dev.zed.Zed"
