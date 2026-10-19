@@ -59,7 +59,7 @@
   "auto_signature_help": true,
   "base_keymap": "Zed",
   "buffer_font_family": "@fontFamily@",
-  "buffer_font_size": @fontSize@,
+  "buffer_font_size": "@fontSize@",
   "code_lens": "on",
   "collaboration_panel": {
     "dock": "right",

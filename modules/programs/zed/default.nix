@@ -25,10 +25,12 @@
             {
               "debug.json" = ./debug.json;
               "keymap.json" = ./keymap.json;
-              "settings.json" = pkgs.replaceVars ./settings.json {
-                fontFamily = config.custom.font.family;
-                fontSize = config.custom.font.size;
-              };
+              "settings.json" = pkgs.writeText "settings.json" (
+                lib.replaceStrings
+                  [ "@fontFamily@" ''"@fontSize@"'' ]
+                  [ config.custom.font.family (toString config.custom.font.size) ]
+                  (lib.readFile ./settings.json)
+              );
               "tasks.json" = ./tasks.json;
             };
       };
