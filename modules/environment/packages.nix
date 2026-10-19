@@ -29,6 +29,7 @@
         restic
         autorestic
         sqlite
+        usql
         icloudpd
         rlwrap
         wol

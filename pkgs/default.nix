@@ -41,11 +41,13 @@ let
   # overlay-style fragments, each `final: prev: -> attrset`, composed in the order listed below:
   # every fragment sees the preceding ones in its `prev`, so hotfixes come last and apply on top
   # of the packages the other fragments define. `ports.nix` carries long-lived platform ports,
+  # `features.nix` builds with features nixpkgs leaves out,
   # `hotfixes.nix` only bugs with an upstream fix to track.
   # fragments may also define non-derivation values such as `pythonPackagesExtensions`
   overrides = lib'.importOverlays [
     ./overrides/inputs.nix
     ./overrides/ports.nix
+    ./overrides/features.nix
     ./overrides/determinate.nix
     ./overrides/hotfixes.nix
   ] final prev;
