@@ -146,8 +146,7 @@ in
             # stating only here. Claude reads outside the workspace freely, so a bare `Read`
             # merely skips the remaining prompts, and the deny rules below still win.
             # Claude scans the paths of `Read` rules, which made `/nix/store` one costly.
-            allow = [ "Read" ] ++ mkRules "Edit" sandbox.paths.write
-            ++ bashRules sandbox.commands.allow;
+            allow = [ "Read" ] ++ mkRules "Edit" sandbox.paths.write ++ bashRules sandbox.commands.allow;
             # deny rules cover the built-in tools and are merged into the sandbox boundary,
             # so a single rule blocks both claude itself and any subprocess it spawns. A
             # `Read` deny already stops Edit and Write, but not NotebookEdit, hence the
