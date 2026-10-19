@@ -123,9 +123,13 @@
         harnesses.codex = {
           inherit (cfg) launchers;
           addDirFlag = "--add-dir";
-          # nono takes over, and a running daemon would serve the session outside of it
+          # nono takes over, and a running daemon would serve the session outside of it.
+          # nono keeps config.toml read-only, so the profile receives trust and other writes,
+          # layered on top and only loaded within nono.
           sandboxArgs = [
             "--no-daemon"
+            "--profile"
+            "nono"
             "-c"
             ''default_permissions=":danger-full-access"''
           ];
