@@ -47,11 +47,14 @@
       # https://github.com/nix-community/home-manager/issues/9006 lands.
       # Both shells export the marker, keeping a bash started from fish a bash.
       # Dumb terminals and `bash -ic` need a POSIX shell and are left alone.
+      # SHELL still names bash from /etc/passwd, so point it at fish for tmux and
+      # friends, via the profile since long-lived sessions outlive store paths.
       execFish = ''
         if [ -z "''${__HM_FISH_HANDOVER-}" ] && [ -z "''${BASH_EXECUTION_STRING-}" ] && [ "$TERM" != "dumb" ]; then
           export __HM_FISH_HANDOVER=1
+          export SHELL="${config.home.profileDirectory}/bin/fish"
           shopt -q login_shell && set -- --login
-          exec ${lib.getExe config.programs.fish.package} "$@"
+          exec "$SHELL" "$@"
         fi
       '';
     in
