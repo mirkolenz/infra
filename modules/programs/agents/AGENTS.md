@@ -29,6 +29,12 @@
 - Exec `gh` to interact with GitHub, not a built-in web fetch tool.
 - When `xh` gets HTTP errors from a server, retry with a browser `User-Agent` and `Accept` header before reporting the resource as unavailable.
 
+## Browser
+
+- Exec `playwright screenshot <url> <file>` or `chrome-headless-shell --screenshot=<file> <url>` to render pages, then view the image.
+- The headless browser only reaches localhost, so serve local files or start the dev server first, never work around this restriction.
+- Use the preinstalled browser with Playwright or Puppeteer, never download one.
+
 ## Git
 
 - Read-only operations are always allowed.
@@ -46,9 +52,9 @@
 
 ## Dependencies
 
-- Use dependency constraints with only the first significant version number: ^1 for 1.2.3 and ^0.1 for 0.1.2
-- Rely on lockfiles for exact versions.
-- Never install, update, or remove dependencies without user consent.
+- Use dependency constraints with only the first significant version number, ^1 for 1.2.3 and ^0.1 for 0.1.2, since the lockfiles pin the exact versions.
+- Never add, update, or remove dependencies without user consent, and then only edit the manifests such as `package.json`, `pyproject.toml` or `Cargo.toml`, leaving the lockfiles to the user.
+- Never attempt to bypass sandbox or network restrictions such as blocked package registries, report them to the user instead.
 
 ## Tests
 
