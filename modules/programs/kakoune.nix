@@ -1,7 +1,12 @@
 {
   flake.modules.homeManager.default =
-    { pkgs, ... }:
     {
+      pkgs,
+      lib,
+      config,
+      ...
+    }:
+    lib.mkIf config.custom.features.extras.enable {
       programs.kakoune = {
         enable = true;
         config = {

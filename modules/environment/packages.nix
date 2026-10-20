@@ -14,7 +14,6 @@
         gnumake
         recutils
         inetutils
-        gcc
         zip
         unzip
         fd
@@ -25,15 +24,9 @@
         fzf
         rsync
         wget
-        ookla-speedtest
-        restic
-        autorestic
         sqlite
-        usql
-        icloudpd
         rlwrap
         wol
-        stress-ng
         fuc
         # json parsing
         jaq

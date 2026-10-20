@@ -9,16 +9,19 @@
     let
       gh = lib.getExe config.programs.gh.package;
       jq = lib.getExe config.programs.jq.package;
+      extras = config.custom.features.extras.enable;
     in
     {
-      home.packages = with pkgs; [
-        gibo
-        git-filter-repo
-        diffedit3
-        glab
-        # for `bump-ranges actions`, the gh extension stays off the path
-        gh-actions-lock-bin
-      ];
+      home.packages =
+        with pkgs;
+        [
+          gibo
+          git-filter-repo
+          diffedit3
+          # for `bump-ranges actions`, the gh extension stays off the path
+          gh-actions-lock-bin
+        ]
+        ++ lib.optionals extras [ glab ];
       programs.gh = {
         enable = true;
         extensions = [ pkgs.gh-actions-lock-bin ];
@@ -37,15 +40,15 @@
         text = "${lib.getExe pkgs.bump-ranges} actions";
       };
       programs.gh-dash = {
-        enable = true;
+        enable = lib.mkDefault extras;
       };
       programs.mergiraf = {
-        enable = true;
+        enable = lib.mkDefault extras;
         enableGitIntegration = true;
         enableJujutsuIntegration = true;
       };
       programs.difftastic = {
-        enable = true;
+        enable = lib.mkDefault extras;
         options = {
           background = "dark";
           color = "always";
@@ -307,7 +310,7 @@
             "closest_nonempty(to)" = "heads(::to ~ empty())";
           };
           ui = {
-            merge-editor = "mergiraf";
+            merge-editor = lib.mkIf config.programs.mergiraf.enable "mergiraf";
             # editor = "micro";
           };
           user = {
@@ -318,7 +321,7 @@
         };
       };
       programs.jjui = {
-        enable = true;
+        enable = lib.mkDefault extras;
       };
       programs.lazygit = {
         enable = true;
@@ -369,7 +372,7 @@
         };
       };
       programs.lazyworktree = {
-        enable = true;
+        enable = lib.mkDefault extras;
         settings = {
           editor = "zed";
           icon_set = "nerd-font-v3";
@@ -392,7 +395,7 @@
       };
       home.shellAliases = {
         lg = lib.getExe config.programs.lazygit.package;
-        lw = lib.getExe config.programs.lazyworktree.package;
+        lw = lib.mkIf config.programs.lazyworktree.enable (lib.getExe config.programs.lazyworktree.package);
       };
       custom.commands.gh-prs.text = /* bash */ ''
         # @describe Merge the open pull requests that match the given qualifiers and jq condition

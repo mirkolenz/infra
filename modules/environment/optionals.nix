@@ -51,13 +51,22 @@
         caddy
         mailpit
         zapp
-        restic-browser
         todoist-cli
         ripwire
         harlequin
+        usql
         flow-control
         google-lighthouse
         caligula
+        gcc
+        stress-ng
+        ookla-speedtest
+        # backup
+        restic
+        autorestic
+        restic-browser
+        # icloud
+        icloudpd
         icloud-photos-sync
         # markdown
         html2markdown
