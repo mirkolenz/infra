@@ -31,8 +31,6 @@ in
       };
 
       nix.settings.trusted-users = [ config.custom.user.login ];
-
-      custom.features.extras.enable = lib.mkDefault true;
     };
 
   configurations.nixos = {
