@@ -2,7 +2,8 @@ final: prev:
 {
   # texlive 2025 bundles latexminted 0.6.0, whose argparse subclass rejects the `color` keyword
   # that python 3.14 forwards to `add_parser()`. Fixed upstream in latexminted 0.7.0, which only
-  # ships with texlive 2026. https://github.com/NixOS/nixpkgs/issues/542483
+  # ships with texlive 2026. The issue was closed without a fix in nixpkgs, so wait for texlive 2026.
+  # https://github.com/NixOS/nixpkgs/issues/542483
   texlive = prev.texlive.override { python3 = final.python313; };
 
   # nix-update 1.16.0 resolves a package's current ref as `rev or tag`. A src written with
@@ -78,8 +79,9 @@ final: prev:
 }
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
 
-  # Vicinae pins GCC 15, but numen uses GCC 16 and requires GLIBCXX_3.4.36.
-  # https://github.com/vicinaehq/vicinae/issues/2040
+  # Vicinae pins GCC 15 on linux, but numen uses GCC 16 and requires GLIBCXX_3.4.36.
+  # No upstream report, drop it once the pin is gone.
+  # https://github.com/vicinaehq/vicinae/blob/main/nix/vicinae.nix
   vicinae = prev.vicinae.override { gcc15Stdenv = final.stdenv; };
 
   # kingfisher links mimalloc 3.3.2 (libmimalloc-sys 0.1.49) with the `override` feature, so it

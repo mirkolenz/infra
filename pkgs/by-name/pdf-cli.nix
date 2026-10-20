@@ -11,7 +11,8 @@ prev.pdf-cli.overrideAttrs (oldAttrs: {
       # switch and then falls into the TERM=xterm* one, which caps the render at 100 DPI without
       # supersampling and delegates placement to go-termimg, which disagrees with the centering
       # offset pdf-cli itself printed. Detect it alongside kitty, before the xterm case is reached.
-      # Fixed upstream in 219ff48, after the v.3.0 tag.
+      # Fixed upstream after the v.3.0 tag.
+      # https://github.com/Yujonpradhananga/pdf-cli/commit/219ff4813114e16122602ad1217b42f76a513393
       substituteInPlace internal/terminal/terminal.go \
         --replace-fail 'os.Getenv("KITTY_WINDOW_ID") != ""' 'os.Getenv("TERM_PROGRAM") == "ghostty" || strings.Contains(os.Getenv("TERM"), "ghostty") || os.Getenv("KITTY_WINDOW_ID") != ""'
     ''
