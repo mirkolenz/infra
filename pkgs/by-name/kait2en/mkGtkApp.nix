@@ -1,13 +1,16 @@
 {
   lib,
   kait2en,
+  glib,
+  libxml2,
   pkg-config,
   wrapGAppsHook4,
   gtk4,
   libadwaita,
 }:
 # The GTK apps under `apps`, which ship a desktop entry and an icon, and load
-# the KaiT2en wordmark from where Fedora's installer puts it.
+# the KaiT2en wordmark from where Fedora's installer puts it. A `build.rs`
+# compiles the icon into a resource bundle with glib and libxml2.
 lib.extendMkDerivation {
   constructDrv = kait2en.mkService;
   excludeDrvArgNames = [ "appId" ];
@@ -30,6 +33,8 @@ lib.extendMkDerivation {
       inherit root;
 
       nativeBuildInputs = [
+        glib
+        libxml2
         pkg-config
         wrapGAppsHook4
       ]
