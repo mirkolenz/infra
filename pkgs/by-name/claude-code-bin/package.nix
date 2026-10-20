@@ -2,7 +2,7 @@
   lib,
   stdenvNoCC,
   fetchurl,
-  buildPackages,
+  patchelf-fixed,
   autoPatchelfHook,
   versionCheckHook,
   writableTmpDirAsHomeHook,
@@ -32,10 +32,6 @@ let
   platform = platforms.${stdenvNoCC.hostPlatform.system};
   platformManifest = manifest.platforms.${platform};
   inherit (stdenvNoCC.hostPlatform) isLinux;
-  # drop the patch once nixpkgs' patchelf includes NixOS/patchelf#665
-  patchelf = buildPackages.patchelf.overrideAttrs (old: {
-    patches = old.patches or [ ] ++ [ ./patchelf-update-dt-verdef.patch ];
-  });
 in
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "claude-code";
@@ -60,7 +56,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ]
   ++ lib.optionals isLinux [
     autoPatchelfHook
-    patchelf
+    patchelf-fixed
   ];
 
   # DT_RPATH (not DT_RUNPATH) so the dlopen'd audio-capture.node finds libasound
