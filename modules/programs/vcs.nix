@@ -56,7 +56,6 @@
         enable = true;
       };
       programs.delta = {
-        enable = true;
         options = {
           dark = true;
           features = "zebra-dark";
