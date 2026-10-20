@@ -141,9 +141,7 @@ class Replace:
         lines = self.path.read_text().splitlines(keepends=True)
 
         if self.old not in lines[self.line]:
-            raise Error(
-                f"{self.path}:{self.line + 1} no longer holds {self.old}"
-            )
+            raise Error(f"{self.path}:{self.line + 1} no longer holds {self.old}")
 
         lines[self.line] = lines[self.line].replace(self.old, new, 1)
         self.path.write_text("".join(lines))
@@ -337,9 +335,7 @@ def run_json(*args: str, codes: Container[int] = (0,), capture: bool = False) ->
     try:
         return json.loads(output)
     except json.JSONDecodeError as error:
-        raise Error(
-            f"`{shlex.join(args[:2])}` printed no JSON: {error}"
-        ) from error
+        raise Error(f"`{shlex.join(args[:2])}` printed no JSON: {error}") from error
 
 
 def parse(comparator: str) -> tuple[str, list[int], list[str]]:

@@ -14,7 +14,9 @@
     let
       package = withSystem pkgs.stdenv.hostPlatform.system (
         perSystem:
-        perSystem.config.packages."nixvim-${if config.custom.features.extras.enable then "extras" else "default"}"
+        perSystem.config.packages."nixvim-${
+          if config.custom.features.extras.enable then "extras" else "default"
+        }"
       );
     in
     {
