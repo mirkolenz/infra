@@ -1,6 +1,6 @@
 # Wrappers running the executables of packages within bubblewrap without network access,
 # seeing only the nix store and a temporary home unless granted more.
-# On Ubuntu, the nix bwrap needs an AppArmor profile granting `userns` to /nix/store/*/bin/bwrap
+# On Ubuntu, the nix bwrap needs an AppArmor profile granting `userns` to /nix/store/*-bubblewrap-*/bin/bwrap
 # while `kernel.apparmor_restrict_unprivileged_userns` is 1,
 # and `dev.tty.legacy_tiocsti` should be 0, since the sandbox could otherwise inject input into the shared terminal.
 {
