@@ -1,6 +1,6 @@
 {
   flake.modules.nixos.apple-t2 =
-    { lib, ... }:
+    { lib, pkgs, ... }:
     {
       options.custom.apple-t2 = {
         model = lib.mkOption {
@@ -31,6 +31,9 @@
         # which the Broadcom chips of T2 Macs fail.
         # https://wiki.t2linux.org/guides/wifi-bluetooth/
         networking.networkmanager.wifi.backend = "iwd";
+
+        # The GUI apps style their figures with it, upstream bundles it.
+        fonts.packages = [ pkgs.jetbrains-mono ];
       };
     };
 }

@@ -55,7 +55,7 @@ lib.extendMkDerivation {
       + postPatch;
 
       postInstall = ''
-        install -Dm444 website/static/img/kait2en-wordmark.png $out/${wordmark}
+        install -Dm444 assets/kait2en-app-logo.png $out/${wordmark}
         install -Dm444 -t $out/share/applications ${root}/${appId}.desktop
         install -Dm444 -t $out/share/icons/hicolor/scalable/apps \
           ${root}/assets/icons/hicolor/scalable/apps/${appId}.svg
