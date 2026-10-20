@@ -1,10 +1,20 @@
 final: prev:
-# Tools that run upstream Nix warn about every setting of Determinate's nix.conf
-# that upstream does not know, so they get determinate-nix instead.
 let
   inherit (prev) lib;
+  nix = final.inputs.determinate.inputs.nix.packages.${prev.stdenv.hostPlatform.system}.default;
 in
-lib.genAttrs [
+{
+  # the one package taken from a flake's own package set, to keep Determinate's binary cache
+  determinate-nix = nix // {
+    out = removeAttrs nix.out [
+      "doc"
+      "man"
+    ];
+  };
+}
+# Tools that run upstream Nix warn about every setting of Determinate's nix.conf
+# that upstream does not know, so they get determinate-nix instead.
+// lib.genAttrs [
   "disko"
   "nix-update"
   "nixos-rebuild-ng"

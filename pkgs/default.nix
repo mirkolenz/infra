@@ -74,8 +74,14 @@ lib.mergeAttrsList [
   # base overlay providing darwin packages
   (inputs.nix-darwin.overlays.default final prev)
 
-  # channel instances + determinate-nix
-  (import ./self.nix final prev)
+  # plain stable instance without the default overlay, as a fallback when a
+  # package is broken in the shared set
+  {
+    stable = import inputs.nixpkgs-stable {
+      inherit (prev.stdenv.hostPlatform) system;
+      config = self.nixpkgsConfig;
+    };
+  }
 
   # overrides/ fragments
   overrides
