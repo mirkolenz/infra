@@ -10,13 +10,13 @@
 # structured json in any of the 24 official languages
 buildNpmPackage (finalAttrs: {
   pname = "eurlex";
-  version = "fulltext-2026-10-06.01-unstable-2026-10-17";
+  version = "fulltext-2026-10-06.01-unstable-2026-10-20";
 
   src = fetchFromGitHub {
     owner = "maastrichtlawtech";
     repo = "legalviz.eu";
-    rev = "b46c863d6abb0978f93d08a52829cf576f040f7b";
-    hash = "sha256-pDYZrNB6Uu6xr4RQnAmbikkfsyQZJCve3/4gOeiQfYg=";
+    rev = "873bf774575e56e83644a482e1cf1a692e693e5e";
+    hash = "sha256-v1h0Z5lAA/SyueS4MNgy98hpFEeuvUpnSGIQ8XM28pI=";
   };
 
   sourceRoot = "${finalAttrs.src.name}/backend";
