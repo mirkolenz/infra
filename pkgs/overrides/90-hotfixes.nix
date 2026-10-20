@@ -52,10 +52,6 @@ in
   # https://github.com/NixOS/nixpkgs/pull/575801
   sbomnix = splitWrapperArgs prev.sbomnix;
 
-  # Without nix-eval-jobs on its PATH, every `flakectl check-build` fails.
-  # https://github.com/NixOS/nixpkgs/pull/576207
-  nix-fast-build = splitWrapperArgs prev.nix-fast-build;
-
   pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
     (_: pyprev: {
       # typepy 2.0.0 landed before the consumers dropped their `typepy<2` pin.
