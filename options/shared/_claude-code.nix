@@ -25,7 +25,9 @@ in
     '';
   };
 
+  # Claude also watches the parent of the resolved settings file,
+  # which for a bare store file is `/nix/store` and makes it rescan the whole store on every build.
   config.environment.etc."claude-code/managed-settings.json" = lib.mkIf (cfg.managedSettings != { }) {
-    source = jsonFormat.generate "claude-code-managed-settings.json" cfg.managedSettings;
+    source = "${pkgs.writeTextDir "managed-settings.json" (lib.toJSON cfg.managedSettings)}/managed-settings.json";
   };
 }
