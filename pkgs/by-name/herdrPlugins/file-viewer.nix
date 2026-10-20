@@ -27,6 +27,8 @@ mkHerdrPlugin (finalAttrs: {
     cargoHash = "sha256-H079OdrezPEIplQ3rZqRA0usYzE0omCu6Lc/ebqyc6o=";
     # the integration tests drive a pty and expect a herdr server
     cargoTestFlags = [ "--lib" ];
+    # expects a re-exec of the test binary to exit within 1s, which a loaded builder misses
+    checkFlags = [ "--skip=proc::tests::wait_bounded_returns_a_successful_normal_status" ];
     nativeCheckInputs = [ gitMinimal ];
     # the viewer looks for its glow style next to the executable, so it has to
     # ship with the binary rather than in the plugin root the wrapper hides
