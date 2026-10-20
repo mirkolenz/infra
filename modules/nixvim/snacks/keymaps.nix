@@ -1,7 +1,7 @@
+{ lib', ... }:
 {
   flake.modules.nixvim.default =
     {
-      lib',
       lib,
       config,
       ...

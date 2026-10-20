@@ -1,10 +1,10 @@
+{ lib', ... }:
 {
   flake.modules.homeManager.default =
     {
       pkgs,
       config,
       lib,
-      lib',
       ...
     }:
     lib.mkIf config.custom.features.graphical.enable {

@@ -1,7 +1,6 @@
-# Wires the nixos/darwin buckets: the `_module.args` bridge (inputs + lib'
-# sourced from the flake-parts closure), shared home-manager settings, upstream
-# input modules, option declarations, and the composite default/children/installer
-# variants on top of the bases.
+# Wires the nixos/darwin buckets: the `lib'` module argument, shared home-manager
+# settings, upstream input modules, option declarations, and the composite
+# default/children/installer variants on top of the bases.
 # The package set comes from the configuration builders (see
 # options/flake-parts/nixpkgs.nix), so no bucket may set `nixpkgs.config`
 # or `nixpkgs.overlays`.
@@ -13,10 +12,8 @@
 }:
 let
   inherit (config.flake) modules;
+  moduleArgs._module.args = { inherit lib'; };
   systemShared = {
-    _module.args = {
-      inherit inputs lib';
-    };
     home-manager = {
       backupFileExtension = "backup";
       sharedModules = [ config.flake.modules.homeManager.base ];
@@ -27,6 +24,7 @@ let
 in
 {
   flake.modules.nixos.base.imports = [
+    moduleArgs
     systemShared
     inputs.home-manager.nixosModules.default
     inputs.quadlet-nix.nixosModules.default
@@ -40,6 +38,7 @@ in
   ];
 
   flake.modules.darwin.base.imports = [
+    moduleArgs
     systemShared
     inputs.home-manager.darwinModules.default
     inputs.determinate.darwinModules.default
@@ -58,11 +57,7 @@ in
   flake.modules.nixos.children.imports = [ modules.nixos.base ];
 
   flake.modules.nixos.installer.imports = [
-    {
-      _module.args = {
-        inherit inputs lib';
-      };
-    }
+    moduleArgs
     inputs.determinate.nixosModules.default
     (inputs.import-tree ../../options/shared)
   ];

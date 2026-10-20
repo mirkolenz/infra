@@ -1,6 +1,6 @@
 # Wires the homeManager buckets with a clear split:
-#   base       - user-agnostic foundation (inputs, options, the _module.args
-#                bridge, host feature inheritance, home scaffolding). Injected
+#   base       - user-agnostic foundation (inputs, options, the `lib'` module
+#                argument, host feature inheritance, home scaffolding). Injected
 #                into every home via home-manager.sharedModules, so any future
 #                user gets it for free. Home scaffolding lives in home-common.nix.
 #   default    - the mlenz home: the cross-platform program set (feature files)
@@ -37,9 +37,7 @@ in
         (inputs.import-tree ../../options/shared)
       ];
       config = {
-        _module.args = {
-          inherit inputs lib';
-        };
+        _module.args = { inherit lib'; };
         custom = {
           standalone = !(args ? osConfig);
           features = osConfig.custom.features or { };

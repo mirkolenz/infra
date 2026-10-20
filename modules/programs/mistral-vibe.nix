@@ -1,10 +1,10 @@
+{ lib', ... }:
 {
   flake.modules.homeManager.default =
     {
       config,
       pkgs,
       lib,
-      lib',
       ...
     }:
     let

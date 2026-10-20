@@ -4,6 +4,7 @@
 # and lua/my/ holds the helpers they share. extraPackages
 # and dependencies put the tools the modules shell out to on Neovim's PATH,
 # so the features are self-contained.
+{ lib', ... }:
 {
   flake.modules.nixvim = {
     default.extraFiles = {
@@ -12,7 +13,7 @@
       "plugin/ui2.lua".source = ./ui2.lua;
     };
     extras =
-      { lib', pkgs, ... }:
+      { pkgs, ... }:
       {
         extraFiles = {
           "plugin/pdf-preview.lua".source = ./pdf-preview.lua;

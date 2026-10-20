@@ -4,11 +4,11 @@
 # something with `overrideDerivation` but no `overrideAttrs`, which the by-name
 # update-script guard needs.
 # https://wiki.t2linux.org/guides/wifi-bluetooth/ (method 5)
+{ inputs, ... }:
 {
   flake.modules.nixos.apple-t2 =
     {
       config,
-      inputs,
       lib,
       pkgs,
       ...

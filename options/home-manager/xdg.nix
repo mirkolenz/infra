@@ -4,14 +4,14 @@
   config,
   lib,
   pkgs,
-  inputs,
+  modulesPath,
   ...
 }:
 let
   cfg = config.xdg;
 
   fileType =
-    (import "${inputs.home-manager}/modules/lib/file-type.nix" {
+    (import "${modulesPath}/lib/file-type.nix" {
       inherit (config.home) homeDirectory;
       inherit lib pkgs;
     }).fileType;

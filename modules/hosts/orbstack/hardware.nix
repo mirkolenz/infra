@@ -1,8 +1,8 @@
+{ lib', ... }:
 {
   flake.modules.nixos.orbstack =
     {
       lib,
-      lib',
       config,
       ...
     }:

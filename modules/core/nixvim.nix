@@ -1,12 +1,10 @@
-# Wires the nixvim.default bucket: the `_module.args` bridge and the shared +
+# Wires the nixvim.default bucket: the `lib'` module argument and the shared +
 # nixvim option declarations. All `vim/*` feature files merge into
 # flake.modules.nixvim.default.
 { inputs, lib', ... }:
 {
   flake.modules.nixvim.default = {
-    _module.args = {
-      inherit inputs lib';
-    };
+    _module.args = { inherit lib'; };
     imports = [
       (inputs.import-tree ../../options/shared)
       (inputs.import-tree ../../options/nixvim)
