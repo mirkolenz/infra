@@ -1,14 +1,14 @@
 {
-  "tag_name": "v0.5.3",
+  "tag_name": "v0.5.4",
   "assets": {
     "fresh-editor-aarch64-apple-darwin.tar.xz": {
-      "digest": "sha256:9a720e3c24d889a025a151cffdb90b3f753b06810da67cac89e488cdc37ddab4"
+      "digest": "sha256:c722ce9ae6f92f9c4f5ba112f187296ba5bbb53d53e0c82478249becc9859cc4"
     },
     "fresh-editor-aarch64-unknown-linux-musl.tar.xz": {
-      "digest": "sha256:bba5f43fae151aea61b569adf51cabe3248ba1682641e1753eb655cf3ebd7422"
+      "digest": "sha256:423640b2700124affcb6368c8458990e880585d114279c0f4e502f0013a5776f"
     },
     "fresh-editor-x86_64-unknown-linux-musl.tar.xz": {
-      "digest": "sha256:85478ac108fc3f669f3a872176a5fa48e5c11d6c8c06bd0d2dfff1c484549ea7"
+      "digest": "sha256:ab3aa0dc7f8e5b5e2836b4e3a7ed457d90ec4954b0271217eb10bf3ba5454142"
     }
   }
 }
