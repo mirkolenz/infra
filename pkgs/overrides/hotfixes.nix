@@ -88,6 +88,75 @@ in
 }
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
 
+  # Nix 2.35 opens the root directory with O_RDONLY, which Landlock denies within nono,
+  # since it cannot grant listing `/` without everything below it.
+  # Only the patched nix-util is built and grafted into Determinate's build,
+  # which relies on the patch leaving its ABI unchanged.
+  # Drop once the locked Nix opens the root with O_PATH.
+  # https://github.com/NixOS/nix/issues/16164
+  determinate-nix =
+    let
+      inherit (prev) lib;
+      nix = prev.determinate-nix;
+      packages = final.inputs.determinate.inputs.nix.packages.${prev.stdenv.hostPlatform.system};
+      nixUtil = nix.libs.nix-util;
+
+      # The components linking nix-util bottom-up, each one rewritten with the replacements
+      # of those before it, without import-from-derivation unlike `replaceDependencies`.
+      replacements =
+        lib.foldl'
+          (
+            acc: drv:
+            acc
+            ++ [
+              {
+                oldDependency = drv;
+                newDependency = final.replaceDirectDependencies {
+                  inherit drv;
+                  replacements = acc;
+                };
+              }
+            ]
+          )
+          [
+            {
+              oldDependency = nixUtil;
+              newDependency = nixUtil.overrideAttrs (prevAttrs: {
+                patches = prevAttrs.patches or [ ] ++ [ ./nix-root-o-path.patch ];
+                # relative to the repository, while the build runs in src/libutil
+                patchFlags = [ "-p3" ];
+              });
+            }
+          ]
+          (
+            lib.attrVals [
+              "nix-store"
+              "nix-fetchers"
+              "nix-main"
+              "nix-expr"
+              "nix-flake"
+              "nix-cmd"
+            ] nix.libs
+            ++ [
+              packages.nix-cli
+              packages.nix-nswrapper
+            ]
+          );
+    in
+    (final.replaceDirectDependencies {
+      drv = nix;
+      inherit replacements;
+    }).overrideAttrs
+      {
+        # A component missing above would keep the unpatched nix-util, which fails the build.
+        disallowedRequisites = [ nixUtil ];
+        # the NixOS module reads `pname`, and the graft has the `out` output only
+        passthru = {
+          inherit (nix) pname version;
+        };
+        meta = removeAttrs nix.meta [ "outputsToInstall" ];
+      };
+
   # Vicinae pins GCC 15 on linux, but numen uses GCC 16 and requires GLIBCXX_3.4.36.
   # No upstream report, drop it once the pin is gone.
   # https://github.com/vicinaehq/vicinae/blob/main/nix/vicinae.nix
