@@ -10,8 +10,8 @@ Judge against the locked sources, hydra, and upstream trackers, never against me
 
 ## Scope
 
-- `pkgs/overrides/hotfixes.nix`, where each entry names the fix it waits for.
-- `pkgs/overrides/ports.nix` and `determinate.nix`, where each entry says what would let it go.
+- `pkgs/overrides/90-hotfixes.nix`, where each entry names the fix it waits for.
+- `pkgs/overrides/40-ports.nix` and `60-determinate.nix`, where each entry says what would let it go.
 - `pkgs/by-name/`, for wrapped `prev` packages, `patches`, `pythonRelaxDeps`, `doCheck = false`, and fixes noted as landed after a tag.
 - `modules/` and `options/`, for todos, commented-out packages, `final.stable` pins, and links to nixpkgs, home-manager, nix-darwin, or nix issues.
 

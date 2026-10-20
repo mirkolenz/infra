@@ -173,8 +173,12 @@
         };
       });
 
-    # import and compose `final: prev: -> attrset` overlay fragments in the given order,
-    # so that each fragment sees the preceding ones in its `prev`
-    importOverlays = paths: lib.composeManyExtensions (map import paths);
+    # import and compose the `final: prev: -> attrset` overlay fragments of a directory
+    # in the order of their names, so that each fragment sees the preceding ones in its `prev`
+    importOverlays =
+      dir:
+      lib.composeManyExtensions (
+        map import (lib.fileset.toList (lib.fileset.fileFilter (file: file.hasExt "nix") dir))
+      );
   };
 }

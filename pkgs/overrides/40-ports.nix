@@ -1,7 +1,7 @@
 final: prev:
 # Packages nixpkgs builds from linux sources or marks linux-only that do work on darwin.
 # These are ports we carry until upstream takes them, not bugs waiting on a release, so
-# unlike `hotfixes.nix` they have no fix to track and are expected to live here for a
+# unlike `90-hotfixes.nix` they have no fix to track and are expected to live here for a
 # long time. Each one says what it does and what would let it go.
 {
   # lighthouse only needs a chromium based browser for CHROME_PATH, and nixpkgs chromium is

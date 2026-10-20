@@ -38,19 +38,13 @@ let
     topLevel // scoped // vendored
   );
 
-  # overlay-style fragments, each `final: prev: -> attrset`, composed in the order listed below:
+  # overlay-style fragments, each `final: prev: -> attrset`, composed in the order of their prefix:
   # every fragment sees the preceding ones in its `prev`, so hotfixes come last and apply on top
-  # of the packages the other fragments define. `ports.nix` carries long-lived platform ports,
-  # `features.nix` builds with features nixpkgs leaves out,
-  # `hotfixes.nix` only bugs with an upstream fix to track.
+  # of the packages the other fragments define. `40-ports.nix` carries long-lived platform ports,
+  # `50-features.nix` builds with features nixpkgs leaves out,
+  # `90-hotfixes.nix` only bugs with an upstream fix to track.
   # fragments may also define non-derivation values such as `pythonPackagesExtensions`
-  overrides = lib'.importOverlays [
-    ./overrides/inputs.nix
-    ./overrides/ports.nix
-    ./overrides/features.nix
-    ./overrides/determinate.nix
-    ./overrides/hotfixes.nix
-  ] final prev;
+  overrides = lib'.importOverlays ./overrides final prev;
 
   custom = {
     # flat derivations exposed via flake.packages and built in CI
