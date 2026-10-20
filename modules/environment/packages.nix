@@ -36,6 +36,8 @@
         # http clients and servers
         xh
         miniserve
+        # file transfer
+        termscp
         # bulk renaming
         pipe-rename
         # disk usage
