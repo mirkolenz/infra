@@ -12,7 +12,7 @@
     {
       system.stateVersion = config.custom.stateVersions.linux;
 
-      services.fwupd.enable = true;
+      services.fwupd.enable = !config.boot.isContainer;
 
       # `nixos-hardware/apple` turns on this out-of-tree webcam driver, which breaks on new kernels.
       hardware.facetimehd.enable = false;
