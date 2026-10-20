@@ -26,6 +26,17 @@ in
       # https://github.com/DeterminateSystems/determinate/blob/main/modules/nix-darwin/default.nix
       # Set in both cases, an unset state falls back to the default of determinate-nixd.
       determinateNix.determinateNixd.builder.state = if cfg == "native" then "enabled" else "disabled";
+
+      # determinate-nixd only writes the native builder to `nix.conf` on start,
+      # and Nix falls back to a stale entry when the remote builder declines a job.
+      system.activationScripts.postActivation.text = /* bash */ ''
+        if grep -q '^external-builders' /etc/nix/nix.conf; then builder=native; else builder=orbstack; fi
+
+        if [ "$builder" != ${cfg} ]; then
+          echo "Determinate Nixd: Restarting to apply the ${cfg} Linux builder"
+          launchctl kickstart -k system/systems.determinate.nix-daemon
+        fi
+      '';
     }
 
     (lib.mkIf (cfg == "orbstack") {
