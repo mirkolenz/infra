@@ -108,6 +108,8 @@
           boot.extraModprobeConfig = pkgs.kait2en.amdgpu.modprobeConfig;
           # GTK's Vulkan renderer opens the dGPU even on the iGPU's display.
           environment.sessionVariables.GSK_RENDERER = "ngl";
+          # Lets the desktop launch an app on the dGPU through PRIME.
+          services.switcherooControl.enable = true;
           services.udev.extraRules = ''
             SUBSYSTEM=="pci", ATTR{vendor}=="0x1002", ATTR{class}=="0x03*", ATTR{power/control}="auto"
           '';
