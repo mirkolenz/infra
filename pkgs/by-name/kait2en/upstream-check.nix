@@ -13,6 +13,9 @@ runCommand "kait2en-upstream-check"
       hash = "sha256-CdTEX8zi83ra3R3MeWHDyU3GlO2wbW6EPi50nhIAxl0=";
     };
     inherit (kait2en.modules) src;
+    # The last commit reviewed of the NixOS fork packaging the same upstream.
+    # https://github.com/LukeChannings/KaiT2en-NixOS
+    passthru.reviewedFork = "3f1ea0e3ff3537782d76577cc84caebd9e34da61";
     meta = {
       description = "Detect changes to reviewed KaiT2en build and integration metadata";
       platforms = lib.platforms.unix;

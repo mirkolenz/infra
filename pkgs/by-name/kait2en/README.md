@@ -7,6 +7,10 @@ This file records the packaging decisions, updating is covered by the `kait2en` 
 `modules.nix` pins the revision every runtime package is built from.
 The packages install upstream's systemd units, patched with `--replace-fail`, and the modules load them through `systemd.packages` and set `wantedBy`, since NixOS ignores `[Install]`.
 
+## NixOS fork
+
+[KaiT2en-NixOS](https://github.com/LukeChannings/KaiT2en-NixOS) packages the same upstream in a fork, with a patched kernel and hand-written units.
+
 ## Licensing
 
 Upstream's drivers are GPL-2.0, everything else is GPL-3.0-or-later with an attribution term under section 7(b).
