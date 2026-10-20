@@ -34,7 +34,7 @@ in
 # Import `./pkgs` directly rather than the flake's store-copied
 # `overlays.default`, so `meta.position` stays in the working tree and
 # updateScripts can edit package files in place.
-import (lib'.nixpkgsInput { inherit inputs system; }) {
+import inputs.nixpkgs {
   inherit system;
   overlays = [
     (import ./pkgs flake.overlayArgs)

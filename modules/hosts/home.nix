@@ -1,11 +1,6 @@
-# Standalone home-manager deploy targets (machines without a full system config here).
+# Standalone home-manager deploy targets (linux machines without a full system config here).
 # The login is derived from the part before "@" in the name.
-{
-  config,
-  lib,
-  lib',
-  ...
-}:
+{ config, lib, ... }:
 let
   inherit (config.flake.modules) homeManager;
 in
@@ -24,7 +19,7 @@ in
           inherit system check;
           module = {
             imports = [
-              homeManager.${lib'.systemOs system}
+              homeManager.linux
               homeManager.standalone
             ];
             custom.user.login = lib.head (lib.splitString "@" name);

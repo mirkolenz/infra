@@ -4,7 +4,6 @@
 {
   inputs,
   lib,
-  lib',
   config,
   withSystem,
   ...
@@ -37,7 +36,7 @@
               pkgs = withSystem system ({ pkgs, ... }: pkgs);
               # nix-darwin ignores the supplied instance when resolving
               # `system.nixpkgsRevision` and reads this input instead.
-              source = lib'.nixpkgsInput { inherit inputs system; };
+              source = inputs.nixpkgs;
             };
           }
         ];

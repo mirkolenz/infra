@@ -37,12 +37,12 @@
   config = {
     nixosSystemFor = lib.genAttrs config.systems (
       system: modules:
-      inputs.nixpkgs-linux-unstable.lib.nixosSystem {
+      inputs.nixpkgs.lib.nixosSystem {
         system = null;
         modules = modules ++ [
           {
             _file = ./nixos-configurations.nix;
-            imports = [ "${inputs.nixpkgs-linux-unstable}/nixos/modules/misc/nixpkgs/read-only.nix" ];
+            imports = [ "${inputs.nixpkgs}/nixos/modules/misc/nixpkgs/read-only.nix" ];
             nixpkgs.pkgs = withSystem system ({ pkgs, ... }: pkgs);
           }
         ];

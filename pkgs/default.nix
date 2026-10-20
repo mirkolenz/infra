@@ -63,7 +63,7 @@ let
       lib.removeAttrs ownPackages (lib.attrNames overrides)
     );
     # derivations with an in-tree hash, built by `update-deps` so it can fix them
-    hashedPackages = lib.filterAttrs (_: lib.meta.availableOn prev.stdenv.hostPlatform) {
+    hashedPackages = {
       inherit (final) caddy-custom;
     };
   };

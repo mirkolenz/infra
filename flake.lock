@@ -524,20 +524,7 @@
         "url": "https://flakehub.com/f/NixOS/nixpkgs/0.2605"
       }
     },
-    "nixpkgs-darwin-stable": {
-      "locked": {
-        "lastModified": 1792444834,
-        "narHash": "sha256-dGJyYwsSWU5uXHfNSJXBi5HU4l/86uT4oP9CwTTJqvU=",
-        "rev": "c4e5bcc625bd88ba8ea792fa6616ab914fe990d0",
-        "type": "tarball",
-        "url": "https://releases.nixos.org/nixpkgs/26.05-darwin/nixpkgs-darwin-26.05pre1016556.c4e5bcc625bd/nixexprs.tar.zst"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://channels.nixos.org/nixpkgs-26.05-darwin/nixexprs.tar.zst"
-      }
-    },
-    "nixpkgs-linux-stable": {
+    "nixpkgs-stable": {
       "locked": {
         "lastModified": 1792422028,
         "narHash": "sha256-9vaC514eu0ogJHxt6A0qQLtdfqHA15OnBVEstArd2NY=",
@@ -550,7 +537,7 @@
         "url": "https://channels.nixos.org/nixos-26.05/nixexprs.tar.zst"
       }
     },
-    "nixpkgs-linux-unstable": {
+    "nixpkgs_2": {
       "locked": {
         "lastModified": 1792210252,
         "narHash": "sha256-EFOYkCb5ZNtbPx1NInawzi4y/6JRdHia0ag0CbJoMNY=",
@@ -561,19 +548,6 @@
       "original": {
         "type": "tarball",
         "url": "https://channels.nixos.org/nixos-unstable/nixexprs.tar.zst"
-      }
-    },
-    "nixpkgs_2": {
-      "locked": {
-        "lastModified": 1792208399,
-        "narHash": "sha256-oetumMsfOP6I88jJ3o4C/LqZBcCNLMx9a5WIP9oUin8=",
-        "rev": "7a6522c868711d06e3a520bbcdfafe9806f4337f",
-        "type": "tarball",
-        "url": "https://releases.nixos.org/nixpkgs/nixpkgs-26.11pre1095514.7a6522c86871/nixexprs.tar.zst"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.zst"
       }
     },
     "nixvim": {
@@ -758,9 +732,7 @@
         "nixos-hardware": "nixos-hardware",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs_2",
-        "nixpkgs-darwin-stable": "nixpkgs-darwin-stable",
-        "nixpkgs-linux-stable": "nixpkgs-linux-stable",
-        "nixpkgs-linux-unstable": "nixpkgs-linux-unstable",
+        "nixpkgs-stable": "nixpkgs-stable",
         "nixvim": "nixvim",
         "opnix": "opnix",
         "plasma-manager": "plasma-manager",

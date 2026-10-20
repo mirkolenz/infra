@@ -23,14 +23,14 @@ rg -n -i 'todo|fixme|broken|until|once |fixed upstream|issues/|pull/|patch|overr
 
 ## Evidence
 
-Linux builds from `nixpkgs-linux-unstable`, darwin from `nixpkgs`, and `final.stable` from `nixpkgs-<os>-stable`.
-Check an `isLinux` or `isDarwin` entry against its input only, any other entry against both.
+Every system builds from `nixpkgs` (nixos-unstable), and `final.stable` from `nixpkgs-stable` (nixos-26.05).
+Check an `isLinux` or `isDarwin` entry against its platform only, any other entry against all of them.
 
 ```sh
 # sources of a locked input, also home-manager, nix-darwin, or any other
 nix-flake-input <input>
 
-# hydra history of the unpatched job, `unstable` matches the inputs above on either os
+# hydra history of the unpatched job, `unstable` matches the `nixpkgs` input
 hydra-check --arch <system> --channel unstable <attr>
 
 # state of an upstream fix

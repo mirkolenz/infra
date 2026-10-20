@@ -5,25 +5,6 @@
   _module.args.lib' = config.flake.lib;
 
   flake.lib = rec {
-    systemInput =
-      {
-        inputs,
-        name,
-        channel,
-        os,
-      }:
-      inputs."${name}-${os}-${channel}" or inputs.${name};
-    # unstable nixpkgs for `system`, as the flake input rather than its store
-    # path: nix-darwin reads `rev` off it for `system.nixpkgsRevision`.
-    nixpkgsInput =
-      { inputs, system }:
-      systemInput {
-        inherit inputs;
-        name = "nixpkgs";
-        channel = "unstable";
-        os = systemOs system;
-      };
-    systemOs = system: lib.last (lib.splitString "-" system);
     # return [ path ] if it exists, otherwise [ ]
     optionalPath = path: if lib.pathExists path then [ path ] else [ ];
     # resolved nix daemon socket path as a sandbox sees it after symlink resolution.
