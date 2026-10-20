@@ -137,13 +137,13 @@ stdenv.mkDerivation {
 
   # The pin every package here is built from. It cannot live in a file of its
   # own: `nix-update` writes to wherever the `src` attribute is declared.
-  version = "0.1.12-unstable-2026-10-18";
+  version = "0.1.12-unstable-2026-10-19";
 
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";
-    rev = "d249a03291861dfb2a13d55e83b3764b500e2e2e";
-    hash = "sha256-w7jhBHne0v7HJnboUl2kw/IaOT/ACDkqGpV9qOlxWvM=";
+    rev = "ba9d2d830ae5b4ccacf7f82ccc305270496397ff";
+    hash = "sha256-Gx1AxVfz7yDQz4c5/BhZ8RYnd5ip1PPFtl9owhVP0Jg=";
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies ++ [
@@ -249,6 +249,7 @@ stdenv.mkDerivation {
     # Refresh the Cargo hashes together with the shared source pin.
     inherit (kait2en)
       ave
+      debug
       journal
       power-explorer
       smc-control

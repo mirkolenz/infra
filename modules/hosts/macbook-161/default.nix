@@ -53,6 +53,7 @@ in
 
         environment.systemPackages = with pkgs; [
           brightnessctl
+          kait2en.debug
           kait2en.power-explorer
           kait2en.smc-control
         ];
