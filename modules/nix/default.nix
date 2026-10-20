@@ -62,20 +62,11 @@ in
     };
 
   flake.modules.darwin.base =
-    { config, lib, ... }:
+    { config, ... }:
     {
       # https://github.com/DeterminateSystems/determinate/blob/main/modules/nix-darwin/default.nix
-      determinateNix = {
-        # https://docs.determinate.systems/determinate-nix#determinate-nixd-configuration
-        determinateNixd = {
-          garbageCollector.strategy = "automatic";
-          # Linux builds via a VM on the macOS Virtualization framework, requires
-          # the native-linux-builder feature to be granted for the FlakeHub account.
-          # mkDefault so that builders.nix can turn it off in favor of the OrbStack VM.
-          # https://determinate.systems/blog/changelog-determinate-nix-384/
-          builder.state = lib.mkDefault "enabled";
-        };
-      };
+      # https://docs.determinate.systems/determinate-nix#determinate-nixd-configuration
+      determinateNix.determinateNixd.garbageCollector.strategy = "automatic";
       environment.etc."nix/nix.custom.conf".text = secretsInclude config.services.onepassword-secrets;
       nix.enable = false;
     };
