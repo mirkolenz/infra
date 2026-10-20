@@ -1,9 +1,13 @@
 {
-  flake.modules.nixvim.default = {
-    plugins.lspconfig.enable = true;
-    lsp = {
-      inlayHints.enable = true;
-      servers = {
+  flake.modules.nixvim = {
+    default = {
+      plugins.lspconfig.enable = true;
+      lsp.inlayHints.enable = true;
+    };
+    extras = {
+      # json and yaml schemas for jsonls and yamlls
+      plugins.schemastore.enable = true;
+      lsp.servers = {
         # keep-sorted start
         astro.enable = true;
         buf_ls.enable = true;

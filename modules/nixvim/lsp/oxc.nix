@@ -1,5 +1,5 @@
 {
-  flake.modules.nixvim.default = {
+  flake.modules.nixvim.extras = {
     # Formatting is handled by conform.nvim (see ../plugins/conform.nix); oxlint
     # stays a server for its on-type diagnostics.
     lsp.servers.oxlint = {

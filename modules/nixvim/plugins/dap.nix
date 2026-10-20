@@ -1,5 +1,5 @@
 {
-  flake.modules.nixvim.default = {
+  flake.modules.nixvim.extras = {
     plugins = {
       dap.enable = true;
       dap-python.enable = true;

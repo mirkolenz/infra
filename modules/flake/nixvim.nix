@@ -1,28 +1,17 @@
-# The flake's only nixvim constructor: one evaluation per system in `perSystem`,
-# shared by every home through `withSystem` (see modules/programs/neovim.nix).
-# It becomes `packages.nixvim-default`.
+# The nixvim variants: `default` for every home, `extras` adding the heavy
+# language tooling for homes with `custom.features.extras` (see modules/programs/neovim.nix).
+{ config, ... }:
+let
+  inherit (config.flake.modules) nixvim;
+in
 {
-  inputs,
-  config,
-  ...
-}:
-{
-  nixvim.packages = {
-    enable = true;
-    nameFunction = name: "nixvim-${name}";
-  };
-
-  perSystem =
-    { pkgs, ... }:
-    {
-      nixvimConfigurations.default = inputs.nixvim.lib.evalNixvim {
-        modules = [
-          config.flake.modules.nixvim.default
-          {
-            _file = ./nixvim.nix;
-            nixpkgs.pkgs = pkgs;
-          }
-        ];
-      };
+  configurations.nixvim = {
+    default.module = nixvim.default;
+    extras.module = {
+      imports = [
+        nixvim.default
+        nixvim.extras
+      ];
     };
+  };
 }

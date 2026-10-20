@@ -1,5 +1,5 @@
 {
-  flake.modules.nixvim.default =
+  flake.modules.nixvim.extras =
     { lib, ... }:
     {
       lsp.servers.emmylua_ls = {

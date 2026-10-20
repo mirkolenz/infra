@@ -1,5 +1,5 @@
 {
-  flake.modules.nixvim.default = {
+  flake.modules.nixvim.extras = {
     lsp.servers.harper_ls = {
       enable = true;
       # https://writewithharper.com/docs/integrations/language-server

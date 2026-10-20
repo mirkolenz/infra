@@ -14,7 +14,6 @@
       };
       persistence.enable = true;
       quicker.enable = true;
-      schemastore.enable = true;
     };
   };
 }

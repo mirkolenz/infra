@@ -1,5 +1,5 @@
 {
-  flake.modules.nixvim.default = {
+  flake.modules.nixvim.extras = {
     lsp.servers.tinymist = {
       enable = true;
       config.settings = {

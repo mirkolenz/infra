@@ -19,7 +19,7 @@
           update-path = "custom.flattenedPackages";
         };
         neovide.program = pkgs.writeShellScriptBin "neovide" /* bash */ ''
-          ${lib.getExe pkgs.neovide} --neovim-bin ${lib.getExe config.packages.nixvim-default} "$@"
+          ${lib.getExe pkgs.neovide} --neovim-bin ${lib.getExe config.packages.nixvim-extras} "$@"
         '';
       };
     };

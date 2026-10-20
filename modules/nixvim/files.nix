@@ -19,65 +19,9 @@ in
           tabstop = 4;
         };
       };
-      "after/ftplugin/tex.lua" = {
-        localOpts = proseOpts;
-        keymaps = [
-          {
-            key = "<leader>tb";
-            mode = "n";
-            action = "<cmd>TexlabWriteBuild<CR>";
-            options.desc = "Write and build the document";
-          }
-          {
-            key = "<leader>tB";
-            mode = "n";
-            action = "<cmd>LspTexlabCancelBuild<CR>";
-            options.desc = "Cancel the current build";
-          }
-          {
-            key = "<leader>tc";
-            mode = "n";
-            action = "<cmd>LspTexlabCleanAuxiliary<CR>";
-            options.desc = "Clean auxiliary files";
-          }
-          {
-            key = "<leader>tC";
-            mode = "n";
-            action = "<cmd>LspTexlabCleanArtifacts<CR>";
-            options.desc = "Clean auxiliary and output files";
-          }
-        ];
-        userCommands = {
-          TexlabWriteBuild = {
-            command = "write | LspTexlabBuild";
-            desc = "Write and build the document";
-          };
-        };
-      };
+      "after/ftplugin/tex.lua".localOpts = proseOpts;
       "after/ftplugin/text.lua".localOpts = proseOpts;
-      "after/ftplugin/typst.lua" = {
-        localOpts = proseOpts;
-        keymaps = [
-          {
-            key = "<leader>tb";
-            mode = "n";
-            action = "<cmd>TypstCompile<CR>";
-            options.desc = "Compile the document";
-          }
-          {
-            key = "<leader>tw";
-            mode = "n";
-            action = "<cmd>TypstWatch<CR>";
-            options.desc = "Watch and recompile the document";
-          }
-          {
-            key = "<leader>tW";
-            mode = "n";
-            action = "<cmd>TypstWatchStop<CR>";
-            options.desc = "Stop watching the document";
-          }
-        ];
-      };
+      "after/ftplugin/typst.lua".localOpts = proseOpts;
     };
   };
 }
