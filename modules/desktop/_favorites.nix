@@ -27,7 +27,7 @@ lib.filter (app: app != null) [
   "dev.zed.Zed"
   "com.mitchellh.ghostty"
   "zotero"
-  "Stirling PDF" # PDF Expert; the desktop file name really does have a space
+  "org.gnome.Papers" # PDF Expert
   "writer" # Microsoft Word
   "calc" # Microsoft Excel
   "impress" # Microsoft PowerPoint

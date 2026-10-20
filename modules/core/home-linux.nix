@@ -40,8 +40,8 @@
           todoist-electron
           # papers ships with the GNOME core apps but not with Cosmic
           papers
-          # the desktop build bundles the server, so it needs no separate host
-          stirling-pdf-desktop
+          # page operations, which papers lacks
+          pdfarranger
         ];
         programs.libreoffice = {
           enable = true;
