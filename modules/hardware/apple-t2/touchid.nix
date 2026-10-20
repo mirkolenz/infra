@@ -36,7 +36,7 @@
           substitutions = [
             "--replace-fail"
             "T2_TOUCHID_BIND_USER=none"
-            "T2_TOUCHID_BIND_USER=${config.custom.user.login}"
+            "T2_TOUCHID_BIND_USER=${lib.defaultTo "none" config.custom.apple-t2.user}"
           ];
         };
       };

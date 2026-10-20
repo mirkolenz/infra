@@ -11,6 +11,7 @@
     }:
     let
       cfg = config.custom.apple-t2.touchbar;
+      inherit (config.custom.apple-t2) user;
       package = pkgs.kait2en.touchbar;
       settingsFormat = pkgs.formats.toml { };
       # Named by the udev rules.
@@ -45,8 +46,7 @@
           path = [ config.services.pipewire.wireplumber.package ];
         };
 
-        users.groups.${group} = { };
-        users.users.${config.custom.user.login}.extraGroups = [ group ];
+        users.groups.${group}.members = lib.optional (user != null) user;
       };
     };
 }

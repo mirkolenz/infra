@@ -11,6 +11,7 @@ in
     system = "x86_64-linux";
     module =
       {
+        config,
         pkgs,
         ...
       }:
@@ -27,6 +28,7 @@ in
 
         custom.apple-t2 = {
           model = "MacBookPro16,1";
+          user = config.custom.user.login;
           firmware.enable = true;
           # Parks the discrete GPU, which on this model otherwise trips CATERR.
           graphics.mode = "integrated";
