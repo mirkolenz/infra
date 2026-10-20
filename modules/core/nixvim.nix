@@ -17,9 +17,11 @@
     # the man page renders every nixvim option, the largest single cost of the build
     enableMan = false;
 
-    withNodeJs = true;
-    withPython3 = true;
-    withRuby = true;
-    withPerl = true;
+    # every plugin is Lua and the language servers bundle their runtimes,
+    # so none of the remote plugin providers is needed
+    withNodeJs = false;
+    withPerl = false;
+    withPython3 = false;
+    withRuby = false;
   };
 }
