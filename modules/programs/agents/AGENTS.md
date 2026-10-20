@@ -18,6 +18,7 @@
 ## System
 
 - All command line tools are installed from nixpkgs, Homebrew is only used for GUI apps on macOS.
+- On macOS, nix delegates Linux derivations to a Linux builder, so `nix build` also works for `x86_64-linux` and `aarch64-linux`.
 - On macOS, the GNU versions of coreutils, findutils, grep, sed, and awk replace the BSD ones, so use GNU syntax such as `sed -i` without a suffix.
 - Exec `nix run nixpkgs#<pkg>` to use a tool that is not installed, and `nix-locate bin/<cmd>` to find the package that provides a command.
 - On NixOS, there is no FHS, so use `#!/usr/bin/env` shebangs and do not expect prebuilt binaries to run.
