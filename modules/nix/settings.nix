@@ -18,6 +18,7 @@ let
     accept-flake-config = true;
     commit-lock-file-summary = "chore(deps/nix): update";
     fallback = true;
+    keep-going = true;
     lint-url-literals = "fatal";
     use-xdg-base-directories = true;
     warn-dirty = false;
@@ -43,7 +44,6 @@ let
     # where determinate-nixd runs the daemon and nix.optimise is unavailable.
     auto-optimise-store = true;
     download-buffer-size = 1000 * 1000 * 1000; # 1 GB
-    keep-going = true;
     log-lines = 200;
   };
 in
