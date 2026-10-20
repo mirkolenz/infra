@@ -266,19 +266,20 @@
             allow_domain = lib.unique (sandbox.domains.allow ++ harnessDomains);
             deny_domain = sandbox.domains.deny;
           }
-          # macOS caps port ranges, but its wildcard stays on localhost
+          # Port 0 is a wildcard on localhost for macOS, which caps port ranges.
+          # Landlock on Linux needs it separately for binding to an ephemeral port, such as the OAuth callback.
           // lib.optionalAttrs sandbox.localhost (
-            if isDarwin then
-              { open_port = [ 0 ]; }
-            else
-              {
-                open_port_range = [
-                  [
-                    1024
-                    65535
-                  ]
-                ];
-              }
+            {
+              open_port = [ 0 ];
+            }
+            // lib.optionalAttrs (!isDarwin) {
+              open_port_range = [
+                [
+                  1024
+                  65535
+                ]
+              ];
+            }
           );
           # Opened in the browser of the host by nono after checking the origin, for logins and dev servers.
           # Unlike `allow_launch_services`, this cannot open files or apps.
