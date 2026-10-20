@@ -1,4 +1,13 @@
 final: prev:
+let
+  # Under __structuredAttrs, makeWrapper receives each `makeWrapperArgs` entry as one argument,
+  # so a single "--prefix PATH : ..." string has to be split into its words.
+  splitWrapperArgs =
+    pkg:
+    pkg.overridePythonAttrs (prevAttrs: {
+      makeWrapperArgs = prev.lib.concatMap (prev.lib.splitString " ") prevAttrs.makeWrapperArgs;
+    });
+in
 {
   # texlive 2025 bundles latexminted 0.6.0, whose argparse subclass rejects the `color` keyword
   # that python 3.14 forwards to `add_parser()`. Fixed upstream in latexminted 0.7.0, which only
@@ -40,12 +49,12 @@ final: prev:
     '';
   };
 
-  # Under __structuredAttrs, makeWrapper receives each `makeWrapperArgs` entry as one argument,
-  # so the single "--prefix PATH : ..." string has to be split into its words.
   # https://github.com/NixOS/nixpkgs/pull/575801
-  sbomnix = prev.sbomnix.overridePythonAttrs (prevAttrs: {
-    makeWrapperArgs = prev.lib.concatMap (prev.lib.splitString " ") prevAttrs.makeWrapperArgs;
-  });
+  sbomnix = splitWrapperArgs prev.sbomnix;
+
+  # Without nix-eval-jobs on its PATH, every `flakectl check-build` fails.
+  # https://github.com/NixOS/nixpkgs/pull/576207
+  nix-fast-build = splitWrapperArgs prev.nix-fast-build;
 
   pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
     (_: pyprev: {
