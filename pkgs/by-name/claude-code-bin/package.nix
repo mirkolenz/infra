@@ -73,6 +73,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       --set DISABLE_INSTALLATION_CHECKS 1 \
       --set-default FORCE_AUTOUPDATE_PLUGINS 1 \
       --set USE_BUILTIN_RIPGREP 0 \
+      --set-default CLAUDE_CODE_CERT_STORE system \
       --prefix PATH : ${
         lib.makeBinPath (
           [
