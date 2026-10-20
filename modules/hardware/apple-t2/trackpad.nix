@@ -36,11 +36,12 @@
           enable = lib.mkEnableOption "the force click, a second and harder press";
 
           threshold = lib.mkOption {
-            type = lib.types.ints.positive;
-            default = 175;
+            type = lib.types.ints.between 120 300;
+            default = 300;
             description = ''
               How hard a force click has to be, as a percentage of
-              {option}`custom.apple-t2.trackpad.clickStrength`. Below roughly
+              {option}`custom.apple-t2.trackpad.clickStrength`. Upstream defaults
+              to the maximum, since a lower one let drags cross it. Below roughly
               125 an ordinary click starts to cross it as well.
             '';
           };

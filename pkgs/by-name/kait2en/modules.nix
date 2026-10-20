@@ -137,13 +137,13 @@ stdenv.mkDerivation {
 
   # The pin every package here is built from. It cannot live in a file of its
   # own: `nix-update` writes to wherever the `src` attribute is declared.
-  version = "0.1.12-unstable-2026-10-19";
+  version = "0.1.12-unstable-2026-10-20";
 
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";
-    rev = "ba9d2d830ae5b4ccacf7f82ccc305270496397ff";
-    hash = "sha256-Gx1AxVfz7yDQz4c5/BhZ8RYnd5ip1PPFtl9owhVP0Jg=";
+    rev = "53e46be8c323bdfa754e37dcc7af70f223cbfaa6";
+    hash = "sha256-CdTEX8zi83ra3R3MeWHDyU3GlO2wbW6EPi50nhIAxl0=";
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies ++ [
