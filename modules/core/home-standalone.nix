@@ -1,5 +1,5 @@
-# Standalone home-manager only: always-on default, auto-upgrade timer, the
-# generic Linux sudo PATH shim and the bash to fish handover.
+# Standalone home-manager only: auto-upgrade timer, the generic Linux
+# sudo PATH shim and the bash to fish handover.
 # Nix daemon config lives in modules/nix.
 {
   flake.modules.homeManager.standalone =
@@ -59,10 +59,8 @@
       '';
     in
     {
-      custom.features.unattended.enable = lib.mkDefault true;
-
       custom.autoUpgrade = {
-        enable = true;
+        enable = config.custom.features.unattended.enable;
         flake = "github:mirkolenz/infra";
       };
 

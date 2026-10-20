@@ -16,10 +16,10 @@
       lib,
       pkgs,
       config,
-      osConfig,
       ...
-    }:
+    }@args:
     let
+      osConfig = args.osConfig or { };
       # Vicinae has no options for shortcuts and snippets yet, so write its data
       # files directly. Both are lists keyed by an opaque id, and every field
       # below that we do not set has a usable default in vicinae.

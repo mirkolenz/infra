@@ -6,6 +6,22 @@
 }:
 let
   cfg = config.custom.autoUpgrade;
+  name = "custom-home-manager-auto-upgrade";
+  description = "Custom Home Manager auto upgrade";
+
+  upgrade = pkgs.writeShellApplication {
+    inherit name;
+    runtimeInputs = [
+      config.programs.home-manager.package
+      config.nix.package
+    ];
+    text = ''
+      home-manager switch \
+        --flake ${lib.escapeShellArg cfg.flake} \
+        --refresh \
+        ${lib.escapeShellArgs cfg.flags}
+    '';
+  };
 in
 {
   options.custom.autoUpgrade = {
@@ -19,13 +35,19 @@ in
       '';
     };
 
-    dates = lib.mkOption {
-      type = lib.types.str;
-      default = "04:40";
-      example = "daily";
+    hour = lib.mkOption {
+      type = lib.types.ints.between 0 23;
+      default = 4;
       description = ''
-        How often to upgrade. The format is described in
-        {manpage}`systemd.time(7)`.
+        Hour of the daily upgrade.
+      '';
+    };
+
+    minute = lib.mkOption {
+      type = lib.types.ints.between 0 59;
+      default = 40;
+      description = ''
+        Minute of the daily upgrade.
       '';
     };
 
@@ -41,68 +63,40 @@ in
         Additional flags passed to {command}`home-manager switch`.
       '';
     };
-
-    persistent = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-      example = false;
-      description = ''
-        Whether the timer should be persistent.
-        If true, the time when the service unit was last triggered is stored on disk.
-        When the timer is activated, the service unit is triggered immediately
-        if it would have been triggered at least once during the time when the timer was inactive.
-      '';
-    };
-
-    randomizedDelaySec = lib.mkOption {
-      type = lib.types.str;
-      default = "0";
-      example = "45min";
-      description = ''
-        Adds a randomized delay before each upgrade.
-        The delay is useful to distribute load on the flake source.
-        See {manpage}`systemd.timer(5)` for details.
-      '';
-    };
   };
 
   config = lib.mkIf cfg.enable {
-    assertions = [
-      (lib.hm.assertions.assertPlatform "custom.autoUpgrade" pkgs lib.platforms.linux)
-    ];
-
-    systemd.user = {
-      services.custom-home-manager-auto-upgrade = {
-        Unit = {
-          Description = "Custom Home Manager auto upgrade";
-        };
+    systemd.user = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
+      services.${name} = {
+        Unit.Description = description;
         Service = {
           Type = "oneshot";
-          ExecStart = pkgs.writeShellScript "custom-home-manager-auto-upgrade" ''
-            home-manager switch \
-              --flake ${lib.escapeShellArg cfg.flake} \
-              --refresh \
-              ${lib.escapeShellArgs cfg.flags}
-          '';
-          ExecSearchPath = lib.makeBinPath [
-            config.programs.home-manager.package
-            config.nix.package
-          ];
+          ExecStart = lib.getExe upgrade;
         };
       };
 
-      timers.custom-home-manager-auto-upgrade = {
-        Unit = {
-          Description = "Custom Home Manager auto upgrade timer";
-        };
+      timers.${name} = {
+        Unit.Description = description;
         Timer = {
-          OnCalendar = cfg.dates;
-          Persistent = cfg.persistent;
-          RandomizedDelaySec = cfg.randomizedDelaySec;
+          OnCalendar = "*-*-* ${toString cfg.hour}:${toString cfg.minute}:00";
+          Persistent = true;
         };
-        Install = {
-          WantedBy = [ "timers.target" ];
-        };
+        Install.WantedBy = [ "timers.target" ];
+      };
+    };
+
+    # launchd catches up on a missed run after sleep, like a persistent timer
+    launchd.agents.${name} = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
+      enable = true;
+      config = {
+        ProgramArguments = [ (lib.getExe upgrade) ];
+        StartCalendarInterval = [
+          {
+            Hour = cfg.hour;
+            Minute = cfg.minute;
+          }
+        ];
+        ProcessType = "Background";
       };
     };
   };
