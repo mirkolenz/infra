@@ -38,6 +38,43 @@ final: prev:
       runHook postInstall
     '';
   };
+
+  # Under __structuredAttrs, makeWrapper receives each `makeWrapperArgs` entry as one argument,
+  # so the single "--prefix PATH : ..." string has to be split into its words.
+  # https://github.com/NixOS/nixpkgs/pull/575801
+  sbomnix = prev.sbomnix.overridePythonAttrs (prevAttrs: {
+    makeWrapperArgs = prev.lib.concatMap (prev.lib.splitString " ") prevAttrs.makeWrapperArgs;
+  });
+
+  pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+    (_: pyprev: {
+      # typepy 2.0.0 landed before the consumers dropped their `typepy<2` pin.
+      # https://github.com/NixOS/nixpkgs/pull/573108
+      sqliteschema = pyprev.sqliteschema.overridePythonAttrs { pythonRelaxDeps = [ "typepy" ]; };
+      simplesqlite = pyprev.simplesqlite.overridePythonAttrs { pythonRelaxDeps = [ "typepy" ]; };
+
+      # sphinxHook only reads the first entry of an array `sphinxBuilders` under __structuredAttrs,
+      # so the man output is never built. A single space-separated entry works around it.
+      # https://github.com/NixOS/nixpkgs/pull/573479
+      reuse = pyprev.reuse.overridePythonAttrs { sphinxBuilders = [ "html man" ]; };
+
+      # `is_archive` rejects the squashfs fixtures although libmagic still identifies them.
+      # No upstream report yet, the hydra job shows when it passes again.
+      # https://hydra.nixos.org/job/nixpkgs/unstable/python314Packages.typecode.aarch64-linux
+      typecode = pyprev.typecode.overridePythonAttrs (prevAttrs: {
+        disabledTests = prevAttrs.disabledTests ++ [
+          "test_archive_squashfs_lzo"
+          "test_archive_squashfs_xz"
+        ];
+      });
+
+      # patchelf 0.19.2 aborts on the large prebuilt binary with `splitIndex == -1`
+      # https://github.com/NixOS/patchelf/pull/672
+      semgrep = pyprev.semgrep.override (prevArgs: {
+        semgrep-core = prevArgs.semgrep-core.override { patchelf = final.buildPackages.patchelf-fixed; };
+      });
+    })
+  ];
 }
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
 
@@ -60,34 +97,6 @@ final: prev:
 
 })
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
-
-  # The unsandboxed e2e bash sources the host's /etc/bashrc, whose nix-darwin PATH runs the
-  # system atuin instead of the one being built, so `filtered_commands_leave_no_captured_output`
-  # captures nothing. The wrapper must be named bash, the pty proxy picks the integration by name.
-  # https://github.com/NixOS/nixpkgs/pull/574509
-  atuin = prev.atuin.overrideAttrs (prevAttrs: {
-    env = (prevAttrs.env or { }) // {
-      ATUIN_E2E_BASH = prev.lib.getExe (
-        final.writeShellScriptBin "bash" ''
-          NOSYSBASHRC=1 exec ${prev.lib.getExe final.bashInteractive} "$@"
-        ''
-      );
-    };
-  });
-
-  # NetBSD 11.0 stripped trailing whitespace from getent.c, so two hunks of nixpkgs' getent.patch
-  # (written against 7.1.2) no longer match. Ignoring whitespace applies it cleanly.
-  # https://github.com/NixOS/nixpkgs/commit/b1b2a77e10
-  netbsd = prev.netbsd.overrideScope (
-    _: nprev: {
-      getent = nprev.getent.overrideAttrs {
-        patchFlags = [
-          "-p1"
-          "-l"
-        ];
-      };
-    }
-  );
 
   # Replace the SVG driver's Windows-only header with POSIX headers, as Homebrew does.
   # https://github.com/Homebrew/homebrew-core/pull/261141
