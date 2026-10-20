@@ -24,7 +24,6 @@ from operator import attrgetter
 from pathlib import Path
 from typing import Annotated, Any
 
-import click
 import questionary
 import typer
 import yaml
@@ -90,6 +89,12 @@ STYLE = questionary.Style(
 app = typer.Typer(help=__doc__, no_args_is_help=True, add_completion=False)
 
 
+class Error(Exception):
+    """An error shown to the user without a traceback, exiting with its code."""
+
+    exit_code = 1
+
+
 class Level(StrEnum):
     """The level of a version change, from the most to the least severe."""
 
@@ -136,7 +141,7 @@ class Replace:
         lines = self.path.read_text().splitlines(keepends=True)
 
         if self.old not in lines[self.line]:
-            raise click.ClickException(
+            raise Error(
                 f"{self.path}:{self.line + 1} no longer holds {self.old}"
             )
 
@@ -301,7 +306,7 @@ MinAge = Annotated[
 ]
 
 
-class CommandError(click.ClickException):
+class CommandError(Error):
     """A command that failed, exiting with its code and its standard error if captured."""
 
     def __init__(self, args: Sequence[str], code: int, stderr: str) -> None:
@@ -332,7 +337,7 @@ def run_json(*args: str, codes: Container[int] = (0,), capture: bool = False) ->
     try:
         return json.loads(output)
     except json.JSONDecodeError as error:
-        raise click.ClickException(
+        raise Error(
             f"`{shlex.join(args[:2])}` printed no JSON: {error}"
         ) from error
 
@@ -474,7 +479,7 @@ def uv_bumps(precision: Precision) -> Iterator[Bump]:
                 if "latest_version" in node
             }
         case output:
-            raise click.ClickException(f"Unexpected output of `uv tree`: {output}")
+            raise Error(f"Unexpected output of `uv tree`: {output}")
 
     yield from filter(
         None,
@@ -582,7 +587,7 @@ def npm_outdated() -> Iterator[Outdated]:
     # npm exits with 1 if anything is outdated
     match run_json("npm", "outdated", "--json", "--long", codes=(0, 1)):
         case {"error": {"summary": str(summary)}}:
-            raise click.ClickException(summary)
+            raise Error(summary)
         case dict(packages):
             # npm lists a dependency of several workspaces once per workspace
             entries = [
@@ -591,7 +596,7 @@ def npm_outdated() -> Iterator[Outdated]:
                 for entry in (value if isinstance(value, list) else [value])
             ]
         case output:
-            raise click.ClickException(f"Unexpected output of `npm outdated`: {output}")
+            raise Error(f"Unexpected output of `npm outdated`: {output}")
 
     for name, entry in entries:
         match entry:
@@ -681,7 +686,7 @@ def compose(path: Path) -> yaml.Node | None:
     try:
         return yaml.compose(path.read_text(), Loader=yaml.SafeLoader)
     except yaml.YAMLError as error:
-        raise click.ClickException(f"{path} holds no valid YAML: {error}") from error
+        raise Error(f"{path} holds no valid YAML: {error}") from error
 
 
 def uses_values(node: yaml.Node | None) -> Iterator[tuple[int, str, str]]:
@@ -1078,4 +1083,8 @@ def nix(ctx: typer.Context, min_age: MinAge = 0) -> None:
 
 
 if __name__ == "__main__":
-    app()
+    try:
+        app()
+    except Error as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise SystemExit(error.exit_code) from error
