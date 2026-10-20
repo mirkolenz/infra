@@ -30,6 +30,8 @@ in
         programs.fish.functions.fish_greeting.body = lib.mkForce "";
       };
 
+      nix.settings.trusted-users = [ config.custom.user.login ];
+
       custom.features.extras.enable = lib.mkDefault true;
     };
 
