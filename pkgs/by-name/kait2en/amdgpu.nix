@@ -11,6 +11,7 @@ let
   inherit (kait2en.modules.linuxPackages) kernel kernelModuleMakeFlags;
 
   upstream = kait2en.modules.src;
+  installer = "${upstream}/scripts/fedora/install-gpu-runtime-pm.sh";
   patches = "${upstream}/patches/runtime/gpu-runtime-pm";
   driver = "drivers/gpu/drm/amd/amdgpu";
 
@@ -18,8 +19,11 @@ let
   modprobeConfig = "softdep amdgpu pre: t2gmux";
 
   # Backported in a form the reverse dry run below misses, so upstream's
-  # installer skips them by kernel version too.
-  merged = lib.optional (lib.versionAtLeast kernel.version "7.2.10") "0001-drm-amdgpu-reset-VI-ASIC-on-MacBookPro15-1.patch";
+  # installer skips them from a kernel version on, checked in `postPatch`.
+  mergedSince = {
+    "0001-drm-amdgpu-reset-VI-ASIC-on-MacBookPro15-1.patch" = "7.2.10";
+  };
+  merged = lib.attrNames (lib.filterAttrs (_: lib.versionAtLeast kernel.version) mergedSince);
 in
 stdenv.mkDerivation {
   pname = "kait2en-amdgpu";
@@ -44,8 +48,14 @@ stdenv.mkDerivation {
   # Like upstream, a patch already in the kernel is skipped. The forward check
   # comes first, since `--batch` flips a reverse run of an unapplied patch.
   postPatch = ''
-    grep -qxF ${lib.escapeShellArg modprobeConfig} ${upstream}/scripts/fedora/install-gpu-runtime-pm.sh ||
+    grep -qxF ${lib.escapeShellArg modprobeConfig} ${installer} ||
       { echo "the amdgpu softdep changed upstream, see .agents/skills/kait2en/SKILL.md" >&2; exit 1; }
+
+    ${lib.concatMapAttrsStringSep "\n" (name: version: ''
+      grep -A3 -F ${lib.escapeShellArg "${name})"} ${installer} |
+        grep -qF ${lib.escapeShellArg ''kernel_version_ge "$kver" ${lib.replaceStrings [ "." ] [ " " ] version}''} ||
+        { echo "the merged amdgpu patches changed upstream, see .agents/skills/kait2en/SKILL.md" >&2; exit 1; }
+    '') mergedSince}
 
     while IFS= read -r entry || [ -n "$entry" ]; do
       case "$entry" in "" | "#"*) continue ;; esac
