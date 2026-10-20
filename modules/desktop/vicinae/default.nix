@@ -3,10 +3,15 @@
 # graphical session. https://docs.vicinae.com/nixos
 {
   flake.modules.nixos.base =
-    { config, pkgs, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     {
       programs.vicinae.input-server = {
-        enable = config.custom.features.graphical.enable;
+        enable = lib.mkDefault config.custom.features.graphical.enable;
         package = pkgs.vicinae;
       };
     };

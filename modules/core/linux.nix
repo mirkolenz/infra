@@ -54,7 +54,7 @@
           upper = "05:00";
         };
         # only unattended on always-on hosts
-        enable = lib.mkIf config.custom.features.unattended.enable true;
+        enable = lib.mkDefault config.custom.features.unattended.enable;
       };
 
       systemd.sleep.settings.Sleep = lib.mkIf config.custom.features.unattended.enable {

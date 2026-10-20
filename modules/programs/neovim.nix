@@ -20,7 +20,7 @@
     {
       home.packages = [ package ];
 
-      programs.neovide = lib.mkIf config.custom.features.graphical.enable {
+      programs.neovide = {
         enable = false;
         settings = {
           fork = true;

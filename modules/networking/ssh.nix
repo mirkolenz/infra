@@ -115,8 +115,8 @@ in
             exec ${lib.getExe pkgs.rlwrap} ${ssh} eu.nixbuild.net shell
           '';
         };
-      programs.ssh = lib.mkIf config.custom.features.graphical.enable {
-        enable = true;
+      programs.ssh = {
+        enable = lib.mkDefault config.custom.features.graphical.enable;
         enableDefaultConfig = false;
         includes = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin [
           "${config.home.homeDirectory}/.orbstack/ssh/config"

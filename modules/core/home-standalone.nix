@@ -60,7 +60,7 @@
     in
     {
       custom.autoUpgrade = {
-        enable = config.custom.features.unattended.enable;
+        enable = lib.mkDefault config.custom.features.unattended.enable;
         flake = "github:mirkolenz/infra";
       };
 
