@@ -28,8 +28,23 @@
       lib,
       config,
       ...
-    }:
+    }@args:
     lib.mkIf (config.custom.features.graphical.enable && !config.custom.standalone) {
+      # The SSH agent only runs while the app does, and the "Start at login" setting
+      # of the app does not create its autostart entry on Linux.
+      systemd.user.services."1password" = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
+        Unit = {
+          Description = "1Password";
+          PartOf = [ "graphical-session.target" ];
+          After = [ "graphical-session.target" ];
+        };
+        Service = {
+          ExecStart = "${lib.getExe args.osConfig.programs._1password-gui.package} --silent";
+          Restart = "on-failure";
+        };
+        Install.WantedBy = [ "graphical-session.target" ];
+      };
+
       programs.op = {
         enable = true;
         sshAgent = {
