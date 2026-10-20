@@ -41,7 +41,8 @@ stdenv.mkDerivation {
   nativeBuildInputs = kernel.moduleBuildDependencies;
   hardeningDisable = [ "pic" ];
 
-  # Like upstream, a patch already in the kernel is skipped.
+  # Like upstream, a patch already in the kernel is skipped. The forward check
+  # comes first, since `--batch` flips a reverse run of an unapplied patch.
   postPatch = ''
     grep -qxF ${lib.escapeShellArg modprobeConfig} ${upstream}/scripts/fedora/install-gpu-runtime-pm.sh ||
       { echo "the amdgpu softdep changed upstream, see .agents/skills/kait2en/SKILL.md" >&2; exit 1; }
@@ -53,10 +54,13 @@ stdenv.mkDerivation {
 
       if [[ " ${toString merged} " == *" $entry "* ]]; then
         echo "$entry is merged in ${kernel.version}"
+      elif patch -p1 --dry-run --batch --forward --fuzz=3 < "$file" > /dev/null; then
+        patch -p1 --batch --forward --fuzz=3 --no-backup-if-mismatch < "$file"
       elif patch -p1 --dry-run --batch --reverse --fuzz=3 < "$file" > /dev/null; then
         echo "$entry is already present in ${kernel.version}"
       else
-        patch -p1 --batch --forward --fuzz=3 --no-backup-if-mismatch < "$file"
+        echo "$entry does not apply to ${kernel.version}" >&2
+        exit 1
       fi
     done < "${patches}/series"
 
