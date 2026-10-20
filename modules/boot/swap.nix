@@ -4,7 +4,6 @@
   flake.modules.nixos.base =
     { config, lib, ... }:
     let
-      cfg = config.boot.zswap;
       hasDiskSwap = config.swapDevices != [ ];
     in
     {
@@ -16,22 +15,8 @@
             enableUserSlices = true;
           };
 
-          # TODO: Switch to `boot.zswap.enable` once nixpkgs stops setting the `zpool` parameter,
-          # which Linux removed. Until then, only its options are reused.
-          boot.zswap.compressor = lib.mkDefault "zstd";
+          boot.zswap.enable = hasDiskSwap;
         }
-        (lib.mkIf hasDiskSwap {
-          boot.kernelParams = [
-            "zswap.enabled=1"
-            "zswap.compressor=${cfg.compressor}"
-            "zswap.max_pool_percent=${toString cfg.maxPoolPercent}"
-            "zswap.shrinker_enabled=${if cfg.shrinkerEnabled then "1" else "0"}"
-          ];
-
-          # A compressor built as a module is not loadable yet when zswap starts,
-          # so it is set again at runtime.
-          boot.kernel.sysfs.module.zswap.parameters.compressor = cfg.compressor;
-        })
         (lib.mkIf (!hasDiskSwap) {
           zramSwap = {
             enable = true;
