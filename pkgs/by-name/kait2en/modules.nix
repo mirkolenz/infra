@@ -16,6 +16,14 @@ let
   # kernel they were not built against.
   inherit (linuxPackages_latest) kernel kernelModuleMakeFlags;
 
+  # Runs a Kbuild target for the module directory `dir`, with `kernelModuleMakeFlags`
+  # as `makeFlags`. The install strips them before `cmd_sign` signs them,
+  # as for the in-tree ones, and `updates` is where DKMS puts them,
+  # which depmod prefers over the in-tree ones.
+  kbuild =
+    target: dir:
+    ''make -C ${kernel.dev}/lib/modules/${kernel.modDirVersion}/build -j"$NIX_BUILD_CORES" "''${makeFlags[@]}" M="${dir}" INSTALL_MOD_PATH="$out" INSTALL_MOD_DIR=updates INSTALL_MOD_STRIP=1 ${target}'';
+
   # One directory per DKMS package.
   packages = [
     "t2bce_stack"
@@ -202,31 +210,25 @@ stdenv.mkDerivation {
     stageKernelModule VIDEOBUF2_VMALLOC drivers/media/common/videobuf2/videobuf2-vmalloc.c
   '';
 
-  # The upstream Makefiles disagree on these names and all default to `uname -r`.
-  makeFlags = kernelModuleMakeFlags ++ [
-    "KDIR=${kernel.dev}/lib/modules/${kernel.modDirVersion}/build"
-    "KERNEL_SRC=${kernel.dev}/lib/modules/${kernel.modDirVersion}/build"
-    "KVER=${kernel.modDirVersion}"
-    "KVERSION=${kernel.modDirVersion}"
-    "KERNEL_RELEASE=${kernel.modDirVersion}"
-  ];
+  makeFlags = kernelModuleMakeFlags;
 
+  # Kbuild directly, which is all the `all` targets of upstream's Makefiles do.
   buildPhase = ''
     runHook preBuild
 
     for package in ${lib.escapeShellArgs packages}; do
-      make -C "modules/$package" -j"$NIX_BUILD_CORES" "''${makeFlags[@]}"
+      ${kbuild "modules" "$PWD/modules/$package"}
     done
 
     runHook postBuild
   '';
 
-  # `updates` is where DKMS puts them, and depmod prefers it over the in-tree one.
   installPhase = ''
     runHook preInstall
 
-    find modules -name '*.ko' -exec \
-      install -Dm444 -t "$out/lib/modules/${kernel.modDirVersion}/updates" {} +
+    for package in ${lib.escapeShellArgs packages}; do
+      ${kbuild "modules_install" "$PWD/modules/$package"}
+    done
 
     ${kait2en.installLicenses "kait2en-modules"}
 
@@ -237,6 +239,7 @@ stdenv.mkDerivation {
   passthru = {
     inherit
       earlyModules
+      kbuild
       kernel
       kernelParamsFor
       replacedModules

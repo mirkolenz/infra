@@ -73,19 +73,18 @@ stdenv.mkDerivation {
   buildPhase = ''
     runHook preBuild
 
-    make -C ${kernel.dev}/lib/modules/${kernel.modDirVersion}/build \
-      -j"$NIX_BUILD_CORES" "''${makeFlags[@]}" M="$PWD/${driver}" modules
+    ${kait2en.modules.kbuild "modules" "$PWD/${driver}"}
 
     runHook postBuild
   '';
 
   makeFlags = kernelModuleMakeFlags;
 
-  # `updates` shadows the in-tree amdgpu, as for `kait2en.modules`.
+  # `updates` shadows the in-tree amdgpu.
   installPhase = ''
     runHook preInstall
 
-    install -Dm444 -t "$out/lib/modules/${kernel.modDirVersion}/updates" ${driver}/amdgpu.ko
+    ${kait2en.modules.kbuild "modules_install" "$PWD/${driver}"}
 
     (cd ${upstream} && ${kait2en.installLicenses "kait2en-amdgpu"})
 
