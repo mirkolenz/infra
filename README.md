@@ -169,13 +169,6 @@ sudo /nix/nix-installer uninstall
 </details>
 
 <details>
-<summary>Visual Studio Code</summary>
-
-- `Settings > Backup and Sync Setting > GitHub`
-
-</details>
-
-<details>
 <summary>Zotero</summary>
 
 - Install [Better BibTeX](https://github.com/retorquere/zotero-better-bibtex/releases)
