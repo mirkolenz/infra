@@ -28,11 +28,7 @@
       };
       home.packages = with pkgs; [
         svgo
-        oxfmt
-        oxlint
         tsgolint
-        typescript
-        astro-language-server
         shadcn
         mcp-inspector
       ];

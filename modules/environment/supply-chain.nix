@@ -50,8 +50,7 @@
           # static analysis, bearer covering data flow and privacy
           semgrep
           bearer
-          # build, release and artifact integrity
-          zizmor
+          # build, release and artifact integrity, besides zizmor of the editors
           actionlint
           scorecard
           cosign

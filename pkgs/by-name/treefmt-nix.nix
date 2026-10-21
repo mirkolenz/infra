@@ -1,43 +1,22 @@
-# The repository formatter, built here so the flake's `formatter` and every home
-# share one wrapper instead of a second treefmt-nix evaluation per system.
+# The repository formatter, built here so the flake's `formatter`, every home and the hooks of the
+# coding agents share one evaluation of treefmt-nix, exposed as `passthru.config`.
+# Its formatters are those of the languages of the editors, see options/treefmt/editors.nix.
 # https://github.com/NixOS/nixpkgs/blob/master/ci/default.nix
 {
   inputs,
   pkgs,
 }:
-inputs.treefmt-nix.lib.mkWrapper pkgs {
-  projectRootFile = "flake.nix";
-  programs = {
-    # keep-sorted start
-    actionlint.enable = false;
-    buf.enable = true;
-    gofmt.enable = true;
-    keep-sorted.enable = true;
-    nixf-diagnose.enable = true;
-    nixfmt.enable = true;
-    oxfmt.enable = true;
-    php-cs-fixer.enable = true;
-    ruff-check.enable = true;
-    ruff-format.enable = true;
-    rustfmt.enable = true;
-    texfmt.enable = true;
-    typstyle.enable = true;
-    zizmor.enable = true;
-    # keep-sorted end
-  };
-  # offline, since the checks build without network access
-  settings.formatter.zizmor.options = [
-    "--offline"
-    "--persona=pedantic"
-  ];
-  programs.nixf-diagnose = {
-    variableLookup = true;
-    ignore = [
-      # unknown builtin `getFlake`
-      "sema-primop-unknown"
-    ];
-  };
-  programs.nixfmt.package = pkgs.nixfmt-rs;
-  programs.ruff-check.package = pkgs.ruff-bin;
-  programs.ruff-format.package = pkgs.ruff-bin;
-}
+let
+  inherit
+    (inputs.treefmt-nix.lib.evalModule pkgs {
+      imports = [
+        ../../options/treefmt/editors.nix
+        inputs.self.modules.generic.languages
+      ];
+      custom.features.extras.enable = true;
+      projectRootFile = "flake.nix";
+    })
+    config
+    ;
+in
+config.build.wrapper.overrideAttrs { passthru = { inherit config; }; }

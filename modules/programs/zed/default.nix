@@ -1,4 +1,3 @@
-{ lib', ... }:
 {
   flake.modules.homeManager.default =
     {
@@ -6,36 +5,23 @@
       config,
       lib,
       ...
-    }:
+    }@args:
+    let
+      inherit (pkgs.stdenv.hostPlatform) isLinux;
+      llamaCpp = args.osConfig.services.llama-cpp or { enable = false; };
+    in
     lib.mkIf config.custom.features.graphical.enable {
-      home.packages = lib.mkIf pkgs.stdenv.hostPlatform.isLinux [
-        pkgs.zed-editor
-      ];
-
-      # Zed rewrites these JSON files at runtime, which fails on read-only store
-      # symlinks. Install writable copies instead; they reset on each rebuild.
-      home.activation.setupZedFiles = lib'.mkMutableFiles {
-        inherit config;
-        files =
-          lib.mapAttrsToList
-            (name: source: {
-              inherit source;
-              target = "${config.xdg.configHome}/zed/${name}";
-            })
-            {
-              "debug.json" = ./debug.json;
-              "keymap.json" = ./keymap.json;
-              "settings.json" = pkgs.writeText "settings.json" (
-                lib.replaceStrings
-                  [ "@fontFamily@" ''"@fontSize@"'' ]
-                  [ config.custom.font.family (toString config.custom.font.size) ]
-                  (lib.readFile ./settings.json)
-              );
-              "tasks.json" = ./tasks.json;
-            };
+      custom.zed = {
+        enable = true;
+        # darwin installs the app through homebrew
+        package = lib.mkIf (!isLinux) null;
+        settings = import ./_settings.nix { inherit config lib llamaCpp; };
+        keymap = import ./_keymap.nix;
+        tasks = import ./_tasks.nix;
+        debug = import ./_debug.nix;
       };
 
-      home.shellAliases = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
+      home.shellAliases = lib.mkIf isLinux {
         zed = "zeditor";
       };
     };

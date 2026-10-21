@@ -1,4 +1,4 @@
-# Editor policy: nvim is the terminal EDITOR everywhere; zed/zeditor is the GUI
+# Editor policy: nvim is the terminal EDITOR everywhere. zed/zeditor is the GUI
 # VISUAL editor where a display is available. Set explicitly instead of relying
 # on programs.*.defaultEditor, for full control.
 #   - nvim is available system-wide via programs.neovim on NixOS, via the neovim
@@ -34,7 +34,7 @@ in
         VISUAL =
           if pkgs.stdenv.hostPlatform.isDarwin then
             "zed --wait"
-          else if config.programs.zed-editor.enable then
+          else if config.custom.zed.enable then
             "zeditor --wait"
           else
             "nvim";

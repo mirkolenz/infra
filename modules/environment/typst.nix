@@ -21,8 +21,6 @@
     lib.mkIf config.custom.features.extras.enable {
       home.packages = with pkgs; [
         typst-bin
-        typstyle
-        tinymist
       ];
       # The project imports its copy by path, e.g. `#import "/vendor/typst/lib.typ": *`,
       # which works both locally and in the typst.app web app.

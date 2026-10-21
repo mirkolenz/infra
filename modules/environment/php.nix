@@ -13,7 +13,6 @@
         php
         phpPackages.composer
         frankenphp
-        phpactor # legacy language server
       ];
       custom.bump.composer = {
         lockfile = "composer.lock";

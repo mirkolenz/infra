@@ -29,7 +29,6 @@
         };
       };
       home.packages = with pkgs; [
-        buf
         gomplate
         grpcui
         mqttui
@@ -46,7 +45,6 @@
         mcp-proxy
         pdfpc
         pympress
-        keep-sorted
         jsonfmt
         caddy
         mailpit
@@ -55,7 +53,6 @@
         ripwire
         harlequin
         usql
-        sqruff
         flow-control
         google-lighthouse
         caligula
@@ -85,15 +82,6 @@
         basedpyright
         zuban
         pyrefly-bin
-        # language servers
-        bash-language-server
-        docker-language-server
-        jdt-language-server
-        marksman
-        texlab
-        tombi
-        vscode-langservers-extracted
-        yaml-language-server
         # mcp servers
         ast-grep-mcp
         # my own packages

@@ -107,9 +107,6 @@ in
           nh
         ]
         ++ lib.optionals config.custom.features.extras.enable [
-          nixd
-          nixf-diagnose
-          nixfmt-rs
           nix-update
           nurl
           hydra-check

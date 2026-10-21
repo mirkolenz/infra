@@ -12,7 +12,6 @@
     lib.mkIf config.custom.features.extras.enable {
       programs.go.enable = true;
       home.packages = with pkgs; [
-        gopls
         delve
         goreleaser
       ];

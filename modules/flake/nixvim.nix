@@ -12,6 +12,7 @@ in
         nixvim.default
         nixvim.extras
       ];
+      custom.features.extras.enable = true;
     };
   };
 }

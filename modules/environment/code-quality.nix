@@ -31,9 +31,8 @@
         (python3Packages.toPythonApplication python3Packages.lizard)
         rust-code-analysis
         # spelling and grammar, in identifiers, comments and prose.
-        # harper for english, codebook for german spelling
+        # harper for english comes with its language server, codebook for german spelling
         typos
-        harper
         codebook
         # link rot
         lychee
