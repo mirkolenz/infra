@@ -132,6 +132,12 @@ in
             # node parses this one as a flag value and accepts only "1",
             # a boolean would render as "true" and be ignored.
             NODE_USE_ENV_PROXY = "1";
+          }
+          # Bun reads the system store of `CLAUDE_CODE_CERT_STORE` on macOS from the keychain search list only,
+          # which misses the Apple roots, and `/etc/ssl/cert.pem` of macOS is stale.
+          # On Linux, it reads the CA bundle of the OS already.
+          // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+            NODE_EXTRA_CA_CERTS = "/etc/ssl/certs/ca-certificates.crt";
           };
           worktree = {
             baseRef = "head";
