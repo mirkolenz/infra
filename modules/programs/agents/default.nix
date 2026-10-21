@@ -104,7 +104,7 @@
             config.xdg.cacheHome
             # nono grants it write-only, but agents and scripts read back what they put there
             "/tmp"
-            "${config.xdg.configHome}/.wrangler/logs"
+            "${config.xdg.configHome}/.wrangler"
             "${config.xdg.configHome}/.semgrep"
             # codebook downloads its dictionaries here on first use
             "${config.xdg.dataHome}/codebook"
