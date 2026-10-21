@@ -31,7 +31,7 @@ dependencies:
         repo_id: 211717886
     'determinatesystems/determinate-nix-action@v3':
         ref: 'v3'
-        commit: 'sha1-e847f25223456b3058e12f7fc9d777b6a6f25060'
+        commit: 'sha1-96c5ee93a9dddf2830d31e1da6ec719077336c28'
         owner_id: 80991770
         repo_id: 983748827
         uses:
