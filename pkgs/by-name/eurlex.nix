@@ -10,18 +10,18 @@
 # structured json in any of the 24 official languages
 buildNpmPackage (finalAttrs: {
   pname = "eurlex";
-  version = "fulltext-2026-10-06.01-unstable-2026-10-20";
+  version = "fulltext-2026-10-06.01-unstable-2026-10-21";
 
   src = fetchFromGitHub {
     owner = "maastrichtlawtech";
     repo = "legalviz.eu";
-    rev = "873bf774575e56e83644a482e1cf1a692e693e5e";
-    hash = "sha256-v1h0Z5lAA/SyueS4MNgy98hpFEeuvUpnSGIQ8XM28pI=";
+    rev = "d5f9ee87ee6620ad86281398aba5e62c89016cd7";
+    hash = "sha256-fjTmAnCPvC35Mj1U3LnrqE+OW+0LRgQA4HFZJ4qLG+g=";
   };
 
   sourceRoot = "${finalAttrs.src.name}/backend";
 
-  npmDepsHash = "sha256-fhw/O5t25t+oc5sDCMlK853KSk7n8X57HkhPSJ9sSIE=";
+  npmDepsHash = "sha256-nEjDDh/v0uP8Kyx0yIqmE17rR6sjCEqfbS5OsM1jbvQ=";
 
   # the package is the api server as well as the cli, so it pulls a browser driver in
   # that neither half needs at install time
