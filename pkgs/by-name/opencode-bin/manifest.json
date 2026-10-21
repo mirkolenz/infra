@@ -1,17 +1,17 @@
 {
-  "version": "2.1.1",
+  "version": "2.1.2",
   "platforms": {
     "darwin-arm64": {
-      "url": "https://opencode.ai/files/bin/2.1.1/opencode-darwin-arm64.zip",
-      "sha256": "a8b4ab1e95f2b3928cdaec781bac14bb4bd1b1619a41b0d55e6f185490488551"
-    },
-    "linux-x64": {
-      "url": "https://opencode.ai/files/bin/2.1.1/opencode-linux-x64.tar.gz",
-      "sha256": "b7070ffb7c255b9633f69dee8b068f4f3ac35bdc33d44841dde67deb88ff4853"
+      "url": "https://opencode.ai/files/bin/2.1.2/opencode-darwin-arm64.zip",
+      "sha256": "1051221bbce68e541f432be07d58beb66c1827dae9e04417a49f56115e0e0d4c"
     },
     "linux-arm64": {
-      "url": "https://opencode.ai/files/bin/2.1.1/opencode-linux-arm64.tar.gz",
-      "sha256": "7f387077e0ba7d26964d19b9b31fac784ec4edb759f2b5fe34878aeb4b0545b1"
+      "url": "https://opencode.ai/files/bin/2.1.2/opencode-linux-arm64.tar.gz",
+      "sha256": "3ddeab155dd75f36d9fd4f5db80e2392181a4b9f59e347a0361a127244686e94"
+    },
+    "linux-x64": {
+      "url": "https://opencode.ai/files/bin/2.1.2/opencode-linux-x64.tar.gz",
+      "sha256": "f752172139f82d33470955f68bbd00c244de81b079f51ea54a1b68d170c394c8"
     }
   }
 }
