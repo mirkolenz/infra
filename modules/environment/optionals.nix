@@ -55,6 +55,7 @@
         ripwire
         harlequin
         usql
+        sqruff
         flow-control
         google-lighthouse
         caligula

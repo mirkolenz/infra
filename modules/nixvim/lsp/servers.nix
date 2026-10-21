@@ -20,6 +20,7 @@
         lemminx.enable = true;
         marksman.enable = true;
         phpactor.enable = true;
+        sqruff.enable = true;
         tailwindcss.enable = true;
         tombi.enable = true;
         tsc.enable = true;

@@ -49,6 +49,7 @@
     "pyrefly": true,
     "ruby": true,
     "sql": true,
+    "sqruff": true,
     "tombi": true,
     "toml": true,
     "typst": true,
@@ -228,6 +229,10 @@
         { "language_server": { "name": "ruff" } }
       ]
     },
+    "SQL": {
+      "language_servers": ["sqruff"],
+      "formatter": { "language_server": { "name": "sqruff" } }
+    },
     "TSX": {
       "language_servers": ["typescript-ls", "oxlint", "oxfmt"],
       "formatter": [
@@ -339,6 +344,12 @@
           "run": "onType",
           "typeAware": true
         }
+      }
+    },
+    "sqruff": {
+      "binary": {
+        "path": "/etc/profiles/per-user/mlenz/bin/sqruff",
+        "arguments": ["lsp"]
       }
     },
     "texlab": {

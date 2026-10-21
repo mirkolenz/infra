@@ -161,6 +161,11 @@
                 initialization_options.settings.diagnosticMode = "workspace";
               }
             ];
+            sql = {
+              command = "sqruff";
+              args = [ "lsp" ];
+              auto_start = true;
+            };
             toml = {
               command = "tombi";
               args = [ "lsp" ];
@@ -179,7 +184,7 @@
             # keep-sorted end
           };
           # A language without a formatter falls back to its language server,
-          # which covers nixd/nixfmt, texlab/tex-fmt, gopls, tombi, buf and the
+          # which covers nixd/nixfmt, texlab/tex-fmt, gopls, tombi, buf, sqruff and the
           # prettier bundled with astro-ls.
           languages =
             lib.genAttrs oxfmtLanguages (_: {
@@ -213,6 +218,7 @@
               protobuf.format_on_save = true;
               # The built-in formatter already shells out to ruff.
               python.format_on_save = true;
+              sql.format_on_save = true;
               toml.format_on_save = true;
               typst = {
                 format_on_save = true;
