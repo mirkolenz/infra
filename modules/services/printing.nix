@@ -28,5 +28,8 @@
         # UDP 5353, needed for the printers to answer our mDNS queries
         openFirewall = true;
       };
+
+      # Two responders on UDP 5353 make mDNS unreliable, so Avahi owns it alone.
+      services.resolved.settings.Resolve.MulticastDNS = false;
     };
 }
