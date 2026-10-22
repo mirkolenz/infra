@@ -8,18 +8,18 @@
 }:
 buildNpmPackage (finalAttrs: {
   pname = "icloud-photos-sync";
-  version = "5.0.1";
+  version = "5.0.2";
 
   src = fetchFromGitHub {
     owner = "steilerDev";
     repo = "icloud-photos-sync";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-/gVhMHePsaHIWTNLP3+QyFKzfgFQ37YM0wJvg8KUk3o=";
+    hash = "sha256-T6fqn3PFogsXZ8nRL7QyN8Yl1Bb8hqLPI2Zwlf36hbc=";
   };
 
   sourceRoot = "${finalAttrs.src.name}/app";
 
-  npmDepsHash = "sha256-ge7r8N1K2k40+8cmB1vNm9yBxMoiDDxZU+LDRIEK9m0=";
+  npmDepsHash = "sha256-V6QVygPgEK02T2nozjHccI3vqSon+3zlQRtktPfPfF4=";
 
   nodejs = nodejs_26;
 
