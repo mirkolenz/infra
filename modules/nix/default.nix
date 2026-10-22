@@ -130,9 +130,10 @@ in
 
           # Wipes the profiles below a directory with the nix command that follows it.
           wipe() {
-            profiles="$(find "$1" -type l -lname '*link*')"
+            local profiles profile answer
+            mapfile -d "" -t profiles < <(find "$1" -type l -lname '*link*' -print0)
 
-            if [ -z "$profiles" ]; then
+            if [ ''${#profiles[@]} -eq 0 ]; then
               return
             fi
 
@@ -140,7 +141,7 @@ in
 
             if [ -z "$answer" ]; then
               echo "Do you want to clean the following profiles? (y/n)"
-              echo "$profiles"
+              printf '%s\n' "''${profiles[@]}"
               read -r -n 1 answer
               echo
             fi
@@ -149,7 +150,7 @@ in
               return
             fi
 
-            for profile in $profiles; do
+            for profile in "''${profiles[@]}"; do
               echo "Processing profile $profile..."
               "''${@:2}" profile wipe-history --older-than "$argc_older_than" --profile "$profile"
             done
