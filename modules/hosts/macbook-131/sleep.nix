@@ -9,7 +9,7 @@
   configurations.nixos.macbook-131.module =
     { pkgs, ... }:
     {
-      # 7.2 is what the MacBookPro13,1 community setups validate S3 against.
+      # Newer kernels keep improving the Skylake and Apple SPI support this machine relies on.
       boot.kernelPackages = pkgs.linuxPackages_latest;
 
       # The firmware cuts the SSD's power in D3cold, which the kernel cannot restore.

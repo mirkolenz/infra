@@ -36,7 +36,9 @@ in
           extras.enable = true;
         };
 
-        # Blocks DMA attacks through Thunderbolt, the firmware does not opt into the IOMMU.
+        # The firmware does not opt into the IOMMU, so the kernel enables it only on request.
+        # Without the firmware's external port markings, the kernel does not treat Thunderbolt
+        # devices as untrusted, so bolt's authorization remains the actual DMA gate.
         boot.kernelParams = [ "intel_iommu=on" ];
 
         boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
