@@ -4,7 +4,7 @@ Support for Macs with an Apple T2 security chip, taken from [KaiT2en](https://gi
 Each package explains itself in its header, the NixOS module lives in `modules/hardware/apple-t2`.
 This file records the packaging decisions, updating is covered by the `kait2en` skill in `.agents/skills/kait2en`.
 
-`modules.nix` pins the revision every runtime package is built from.
+`modules.nix` pins the revision every runtime package is built from, and the kernel series of the Fedora release upstream targets, not `linuxPackages_latest`, since upstream's amdgpu patches break on newer kernels.
 The packages install upstream's systemd units, patched with `--replace-fail`, and the modules load them through `systemd.packages` and set `wantedBy`, since NixOS ignores `[Install]`.
 
 ## NixOS fork

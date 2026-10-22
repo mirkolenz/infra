@@ -42,6 +42,7 @@ Upstream rejects issues and pull requests it believes an AI wrote, so never open
 
    Look for new native dependencies, Fedora paths such as `/usr` or `/etc` the `--replace-fail` patches must follow, new or renamed units, and new apps or scripts.
    Package a new app or record why not under "Deliberately not packaged" in the README.
+   Move the `linuxPackages_<major>_<minor>` pin in `modules.nix` once upstream targets a new kernel series, as the `kernel_version_ge` cutoffs in `install-gpu-runtime-pm.sh` and the Fedora release under `auto-installer/targets` show.
 
 4. Review what the [NixOS fork](https://github.com/LukeChannings/KaiT2en-NixOS) changed in its Nix layer since `reviewedFork`, a second view on the same upstream.
 
@@ -74,7 +75,8 @@ Upstream rejects issues and pull requests it believes an AI wrote, so never open
    nix build .#nixosConfigurations.macbook-161.config.system.build.toplevel
    ```
 
-After a nixpkgs bump moves `linuxPackages_latest`, steps 5 and 7 alone show whether the drivers and the amdgpu patches still apply.
+After moving the kernel pin, or a nixpkgs bump within its series, steps 5 and 7 alone show whether the drivers and the amdgpu patches still apply.
+The host runs the integrated GPU, so only step 5 builds `kait2en-amdgpu`.
 
 ## Conventions
 

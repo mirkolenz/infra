@@ -8,13 +8,14 @@
   fetchFromGitHub,
   jq,
   kait2en,
-  linuxPackages_latest,
+  linuxPackages_7_2,
   shfmt,
 }:
 let
   # Re-exported through `passthru`, so the modules cannot be loaded into a
-  # kernel they were not built against.
-  inherit (linuxPackages_latest) kernel kernelModuleMakeFlags;
+  # kernel they were not built against. Pinned to the series of the Fedora
+  # release upstream targets, since its amdgpu patches are written against it.
+  inherit (linuxPackages_7_2) kernel kernelModuleMakeFlags;
 
   # Runs a Kbuild target for the module directory `dir`, with `kernelModuleMakeFlags`
   # as `makeFlags`. The install strips them before `cmd_sign` signs them,
@@ -245,7 +246,7 @@ stdenv.mkDerivation {
       replacedModules
       ;
     # The set itself, so the NixOS module does not instantiate a second one.
-    linuxPackages = linuxPackages_latest;
+    linuxPackages = linuxPackages_7_2;
     # Refresh the Cargo hashes together with the shared source pin.
     inherit (kait2en)
       ave
