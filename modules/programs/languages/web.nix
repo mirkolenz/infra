@@ -198,7 +198,7 @@ in
             args = [ "--lsp" ];
             linter = true;
             initializationOptions.settings = {
-              run = "onType";
+              run = "onSave";
               typeAware = true;
             };
             editors.zed.extension = "oxc";
