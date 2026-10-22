@@ -1,6 +1,6 @@
 { mkPythonApp }:
-# Downstream flakes drive their own flake through `withFlags`,
-# e.g. `pkgs.flakectl.withFlags { flake = self.outPath; cache = "..."; }`.
+# Downstream flakes import the flake-parts module `modules.flake.flakectl` of infra,
+# which makes it their default app, and set its `flakectl.flags`, e.g. `cache = "...";`.
 # It runs `nix` and `git` of the host, every other tool from the flake, which keeps it lean in CI.
 mkPythonApp {
   script = "flakectl";

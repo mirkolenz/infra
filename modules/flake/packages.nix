@@ -17,6 +17,5 @@
       packages = exports;
       checks = lib.filterAttrs (_: lib'.isHydraTarget) exports;
       formatter = pkgs.treefmt-nix;
-      legacyPackages = pkgs;
     };
 }
