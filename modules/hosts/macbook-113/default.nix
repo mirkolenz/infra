@@ -12,6 +12,7 @@ in
     module = {
       imports = [
         nixos.default
+        nixos.apple-thunderbolt
         "${inputs.nixos-hardware}/apple"
         "${inputs.nixos-hardware}/common/cpu/intel/haswell/cpu-only.nix"
         "${inputs.nixos-hardware}/common/pc/laptop"
