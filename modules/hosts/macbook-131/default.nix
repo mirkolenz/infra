@@ -37,8 +37,9 @@ in
         };
 
         # The firmware does not opt into the IOMMU, so the kernel enables it only on request.
+        # It confines every device, Thunderbolt included, to the memory mapped for it.
         # Without the firmware's external port markings, the kernel does not treat Thunderbolt
-        # devices as untrusted, so bolt's authorization remains the actual DMA gate.
+        # devices as untrusted, so they get no bounce buffers or strict unmapping.
         boot.kernelParams = [ "intel_iommu=on" ];
 
         boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
