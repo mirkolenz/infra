@@ -15,6 +15,16 @@ in
   # https://github.com/NixOS/nixpkgs/issues/542483
   texlive = prev.texlive.override { python3 = final.python313; };
 
+  # mago keeps a path into rustc, an unused `LC_RPATH` on darwin, which pulls its gigabyte into
+  # every closure with mago, such as those of the formatters. No upstream fix yet.
+  mago = prev.mago.overrideAttrs (prevAttrs: {
+    nativeBuildInputs = prevAttrs.nativeBuildInputs ++ [ final.removeReferencesTo ];
+    postFixup = (prevAttrs.postFixup or "") + ''
+      remove-references-to -t ${final.rustc.unwrapped} $out/bin/mago
+    '';
+    disallowedReferences = [ final.rustc.unwrapped ];
+  });
+
   # nix-update 1.16.0 resolves a package's current ref as `rev or tag`. A src written with
   # nixpkgs' newer `fetchFromGitHub { tag = ...; }` expands that to `refs/tags/v1.2.3`, which
   # never equals the plain `v1.2.3` the version fetcher reports, so every run counts as a change
