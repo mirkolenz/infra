@@ -23,11 +23,17 @@
       home.shellAliases.py = "${uv} run";
       custom.bump.uv = {
         lockfile = "uv.lock";
-        pathspecs = [ ":(glob)**/pyproject.toml" ];
-        text = ''
-          ${lib.getExe pkgs.bump-ranges} python
-          ${uv} sync --upgrade --all-packages --all-extras --all-groups
-        '';
+        ranges = "python";
+        commands = [
+          [
+            uv
+            "sync"
+            "--upgrade"
+            "--all-packages"
+            "--all-extras"
+            "--all-groups"
+          ]
+        ];
       };
       home.activation = {
         pruneUvCache = lib.hm.dag.entryAfter [ "writeBoundary" ] /* bash */ ''

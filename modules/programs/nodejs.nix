@@ -34,19 +34,24 @@
       ];
       custom.bump.npm = {
         lockfile = "package-lock.json";
-        pathspecs = [ ":(glob)**/package.json" ];
-        text = ''
-          ${lib.getExe pkgs.bump-ranges} node
-          ${lib.getExe' config.programs.npm.package "npm"} update
-        '';
+        ranges = "node";
+        commands = [
+          [
+            (lib.getExe' config.programs.npm.package "npm")
+            "update"
+          ]
+        ];
       };
       custom.bump.bun = {
         lockfile = "bun.lock";
-        pathspecs = [ ":(glob)**/package.json" ];
-        text = ''
-          ${lib.getExe pkgs.bump-ranges} node
-          ${lib.getExe config.programs.bun.package} update --recursive
-        '';
+        ranges = "node";
+        commands = [
+          [
+            (lib.getExe config.programs.bun.package)
+            "update"
+            "--recursive"
+          ]
+        ];
       };
     };
 }

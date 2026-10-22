@@ -35,11 +35,10 @@ jobs:
         with:
           extra-conf: |
             accept-flake-config = true
-            commit-lock-file-summary = chore(deps/nix): update
-      - run: nix run . -- update-all --commit
+      - run: nix run . -- update-all
         env:
           GH_TOKEN: ${{ github.token }}
-          BUMP_RANGES_MIN_AGE: 3
+          BUMP_MIN_AGE: 3
       - name: remove unstaged changes
         run: git restore .
       - name: build pr body

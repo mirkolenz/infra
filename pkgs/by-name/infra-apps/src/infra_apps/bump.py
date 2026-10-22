@@ -1,4 +1,73 @@
-"""Interactively bump the dependency ranges that exclude the latest versions.
+"""Update and commit the dependencies of projects, or bump their dependency ranges.
+
+`bump update [MANAGER ...]`, or plain `bump` for all managers, updates the projects at or below
+the working directory and commits them per project and package manager.
+The managers `nix` and `actions` of flakes and GitHub Actions are built in,
+and the config of `--config` adds others or replaces them.
+`bump ranges ECOSYSTEM` interactively bumps the dependency ranges of a workspace
+that exclude the latest versions, which `update` also does ahead of the commands of a manager.
+Both take the options of the range bumps after their command name,
+and with `--dry-run`, `update` only lists the range bumps of each project.
+
+The config is a JSON object mapping the name of each package manager,
+which is its scope in the commit messages, to an object of
+- `lockfile`, the path of the lockfile relative to the root of a project, which marks its projects,
+- `excludes`, glob patterns of the lockfiles that belong to no project of their own,
+- `pathspecs`, git pathspecs of the other files it changes besides those of its range bumps,
+  which may match no file,
+- `ranges`, the ecosystem whose ranges to bump first,
+- `commands`, objects of the `args` to run, where `{message}` stands for the commit message,
+  and an `ifExists` path that has to exist for the command to run,
+- `env`, the environment variables of the commands,
+of which all but `lockfile` are optional.
+"""
+
+import argparse
+import json
+import os
+import sys
+import tomllib
+from collections.abc import (
+    Callable,
+    Collection,
+    Iterable,
+    Iterator,
+    Mapping,
+    Sequence,
+)
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import chdir
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
+from functools import cache
+from itertools import groupby, takewhile
+from operator import attrgetter
+from pathlib import Path
+from typing import Any
+
+import yaml
+from packaging.requirements import Requirement
+from packaging.specifiers import SpecifierSet
+from packaging.utils import canonicalize_name
+from packaging.version import InvalidVersion, Version
+
+from infra_apps.apptools import (
+    CommandError,
+    ConfigOption,
+    Error,
+    HelpFormatter,
+    add_command,
+    complete,
+    entrypoint,
+    run,
+    run_json,
+    run_nul,
+)
+
+type Args = tuple[str, ...]
+
+RANGES_DOC = """Interactively bump the dependency ranges that exclude the latest versions.
 
 Covers every project of the workspace, so run it in the workspace root.
 
@@ -8,32 +77,6 @@ The package managers resolve the latest versions and edit the manifests, honorin
 while the tags of GitHub Actions and flake inputs follow the releases older than `--min-age`
 whose commits reached a branch at least as long ago, which also gates relocking an `actions.lock`.
 """
-
-import json
-import shlex
-import subprocess
-import tomllib
-from collections.abc import Callable, Container, Iterable, Iterator, Mapping, Sequence
-from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
-from enum import StrEnum
-from functools import cache
-from itertools import groupby, takewhile
-from operator import attrgetter
-from pathlib import Path
-from typing import Annotated, Any
-
-import questionary
-import typer
-import yaml
-from packaging.requirements import Requirement
-from packaging.specifiers import SpecifierSet
-from packaging.utils import canonicalize_name
-from packaging.version import InvalidVersion, Version
-
-type Args = tuple[str, ...]
-
 OPERATORS = "^~=<>!"
 # operators whose version moves to the latest one, with `<` moving one past it
 BUMPED = {"", "=", "==", "^", "~", "~=", ">=", "<"}
@@ -44,6 +87,8 @@ NODE_SECTIONS = ("dependencies", "devDependencies", "optionalDependencies")
 PHP_SECTIONS: dict[str, Args] = {"require": (), "require-dev": ("--dev",)}
 # replaced by the new ref in the template of a tagged ref, and spelled out in FLAKE_INPUTS
 PLACEHOLDER = "__ref__"
+# replaced by the commit message in the arguments of the commands of a package manager
+MESSAGE = "{message}"
 # the inputs of a flake with a ref, their url, the url with the placeholder as ref, and the position of the url
 FLAKE_INPUTS = """
 flake:
@@ -63,10 +108,11 @@ builtins.mapAttrs (
     null
 ) flake.inputs
 """
-ACTION_FILES = (
-    ".github/workflows/*.y*ml",
-    ".github/actions/**/action.y*ml",
-    "action.y*ml",
+# the files of the workflows and composite actions, as pathspecs
+ACTION_PATHSPECS = (
+    ":(glob).github/workflows/*.y*ml",
+    ":(glob).github/actions/**/action.y*ml",
+    ":(glob)action.y*ml",
 )
 ACTIONS_LOCK = Path(".github/workflows/actions.lock")
 # like renovate, neither narrow refs such as `v4` to `v4.2.1` nor migrate local actions
@@ -75,24 +121,15 @@ LOCK_FLAGS = ("--no-interactive", "--no-narrow", "--no-migrate-local-actions")
 NULL_COMMIT = "0" * 40
 # the time periods of the activity log by their days
 PERIODS = {"day": 1, "week": 7, "month": 30, "quarter": 90, "year": 365}
-STYLE = questionary.Style(
-    [
-        ("separator", "fg:ansiblue bold"),
-        ("old", "fg:ansibrightblack"),
-        ("arrow", "fg:ansibrightblack"),
-        ("major", "fg:ansired bold"),
-        ("minor", "fg:ansiyellow bold"),
-        ("patch", "fg:ansigreen bold"),
-    ]
-)
-
-app = typer.Typer(help=__doc__, no_args_is_help=True, add_completion=False)
-
-
-class Error(Exception):
-    """An error shown to the user without a traceback, exiting with its code."""
-
-    exit_code = 1
+# the classes of the prompt and their styles
+STYLE = [
+    ("separator", "fg:ansiblue bold"),
+    ("old", "fg:ansibrightblack"),
+    ("arrow", "fg:ansibrightblack"),
+    ("major", "fg:ansired bold"),
+    ("minor", "fg:ansiyellow bold"),
+    ("patch", "fg:ansigreen bold"),
+]
 
 
 class Level(StrEnum):
@@ -180,12 +217,16 @@ class Bump:
 
 @dataclass(frozen=True, slots=True)
 class Mode:
-    """Which bumps to offer, at which precision, up to which level to accept them without prompting, or whether to only list them."""
+    """Which bumps to offer, at which precision, up to which level to accept them without prompting, or whether to only list them.
+
+    The tags of GitHub Actions and flake inputs follow the releases older than `min_age` days.
+    """
 
     accept: Level | None
     qualified: bool
     precision: Precision
     dry_run: bool
+    min_age: int
 
     def apply(self, bumps: Iterable[Bump]) -> None:
         """Apply the bumps of the mode, running each command once."""
@@ -200,14 +241,14 @@ class Mode:
             ]
 
         if not bumps:
-            typer.echo("No dependency ranges to bump.")
+            print("No dependency ranges to bump.")
             return
 
         if self.dry_run:
             for bump in bumps:
                 old, new = ",".join(bump.old), ",".join(bump.new)
                 level = bump.level(self.precision.zero_major)
-                typer.echo(
+                print(
                     f"{bump.project} · {bump.section}: {bump.name} {old} → {new} ({level})"
                 )
 
@@ -216,7 +257,7 @@ class Mode:
         if (
             selected := bumps if self.accept is not None else self.select(bumps)
         ) is None:
-            raise typer.Exit(1)
+            raise SystemExit(1)
 
         commands: dict[Args, list[str]] = {}
 
@@ -234,6 +275,9 @@ class Mode:
         """Prompt for the bumps to apply, grouped by project and section, with their new versions colored by level."""
         name_width = max(len(bump.name) for bump in bumps)
         old_width = max(len(",".join(bump.old)) for bump in bumps)
+        # imported here, since it takes most of the startup of the other commands and the completions
+        import questionary
+
         choices: list[questionary.Choice | questionary.Separator] = []
 
         for (project, section), group in groupby(
@@ -258,7 +302,7 @@ class Mode:
             )
 
         return questionary.checkbox(
-            "Select the ranges to bump", choices, style=STYLE
+            "Select the ranges to bump", choices, style=questionary.Style(STYLE)
         ).ask()
 
 
@@ -295,47 +339,19 @@ class Outdated:
 
 type Edit = Callable[[Outdated, str, str], tuple[Args, str]]
 
-MinAge = Annotated[
-    int,
-    typer.Option(
-        envvar="BUMP_RANGES_MIN_AGE",
-        help="Days a release must age before it is offered.",
-    ),
-]
 
-
-class CommandError(Error):
-    """A command that failed, exiting with its code and its standard error if captured."""
-
-    def __init__(self, args: Sequence[str], code: int, stderr: str) -> None:
-        """Describe the command by its first two arguments, the later ones may span lines."""
-        self.stderr = stderr.strip()
-        detail = f": {self.stderr}" if self.stderr else ""
-        super().__init__(f"`{shlex.join(args[:2])}` exited with code {code}{detail}")
-        self.exit_code = code
-
-
-def run(*args: str, codes: Container[int] = (0,), capture: bool = False) -> str:
-    """Run a command and return its standard output, capturing its standard error if asked."""
-    stderr = subprocess.PIPE if capture else None
-    process = subprocess.run(
-        args, check=False, stdout=subprocess.PIPE, stderr=stderr, text=True
+def ls_files(*pathspecs: str) -> list[str]:
+    """The tracked and untracked files at or below the working directory that the pathspecs match."""
+    return run_nul(
+        "git",
+        "ls-files",
+        "-z",
+        "--cached",
+        "--others",
+        "--exclude-standard",
+        "--",
+        *pathspecs,
     )
-
-    if process.returncode not in codes:
-        raise CommandError(args, process.returncode, process.stderr or "")
-
-    return process.stdout
-
-
-def run_json(*args: str, codes: Container[int] = (0,), capture: bool = False) -> Any:
-    """Run a command and return its standard output parsed as JSON."""
-    output = run(*args, codes=codes, capture=capture)
-
-    try:
-        return json.loads(output)
-    except json.JSONDecodeError as error:
-        raise Error(f"`{shlex.join(args[:2])}` printed no JSON: {error}") from error
 
 
 def parse(comparator: str) -> tuple[str, list[int], list[str]]:
@@ -542,9 +558,8 @@ def requirement_bump(
     )
 
 
-@cache
 def load_json(path: Path) -> dict[str, Any]:
-    """The parsed JSON manifest, read once."""
+    """The parsed JSON manifest."""
     return json.loads(path.read_text())
 
 
@@ -556,8 +571,11 @@ def manifest_bumps(
     precision: Precision,
 ) -> Iterator[Bump]:
     """The bumps of JSON manifests, given the sections and the edit setting a range."""
+    # read once per run, since the manifests change between runs
+    load = cache(load_json)
+
     for package in outdated:
-        manifest = load_json(Path(package.location, filename))
+        manifest = load(Path(package.location, filename))
         project = manifest.get("name", package.location or filename)
 
         for section in sections:
@@ -637,18 +655,7 @@ def composer_edit(package: Outdated, section: str, new: str) -> tuple[Args, str]
 def action_bumps(min_age: int, precision: Precision) -> Iterator[Bump]:
     """The bumps of the version tags of the GitHub Actions used by the workflows and composite actions."""
     # git skips ignored files, unlike a glob
-    pathspecs = (f":(glob){pattern}" for pattern in ACTION_FILES)
-    output = run(
-        "git",
-        "ls-files",
-        "-z",
-        "--cached",
-        "--others",
-        "--exclude-standard",
-        "--",
-        *pathspecs,
-    )
-    paths = sorted(Path(path) for path in output.split("\0") if path)
+    paths = sorted(map(Path, ls_files(*ACTION_PATHSPECS)))
 
     yield from tag_bumps(
         [
@@ -839,7 +846,7 @@ def latest_release(repo: str, min_age: int) -> str | None:
         if error.exit_code != 1:
             raise
 
-        typer.echo(f"Skipping {repo}: {error.stderr}", err=True)
+        print(f"Skipping {repo}: {error.stderr}", file=sys.stderr)
         return None
 
     return next(
@@ -976,7 +983,9 @@ def relock(min_age: int) -> None:
         }
 
     for key in sorted(held):
-        typer.echo(f"Holding back {key}, its new commit has not settled yet.", err=True)
+        print(
+            f"Holding back {key}, its new commit has not settled yet.", file=sys.stderr
+        )
 
     paths = [path for path, keys in workflows.items() if held.isdisjoint(closure(keys))]
 
@@ -984,103 +993,311 @@ def relock(min_age: int) -> None:
         run("gh-actions-lock", "--relock", *LOCK_FLAGS, *paths)
 
 
-@app.callback()
-def main(
-    ctx: typer.Context,
-    accept: Annotated[
-        Level | None,
-        typer.Option(
-            help="Accept the bumps up to this level without prompting and skip the others, so `minor` skips the major ones."
-        ),
-    ] = None,
-    qualified: Annotated[
-        bool,
-        typer.Option(
-            help="Only bump full versions such as `1.2.3`, leaving floating ones such as `v2` or `^1.2` alone."
-        ),
-    ] = False,
-    precision: Annotated[
-        Level,
-        typer.Option(
-            help="Write the moved versions with at most this precision, counted like the levels, such as `^4` for `major`, unless that allows older versions, while version tags such as `v7.0.1` shorten to their floating tag `v7` even without a newer release. `patch` keeps the precision of versions with up to three components."
-        ),
-    ] = Level.MAJOR,
-    zero_major: Annotated[
-        bool,
-        typer.Option(
-            "--zero-major/--zero-minor",
-            help="Whether a change after leading zeros, such as from `0.29.1` to `0.30.0`, is a major or a minor one.",
-        ),
-    ] = True,
-    dry_run: Annotated[
-        bool,
-        typer.Option(
-            "--dry-run",
-            "-n",
-            help="List the bumps that would be applied without applying them.",
-        ),
-    ] = False,
-) -> None:
-    """Choose which bumps to apply and how."""
-    ctx.obj = Mode(accept, qualified, Precision(precision, zero_major), dry_run)
-
-
-@app.command()
-def python(ctx: typer.Context) -> None:
+def python(mode: Mode) -> None:
     """Bump the ranges of a uv workspace, honoring settings such as `exclude-newer`."""
-    ctx.obj.apply(uv_bumps(ctx.obj.precision))
+    mode.apply(uv_bumps(mode.precision))
 
 
-@app.command()
-def node(ctx: typer.Context) -> None:
+def node(mode: Mode) -> None:
     """Bump the ranges of an npm or bun workspace with installed packages, honoring `min-release-age` of npm."""
-    ctx.obj.apply(
+    mode.apply(
         manifest_bumps(
-            npm_outdated(), "package.json", NODE_SECTIONS, npm_edit, ctx.obj.precision
+            npm_outdated(), "package.json", NODE_SECTIONS, npm_edit, mode.precision
         )
     )
 
 
-@app.command()
-def php(ctx: typer.Context) -> None:
+def php(mode: Mode) -> None:
     """Bump the ranges of a composer project."""
-    ctx.obj.apply(
+    mode.apply(
         manifest_bumps(
             composer_outdated(),
             "composer.json",
             PHP_SECTIONS,
             composer_edit,
-            ctx.obj.precision,
+            mode.precision,
         )
     )
 
 
-@app.command()
-def actions(ctx: typer.Context, min_age: MinAge = 0) -> None:
+def actions(mode: Mode) -> None:
     """Bump the version tags of the GitHub Actions in a repository at the chosen precision, then relock its `actions.lock` if it has one.
 
     The floating refs, such as `v7`, only advance once their new commits settled.
     """
-    mode: Mode = ctx.obj
-    mode.apply(action_bumps(min_age, mode.precision))
+    mode.apply(action_bumps(mode.min_age, mode.precision))
 
     if mode.dry_run or not ACTIONS_LOCK.is_file():
         return
 
     # locks the bumped refs and prunes the replaced ones
     run("gh-actions-lock", *LOCK_FLAGS)
-    relock(min_age)
+    relock(mode.min_age)
 
 
-@app.command()
-def nix(ctx: typer.Context, min_age: MinAge = 0) -> None:
+def nix(mode: Mode) -> None:
     """Bump the version tags of the GitHub inputs of a flake at the chosen precision."""
-    ctx.obj.apply(flake_bumps(min_age, ctx.obj.precision))
+    mode.apply(flake_bumps(mode.min_age, mode.precision))
+
+
+@dataclass(frozen=True, slots=True)
+class Ecosystem:
+    """The range bumps of an ecosystem, with the pathspecs of the files they edit in a project."""
+
+    bump: Callable[[Mode], None]
+    pathspecs: Args
+
+
+ECOSYSTEMS = {
+    "python": Ecosystem(python, (":(glob)**/pyproject.toml",)),
+    "node": Ecosystem(node, (":(glob)**/package.json",)),
+    "php": Ecosystem(php, ("composer.json",)),
+    "actions": Ecosystem(actions, ACTION_PATHSPECS),
+    "nix": Ecosystem(nix, ("flake.nix",)),
+}
+
+
+@dataclass(frozen=True, slots=True)
+class Command:
+    """A command of a package manager, which only runs if the path `if_exists` exists, if given."""
+
+    args: Args
+    if_exists: str | None = None
+
+    def __call__(self, message: str, env: Mapping[str, str]) -> None:
+        """Run the command with the commit message in place of the placeholder in its arguments."""
+        if self.if_exists is not None and not Path(self.if_exists).exists():
+            return
+
+        args = [arg.replace(MESSAGE, message) for arg in self.args]
+        run(*args, output=False, env=os.environ | env)
+
+
+@dataclass(frozen=True, slots=True)
+class Manager:
+    """A package manager of `bump update`, with the fields described by the module."""
+
+    name: str
+    lockfile: str
+    excludes: Args = ()
+    pathspecs: Args = ()
+    ranges: str | None = None
+    commands: tuple[Command, ...] = ()
+    env: Mapping[str, str] = field(default_factory=dict)
+
+    def update(self, mode: Mode) -> None:
+        """Update and commit the projects at or below the working directory.
+
+        The lockfiles are listed ahead of the updates, which may create others,
+        and each project commits right away, so a parent never sweeps up the changes of a nested one.
+        """
+        excludes = (f":(exclude,glob){pattern}" for pattern in self.excludes)
+
+        for lockfile in ls_files(f":(glob)**/{self.lockfile}", *excludes):
+            with chdir(lockfile.removesuffix(self.lockfile) or "."):
+                self.update_project(mode)
+
+    def update_project(self, mode: Mode) -> None:
+        """Update and commit the project in the working directory.
+
+        The message names the project by its path in the repository unless it is the root.
+        """
+        prefix = run("git", "rev-parse", "--show-prefix").strip().removesuffix("/")
+        message = f"chore(deps/{self.name}): update {prefix}".rstrip()
+        head = run("git", "rev-parse", "HEAD")
+
+        ranges = ECOSYSTEMS[self.ranges] if self.ranges is not None else None
+
+        if ranges is not None:
+            ranges.bump(mode)
+
+        if mode.dry_run:
+            return
+
+        for command in self.commands:
+            command(message, self.env)
+
+        edited = ranges.pathspecs if ranges is not None else ()
+        commit((self.lockfile, *self.pathspecs, *edited), message, head)
+
+
+def commit(pathspecs: Iterable[str], message: str, head: str) -> None:
+    """Commit the changed files that the pathspecs match, unless they are up to date.
+
+    Pathspecs may match no file, such as optional manifests, since git only adds the files they match.
+    A package manager may commit its lockfile itself since `head`, whose commit then takes up the remaining changes.
+    """
+    files = ls_files(*pathspecs)
+
+    if not files:
+        return
+
+    run("git", "add", "--", *files)
+
+    if not run("git", "diff", "--cached", "--name-only", "--", *files):
+        return
+
+    amend = run("git", "rev-parse", "HEAD") != head
+    args = ("--amend", "--no-edit") if amend else ("--message", message)
+    run("git", "commit", "--quiet", *args, "--", *files)
+
+
+def load_config(data: Mapping[str, Any]) -> dict[str, Manager]:
+    """The built-in package managers with those of a config, see the module docstring."""
+    return MANAGERS | {
+        name: Manager(
+            name,
+            spec["lockfile"],
+            tuple(spec.get("excludes", ())),
+            tuple(spec.get("pathspecs", ())),
+            spec.get("ranges"),
+            tuple(
+                Command(tuple(command["args"]), command.get("ifExists"))
+                for command in spec.get("commands", ())
+            ),
+            spec.get("env", {}),
+        )
+        for name, spec in data.items()
+    }
+
+
+# the package managers of flakes and GitHub Actions, which every project of them uses alike
+MANAGERS = {
+    "nix": Manager(
+        "nix",
+        "flake.lock",
+        ranges="nix",
+        # the summary of the lockfile updates goes into the body of the commit
+        commands=(
+            Command(
+                (
+                    "nix",
+                    "flake",
+                    "update",
+                    "--commit-lock-file",
+                    "--commit-lock-file-summary",
+                    MESSAGE,
+                )
+            ),
+        ),
+    ),
+    "actions": Manager("actions", str(ACTIONS_LOCK), ranges="actions"),
+}
+CONFIG = ConfigOption(
+    load_config, MANAGERS, "JSON file of further package managers of `update`."
+)
+
+
+def update(managers: Mapping[str, Manager], names: Collection[str], mode: Mode) -> None:
+    """Update the dependencies of the projects at or below the working directory and commit them per project and package manager.
+
+    For each package manager, the projects with its lockfile bump their ranges, run its commands,
+    and commit the lockfile with the other files it changes as `chore(deps/<manager>): update[ <path>]`,
+    amending the commit if a command already made one, such as `nix flake update --commit-lock-file`.
+    """
+    for name, manager in managers.items():
+        if not names or name in names:
+            manager.update(mode)
+
+
+def parser(managers: Collection[str] = ()) -> argparse.ArgumentParser:
+    """The parser of the global options followed by a command with its own options, choosing among the package managers."""
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=HelpFormatter, parents=[CONFIG.parser()]
+    )
+
+    options = argparse.ArgumentParser(add_help=False)
+    options.add_argument(
+        "--accept",
+        type=Level,
+        choices=list(Level),
+        help="Accept the bumps up to this level without prompting and skip the others, so `minor` skips the major ones.",
+    )
+    options.add_argument(
+        "--qualified",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Only bump full versions such as `1.2.3`, leaving floating ones such as `v2` or `^1.2` alone.",
+    )
+    options.add_argument(
+        "--precision",
+        type=Level,
+        choices=list(Level),
+        default=Level.MAJOR,
+        help="Write the moved versions with at most this precision, counted like the levels, such as `^4` for `major`, unless that allows older versions, while version tags such as `v7.0.1` shorten to their floating tag `v7` even without a newer release. `patch` keeps the precision of versions with up to three components.",
+    )
+    # a pair of flags instead of `--no-zero-major` to keep their names symmetric
+    zero = options.add_mutually_exclusive_group()
+    zero.add_argument(
+        "--zero-major",
+        action="store_true",
+        help="Whether a change after leading zeros, such as from `0.29.1` to `0.30.0`, is a major or a minor one.",
+    )
+    zero.add_argument("--zero-minor", dest="zero_major", action="store_false")
+    options.set_defaults(zero_major=True)
+    # a string default goes through `type` like a passed value
+    options.add_argument(
+        "--min-age",
+        type=int,
+        default=os.environ.get("BUMP_MIN_AGE", "0"),
+        help="Days a release of a GitHub Action or flake input must age before it is offered, also set by `BUMP_MIN_AGE`.",
+    )
+    options.add_argument(
+        "-n",
+        "--dry-run",
+        action="store_true",
+        help="List the bumps that would be applied without applying them, so `update` runs no commands.",
+    )
+
+    commands = parser.add_subparsers(
+        title="commands", dest="command", metavar="COMMAND"
+    )
+    update_parser = add_command(commands, "update", update.__doc__, parents=[options])
+    update_parser.add_argument(
+        "managers",
+        nargs="*",
+        choices=managers,
+        metavar="MANAGER",
+        help="Package managers to run, defaulting to all.",
+    )
+
+    ranges = add_command(commands, "ranges", RANGES_DOC, parents=[options])
+    ecosystems = ranges.add_subparsers(
+        title="ecosystems", dest="ecosystem", metavar="ECOSYSTEM", required=True
+    )
+
+    for name, ecosystem in ECOSYSTEMS.items():
+        add_command(ecosystems, name, ecosystem.bump.__doc__)
+
+    return parser
+
+
+@entrypoint
+def main() -> None:
+    """Parse the command line and run the chosen command."""
+    managers = CONFIG.parse()
+    cli = complete(parser(managers))
+    args = cli.parse_args()
+
+    # global options precede the command, so it can be appended
+    if args.command is None:
+        args = cli.parse_args([*sys.argv[1:], "update"])
+
+    mode = Mode(
+        args.accept,
+        args.qualified,
+        Precision(args.precision, args.zero_major),
+        args.dry_run,
+        args.min_age,
+    )
+
+    match args.command:
+        case "ranges":
+            ECOSYSTEMS[args.ecosystem].bump(mode)
+
+        case "update":
+            update(managers, args.managers, mode)
 
 
 if __name__ == "__main__":
-    try:
-        app()
-    except Error as error:
-        typer.echo(f"Error: {error}", err=True)
-        raise SystemExit(error.exit_code) from error
+    main()

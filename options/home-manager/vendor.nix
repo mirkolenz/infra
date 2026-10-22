@@ -1,6 +1,4 @@
-# `vendor`, which replaces the copies of live checkouts in the current project.
-# Only files tracked by git are copied, so the project can commit the copy instead of embedding a repository.
-# The top-level readme, license and `.gitignore` are left out, and the project keeps its own.
+# `vendor`, which replaces the copies of live checkouts in the current project, see pkgs/by-name/vendor.
 {
   config,
   lib,
@@ -50,63 +48,8 @@ in
   };
 
   config = lib.mkIf (cfg != { }) {
-    custom.commands.vendor.text = /* bash */ ''
-      # @describe Replace the vendored copies of checkouts in the current project
-      # @flag -f --force  Overwrite the project files selecting the copies
-      # @arg checkouts+[${lib.concatStringsSep "|" (lib.attrNames cfg)}]
-
-      # Copies a checkout into the project, given its source, target and optionally its project file and content.
-      vendor() {
-        if [[ ! -d $1 ]]; then
-          echo "Checkout $1 is missing" >&2
-          exit 1
-        fi
-
-        rm -rf "$2"
-
-        ${lib.getExe pkgs.git} -C "$1" ls-files -z -- \
-          ':(exclude,glob)README*' \
-          ':(exclude,glob)LICENSE*' \
-          ':(exclude).gitignore' |
-          ${lib.getExe pkgs.rsync} \
-            --archive \
-            --mkpath \
-            --from0 \
-            --files-from=- \
-            --ignore-missing-args \
-            "$1/" "$2/"
-
-        if [[ $# -eq 2 ]]; then
-          return
-        fi
-
-        if [[ -e $3 && -z $argc_force ]]; then
-          echo "Keeping $3, compare it with $4" >&2
-        else
-          cp --no-preserve=all "$4" "$3"
-          echo "Wrote $3" >&2
-        fi
-      }
-
-      for checkout in "''${argc_checkouts[@]}"; do
-        case "$checkout" in
-          ${lib.concatMapAttrsStringSep "\n" (
-            name: checkout:
-            "${name}) vendor ${
-              lib.escapeShellArgs (
-                [
-                  checkout.source
-                  checkout.target
-                ]
-                ++ lib.optionals (checkout.projectFile != null) [
-                  checkout.projectFile.name
-                  checkout.projectFile.source
-                ]
-              )
-            } ;;"
-          ) cfg}
-        esac
-      done
-    '';
+    home.packages = [
+      (pkgs.vendor.withConfig cfg)
+    ];
   };
 }

@@ -29,15 +29,29 @@
           "vendor"
         ];
         # updates each module on its own, since a workspace would record its checksums in go.work.sum
-        text = ''
-          export GOWORK=off
-          ${go} get -u -t ./...
-          ${go} mod tidy
-
-          if [ -f vendor/modules.txt ]; then
-            ${go} mod vendor
-          fi
-        '';
+        env.GOWORK = "off";
+        commands = [
+          [
+            go
+            "get"
+            "-u"
+            "-t"
+            "./..."
+          ]
+          [
+            go
+            "mod"
+            "tidy"
+          ]
+          {
+            args = [
+              go
+              "mod"
+              "vendor"
+            ];
+            ifExists = "vendor/modules.txt";
+          }
+        ];
       };
     };
 }

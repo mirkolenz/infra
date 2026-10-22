@@ -114,14 +114,6 @@ in
           nix-converter
           nix-sweep
         ];
-      custom.bump.nix = {
-        lockfile = "flake.lock";
-        pathspecs = [ "flake.nix" ];
-        text = ''
-          ${lib.getExe pkgs.bump-ranges} nix
-          ${nix} flake update --commit-lock-file --commit-lock-file-summary "$message"
-        '';
-      };
       custom.commands = {
         gc.text = /* bash */ ''
           # @describe Wipe the history of nix profiles, then collect and optimise the store

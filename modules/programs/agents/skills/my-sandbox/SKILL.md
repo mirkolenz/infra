@@ -26,7 +26,7 @@ nono profile show agents
 ```
 
 `$NONO_CAP_FILE` points to a JSON file with the current capabilities.
-`nono why` misses the protected workspace paths, which macOS enforces through the raw seatbelt rules of the profile and Linux through the bubblewrap policy that the agent wrapper on `PATH` passes to `nono-bwrap`.
+`nono why` misses the protected workspace paths, which macOS enforces through the raw seatbelt rules of the profile and Linux through the bubblewrap sandbox that the agent launcher on `PATH` (`nono-launch`) puts around nono.
 
 ## Steps
 

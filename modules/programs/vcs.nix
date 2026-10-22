@@ -18,7 +18,6 @@
           gibo
           git-filter-repo
           diffedit3
-          # for `bump-ranges actions`, the gh extension stays off the path
           gh-actions-lock-bin
         ]
         ++ lib.optionals extras [ glab ];
@@ -28,16 +27,6 @@
         settings = {
           git_protocol = "ssh";
         };
-      };
-      custom.bump.actions = {
-        lockfile = ".github/workflows/actions.lock";
-        # the files that bump-ranges edits, including through gh actions-lock
-        pathspecs = [
-          ":(glob).github/workflows/*.y*ml"
-          ":(glob).github/actions/**/action.y*ml"
-          ":(glob)action.y*ml"
-        ];
-        text = "${lib.getExe pkgs.bump-ranges} actions";
       };
       programs.gh-dash = {
         enable = lib.mkDefault extras;

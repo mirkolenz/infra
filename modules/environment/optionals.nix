@@ -20,12 +20,24 @@
       custom.bump = {
         buf = {
           lockfile = "buf.lock";
-          text = "${lib.getExe pkgs.buf} dep update";
+          commands = [
+            [
+              (lib.getExe pkgs.buf)
+              "dep"
+              "update"
+            ]
+          ];
         };
         # swift ships with xcode instead of nixpkgs
         swift = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
           lockfile = "Package.resolved";
-          text = "/usr/bin/swift package update";
+          commands = [
+            [
+              "/usr/bin/swift"
+              "package"
+              "update"
+            ]
+          ];
         };
       };
       home.packages = with pkgs; [

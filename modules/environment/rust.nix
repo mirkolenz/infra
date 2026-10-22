@@ -14,7 +14,12 @@
       ];
       custom.bump.cargo = {
         lockfile = "Cargo.lock";
-        text = "${lib.getExe pkgs.cargo} update";
+        commands = [
+          [
+            (lib.getExe pkgs.cargo)
+            "update"
+          ]
+        ];
       };
     };
 }

@@ -1,26 +1,20 @@
-"""Run a command within bubblewrap, enforcing the agent sandbox where nono only grants.
+"""The bubblewrap command enforcing the agent sandbox where nono only grants, for `nono_launch`.
 
 On Linux, nono grants but does not restrict within granted directories, so bubblewrap mounts
 over the `read` paths within writable ones, the `write` paths within those,
 and the workspace keys of every workspace root and its git directories.
-The workspace roots are the working directory and those of `NONO_ALLOW`.
+The workspace roots are the working directory and the granted directories.
 The mounts cover paths that exist at launch.
 """
 
-import json
-import os
 import subprocess
 from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
-from typing import Annotated, Self
+from typing import Any, Self
 
-import typer
-
-# Absolute paths, since `PATH` reaches the command.
-BWRAP = "@bwrap@"
-GIT = "@git@"
+__all__ = ["Policy", "command"]
 
 GIT_DIR_PREFIX = ".git/"
 
@@ -35,17 +29,20 @@ class Access(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class Policy:
-    """The workspace keys by access and the absolute sandbox paths."""
+    """The workspace keys by access, the absolute sandbox paths, and the executables.
+
+    The executables are absolute paths, since `PATH` reaches the sandboxed command.
+    """
 
     workspace: Mapping[Access, tuple[str, ...]]
     read: tuple[Path, ...]
     write: tuple[Path, ...]
+    bwrap: str
+    git: str
 
     @classmethod
-    def load(cls, path: Path) -> Self:
-        """Read the policy from the JSON file at `path`."""
-        data = json.loads(path.read_bytes())
-
+    def parse(cls, data: Mapping[str, Any]) -> Self:
+        """The policy of its JSON object."""
         return cls(
             workspace={
                 Access(access): tuple(keys)
@@ -53,6 +50,8 @@ class Policy:
             },
             read=tuple(map(Path, data["read"])),
             write=tuple(map(Path, data["write"])),
+            bwrap=data["bwrap"],
+            git=data["git"],
         )
 
     def keys(self, access: Access, *, git: bool) -> list[str]:
@@ -95,13 +94,13 @@ class Workspace:
     gitdirs: frozenset[Path]
 
     @classmethod
-    def discover(cls, roots: Iterable[Path]) -> Self:
-        """The workspace of the existing directories among `roots`."""
+    def discover(cls, roots: Iterable[Path], git: str) -> Self:
+        """The workspace of the existing directories among `roots`, found with `git`."""
         dirs = {path for root in roots if (path := root.resolve()).is_dir()}
         processes = [
             subprocess.Popen(
                 [
-                    GIT,
+                    git,
                     "-C",
                     str(path),
                     "rev-parse",
@@ -169,26 +168,11 @@ def canonical(mounts: Iterable[Mount]) -> list[Mount]:
     ]
 
 
-def main(
-    policy: Annotated[Path, typer.Option(exists=True, dir_okay=False)],
-    command: list[str],
-) -> None:
-    """Run `command` within bubblewrap mounts for the workspace roots."""
-    allowed = os.environ.get("NONO_ALLOW", "").split(",")
-    workspace = Workspace.discover(
-        [Path.cwd(), *(Path(root) for root in allowed if root)]
-    )
+def command(policy: Policy, roots: Iterable[Path]) -> list[str]:
+    """The bubblewrap command enforcing `policy` for the workspace roots, up to the `--` before the command it runs."""
+    workspace = Workspace.discover(roots, policy.git)
     args = [
-        arg
-        for mount in canonical(requested(Policy.load(policy), workspace))
-        for arg in mount.args
+        arg for mount in canonical(requested(policy, workspace)) for arg in mount.args
     ]
 
-    os.execv(
-        BWRAP,
-        [BWRAP, "--dev-bind", "/", "/", "--die-with-parent", *args, "--", *command],
-    )
-
-
-if __name__ == "__main__":
-    typer.run(main)
+    return [policy.bwrap, "--dev-bind", "/", "/", "--die-with-parent", *args, "--"]

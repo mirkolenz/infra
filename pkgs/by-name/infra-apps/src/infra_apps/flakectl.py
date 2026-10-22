@@ -1,3 +1,6 @@
+"""Build, deploy, and update the hosts and packages of this flake."""
+
+import argparse
 import concurrent.futures
 import functools
 import getpass
@@ -8,32 +11,52 @@ import re
 import shlex
 import shutil
 import subprocess
+import sys
 import tempfile
 import urllib.parse
-from collections.abc import Iterable, Mapping
-from dataclasses import dataclass
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from dataclasses import dataclass, fields
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Annotated, Any
+from types import FunctionType
+from typing import Any
 
 import obstore
-import typer
 from obstore.exceptions import BaseError
 from obstore.store import S3Store
+
+from infra_apps.apptools import (
+    CommandError,
+    Error,
+    HelpFormatter,
+    add_command,
+    complete,
+    entrypoint,
+    run,
+    run_json,
+    run_nul,
+)
 
 # Host that `access-tokens` entries are keyed by.
 GITHUB_HOST = "github.com"
 
 GITHUB_ACTIONS = os.environ.get("GITHUB_ACTIONS") == "true"
 
+# the Actions log renders colors although stderr is a pipe there
+COLOR = GITHUB_ACTIONS or sys.stderr.isatty()
+
 # Flags passed to every `nix` invocation.
-NIX_FLAGS = ["--extra-experimental-features", "nix-command flakes"]
+# The settings of every nix that runs, also within the tools that flakectl runs.
+NIX_CONFIG = "extra-experimental-features = nix-command flakes"
 
 # The store directory and hash of a store path, which logs leave out.
 STORE_PATH_PREFIX = re.compile(r"/nix/store/[0-9a-z]{32}-")
 
 
 TARGET_APPLY = "builtins.mapAttrs (_: drv: drv.drvPath)"
+
+# The expression listing the update scripts of the packages, see `update_scripts_args`.
+UPDATE_SCRIPTS = str(Path(__file__).with_name("update_scripts.nix"))
 
 # Whether CI builds a derivation, following Hydra's `meta.hydraPlatforms`. The
 # flake's `lib.isHydraTarget` splits `checks` by the same rule. Only `system` and
@@ -96,10 +119,6 @@ APPS_APPLY = "builtins.mapAttrs (_: builtins.mapAttrs (_: app: app.program))"
 # its share is restarted, so peak memory stays at `workers * max_memory_size` MiB.
 # One worker of 6 GiB fits any host as well as the largest single configuration
 # (about 4.7 GB).
-EvalWorkers = Annotated[int, typer.Option("--workers")]
-EvalMaxMemorySize = Annotated[
-    int, typer.Option("--max-memory-size", help="MiB per worker.")
-]
 EVAL_WORKERS = 1
 EVAL_MAX_MEMORY_SIZE = 6144
 
@@ -118,8 +137,9 @@ class BuildTarget:
 
 @dataclass(frozen=True, slots=True)
 class Config:
+    """The global options, which every command shares."""
+
     flake: str
-    update_scripts_nix: str | None
     impure_attr: str | None
     build_path: str | None
     hash_path: str | None
@@ -131,78 +151,53 @@ class Config:
     def require_worktree(self) -> None:
         """Refuse to edit a checkout that is not the flake we were resolved from."""
         if not self.is_worktree:
-            typer.echo("Not this flake's working copy; run from a checkout.", err=True)
-            raise typer.Exit(1)
-
-
-def subprocess_capture(
-    cmd: list[str], stdin: str | None = None, env: Mapping[str, str] | None = None
-) -> subprocess.CompletedProcess[str]:
-    """Run `cmd` with its output captured as text, leaving failure to the caller."""
-    return subprocess.run(
-        cmd, input=stdin, env=env, capture_output=True, text=True, check=False
-    )
-
-
-def subprocess_stdout(cmd: list[str], stdin: str | None = None) -> str:
-    """Capture `cmd`'s stdout; on failure echo its stderr and exit with its status."""
-    result = subprocess_capture(cmd, stdin)
-
-    if result.returncode:
-        typer.echo(result.stderr.rstrip(), err=True)
-        raise typer.Exit(result.returncode)
-
-    return result.stdout.strip()
+            raise Error("Not this flake's working copy, run from a checkout.")
 
 
 def log_cmd(cmd: list[str]) -> None:
     """Echo `cmd` to stderr in short.
 
-    Leading NIX_FLAGS are elided, `nix run <flake>#<package> --` shows as the
-    package alone, and store paths as their names.
+    `nix run <flake>#<package> --` shows as the package alone, and store paths as
+    their names.
     """
     head, *tail = cmd
-
-    if tail[: len(NIX_FLAGS)] == NIX_FLAGS:
-        tail = tail[len(NIX_FLAGS) :]
 
     if head == "nix" and tail[:1] == ["run"] and tail[2:3] == ["--"]:
         head, tail = tail[1].rpartition("#")[2], tail[3:]
 
-    typer.echo(
-        shlex.join(STORE_PATH_PREFIX.sub("", arg) for arg in [head, *tail]), err=True
+    print(
+        shlex.join(STORE_PATH_PREFIX.sub("", arg) for arg in [head, *tail]),
+        file=sys.stderr,
     )
 
 
 def run_logged(cmd: list[str], *, check: bool = True) -> int:
-    """Log `cmd` then run it.
+    """Log `cmd`, run it with its output on the terminal, and return its exit code.
 
-    Failure exits with `cmd`'s own status rather than raising: `cmd` reported it
-    on our stderr already, and a traceback would only displace that. Pass
-    `check=False` for a command whose failure is not fatal.
+    Pass `check=False` for a command whose failure is not fatal.
     """
     log_cmd(cmd)
-    returncode = subprocess.run(cmd, check=False).returncode
 
-    if returncode and check:
-        raise typer.Exit(returncode)
+    try:
+        run(*cmd, output=False)
+    except CommandError as error:
+        if check:
+            raise
 
-    return returncode
+        return error.exit_code
 
-
-def nix_argv(*args: str) -> list[str]:
-    """Build a `nix` argv with the standard flags prepended."""
-    return ["nix", *NIX_FLAGS, *args]
+    return 0
 
 
 def flake_program(cfg: Config, package: str) -> list[str]:
     """Run the main program of the flake's `package`.
 
-    Only nix and git are bundled, every other tool is pinned by the flake just
+    nix and git come from the host, every other tool is pinned by the flake just
     like the configurations it acts on, and only fetched by the commands using
-    it. This also works on a fresh machine that has nothing but Nix.
+    it. Only the commands editing a checkout need git, so the others also work on
+    a fresh machine that has nothing but Nix.
     """
-    return nix_argv("run", f"{cfg.flake}#{package}", "--")
+    return ["nix", "run", f"{cfg.flake}#{package}", "--"]
 
 
 def flake_ref(flake: str, attr_path: str, name: str) -> str:
@@ -216,7 +211,7 @@ def flake_ref(flake: str, attr_path: str, name: str) -> str:
 
 def nix_eval_json(*args: str) -> Any:
     """Evaluate a nix expression to JSON and parse it."""
-    return json.loads(subprocess_stdout(nix_argv("eval", "--json", *args)))
+    return run_json("nix", "eval", "--json", *args, capture=True)
 
 
 def nix_eval_targets(installable: str) -> dict[str, BuildTarget]:
@@ -226,11 +221,7 @@ def nix_eval_targets(installable: str) -> dict[str, BuildTarget]:
     if not isinstance(entries, dict) or not all(
         isinstance(drv, str) and drv.endswith(".drv") for drv in entries.values()
     ):
-        typer.echo(
-            f"nix eval {installable} did not return an attrset of derivations",
-            err=True,
-        )
-        raise typer.Exit(1)
+        raise Error(f"nix eval {installable} did not return an attrset of derivations")
 
     return {name: BuildTarget(drv_path=drv) for name, drv in entries.items()}
 
@@ -242,55 +233,13 @@ def build_targets(targets: Mapping[str, BuildTarget], *, check: bool = True) -> 
 
     refs = [target.installable for target in targets.values()]
 
-    return run_logged(nix_argv("build", "--no-link", *refs), check=check)
+    return run_logged(["nix", "build", "--no-link", *refs], check=check)
 
 
-# Hand unknown options on to the wrapped tool.
-EXTRA_ARGS = {"allow_extra_args": True, "ignore_unknown_options": True}
-
-# Additionally keep the wrapped tool's own --help reachable.
-PASSTHROUGH = {**EXTRA_ARGS, "help_option_names": ["--wrapper-help"]}
-
-
-app = typer.Typer(
-    add_completion=False,
-    pretty_exceptions_enable=False,
-    help="Unified toolkit for managing a NixOS flake.",
-)
-
-
-@app.callback(invoke_without_command=True)
-def main(
-    ctx: typer.Context,
-    update_scripts_nix: Annotated[str | None, typer.Option()] = None,
-    flake: Annotated[str, typer.Option()] = ".",
-    impure_attr: Annotated[str | None, typer.Option()] = None,
-    build_path: Annotated[str | None, typer.Option()] = None,
-    hash_path: Annotated[str | None, typer.Option()] = None,
-    update_path: Annotated[str | None, typer.Option()] = None,
-    cache: Annotated[str | None, typer.Option()] = None,
-    max_workers: Annotated[int, typer.Option()] = 8,
-):
-    ctx.obj = Config(**ctx.params, is_worktree=is_worktree_of(flake))
-
-    # the Actions log renders colors although stderr is a pipe there
-    if GITHUB_ACTIONS:
-        ctx.color = True
-
-    if ctx.invoked_subcommand is None:
-        build_config(ctx)
-
-
-@app.command("build-config", context_settings=PASSTHROUGH)
 def build_config(
-    ctx: typer.Context,
-    operation: Annotated[
-        str, typer.Option("--operation", "-o", "--mode", "-m")
-    ] = "switch",
-    name: Annotated[str | None, typer.Option("--name", "-n")] = None,
-):
+    cfg: Config, extra_args: Sequence[str], operation: str, name: str | None
+) -> None:
     """Build and apply a darwin / nixos / home-manager configuration."""
-    cfg: Config = ctx.obj
     uname = os.uname()
     node = uname.nodename.lower()
     kernel = uname.sysname.lower()
@@ -313,40 +262,43 @@ def build_config(
         and nix_eval_json(f"{flake_ref(cfg.flake, attr, name)}.{cfg.impure_attr}")
         else []
     )
-    run_flake_tool(ctx, builder, name, operation, *impure)
+    run_flake_tool(cfg, extra_args, builder, name, operation, *impure)
 
 
-def run_flake_tool(ctx: typer.Context, package: str, name: str, *args: str) -> None:
+def run_flake_tool(
+    cfg: Config, extra_args: Sequence[str], package: str, name: str, *args: str
+) -> None:
     """Run the flake's `package` on its configuration `name`, extra args last."""
-    cfg: Config = ctx.obj
     run_logged(
         [
             *flake_program(cfg, package),
             *args,
             "--flake",
             f"{cfg.flake}#{name}",
-            *ctx.args,
+            *extra_args,
         ]
     )
 
 
-@app.command("disko", context_settings=PASSTHROUGH)
-def disko(ctx: typer.Context, machine: Annotated[str, typer.Argument()]):
+def disko(cfg: Config, extra_args: Sequence[str], machine: str) -> None:
     """Partition, format, and mount the disks of `machine`."""
-    run_flake_tool(ctx, "disko", machine)
+    run_flake_tool(cfg, extra_args, "disko", machine)
 
 
-@app.command("disko-install", context_settings=PASSTHROUGH)
-def disko_install(ctx: typer.Context, machine: Annotated[str, typer.Argument()]):
+def disko_install(cfg: Config, extra_args: Sequence[str], machine: str) -> None:
     """Partition the disks of `machine` and install it in one go."""
-    run_flake_tool(ctx, "disko-install", machine)
+    run_flake_tool(cfg, extra_args, "disko-install", machine)
 
 
-@app.command("nixos-install", context_settings=PASSTHROUGH)
-def nixos_install(ctx: typer.Context, machine: Annotated[str, typer.Argument()]):
+def nixos_install(cfg: Config, extra_args: Sequence[str], machine: str) -> None:
     """Install `machine` onto the disks that `disko` mounted."""
     run_flake_tool(
-        ctx, "nixos-install", machine, "--no-channel-copy", "--no-root-password"
+        cfg,
+        extra_args,
+        "nixos-install",
+        machine,
+        "--no-channel-copy",
+        "--no-root-password",
     )
 
 
@@ -356,29 +308,30 @@ def set_root_owned(path: Path, mode: int) -> None:
     shutil.chown(path, 0, 0)
 
 
-@app.command("passwd")
-def passwd(
-    ctx: typer.Context,
-    machine: Annotated[str, typer.Argument()],
-    user: Annotated[str, typer.Argument()],
-    root: Annotated[Path, typer.Option(help="Mount point of the target.")] = Path("/"),
-):
+def prompt_secret(prompt: str) -> str:
+    """Prompt for a hidden value until it is typed the same way twice."""
+    while True:
+        value = getpass.getpass(f"{prompt}: ")
+
+        if value == getpass.getpass("Repeat for confirmation: "):
+            return value
+
+        print("Error: The two entered values do not match.", file=sys.stderr)
+
+
+def passwd(cfg: Config, machine: str, user: str, root: Path) -> None:
     """Hash a prompted password into the `hashedPasswordFile` of `user` on `machine`.
 
     The path comes from the NixOS configuration, so it cannot drift from the one
     the system reads. Pass `--root /mnt` for an installer target.
     """
-    cfg: Config = ctx.obj
-
     # Checked up front rather than left to the chown: nobody should type a
     # password only to be told afterwards that it could not be stored.
     if os.geteuid() != 0:
-        typer.echo("passwd must run as root.", err=True)
-        raise typer.Exit(1)
+        raise Error("passwd must run as root.")
 
     if not root.is_dir():
-        typer.echo(f"Root {root} is no directory.", err=True)
-        raise typer.Exit(1)
+        raise Error(f"Root {root} is no directory.")
 
     # Nix itself reports a missing machine or user, suggesting similar names.
     target: str | None = nix_eval_json(
@@ -387,31 +340,31 @@ def passwd(
     )
 
     if target is None:
-        typer.echo(f"{machine} sets no hashedPasswordFile for {user}.", err=True)
-        raise typer.Exit(1)
+        raise Error(f"{machine} sets no hashedPasswordFile for {user}.")
 
     path = Path(target)
 
     if not path.is_absolute() or path.is_relative_to("/nix/store"):
-        typer.echo(f"Refusing to write {path}, not a mutable path.", err=True)
-        raise typer.Exit(1)
+        raise Error(f"Refusing to write {path}, not a mutable path.")
 
     file = root / path.relative_to("/")
     # Fetched up front, so that hashing takes no wait once the password is typed,
     # and the later `nix run` resolves it from the evaluation cache.
-    subprocess_stdout(nix_argv("build", "--no-link", f"{cfg.flake}#mkpasswd"))
-    typer.echo(f"Setting the password of {user}@{machine} in {file}", err=True)
-    password = typer.prompt("New password", hide_input=True, confirmation_prompt=True)
+    run("nix", "build", "--no-link", f"{cfg.flake}#mkpasswd", capture=True)
+    print(f"Setting the password of {user}@{machine} in {file}", file=sys.stderr)
+    password = prompt_secret("New password")
 
     if not password:
-        typer.echo("No password supplied.", err=True)
-        raise typer.Exit(1)
+        raise Error("No password supplied.")
 
     # Hand the password over on stdin; argv is world-readable via /proc.
-    hashed = subprocess_stdout(
-        [*flake_program(cfg, "mkpasswd"), "--method=yescrypt", "--stdin"],
-        password,
-    )
+    hashed = run(
+        *flake_program(cfg, "mkpasswd"),
+        "--method=yescrypt",
+        "--stdin",
+        stdin=password,
+        capture=True,
+    ).strip()
     # Create missing ancestors one at a time: mkdir's mode is masked by the
     # caller's umask, and a setgid parent would hand the new directory its group.
     for directory in reversed(file.parents):
@@ -425,7 +378,7 @@ def passwd(
     file.touch()
     set_root_owned(file, 0o600)
     file.write_text(f"{hashed}\n")
-    typer.echo(f"Wrote {file}, rebuild the configuration to apply.", err=True)
+    print(f"Wrote {file}, rebuild the configuration to apply.", file=sys.stderr)
 
 
 @functools.cache
@@ -439,12 +392,12 @@ def access_tokens() -> Mapping[str, str]:
     if token := os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN"):
         return {GITHUB_HOST: token}
 
-    result = subprocess_capture(nix_argv("config", "show", "access-tokens"))
-
-    if result.returncode != 0:
+    try:
+        tokens = run("nix", "config", "show", "access-tokens", capture=True)
+    except CommandError:
         return {}
 
-    return dict(entry.split("=", 1) for entry in result.stdout.split() if "=" in entry)
+    return dict(entry.split("=", 1) for entry in tokens.split() if "=" in entry)
 
 
 def github_token(*scope: str) -> str | None:
@@ -493,14 +446,12 @@ def is_worktree_of(flake: str) -> bool:
 def snapshot_worktree() -> str:
     """A commit of the tracked working tree, which `git stash create` makes
     without touching the tree, the index, or the stash list."""
-    return subprocess_stdout(["git", "stash", "create"]) or "HEAD"
+    return run("git", "stash", "create", capture=True).strip() or "HEAD"
 
 
 def changed_paths(snapshot: str) -> list[str]:
     """The tracked paths under the cwd that differ from `snapshot`."""
-    return subprocess_stdout(
-        ["git", "diff", "--name-only", "--relative", snapshot]
-    ).splitlines()
+    return run_nul("git", "diff", "-z", "--name-only", "--relative", snapshot)
 
 
 def restore_worktree(snapshot: str, paths: Iterable[str]) -> None:
@@ -511,56 +462,35 @@ def restore_worktree(snapshot: str, paths: Iterable[str]) -> None:
     if not paths:
         return
 
-    typer.echo(f"Reverting {len(paths)} path(s): {', '.join(paths)}", err=True)
+    print(f"Reverting {len(paths)} path(s): {', '.join(paths)}", file=sys.stderr)
     run_logged(["git", "restore", f"--source={snapshot}", "--", *paths])
 
 
 def commit_dir(path: str, message: str) -> None:
     """Commit anything that changed under a directory, if anything did."""
-    status = subprocess_stdout(["git", "status", "--porcelain", "--", path])
+    status = run("git", "status", "--porcelain", "--", path, capture=True).strip()
 
     if not status:
-        typer.echo(f"No {path} changes to commit.", err=True)
+        print(f"No {path} changes to commit.", file=sys.stderr)
         return
 
     run_logged(["git", "add", "--all", "--", path])
     run_logged(["git", "commit", "-m", message, "--", path])
 
 
-@app.command("update-deps")
-def update_deps(
-    ctx: typer.Context,
-    dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
-    commit: Annotated[bool, typer.Option("--commit", "-c")] = False,
-    update: Annotated[bool, typer.Option("--update", "-u")] = True,
-):
-    """Update the flake inputs and GitHub Actions with their lockfiles; refresh pinned hashes."""
-    cfg: Config = ctx.obj
+def update_deps(cfg: Config, dry_run: bool) -> None:
+    """Update and commit the flake inputs and GitHub Actions through `bump update`, then refresh pinned hashes.
+
+    The version tags of the inputs and actions move to their latest major
+    releases, honoring `BUMP_MIN_AGE`.
+    """
     cfg.require_worktree()
-    flake_file = Path("flake.nix")
-    content = flake_file.read_text()
-    # bumps the version tags of the github inputs and actions, honoring BUMP_RANGES_MIN_AGE
-    bump = ["bump-ranges", "--dry-run" if dry_run else "--accept=major"]
-    run_logged([*bump, "nix"])
-    run_logged([*bump, "actions"])
+
+    bump = [*flake_program(cfg, "bump"), "update", "nix", "actions"]
+    run_logged([*bump, "--dry-run" if dry_run else "--accept=major"])
 
     if dry_run:
-        typer.echo("Dry run, no changes written", err=True)
-        raise typer.Exit(0)
-
-    flake_changed = flake_file.read_text() != content
-
-    nix_cmd = nix_argv("flake", "update" if update else "lock")
-    if commit:
-        nix_cmd.append("--commit-lock-file")
-    run_logged(nix_cmd)
-
-    if commit:
-        # Amend into nix's lockfile commit to preserve its auto-generated message.
-        if flake_changed:
-            run_logged(["git", "commit", "--amend", "--no-edit", str(flake_file)])
-
-        commit_dir(".github/", "chore(deps/actions): update")
+        return
 
     if cfg.hash_path:
         # `fix hashes` repairs what nix journaled while building, so a failed build
@@ -581,26 +511,25 @@ def update_deps(
             fixed = changed_paths(snapshot)
 
             if not fixed:
-                raise typer.Exit(returncode)
+                raise SystemExit(returncode)
 
             # The fixed sources yield new derivations, so evaluate them again.
             try:
                 build_targets(nix_eval_targets(installable))
-            except typer.Exit:
+            except Error:
                 restore_worktree(snapshot, fixed)
                 raise
 
-    if commit:
-        commit_dir("pkgs/", "chore(deps/pkgs): hashing")
+    commit_dir("pkgs/", "chore(deps/pkgs): hashing")
 
 
-@app.command("check-build", context_settings=EXTRA_ARGS)
 def check_build(
-    ctx: typer.Context,
-    path: Annotated[str | None, typer.Option("--path", "-p")] = None,
-    workers: EvalWorkers = EVAL_WORKERS,
-    max_memory_size: EvalMaxMemorySize = EVAL_MAX_MEMORY_SIZE,
-):
+    cfg: Config,
+    extra_args: Sequence[str],
+    path: str | None,
+    workers: int,
+    max_memory_size: int,
+) -> None:
     """Build the CI targets of the current system that no binary cache holds.
 
     `path` holds the targets per system, like `checks`, so that `gc-cache`
@@ -610,14 +539,12 @@ def check_build(
     has evaluated. Its nix-eval-jobs workers are bounded as in `check-flake`,
     which evaluates everything else.
     """
-    cfg: Config = ctx.obj
     path = path or cfg.build_path
 
     if not path:
-        typer.echo("Specify --path or set --build-path.", err=True)
-        raise typer.Exit(1)
+        raise Error("Specify --path or set --build-path.")
 
-    system = subprocess_stdout(nix_argv("config", "show", "system"))
+    system = run("nix", "config", "show", "system", capture=True).strip()
 
     run_logged(
         [
@@ -632,7 +559,7 @@ def check_build(
             str(max_memory_size),
             "--skip-cached",
             *(["--copy-to", cfg.cache, "--push-build-closure"] if cfg.cache else []),
-            *ctx.args,
+            *extra_args,
         ]
     )
 
@@ -649,27 +576,32 @@ def build_closure_outputs(drvs: Iterable[str]) -> set[str]:
     anything, which also covers the fixed-output paths that
     `nix derivation show` leaves out.
     """
-    requisites = subprocess_stdout(
-        nix_argv("path-info", "--recursive", "--stdin"), "\n".join(drvs)
+    requisites = run(
+        "nix",
+        "path-info",
+        "--recursive",
+        "--stdin",
+        stdin="\n".join(drvs),
+        capture=True,
     )
     installables = "\n".join(
         f"{path}^*" for path in requisites.splitlines() if path.endswith(".drv")
     )
-    outputs = subprocess_stdout(
-        nix_argv(
-            "path-info",
-            "--json",
-            "--json-format",
-            "2",
-            "--option",
-            "substitute",
-            "false",
-            "--stdin",
-        ),
-        installables,
+    outputs = run_json(
+        "nix",
+        "path-info",
+        "--json",
+        "--json-format",
+        "2",
+        "--option",
+        "substitute",
+        "false",
+        "--stdin",
+        stdin=installables,
+        capture=True,
     )
 
-    return set(json.loads(outputs)["info"])
+    return set(outputs["info"])
 
 
 def s3_store(url: str) -> S3Store:
@@ -681,8 +613,7 @@ def s3_store(url: str) -> S3Store:
     parsed = urllib.parse.urlparse(url)
 
     if parsed.scheme != "s3":
-        typer.echo(f"Not an s3:// binary cache: {url}", err=True)
-        raise typer.Exit(1)
+        raise Error(f"Not an s3:// binary cache: {url}")
 
     params = dict(urllib.parse.parse_qsl(parsed.query))
     # the defaults of nix, which addresses AWS by region without an endpoint
@@ -699,30 +630,25 @@ def cache_closure(cache: str, paths: Iterable[str]) -> dict[str, Any]:
     `--refresh` bypasses the local narinfo cache, which may still remember a
     path that the bucket no longer holds.
     """
-    stdout = subprocess_stdout(
-        nix_argv(
-            "path-info",
-            "--refresh",
-            "--store",
-            cache,
-            "--recursive",
-            "--json",
-            "--json-format",
-            "2",
-            "--stdin",
-        ),
-        "\n".join(paths),
+    infos = run_json(
+        "nix",
+        "path-info",
+        "--refresh",
+        "--store",
+        cache,
+        "--recursive",
+        "--json",
+        "--json-format",
+        "2",
+        "--stdin",
+        stdin="\n".join(paths),
+        capture=True,
     )
 
-    return json.loads(stdout)["info"]
+    return infos["info"]
 
 
-@app.command("gc-cache")
-def gc_cache(
-    ctx: typer.Context,
-    keep_days: Annotated[int, typer.Option()] = 30,
-    dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
-):
+def gc_cache(cfg: Config, keep_days: int, dry_run: bool) -> None:
     """Delete what the binary cache holds beyond the closure of the CI targets.
 
     Keeps the outputs of the current `check-build` targets of every system and
@@ -732,11 +658,9 @@ def gc_cache(
     and it is older than `keep_days`, which spares one whose narinfo is still
     being uploaded.
     """
-    cfg: Config = ctx.obj
 
     if not cfg.cache or not cfg.build_path:
-        typer.echo("Specify --cache and --build-path.", err=True)
-        raise typer.Exit(1)
+        raise Error("Specify --cache and --build-path.")
 
     store = s3_store(cfg.cache)
     cutoff = datetime.now(UTC) - timedelta(days=keep_days)
@@ -775,10 +699,10 @@ def gc_cache(
         ),
     ]
     size = sum(objects[key]["size"] for key in stale)
-    typer.echo(
+    print(
         f"Keeping {len(kept)} of {len(narinfos)} paths,"
         f" deleting {len(stale)} objects ({size / 2**30:.2f} GiB).",
-        err=True,
+        file=sys.stderr,
     )
 
     if dry_run:
@@ -788,8 +712,7 @@ def gc_cache(
     try:
         obstore.delete(store, stale)
     except BaseError as error:
-        typer.echo(str(error), err=True)
-        raise typer.Exit(1) from error
+        raise Error(str(error)) from error
 
 
 # A check's outcome and its section of the job summary.
@@ -812,21 +735,23 @@ def write_step_summary(lines: Iterable[str]) -> None:
         file.write("\n".join(lines) + "\n")
 
 
-def check_fmt(cfg: Config) -> CheckResult:
+def check_fmt() -> CheckResult:
     """Run the formatter, annotating each file it changed."""
-    if run_logged(nix_argv("fmt", "--", "--ci"), check=False) == 0:
+    if run_logged(["nix", "fmt", "--", "--ci"], check=False) == 0:
         return True, ["## ✅ Formatting Passed", ""]
 
-    files = subprocess_stdout(["git", "diff", "--name-only"]).splitlines()
+    files = run_nul("git", "diff", "-z", "--name-only")
 
     if not files:
         return False, ["## ❌ Formatting Failed", "", "See the job log.", ""]
 
     if GITHUB_ACTIONS:
         for file in files:
-            typer.echo(f"::error file={file},title=nix fmt::File is not formatted")
+            print(
+                f"::error file={file},title=nix fmt::File is not formatted", flush=True
+            )
 
-    diff = subprocess_stdout(["git", "diff"])
+    diff = run("git", "diff", capture=True).strip()
 
     return False, [
         f"## ❌ Formatting Failed ({len(files)} files)",
@@ -839,16 +764,19 @@ def check_fmt(cfg: Config) -> CheckResult:
 
 def check_apps(cfg: Config) -> CheckResult:
     """Evaluate the program of every app."""
-    apps = subprocess_capture(
-        nix_argv("eval", "--json", f"{cfg.flake}#.apps", "--apply", APPS_APPLY)
-    )
+    try:
+        nix_eval_json(f"{cfg.flake}#.apps", "--apply", APPS_APPLY)
+    except CommandError as error:
+        print(error.stderr, file=sys.stderr)
 
-    if apps.returncode:
-        typer.echo(apps.stderr.rstrip(), err=True)
-
-        return False, ["## ❌ App Evals Failed", "", *fenced(apps.stderr)]
+        return False, ["## ❌ App Evals Failed", "", *fenced(error.stderr)]
 
     return True, ["## ✅ App Evals Passed", ""]
+
+
+def colored(text: str, color: int) -> str:
+    """Wrap `text` in the ANSI `color` code, unless stderr shows no colors."""
+    return f"\033[{color}m{text}\033[0m" if COLOR else text
 
 
 def eval_jobs(cfg: Config, workers: int, max_memory_size: int) -> CheckResult:
@@ -885,15 +813,14 @@ def eval_jobs(cfg: Config, workers: int, max_memory_size: int) -> CheckResult:
                 attr = job["attr"]
 
                 error = job.get("error")
-                typer.secho(
-                    f"{'✘' if error else '✔'}  {attr}",
-                    fg="red" if error else "green",
-                    err=True,
+                print(
+                    colored(f"{'✘' if error else '✔'}  {attr}", 31 if error else 32),
+                    file=sys.stderr,
                 )
 
                 if error:
                     failed[attr] = error
-                    typer.echo(error, err=True)
+                    print(error, file=sys.stderr)
                 else:
                     passed.append(attr)
 
@@ -926,23 +853,17 @@ def eval_jobs(cfg: Config, workers: int, max_memory_size: int) -> CheckResult:
     return ok, lines
 
 
-@app.command("check-flake")
-def check_flake(
-    ctx: typer.Context,
-    workers: EvalWorkers = EVAL_WORKERS,
-    max_memory_size: EvalMaxMemorySize = EVAL_MAX_MEMORY_SIZE,
-):
+def check_flake(cfg: Config, workers: int, max_memory_size: int) -> None:
     """Check formatting and evaluate what `check-build` leaves out.
 
     Together with `check-build` on every system, this covers what
     `nix flake check --no-build --all-systems` evaluates, while the memory of
     evaluation stays bounded. Every step runs, so one failure hides no other.
     """
-    cfg: Config = ctx.obj
     cfg.require_worktree()
 
     results = [
-        check_fmt(cfg),
+        check_fmt(),
         check_apps(cfg),
         eval_jobs(cfg, workers, max_memory_size),
     ]
@@ -951,12 +872,12 @@ def check_flake(
     )
 
     if not all(ok for ok, _ in results):
-        raise typer.Exit(1)
+        raise SystemExit(1)
 
 
 @dataclass(frozen=True, slots=True)
 class UpdateScript:
-    """A package's resolved `passthru.updateScript` (see update-scripts.nix)."""
+    """A package's resolved `passthru.updateScript` (see update_scripts.nix)."""
 
     attr_path: str
     name: str
@@ -1030,22 +951,23 @@ class UpdateScript:
         else:
             env.pop("GITHUB_TOKEN", None)
 
-        return subprocess_capture(self.argv, env=env)
+        return subprocess.run(
+            self.argv, env=env, capture_output=True, text=True, check=False
+        )
 
 
 def update_scripts_args(
-    update_scripts_nix: str,
     output: str,
     attr_path: str,
     packages: Iterable[str] | None = None,
 ) -> list[str]:
-    """`nix` args selecting `<output>` from update-scripts.nix for the working tree.
+    """`nix` args selecting `<output>` from update_scripts.nix for the working tree.
 
     `packages` narrows the derivations under `attr_path` to those keys before
     anything of them is forced."""
     args = [
         "-f",
-        update_scripts_nix,
+        UPDATE_SCRIPTS,
         output,
         "--argstr",
         "root",
@@ -1062,7 +984,6 @@ def update_scripts_args(
 
 
 def discover_update_scripts(
-    update_scripts_nix: str,
     attr_path: str,
     packages: Iterable[str] | None = None,
 ) -> dict[str, UpdateScript]:
@@ -1072,33 +993,31 @@ def discover_update_scripts(
     the scripts exist before they run; `root` imports the working tree so
     updateScripts edit package files in place.
     """
-    out = subprocess_stdout(
-        nix_argv(
-            "build",
-            "--impure",
-            *update_scripts_args(update_scripts_nix, "manifest", attr_path, packages),
-            "--no-link",
-            "--print-out-paths",
-        )
-    )
+    out = run(
+        "nix",
+        "build",
+        "--impure",
+        *update_scripts_args("manifest", attr_path, packages),
+        "--no-link",
+        "--print-out-paths",
+        capture=True,
+    ).strip()
 
     return {
-        key: UpdateScript(**fields)
-        for key, fields in json.loads(Path(out).read_text()).items()
+        key: UpdateScript(**script)
+        for key, script in json.loads(Path(out).read_text()).items()
     }
 
 
 @dataclass(frozen=True, slots=True)
 class PackageMeta:
-    """A package's version and changelog (see update-scripts.nix)."""
+    """A package's version and changelog (see update_scripts.nix)."""
 
     version: str
     changelog: str | None
 
 
-def eval_metadata(
-    update_scripts_nix: str, attr_path: str, packages: Iterable[str]
-) -> dict[str, PackageMeta]:
+def eval_metadata(attr_path: str, packages: Iterable[str]) -> dict[str, PackageMeta]:
     """Current metadata for the updateScript `packages` under `attr_path`.
 
     Evaluates the `metadata` output, which forces only each version and
@@ -1106,10 +1025,10 @@ def eval_metadata(
     """
     entries = nix_eval_json(
         "--impure",
-        *update_scripts_args(update_scripts_nix, "metadata", attr_path, packages),
+        *update_scripts_args("metadata", attr_path, packages),
     )
 
-    return {key: PackageMeta(**fields) for key, fields in entries.items()}
+    return {key: PackageMeta(**meta) for key, meta in entries.items()}
 
 
 def format_bump(key: str, old_version: str, meta: PackageMeta) -> str:
@@ -1119,41 +1038,30 @@ def format_bump(key: str, old_version: str, meta: PackageMeta) -> str:
     return f"- [{bump}]({meta.changelog})" if meta.changelog else f"- {bump}"
 
 
-@app.command("update-pkgs")
-def update_pkgs(
-    ctx: typer.Context,
-    package: Annotated[str | None, typer.Option("--package", "-p")] = None,
-    commit: Annotated[bool, typer.Option("--commit", "-c")] = False,
-    dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
-):
-    """Run each package's `passthru.updateScript` to refresh sources, in parallel."""
-    cfg: Config = ctx.obj
+def update_pkgs(cfg: Config, package: str | None, dry_run: bool) -> None:
+    """Run each package's `passthru.updateScript` to refresh sources, in parallel, and commit them."""
     cfg.require_worktree()
 
-    if cfg.update_path is None or cfg.update_scripts_nix is None:
-        typer.echo(
-            "update-pkgs requires --update-path and --update-scripts-nix.", err=True
-        )
-        raise typer.Exit(1)
+    if cfg.update_path is None:
+        raise Error("update-pkgs requires --update-path.")
 
-    typer.echo("Discovering updateScripts...", err=True)
+    print("Discovering updateScripts...", file=sys.stderr)
     scripts = discover_update_scripts(
-        cfg.update_scripts_nix,
         cfg.update_path,
         None if package is None else [package],
     )
 
     if not scripts:
-        typer.echo("No matching packages with an updateScript.", err=True)
-        raise typer.Exit(0)
+        print("No matching packages with an updateScript.", file=sys.stderr)
+        return
 
-    typer.echo(
+    print(
         f"Updating {len(scripts)} package(s): {', '.join(scripts)}",
-        err=True,
+        file=sys.stderr,
     )
 
     if dry_run:
-        raise typer.Exit(0)
+        return
 
     snapshot = snapshot_worktree()
     succeeded: set[str] = set()
@@ -1175,55 +1083,187 @@ def update_pkgs(
 
                 if result.returncode == 0:
                     succeeded.add(key)
-                    typer.echo(f"{key}: done", err=True)
+                    print(f"{key}: done", file=sys.stderr)
                 else:
-                    typer.echo(f"{key}: FAILED", err=True)
+                    print(f"{key}: FAILED", file=sys.stderr)
 
                     if result.stderr:
-                        typer.echo(result.stderr.rstrip(), err=True)
+                        print(result.stderr.rstrip(), file=sys.stderr)
         except KeyboardInterrupt:
             # Ctrl+C reaches the whole process group, so running scripts are
             # already dying; cancel the queued ones instead of draining them.
-            typer.echo("\nInterrupted, stopping...", err=True)
+            print("\nInterrupted, stopping...", file=sys.stderr)
             pool.shutdown(cancel_futures=True)
-            raise typer.Exit(130)
+            raise SystemExit(130)
 
     failures = [key for key in scripts if key not in succeeded]
     restore_worktree(snapshot, (p for key in failures if (p := scripts[key].path)))
 
-    if commit:
-        # List every version bump in the commit body (sorted), à la `nix flake update`.
-        updated = (
-            eval_metadata(cfg.update_scripts_nix, cfg.update_path, succeeded)
-            if succeeded
-            else {}
-        )
-        bumps = [
-            format_bump(key, scripts[key].old_version, meta)
-            for key, meta in sorted(updated.items())
-            if scripts[key].old_version != meta.version
-        ]
-        message = "chore(deps/pkgs): update"
+    # List every version bump in the commit body (sorted), à la `nix flake update`.
+    updated = eval_metadata(cfg.update_path, succeeded) if succeeded else {}
+    bumps = [
+        format_bump(key, scripts[key].old_version, meta)
+        for key, meta in sorted(updated.items())
+        if scripts[key].old_version != meta.version
+    ]
+    message = "chore(deps/pkgs): update"
 
-        if bumps:
-            message += "\n\nPackage updates:\n\n" + "\n".join(bumps) + "\n"
+    if bumps:
+        message += "\n\nPackage updates:\n\n" + "\n".join(bumps) + "\n"
 
-        commit_dir("pkgs/", message)
+    commit_dir("pkgs/", message)
 
     if failures:
-        typer.echo(f"Failed: {', '.join(failures)}", err=True)
+        print(f"Failed: {', '.join(failures)}", file=sys.stderr)
 
 
-@app.command("update-all")
-def update_all(
-    ctx: typer.Context,
-    commit: Annotated[bool, typer.Option("--commit", "-c")] = True,
-    dry_run: Annotated[bool, typer.Option("--dry-run", "-n")] = False,
-):
-    """Run update-deps then update-pkgs in sequence."""
-    update_deps(ctx, commit=commit, dry_run=dry_run)
-    update_pkgs(ctx, commit=commit, dry_run=dry_run)
+def update_all(cfg: Config, dry_run: bool) -> None:
+    """Run update-deps then update-pkgs in sequence, committing the updates."""
+    update_deps(cfg, dry_run=dry_run)
+    update_pkgs(cfg, package=None, dry_run=dry_run)
+
+
+HELP = "Show this message and exit."
+
+# Keeps the wrapped tool's own --help reachable.
+WRAPPER_HELP = "--wrapper-help"
+
+
+def parser() -> argparse.ArgumentParser:
+    """The command line, whose global options precede the command."""
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=HelpFormatter,
+        allow_abbrev=False,
+        add_help=False,
+    )
+    parser.add_argument("--help", action="help", help=HELP)
+    parser.add_argument("--flake", default=".", help="The flake to act on.")
+    parser.add_argument("--impure-attr")
+    parser.add_argument("--build-path")
+    parser.add_argument("--hash-path")
+    parser.add_argument("--update-path")
+    parser.add_argument("--cache")
+    parser.add_argument(
+        "--max-workers", type=int, default=8, help="Update scripts run at once."
+    )
+    parser.set_defaults(func=None)
+    subparsers = parser.add_subparsers(title="commands", metavar="COMMAND")
+
+    def command(
+        func: FunctionType,
+        *,
+        extra_args: bool = False,
+        help_flag: str = "--help",
+        parents: Sequence[argparse.ArgumentParser] = (),
+    ) -> argparse.ArgumentParser:
+        """Add `func` as the command named after it and documented by its docstring.
+
+        With `extra_args`, the arguments it does not know go to the tool it wraps.
+        """
+        subparser = add_command(
+            subparsers,
+            func.__name__.replace("_", "-"),
+            func.__doc__,
+            parents=parents,
+            add_help=False,
+        )
+        subparser.add_argument(help_flag, action="help", help=HELP)
+        subparser.set_defaults(func=func)
+
+        if extra_args:
+            subparser.set_defaults(extra_args=[])
+
+        return subparser
+
+    # nix-eval-jobs bounds, shared by `check-build` and `check-flake`
+    eval_options = argparse.ArgumentParser(add_help=False)
+    eval_options.add_argument(
+        "--workers", type=int, default=EVAL_WORKERS, help="nix-eval-jobs workers."
+    )
+    eval_options.add_argument(
+        "--max-memory-size",
+        type=int,
+        default=EVAL_MAX_MEMORY_SIZE,
+        help="MiB per worker.",
+    )
+    dry_run = argparse.ArgumentParser(add_help=False)
+    dry_run.add_argument(
+        "--dry-run", "-n", action="store_true", help="Show what would change."
+    )
+
+    config = command(build_config, extra_args=True, help_flag=WRAPPER_HELP)
+    config.add_argument(
+        "--operation",
+        "-o",
+        "--mode",
+        "-m",
+        default="switch",
+        help="Operation of the configuration tool.",
+    )
+    config.add_argument("--name", "-n")
+
+    for func in (disko, disko_install, nixos_install):
+        command(func, extra_args=True, help_flag=WRAPPER_HELP).add_argument("machine")
+
+    password = command(passwd)
+    password.add_argument("machine")
+    password.add_argument("user")
+    password.add_argument(
+        "--root", type=Path, default=Path("/"), help="Mount point of the target."
+    )
+
+    command(update_deps, parents=[dry_run])
+
+    build = command(check_build, extra_args=True, parents=[eval_options])
+    build.add_argument("--path", "-p")
+
+    gc = command(gc_cache, parents=[dry_run])
+    gc.add_argument(
+        "--keep-days", type=int, default=30, help="Days to keep any upload."
+    )
+
+    command(check_flake, parents=[eval_options])
+
+    pkgs = command(update_pkgs, parents=[dry_run])
+    pkgs.add_argument("--package", "-p")
+    command(update_all, parents=[dry_run])
+
+    return parser
+
+
+@entrypoint
+def main() -> None:
+    """Run the command given on the command line, build-config without one."""
+    # Kept for every child, nix and the tools running it alike, such as bump or nixos-rebuild.
+    config = os.environ.get("NIX_CONFIG")
+    os.environ["NIX_CONFIG"] = f"{config}\n{NIX_CONFIG}" if config else NIX_CONFIG
+    cli = complete(parser())
+    argv = sys.argv[1:]
+    args, extra_args = cli.parse_known_args(argv)
+
+    # global options precede the command, so it can be appended
+    if args.func is None:
+        args, extra_args = cli.parse_known_args([*argv, "build-config"])
+
+    options = vars(args)
+    func: Callable[..., None] = options.pop("func")
+
+    # only commands wrapping a tool declare `extra_args`
+    if "extra_args" in options:
+        options["extra_args"] = extra_args
+    elif extra_args:
+        cli.error(f"unrecognized arguments: {shlex.join(extra_args)}")
+
+    config = {
+        field.name: options.pop(field.name)
+        for field in fields(Config)
+        if field.name in options
+    }
+    cfg = Config(**config, is_worktree=is_worktree_of(config["flake"]))
+
+    func(cfg, **options)
 
 
 if __name__ == "__main__":
-    app()
+    main()

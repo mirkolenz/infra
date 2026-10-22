@@ -91,7 +91,7 @@
       # Platform rules come last in the nono policy, so these denies win over its grants.
       # Metadata stays readable, so listing a directory or `git status` keeps working.
       # Without `O_PATH`, Nix and Bun open every ancestor of a path they resolve,
-      # the wrapper adds those of the working directory.
+      # `nono-launch` adds those of the working directory and the added ones.
       seatbeltRules =
         map (path: listable (lib.toJSON path)) (
           lib.unique (lib.concatMap ancestors (readPaths ++ writePaths))
@@ -133,106 +133,45 @@
         ++ lib.optional (osConfig.determinate.enable or osConfig.determinateNix.enable or false
         ) "/etc/nix/nix.conf";
 
-      bwrapPolicy = pkgs.writers.writeJSON "nono-bwrap-policy.json" {
+      # The bubblewrap sandbox around nono on Linux, see `infra_apps.bwrap`.
+      bwrap = {
         inherit workspace;
         read = readOnlyPaths;
         write = within readOnlyPaths writePaths;
+        bwrap = lib.getExe pkgs.bubblewrap;
+        git = lib.getExe pkgs.gitMinimal;
       };
 
-      nonoCommand =
-        lib.optionalString isLinux "${lib.getExe pkgs.nono-bwrap} --policy ${bwrapPolicy} -- "
-        + lib.getExe nono;
-
-      agentCommand =
-        harness: package:
-        ''${lib.getExe package} "''${args[@]}" "$@" ${lib.escapeShellArgs harness.trailingSandboxArgs}'';
+      # the nono profile of the agents, extended by the session profile of the launcher
+      profile = "agents";
 
       # Runs the harness within nono, or directly when inside it already,
       # winning `bin/<name>` over the harness.
+      # Executables go in as absolute paths, since `PATH` reaches the harness.
       wrapperPackage =
         harness: name: package:
-        lib.hiPrio (
-          pkgs.writeShellApplication {
-            inherit name;
-            text = /* bash */ ''
-              # the native sandbox of the harness instead, in case nono gets in the way
-              if [[ -n ''${NO_NONO:-} ]]; then
-                exec ${lib.getExe package} "$@"
-              fi
-
-              args=(${lib.escapeShellArgs harness.sandboxArgs})
-              ${lib.optionalString (harness.addDirFlag != null) ''
-                IFS=, read -ra dirs <<<"''${NONO_ALLOW:-}"
-
-                for dir in "''${dirs[@]}"; do
-                  args+=(${lib.escapeShellArg harness.addDirFlag} "$dir")
-                done
-              ''}
-              # nono sets NONO_CAP_FILE in every sandbox it starts.
-              if [[ -f ''${NONO_CAP_FILE:-} ]]; then
-                exec ${agentCommand harness package}
-              fi
-              ${lib.optionalString (harness.addDirFlag != null) ''
-
-                # The directories given through the flag of the harness, granted by nono as well.
-                flag=${lib.escapeShellArg harness.addDirFlag}
-                allow=''${NONO_ALLOW:-}
-                prev=
-
-                for arg in "$@"; do
-                  if [[ $prev == "$flag" ]]; then
-                    allow+=''${allow:+,}$arg
-                  elif [[ $arg == "$flag="* ]]; then
-                    allow+=''${allow:+,}''${arg#"$flag="}
-                  fi
-
-                  prev=$arg
-                done
-
-                if [[ -n $allow ]]; then
-                  export NONO_ALLOW=$allow
-                fi
-              ''}
-
-              # A private temporary directory, the only place the session may bind and connect sockets,
-              # such as the forkserver of Python's multiprocessing. Those of /tmp and the host stay out of reach.
-              tmp=$(mktemp -d)
-              trap 'rm -rf "$tmp"' EXIT
-              ${lib.optionalString isDarwin ''
-
-                # The ancestors of the working directory and the added ones, see `seatbeltRules`.
-                IFS=, read -ra added <<<"''${NONO_ALLOW:-}"
-                ancestors=()
-
-                for dir in "$PWD" "''${added[@]}"; do
-                  dir=$(cd "$dir" 2>/dev/null && pwd -P) || continue
-
-                  while dir=''${dir%/*}; [[ -n $dir ]]; do
-                    ancestors+=("$dir")
-                  done
-                done
-
-                profile=$tmp/profile.json
-                ${lib.getExe pkgs.jq} -n '{
-                  meta: {name: "agents-session"},
-                  extends: ($ENV.NONO_PROFILE // "agents"),
-                  unsafe_macos_seatbelt_rules: [$ARGS.positional | unique[] | "${listable "\\(tojson)"}"]
-                }' --args "''${ancestors[@]}" >"$profile"
-                export NONO_PROFILE=$profile
-              ''}
-              # The agent runs on a pty of nono, so herdr identifies it by this hint on nono,
-              # or by the name of the launcher, which misses those of further installations.
-              TMPDIR=$tmp HERDR_AGENT=${lib.escapeShellArg harness.herdrAgent} ${nonoCommand} --silent run --no-audit --allow-cwd \
-                --allow-unix-socket-subtree-bind "$tmp" -- ${agentCommand harness package}
-            '';
-          }
-        );
+        let
+          launchConfig = {
+            harness = lib.getExe package;
+            nono = lib.getExe nono;
+            bwrap = if isLinux then bwrap else null;
+            inherit profile;
+            herdr_agent = harness.herdrAgent;
+            sandbox_args = harness.sandboxArgs;
+            trailing_args = harness.trailingSandboxArgs;
+            add_dir_flag = harness.addDirFlag;
+            # Lists the ancestors of the working directory and the added ones, see `seatbeltRules`.
+            ancestor_rule = if isDarwin then listable "{}" else null;
+          };
+        in
+        # named after the harness, so the OS and herdr show its name for the process
+        lib.hiPrio ((pkgs.nono-launch.withName name).withConfig launchConfig);
     in
     lib.mkIf config.programs.agents.enable {
       programs.nono = {
         enable = true;
-        environment.NONO_PROFILE = "agents";
-        profiles.agents = {
+        environment.NONO_PROFILE = profile;
+        profiles.${profile} = {
           extends = "default";
           # No groups beyond those of `default`, `programs.agents.sandbox.paths` grants the git config,
           # nix and the toolchain caches instead, so the native sandboxes of the harnesses get them too.

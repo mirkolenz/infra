@@ -3,7 +3,7 @@
 # derivations under `path` that carry a `passthru.updateScript`. Shipped with
 # flakectl (rather than the target flake) so any attrset of derivations works
 # without a bespoke attribute. Invoked as
-# `nix {build,eval} -f update-scripts.nix <output> --argstr root <repo> --argstr path <attr.path>`,
+# `nix {build,eval} -f update_scripts.nix <output> --argstr root <repo> --argstr path <attr.path>`,
 # optionally with `--argstr packages '["key", ...]'` to narrow the keys under `path`.
 {
   root,

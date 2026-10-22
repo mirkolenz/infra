@@ -16,11 +16,13 @@
       ];
       custom.bump.composer = {
         lockfile = "composer.lock";
-        pathspecs = [ "composer.json" ];
-        text = ''
-          ${lib.getExe pkgs.bump-ranges} php
-          ${lib.getExe pkgs.phpPackages.composer} update
-        '';
+        ranges = "php";
+        commands = [
+          [
+            (lib.getExe pkgs.phpPackages.composer)
+            "update"
+          ]
+        ];
       };
     };
 }

@@ -1,0 +1,26 @@
+[project]
+name = "infra-apps"
+version = "1.0.0"
+description = "The command line apps of this flake, each packaged by mkPythonApp"
+requires-python = ">=3.14"
+dependencies = ["argcomplete>=3"]
+
+[project.scripts]
+agent-format = "infra_apps.agent_format:main"
+bump = "infra_apps.bump:main"
+flakectl = "infra_apps.flakectl:main"
+nono-launch = "infra_apps.nono_launch:main"
+vendor = "infra_apps.vendor:main"
+
+# the libraries of each app, keyed by the name of its script
+[project.optional-dependencies]
+bump = ["packaging>=26", "pyyaml>=6", "questionary>=2"]
+flakectl = ["obstore>=0.9"]
+
+[build-system]
+requires = ["uv_build>=0.12"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+addopts = ["--doctest-modules", "--import-mode=importlib"]
+testpaths = ["src"]
