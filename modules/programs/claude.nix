@@ -121,24 +121,26 @@ in
             "frontend-design@claude-plugins-official" = true;
             "codex@openai-codex" = true;
           };
-          env = sandbox.environment.set // {
-            ENABLE_CLAUDEAI_MCP_SERVERS = false;
-            # suppresses the in-session rating/feedback survey popup
-            CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = true;
-            # node ships undici as the global `fetch`, which ignores http_proxy and
-            # https_proxy unless this is set. The sandbox routes every connection
-            # through such a proxy, so without it any node client that uses `fetch`,
-            # `eurlex` among them, fails with a bare "fetch failed".
-            # node parses this one as a flag value and accepts only "1",
-            # a boolean would render as "true" and be ignored.
-            NODE_USE_ENV_PROXY = "1";
-          }
-          # Bun reads the system store of `CLAUDE_CODE_CERT_STORE` on macOS from the keychain search list only,
-          # which misses the Apple roots, and `/etc/ssl/cert.pem` of macOS is stale.
-          # On Linux, it reads the CA bundle of the OS already.
-          // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
-            NODE_EXTRA_CA_CERTS = "/etc/ssl/certs/ca-certificates.crt";
-          };
+          env =
+            sandbox.environment.set
+            // {
+              ENABLE_CLAUDEAI_MCP_SERVERS = false;
+              # suppresses the in-session rating/feedback survey popup
+              CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = true;
+              # node ships undici as the global `fetch`, which ignores http_proxy and
+              # https_proxy unless this is set. The sandbox routes every connection
+              # through such a proxy, so without it any node client that uses `fetch`,
+              # `eurlex` among them, fails with a bare "fetch failed".
+              # node parses this one as a flag value and accepts only "1",
+              # a boolean would render as "true" and be ignored.
+              NODE_USE_ENV_PROXY = "1";
+            }
+            # Bun reads the system store of `CLAUDE_CODE_CERT_STORE` on macOS from the keychain search list only,
+            # which misses the Apple roots, and `/etc/ssl/cert.pem` of macOS is stale.
+            # On Linux, it reads the CA bundle of the OS already.
+            // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+              NODE_EXTRA_CA_CERTS = "/etc/ssl/certs/ca-certificates.crt";
+            };
           worktree = {
             baseRef = "head";
             symlinkDirectories = [ ];

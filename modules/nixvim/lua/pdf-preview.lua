@@ -32,7 +32,16 @@ end
 local function rasterise(pdf, page)
   local nr = tostring(page)
   local out = system({
-    "pdftoppm", "-png", "-singlefile", "-r", tostring(DPI), "-f", nr, "-l", nr, pdf,
+    "pdftoppm",
+    "-png",
+    "-singlefile",
+    "-r",
+    tostring(DPI),
+    "-f",
+    nr,
+    "-l",
+    nr,
+    pdf,
   })
 
   return out.code == 0 and out.stdout or nil
@@ -106,37 +115,39 @@ local function render(state)
     return
   end
 
-  state.task = async.run(function()
-    repeat
-      state.pending = false
+  state.task = async
+    .run(function()
+      repeat
+        state.pending = false
 
-      if not visible(state) then
-        return
-      end
-
-      if state.info_rev ~= state.rev then
-        state.info_rev = state.rev
-        state.pages, state.aspect = pdf_info(state.pdf)
-      end
-
-      state.page = math.min(math.max(state.page, 1), state.pages)
-
-      local page = state.page
-      local key = page .. ":" .. state.rev
-
-      if key ~= state.shown then
-        local png = rasterise(state.pdf, page)
-
-        if png and vim.api.nvim_win_is_valid(state.win) then
-          state.shown, state.png = key, png
-          vim.wo[state.win].winbar = (" %s  page %d of %d"):format(vim.fs.basename(state.pdf), page, state.pages)
-          -- New bytes need a new placement.
-          hide(state)
-          place(state)
+        if not visible(state) then
+          return
         end
-      end
-    until not state.pending
-  end):detach()
+
+        if state.info_rev ~= state.rev then
+          state.info_rev = state.rev
+          state.pages, state.aspect = pdf_info(state.pdf)
+        end
+
+        state.page = math.min(math.max(state.page, 1), state.pages)
+
+        local page = state.page
+        local key = page .. ":" .. state.rev
+
+        if key ~= state.shown then
+          local png = rasterise(state.pdf, page)
+
+          if png and vim.api.nvim_win_is_valid(state.win) then
+            state.shown, state.png = key, png
+            vim.wo[state.win].winbar = (" %s  page %d of %d"):format(vim.fs.basename(state.pdf), page, state.pages)
+            -- New bytes need a new placement.
+            hide(state)
+            place(state)
+          end
+        end
+      until not state.pending
+    end)
+    :detach()
 end
 
 local function close(pdf)
@@ -230,10 +241,14 @@ local function open(pdf)
       return
     end
 
-    state.debounce:start(DEBOUNCE_MS, 0, vim.schedule_wrap(function()
-      state.rev = state.rev + 1
-      render(state)
-    end))
+    state.debounce:start(
+      DEBOUNCE_MS,
+      0,
+      vim.schedule_wrap(function()
+        state.rev = state.rev + 1
+        render(state)
+      end)
+    )
   end)
 
   render(state)
