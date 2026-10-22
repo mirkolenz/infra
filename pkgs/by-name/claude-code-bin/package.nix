@@ -59,10 +59,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     patchelf-fixed
   ];
 
-  # DT_RPATH (not DT_RUNPATH) so the dlopen'd audio-capture.node finds libasound
-  runtimeDependencies = lib.optionals isLinux [ alsa-lib ];
-  patchelfFlags = [ "--force-rpath" ];
-
   installPhase = ''
     runHook preInstall
 
@@ -74,7 +70,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       --set-default FORCE_AUTOUPDATE_PLUGINS 1 \
       --set USE_BUILTIN_RIPGREP 0 \
       --set-default CLAUDE_CODE_CERT_STORE system \
-      --prefix PATH : ${
+      ${lib.optionalString isLinux ''
+        --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ alsa-lib ]} \
+      ''}--prefix PATH : ${
         lib.makeBinPath (
           [
             # https://github.com/pkrumins/node-tree-kill requires procps
@@ -99,9 +97,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ];
   versionCheckKeepEnvironment = [ "HOME" ];
   doInstallCheck = true;
-  postInstallCheck = lib.optionalString isLinux ''
-    readelf -dW $out/bin/.claude-wrapped | grep -q '(RPATH).*${lib.getLib alsa-lib}/lib'
-  '';
 
   strictDeps = true;
   __structuredAttrs = true;
