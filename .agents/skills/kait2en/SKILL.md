@@ -13,7 +13,7 @@ Upstream rejects issues and pull requests it believes an AI wrote, so never open
 
 - `modules.nix` pins `src` for every package and mirrors the `MODULES`, `EARLY_MODULES`, and `ADD_ARGS` arrays of upstream's installer scripts.
 - `upstream-check.nix` pins `reviewedSrc` and `reviewedFork`, which only move after a review.
-- `review.sh` next to this file lists what changed since then and advances both.
+- `review.py` next to this file lists what changed since then and advances both.
 - `modules/hardware/apple-t2/` wires the packages into NixOS, and `macbook-161` is the only host using it.
 - The scheduled updater skips this scope, and every package is x86_64-linux only.
 
@@ -37,7 +37,7 @@ Upstream rejects issues and pull requests it believes an AI wrote, so never open
 3. Review the whole range, not only the drift diff, since requirements hidden in code slip past it.
 
    ```sh
-   .agents/skills/kait2en/review.sh upstream
+   .agents/skills/kait2en/review.py upstream
    ```
 
    Look for new native dependencies, Fedora paths such as `/usr` or `/etc` the `--replace-fail` patches must follow, new or renamed units, and new apps or scripts.
@@ -46,7 +46,7 @@ Upstream rejects issues and pull requests it believes an AI wrote, so never open
 4. Review what the [NixOS fork](https://github.com/LukeChannings/KaiT2en-NixOS) changed in its Nix layer since `reviewedFork`, a second view on the same upstream.
 
    ```sh
-   .agents/skills/kait2en/review.sh fork
+   .agents/skills/kait2en/review.py fork
    ```
 
    Look for kernel parameters, modules, units, or workarounds it added, changed, or removed, and the upstream change behind each.
@@ -65,7 +65,7 @@ Upstream rejects issues and pull requests it believes an AI wrote, so never open
 6. Advance `reviewedSrc` to `src` and `reviewedFork` to the fork's `main`, then rerun the drift check.
 
    ```sh
-   .agents/skills/kait2en/review.sh advance
+   .agents/skills/kait2en/review.py advance
    ```
 
 7. Build the host, which also catches module options that moved.
