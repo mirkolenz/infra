@@ -35,7 +35,11 @@ python3Packages.buildPythonPackage {
   ++ lib.concatLists (lib.attrValues optional-dependencies);
   pythonImportsCheck = [ "infra_apps" ];
 
-  passthru.scripts = pyproject.project.scripts;
+  passthru = {
+    inherit (pyproject.project) scripts;
+    # the source lives in this repo, so drop the `nix-update` default of `buildPythonPackage`
+    updateScript = null;
+  };
 
   meta = {
     inherit (pyproject.project) description;
