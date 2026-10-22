@@ -27,11 +27,6 @@
       };
 
       config = {
-        # wpa_supplicant 2.11 offloads the four-way handshake to the firmware,
-        # which the Broadcom chips of T2 Macs fail.
-        # https://wiki.t2linux.org/guides/wifi-bluetooth/
-        networking.networkmanager.wifi.backend = "iwd";
-
         # The GUI apps style their figures with it, upstream bundles it.
         fonts.packages = [ pkgs.jetbrains-mono ];
       };

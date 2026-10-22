@@ -4,7 +4,13 @@
   flake.modules.nixos.base =
     { lib, config, ... }:
     lib.mkIf config.custom.features.graphical.enable {
-      networking.networkmanager.enable = true;
+      # wpa_supplicant 2.11 offloads the four-way handshake to the firmware,
+      # which the Broadcom chips of Macs fail.
+      # https://wiki.t2linux.org/guides/wifi-bluetooth/
+      networking.networkmanager = {
+        enable = true;
+        wifi.backend = "iwd";
+      };
 
       # NetworkManager owns the interfaces here, so networkd manages nothing and
       # its wait-online times out and fails the rebuild.
