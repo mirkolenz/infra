@@ -9,12 +9,6 @@ let
     });
 in
 {
-  # texlive 2025 bundles latexminted 0.6.0, whose argparse subclass rejects the `color` keyword
-  # that python 3.14 forwards to `add_parser()`. Fixed upstream in latexminted 0.7.0, which only
-  # ships with texlive 2026. The issue was closed without a fix in nixpkgs, so wait for texlive 2026.
-  # https://github.com/NixOS/nixpkgs/issues/542483
-  texlive = prev.texlive.override { python3 = final.python313; };
-
   # mago keeps a path into rustc, an unused `LC_RPATH` on darwin, which pulls its gigabyte into
   # every closure with mago, such as those of the formatters. No upstream fix yet.
   mago = prev.mago.overrideAttrs (prevAttrs: {
