@@ -7,6 +7,8 @@ is about to use. Remaining lints count as failures.
 
 import argparse
 import json
+import os
+import signal
 import subprocess
 import sys
 from collections.abc import Iterable, Iterator
@@ -51,9 +53,12 @@ class Treefmt:
     config_file: Path
     formatters: str
 
-    def run(self, root: Path, files: Iterable[Path], *args: str) -> str | None:
-        """Run treefmt on files below a root and return its output if it failed."""
-        process = subprocess.run(
+    def run(
+        self, root: Path, files: Iterable[Path], *args: str, timeout: int
+    ) -> str | None:
+        """Run treefmt on files below a root and return its output if it failed or timed out."""
+        # a new session lets the formatters be killed with treefmt
+        with subprocess.Popen(
             [
                 "treefmt",
                 f"--config-file={self.config_file}",
@@ -65,13 +70,19 @@ class Treefmt:
                 *args,
                 *files,
             ],
-            check=False,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-        )
+            start_new_session=True,
+        ) as process:
+            try:
+                output, _ = process.communicate(timeout=timeout)
 
-        return None if process.returncode == 0 else process.stdout[:MAX_OUTPUT]
+            except subprocess.TimeoutExpired:
+                os.killpg(process.pid, signal.SIGKILL)
+                return f"treefmt timed out after {timeout} s"
+
+        return output[:MAX_OUTPUT] if process.returncode else None
 
     def format(self, files: Iterable[Path]) -> str | None:
         """Format the files below their git repository, or else their directory, and return the failures."""
@@ -82,10 +93,15 @@ class Treefmt:
                 file = file.resolve()
                 roots.setdefault(repo_root(file.parent) or file.parent, []).append(file)
 
+        # below the timeout of the `PostToolUse` hook
         failures = [
             output
             for root, group in roots.items()
-            if (output := self.run(root, group, f"--formatters={self.formatters}"))
+            if (
+                output := self.run(
+                    root, group, f"--formatters={self.formatters}", timeout=30
+                )
+            )
         ]
 
         return "\n".join(failures) or None
@@ -101,8 +117,9 @@ class Treefmt:
         }
         files = [file for path in paths if (file := root / path).is_file()]
 
-        # without paths, treefmt would format the whole tree
-        return self.run(root, files) if files else None
+        # without paths, treefmt would format the whole tree,
+        # and the timeout stays below that of the `Stop` hook
+        return self.run(root, files, timeout=90) if files else None
 
 
 def edited_files(cwd: Path, tool_input: ToolInput) -> Iterator[Path]:
