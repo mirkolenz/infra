@@ -160,13 +160,11 @@ def log_cmd(cmd: list[str]) -> None:
     `nix run <flake>#<package> --` shows as the package alone, and store paths as
     their names.
     """
-    head, *tail = cmd
-
-    if head == "nix" and tail[:1] == ["run"] and tail[2:3] == ["--"]:
-        head, tail = tail[1].rpartition("#")[2], tail[3:]
+    if installable := program_installable(cmd):
+        cmd = [installable.rpartition("#")[2], *cmd[4:]]
 
     print(
-        shlex.join(STORE_PATH_PREFIX.sub("", arg) for arg in [head, *tail]),
+        shlex.join(STORE_PATH_PREFIX.sub("", arg) for arg in cmd),
         file=sys.stderr,
     )
 
@@ -181,6 +179,9 @@ def run_logged(cmd: list[str], *, check: bool = True) -> int:
     try:
         run(*cmd, output=False)
     except CommandError as error:
+        if installable := program_installable(cmd):
+            require_package(installable)
+
         if check:
             raise
 
@@ -198,6 +199,28 @@ def flake_program(cfg: Config, package: str) -> list[str]:
     a fresh machine that has nothing but Nix.
     """
     return ["nix", "run", f"{cfg.flake}#{package}", "--"]
+
+
+def program_installable(cmd: Sequence[str]) -> str | None:
+    """The installable of a `flake_program` command, None for any other."""
+    return cmd[2] if cmd[:2] == ["nix", "run"] and cmd[3:4] == ["--"] else None
+
+
+def require_package(installable: str) -> None:
+    """Explain a failed `installable` by the package its flake lacks, if that is the cause.
+
+    Only probed after a failure, so that a successful run costs no extra evaluation.
+    """
+    try:
+        nix_eval_json(f"{installable}.type")
+    except CommandError as error:
+        if "does not provide attribute" in error.stderr:
+            flake, _, package = installable.rpartition("#")
+
+            raise Error(
+                f"{flake} has no package {package}, import the flake-parts module"
+                " `modules.flake.flakectl` of infra to provide it."
+            ) from None
 
 
 def flake_ref(flake: str, attr_path: str, name: str) -> str:
@@ -348,9 +371,15 @@ def passwd(cfg: Config, machine: str, user: str, root: Path) -> None:
         raise Error(f"Refusing to write {path}, not a mutable path.")
 
     file = root / path.relative_to("/")
+    installable = f"{cfg.flake}#mkpasswd"
     # Fetched up front, so that hashing takes no wait once the password is typed,
     # and the later `nix run` resolves it from the evaluation cache.
-    run("nix", "build", "--no-link", f"{cfg.flake}#mkpasswd", capture=True)
+    try:
+        run("nix", "build", "--no-link", installable, capture=True)
+    except CommandError:
+        require_package(installable)
+        raise
+
     print(f"Setting the password of {user}@{machine} in {file}", file=sys.stderr)
     password = prompt_secret("New password")
 
