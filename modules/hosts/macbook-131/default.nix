@@ -15,6 +15,7 @@ in
         imports = [
           nixos.default
           nixos.low-memory
+          nixos.apple-thunderbolt
           "${inputs.nixos-hardware}/apple/macbook-pro"
         ];
 

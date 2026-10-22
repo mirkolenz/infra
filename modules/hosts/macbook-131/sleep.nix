@@ -4,11 +4,7 @@
 # a suspend entered with the lid open wakes again at once.
 # So the mode is picked per suspend, deep with the lid shut and s2idle with it open.
 # Shutting the lid during s2idle wakes the machine, and logind suspends it again into deep.
-# A device attached to the Thunderbolt ports forces s2idle,
-# since the firmware disables their root port when resuming from deep with one attached,
-# which only a cold boot recovers.
 # https://github.com/federal1970/macbookpro13-1-fedora#sleep-and-hibernation
-# https://github.com/orospakr/linux-apple-alpine-ridge-suspend#what-breaks
 {
   configurations.nixos.macbook-131.module =
     { pkgs, ... }:
@@ -40,19 +36,11 @@
 
         if grep -q closed /proc/acpi/button/lid/LID0/state; then
           wakeup SPIT disabled
-          mode=deep
-
-          # USB devices (4-1) and Thunderbolt routers (0-1) below the Thunderbolt root port,
-          # root hub interfaces (4-0:1.0) and the host router (0-0) excluded.
-          if find /sys/devices/pci0000:00/0000:00:1c.4 -name '[0-9]*-[1-9]*' -print -quit | grep -q .; then
-            mode=s2idle
-          fi
+          echo deep > /sys/power/mem_sleep
         else
           wakeup SPIT enabled
-          mode=s2idle
+          echo s2idle > /sys/power/mem_sleep
         fi
-
-        echo "$mode" > /sys/power/mem_sleep
       '';
     };
 }
