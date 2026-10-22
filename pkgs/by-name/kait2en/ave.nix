@@ -11,7 +11,7 @@ kait2en.mkService {
   component = "ave";
   inherit (kait2en.modules) src;
 
-  cargoHash = "sha256-aVKFnhAI52Am2LZNyJJN1Es06dvvN7a3FpcjUtfUPfE=";
+  cargoHash = "sha256-mQ7D13m0wGRb7uW6s/sE22AjIvsfIUK5HObUoz2ey1I=";
 
   integration = true;
 

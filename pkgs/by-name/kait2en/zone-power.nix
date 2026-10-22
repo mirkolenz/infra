@@ -10,7 +10,7 @@ kait2en.mkGtkApp {
   appId = "org.t2zonepower.gtk";
   inherit (kait2en.modules) src;
 
-  cargoHash = "sha256-82x/yS+aEErpp09Na0ZM8WCDDWFMZjQlG+trRg64ub0=";
+  cargoHash = "sha256-wznUu7QKYZsKl+CLMPvPfK6aOJs96a9Pqwi0SqxR34c=";
 
   meta = {
     description = "Apple T2 SMC power limit daemon";

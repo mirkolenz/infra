@@ -23,4 +23,5 @@ Every package therefore installs upstream's license notices to `share/licenses/<
 - `t2-force-click` is replaced by `trackpad.nix`.
 - `t2-fan-control` and `t2-power-tune` change limits the firmware already manages.
 - `t2-kernel-builder` needs a patched Fedora kernel.
+- `kait2en-multicall` drives GRUB and upstream's installer, and its `boot-macos` is `systemctl reboot --boot-loader-entry=auto-osx` on systemd-boot.
 - `install-acpi-fixes.sh` needs the machine's own patched AML, check `journalctl -kb | grep -E 'AE_AML_BUFFER_LIMIT|Marking method.*_PDC'` first.

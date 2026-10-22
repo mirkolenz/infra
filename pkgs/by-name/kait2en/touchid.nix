@@ -13,7 +13,7 @@ kait2en.mkService {
   component = "touchid";
   inherit (kait2en.modules) src;
 
-  cargoHash = "sha256-zkX6adYUZSZ5MzXcXaXvvV59M6tboLJnW1l4zNQRThk=";
+  cargoHash = "sha256-lU3F7BtkKm6SA3pFNEHC0SU/EvXvVCPvUuADMmBPHtw=";
 
   nativeBuildInputs = [ pkg-config ];
   buildInputs = [

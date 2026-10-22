@@ -84,6 +84,9 @@ let
     "pcie_aspm=force"
     "pcie_aspm.policy=powersave"
     "pcie_ports=compat"
+    # The firmware denies AER, which otherwise stalls resume for 20 seconds
+    # before the EC interrupts come back.
+    "pci=noaer"
     "i915.enable_guc=2"
     # S3, not s2idle: the T2 only reaches its low power state on the deep path,
     # and `t2smp` offlines the secondary CPUs so resume does not crawl.
@@ -138,13 +141,13 @@ stdenv.mkDerivation {
 
   # The pin every package here is built from. It cannot live in a file of its
   # own: `nix-update` writes to wherever the `src` attribute is declared.
-  version = "0.1.12-unstable-2026-10-20";
+  version = "0.1.12-unstable-2026-10-22";
 
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";
-    rev = "53e46be8c323bdfa754e37dcc7af70f223cbfaa6";
-    hash = "sha256-CdTEX8zi83ra3R3MeWHDyU3GlO2wbW6EPi50nhIAxl0=";
+    rev = "6128f86c60a3837dbbe88fcab3f8ffc69f66c720";
+    hash = "sha256-DPG4CyfSqECmdKFgEk8dchJMf4vtNjBTNG7lutPjuKA=";
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies ++ [

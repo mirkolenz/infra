@@ -12,7 +12,7 @@ kait2en.mkGtkApp {
   appId = "org.t2smccontrol.gtk";
   inherit (kait2en.modules) src;
 
-  cargoHash = "sha256-XPofREssRQHjnP+xLIxc/trbN31jX8jraIQk8BqP5gE=";
+  cargoHash = "sha256-eh1i9ud2m3FHog4+VRhWcL87z2QWVoWQZ829MKJSGVY=";
 
   # Run through pkexec, which does not search a PATH.
   postPatch = ''

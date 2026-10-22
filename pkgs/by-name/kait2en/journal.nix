@@ -9,7 +9,7 @@ kait2en.mkService {
   component = "journal";
   inherit (kait2en.modules) src;
 
-  cargoHash = "sha256-+t+Wm/YqL5YZsqFGyCZaJygGHRl2QbGweDoni9jx118=";
+  cargoHash = "sha256-ojuhTG4MIPtmk7RiwvzeVdHP+veS2ojz1Fslz2sPWtw=";
 
   # The vendored log parser is the one part of the tree that is not GPL.
   postInstall = ''

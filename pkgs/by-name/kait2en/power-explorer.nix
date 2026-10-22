@@ -14,7 +14,7 @@ kait2en.mkGtkApp {
   appId = "org.t2powerexplorer.gtk";
   inherit (kait2en.modules) src;
 
-  cargoHash = "sha256-Z2DWaTgvjrBNQgxn4DiIl5kN/Ia0IJePzF5CzUXR56M=";
+  cargoHash = "sha256-zrvhh/tp/tDp/Oerq5RzIZgRWY/9VOxJcJzCnAJ3T54=";
 
   # The polkit action only covers the helper at the exact path pkexec runs.
   postPatch = ''

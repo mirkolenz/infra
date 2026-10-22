@@ -17,7 +17,7 @@ kait2en.mkService {
   root = "apps/t2-touchbar";
   inherit (kait2en.modules) src;
 
-  cargoHash = "sha256-7gteyON5LRLgFc5doIa3Bka93iQaYwt916ZsUPUjPdQ=";
+  cargoHash = "sha256-xy9RLyEAtiN8f9JkboVx1N7j1Q81XIJjCjsrXoMPvdo=";
 
   nativeBuildInputs = [
     pkg-config
