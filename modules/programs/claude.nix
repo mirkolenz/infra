@@ -165,7 +165,9 @@ in
                 "Edit"
               ]
               # matched on the command line
-              ++ bashRules sandbox.commands.deny;
+              ++ bashRules sandbox.commands.deny
+              # drafts feedback reports to Anthropic on its own
+              ++ [ "SendFeedback" ];
             ask = [ ];
           };
           statusLine = {
