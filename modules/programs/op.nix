@@ -17,6 +17,8 @@
     }:
     lib.mkIf config.custom.features.graphical.enable {
       programs._1password-gui.polkitPolicyOwners = [ config.custom.user.login ];
+      # The SSH config points every host at the 1Password agent, so this one would idle.
+      services.gnome.gcr-ssh-agent.enable = false;
     };
 
   # The SSH agent and git signing rely on the 1Password app installed by the

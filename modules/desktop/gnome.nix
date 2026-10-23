@@ -85,7 +85,7 @@
           enable = true;
           cursorTheme.name = "Adwaita";
           iconTheme.name = "Adwaita";
-          theme.name = "Adwaita-dark";
+          colorScheme = "dark";
         };
 
         # https://github.com/gvolpe/dconf2nix (dconf watch / to discover keys)
@@ -97,7 +97,6 @@
           };
 
           "org/gnome/desktop/interface" = {
-            color-scheme = "prefer-dark";
             show-battery-percentage = true;
             enable-hot-corners = false;
             font-name = "Inter 11";

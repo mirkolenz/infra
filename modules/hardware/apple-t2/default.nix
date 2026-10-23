@@ -29,6 +29,8 @@
       config = {
         # The GUI apps style their figures with it, upstream bundles it.
         fonts.packages = [ pkgs.jetbrains-mono ];
+        # The GUI apps run their privileged helpers through pkexec.
+        security.polkit.enablePkexecWrapper = true;
       };
     };
 }

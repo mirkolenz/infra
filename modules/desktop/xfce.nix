@@ -36,10 +36,15 @@
         config.custom.features.graphical.enable && config.custom.features.graphical.desktopManager == "xfce"
       )
       {
+        gtk = {
+          enable = true;
+          colorScheme = "dark";
+        };
+
         # xfconf-query -c <channel> -p <property> -v to discover keys.
         xfconf.settings = {
           xsettings = {
-            "Net/ThemeName" = "Adwaita-dark";
+            "Net/ThemeName" = "Adwaita";
             "Net/IconThemeName" = "Adwaita";
             "Gtk/FontName" = "Inter 11";
             "Gtk/MonospaceFontName" = "${config.custom.font.family} ${toString config.custom.font.size}";
