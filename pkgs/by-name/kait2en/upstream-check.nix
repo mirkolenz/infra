@@ -19,6 +19,8 @@ runCommand "kait2en-upstream-check"
     meta = {
       description = "Detect changes to reviewed KaiT2en build and integration metadata";
       platforms = lib.platforms.unix;
+      # the diff is the same on every system, so CI runs it once
+      hydraPlatforms = [ "x86_64-linux" ];
     };
   }
   ''
