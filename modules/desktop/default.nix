@@ -11,6 +11,8 @@
         enable = true;
         wifi.backend = "iwd";
       };
+      # NetworkManager pulls it in, but none of these machines has a modem
+      networking.modemmanager.enable = false;
 
       # NetworkManager owns the interfaces here, so networkd manages nothing and
       # its wait-online times out and fails the rebuild.

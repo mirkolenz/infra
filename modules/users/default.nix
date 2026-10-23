@@ -1,12 +1,16 @@
 # User accounts across nixos base/full/children and darwin.
 {
   flake.modules.nixos.base =
-    { pkgs, ... }:
+    { pkgs, lib, ... }:
     {
       users = {
         mutableUsers = false;
         defaultUserShell = pkgs.fish;
       };
+
+      # Would replace the perl script that creates users and groups on activation,
+      # but nixos-install creates no users with it: https://github.com/NixOS/nixpkgs/issues/408507
+      services.userborn.enable = lib.mkDefault false;
     };
 
   flake.modules.nixos.default =

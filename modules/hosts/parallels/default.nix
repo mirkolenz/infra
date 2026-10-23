@@ -16,7 +16,7 @@ in
       extras.enable = true;
     };
 
-    security.sudo.wheelNeedsPassword = false;
+    security.sudo-rs.wheelNeedsPassword = false;
 
     boot.loader.systemd-boot.enable = true;
 

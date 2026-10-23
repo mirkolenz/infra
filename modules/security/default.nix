@@ -1,21 +1,16 @@
 # Security hardening: NixOS sudo/kernel + darwin pam/sudo.
 {
-  flake.modules.nixos.base =
-    { config, ... }:
-    {
-      # https://wiki.nixos.org/wiki/NixOS_Hardening
-      security = {
-        sudo = {
-          execWheelOnly = true;
-        };
-        sudo-rs = {
-          enable = true;
-          inherit (config.security.sudo) execWheelOnly wheelNeedsPassword;
-        };
-        protectKernelImage = true;
-        lockKernelModules = false;
+  flake.modules.nixos.base = {
+    # https://wiki.nixos.org/wiki/NixOS_Hardening
+    security = {
+      sudo-rs = {
+        enable = true;
+        execWheelOnly = true;
       };
+      protectKernelImage = true;
+      lockKernelModules = false;
     };
+  };
 
   flake.modules.darwin.base = {
     security = {

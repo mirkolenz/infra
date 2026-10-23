@@ -20,6 +20,9 @@ in
         # resolv.conf is managed by config.wsl.wslConf.network.generateResolvConf
         services.resolved.enable = false;
 
+        # NixOS-WSL wraps the login shells through the perl users script, which userborn replaces.
+        services.userborn.enable = false;
+
         # https://nix-community.github.io/NixOS-WSL/options.html
         wsl = {
           enable = true;

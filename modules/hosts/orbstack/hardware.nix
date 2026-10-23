@@ -9,7 +9,7 @@
     {
 
       # /etc/nixos/configuration.nix
-      security.sudo.wheelNeedsPassword = false;
+      security.sudo-rs.wheelNeedsPassword = false;
 
       networking.useDHCP = false;
 
