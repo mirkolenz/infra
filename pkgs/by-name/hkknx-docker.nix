@@ -1,18 +1,17 @@
 {
   lib,
-  cacert,
-  tzdata,
   dockerTools,
   hkknx-bin,
+  pkgsStatic,
 }:
 dockerTools.streamLayeredImage {
   name = "hkknx";
-  tag = "latest";
-  created = "now";
+  # hkknx embeds Go's time/tzdata, so the image needs no zoneinfo.
   contents = [
-    cacert
-    tzdata
+    dockerTools.caCertificates
     hkknx-bin
+    # sh and wget for healthchecks, static to keep glibc out of the closure.
+    pkgsStatic.busybox
   ];
   # create /tmp for backup feature to work
   extraCommands = ''
