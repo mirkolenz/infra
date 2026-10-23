@@ -19,6 +19,14 @@
         ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x106b", ATTR{device}=="0x2003", ATTR{d3cold_allowed}="0"
       '';
 
+      # Suspending the Thunderbolt controller runs Apple's ACPI `_PS3`, which cuts its power,
+      # and `_PS0` on resume never restores it, leaving the ports dead until a cold boot.
+      # Unloading the driver across suspend avoids this,
+      # but USB-C devices then stay dead after resume until replugged.
+      # Unbound, the controller stays powered and USB-C devices attach through its own xHCI,
+      # only Thunderbolt devices get no tunnels.
+      boot.blacklistedKernelModules = [ "thunderbolt" ];
+
       # All but LID0 wake S3 spuriously, and LID0 can come up disarmed.
       # brcmfmac re-probes the BCM4350 after S3, which arms ARPT again.
       # The keyboard (SPIT) is the only way to wake s2idle with the lid open.
