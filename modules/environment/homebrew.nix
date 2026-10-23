@@ -1,5 +1,6 @@
 {
   flake.modules.darwin.default =
+    { config, lib, ... }:
     let
       caskApps = [
         # keep-sorted start
@@ -131,9 +132,6 @@
     {
       homebrew = {
         enable = true;
-        enableBashIntegration = true;
-        enableZshIntegration = true;
-        enableFishIntegration = true;
         global.autoUpdate = true;
         onActivation = {
           autoUpdate = false;
@@ -147,5 +145,23 @@
         brews = [ ];
         casks = caskApps ++ caskFonts;
       };
+      # replaces the shell integrations, whose `brew shellenv` prepends homebrew to the nix profiles
+      environment.systemPath = lib.mkOrder 1100 [
+        "${config.homebrew.prefix}/bin"
+        "${config.homebrew.prefix}/sbin"
+      ];
+      environment.variables = {
+        HOMEBREW_PREFIX = config.homebrew.prefix;
+        HOMEBREW_CELLAR = "${config.homebrew.prefix}/Cellar";
+        HOMEBREW_REPOSITORY = config.homebrew.prefix;
+        # fish loads the vendor completions of these dirs, like the fish formula does for homebrew
+        XDG_DATA_DIRS = lib.mkAfter [ "${config.homebrew.prefix}/share" ];
+        # bash-completion from nixpkgs loads these instead of its own compat dir, which does not exist
+        BASH_COMPLETION_COMPAT_DIR = "${config.homebrew.prefix}/etc/bash_completion.d";
+      };
+      # runs before compinit
+      programs.zsh.interactiveShellInit = ''
+        fpath+=(${config.homebrew.prefix}/share/zsh/site-functions)
+      '';
     };
 }
