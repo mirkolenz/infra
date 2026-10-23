@@ -31,6 +31,7 @@
 
       environment.systemPackages = with pkgs; [
         pciutils
+        usbutils
         ghostty.terminfo
       ];
 
