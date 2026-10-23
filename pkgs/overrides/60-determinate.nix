@@ -4,12 +4,17 @@ let
   nix = final.inputs.determinate.inputs.nix.packages.${prev.stdenv.hostPlatform.system}.default;
 in
 {
-  # the one package taken from a flake's own package set, to keep Determinate's binary cache
+  # the one package taken from a flake's own package set, to keep Determinate's binary cache.
+  # CI skips it, since Determinate's cache lacks its debug output, which a build would recreate.
+  # meta is merged by hand, since `lib.dontDistribute` would drop the `out` below.
   determinate-nix = nix // {
     out = removeAttrs nix.out [
       "doc"
       "man"
     ];
+    meta = nix.meta // {
+      hydraPlatforms = [ ];
+    };
   };
 }
 # Tools that run upstream Nix warn about every setting of Determinate's nix.conf
