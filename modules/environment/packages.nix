@@ -44,6 +44,20 @@
         gdu
         dua
         duf
+        # unix tools that would otherwise resolve to the macOS base system
+        bc
+        ed
+        file
+        gnum4
+        libxml2
+        libxslt
+        lsof
+        openssl
+        screen
+        sharutils
+        tcpdump
+        units
+        xxd
         # required packages: https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/config/system-path.nix
         # acl # not available on darwin
         # attr # not available on darwin
@@ -59,11 +73,13 @@
         getent
         getconf
         gnugrep
+        gnupatch
         gnused
+        gnutar
         gzip
         xz
         # libcap # not available on darwin
-        # ncurses # conflict with ghostty terminfo
+        (lib.lowPrio ncurses) # ghostty terminfo wins the collision
         netcat
         mkpasswd
         procps

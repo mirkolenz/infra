@@ -14,6 +14,12 @@
         virt-viewer
         virt-manager
         ghostty-bin.terminfo
+        # nixos defaults that would otherwise resolve to the macOS base system
+        bind.dnsutils
+        bind.host
+        man-db
+        nano
+        openssh
       ];
 
       system.stateVersion = config.custom.stateVersions.darwin;
