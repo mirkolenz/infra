@@ -51,7 +51,9 @@ lib.genAttrs [
   "opnix"
 ] (name: (overlay name).${name})
 // {
-  neovim-unwrapped = lib.dontDistribute (overlay "neovim-nightly-overlay").neovim-unwrapped;
+  # a separate attribute, since replacing `neovim-unwrapped` rebuilds every vim plugin,
+  # whose require check runs it
+  neovim-nightly = (overlay "neovim-nightly-overlay").neovim-unwrapped;
 
   inherit disko raspi-kernel;
   # the final disko with its other program as main one for `nix run`,

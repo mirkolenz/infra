@@ -3,23 +3,26 @@
 # flake.modules.nixvim.default.
 { inputs, lib', ... }:
 {
-  flake.modules.nixvim.default = {
-    _module.args = { inherit lib'; };
-    imports = [
-      (inputs.import-tree ../../options/shared)
-      (inputs.import-tree ../../options/nixvim)
-    ];
+  flake.modules.nixvim.default =
+    { pkgs, ... }:
+    {
+      _module.args = { inherit lib'; };
+      imports = [
+        (inputs.import-tree ../../options/shared)
+        (inputs.import-tree ../../options/nixvim)
+      ];
 
-    viAlias = true;
-    vimAlias = true;
-    # the man page renders every nixvim option, the largest single cost of the build
-    enableMan = false;
+      package = pkgs.neovim-nightly;
+      viAlias = true;
+      vimAlias = true;
+      # the man page renders every nixvim option, the largest single cost of the build
+      enableMan = false;
 
-    # every plugin is Lua and the language servers bundle their runtimes,
-    # so none of the remote plugin providers is needed
-    withNodeJs = false;
-    withPerl = false;
-    withPython3 = false;
-    withRuby = false;
-  };
+      # every plugin is Lua and the language servers bundle their runtimes,
+      # so none of the remote plugin providers is needed
+      withNodeJs = false;
+      withPerl = false;
+      withPython3 = false;
+      withRuby = false;
+    };
 }
