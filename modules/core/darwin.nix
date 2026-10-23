@@ -20,6 +20,8 @@
 
       # the uninstaller is a second, complete nix-darwin evaluation
       system.tools.darwin-uninstaller.enable = false;
+      # only drops the nix-darwin manual, `programs.man` keeps the man pages of the packages
+      documentation.enable = false;
 
       # https://github.com/nix-darwin/nix-darwin/blob/master/modules/system/activation-scripts.nix
       system.activationScripts = {
