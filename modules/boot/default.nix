@@ -19,6 +19,7 @@
         grub.configurationLimit = lib.mkDefault 10;
         systemd-boot.configurationLimit = lib.mkDefault 10;
         systemd-boot.editor = false;
+        systemd-boot.bootCounting.enable = lib.mkDefault true;
         efi.canTouchEfiVariables = true;
       };
 
@@ -37,6 +38,10 @@
         ];
         # systemd-pcrlock allows 8 variants per PCR, 2 boot loaders x 4 generations.
         configurationLimit = lib.mkIf cfg.measuredBoot.enable (lib.mkDefault 4);
+        # lanzaboote replaces systemd-boot but not its boot counting options
+        bootCounting.initialTries = lib.mkIf config.boot.loader.systemd-boot.bootCounting.enable (
+          lib.mkDefault config.boot.loader.systemd-boot.bootCounting.tries
+        );
       };
 
       environment.systemPackages = lib.mkIf cfg.enable [ pkgs.sbctl ];

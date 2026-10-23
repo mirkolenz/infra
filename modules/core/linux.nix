@@ -17,6 +17,8 @@
       # `nixos-hardware/apple` turns on this out-of-tree webcam driver, which breaks on new kernels.
       hardware.facetimehd.enable = false;
 
+      boot.tmp.cleanOnBoot = true;
+
       systemd.enableStrictShellChecks = true;
 
       documentation = {
