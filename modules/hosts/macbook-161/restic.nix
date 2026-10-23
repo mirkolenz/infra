@@ -4,6 +4,7 @@
     {
       services.restic.backups.wasabi = {
         initialize = true;
+        inhibitsSleep = true;
         paths = [
           "/home/${config.custom.user.login}"
         ];
