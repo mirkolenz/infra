@@ -70,7 +70,10 @@ lib.genAttrs [
   );
 
   inherit (vicinae) mkVicinaeExtension;
-  vicinae = lib.dontDistribute (vicinae.vicinae.override { inherit numen; });
+  # darwin installs it through homebrew
+  vicinae = lib.addMetaAttrs { hydraPlatforms = lib.platforms.linux; } (
+    vicinae.vicinae.override { inherit numen; }
+  );
   vicinaeExtensions = lib.genAttrs [
     "github"
     "nix"
