@@ -5,14 +5,27 @@
       lib,
       config,
       ...
-    }:
+    }@args:
     {
       programs.fish = {
         enable = true;
+        # fish generates the man page completions at runtime instead of one derivation per package
+        generateCompletions = false;
         functions.fish_greeting.body = ''
           if set -q SSH_CONNECTION
             ${lib.getExe config.programs.fastfetch.package}
           end
+        '';
+      };
+      # Regenerates the man page completions in the background whenever the user or system packages change.
+      # A login shell is needed, as `man --path` derives the man pages from PATH.
+      xdg.dataFile."fish/home-manager/packages" = {
+        text = lib.concatLines (
+          [ "${config.home.path}" ] ++ lib.optional (args ? osConfig) "${args.osConfig.system.path}"
+        );
+        onChange = ''
+          run ${lib.getExe config.programs.fish.package} --login \
+            --command 'fish_update_completions_detach=true fish_update_completions'
         '';
       };
       xdg.configFile = {
@@ -32,7 +45,5 @@
         enable = true;
         shellAliases.sudo = lib.mkDefault "sudo ";
       };
-      # this is slow
-      programs.man.generateCaches = false;
     };
 }

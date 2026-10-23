@@ -54,6 +54,9 @@ in
         shared
         opnix
       ];
+      # fish generates man page completions at runtime instead, see `programs/shells.nix`
+      programs.fish.generateCompletions = false;
+
       # the opnix script does not pass the strict checks of `core/linux.nix`
       systemd.services.opnix-secrets = lib.mkIf config.services.onepassword-secrets.enable {
         enableStrictShellChecks = false;
