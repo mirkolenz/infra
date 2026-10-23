@@ -788,7 +788,8 @@ def bump_tag(repo: str, ref: str, tag: str | None, precision: Precision) -> str 
 
     The precision first shortens a full ref, such as `v7.0.1` to `v7`.
     Publishers do not always maintain floating tags, such as `v5` next to `v5.0.1`,
-    so the full tag of the release replaces the ref then, if it is a newer one.
+    but may maintain a floating branch instead, such as `v8` of `cycjimmy/semantic-release-action`,
+    so the full tag of the release replaces the ref without either, if it is a newer one.
     """
     if tag is None:
         return None
@@ -800,7 +801,7 @@ def bump_tag(repo: str, ref: str, tag: str | None, precision: Precision) -> str 
     if new == ref or Version(new) < Version(target):
         return None
 
-    if new == tag or has_tag(repo, new):
+    if new == tag or has_ref(repo, new):
         return new
 
     return tag if Version(tag) > Version(ref) else None
@@ -860,13 +861,15 @@ def latest_release(repo: str, min_age: int) -> str | None:
 
 
 @cache
-def has_tag(repo: str, tag: str) -> bool:
-    """Whether a GitHub repository has a tag."""
-    refs = run_json(
-        "gh", "api", f"repos/{repo}/git/matching-refs/tags/{tag}", capture=True
+def has_ref(repo: str, name: str) -> bool:
+    """Whether a GitHub repository has a tag or, failing that, a branch of a name."""
+    return any(
+        ref.get("ref") == f"refs/{kind}/{name}"
+        for kind in ("tags", "heads")
+        for ref in run_json(
+            "gh", "api", f"repos/{repo}/git/matching-refs/{kind}/{name}", capture=True
+        )
     )
-
-    return any(ref.get("ref") == f"refs/tags/{tag}" for ref in refs)
 
 
 @cache
