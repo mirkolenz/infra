@@ -58,7 +58,8 @@ in
 
   flake.modules.darwin.base.determinateNix.customSettings = sharedSettings // {
     allowed-users = [ "@admin" ];
-    sandbox = false;
+    # `__noChroot` opts out the derivations of `pkgs/sandbox.nix`
+    sandbox = "relaxed";
   };
 
   flake.modules.homeManager.standalone.nix.settings = unprivilegedSettings // {

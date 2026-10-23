@@ -80,6 +80,9 @@ lib.mergeAttrsList [
   # overrides/ fragments
   overrides
 
+  # build environment tweaks, kept apart from the overrides since they are no packages
+  (import ./sandbox.nix final prev)
+
   # by-name top-level packages
   (lib.removeAttrs byName scopeNames)
 
