@@ -104,7 +104,6 @@ in
           nix-fast-build
           nix-info
           fh
-          nh
         ]
         ++ lib.optionals config.custom.features.extras.enable [
           nix-update
@@ -114,6 +113,11 @@ in
           nix-converter
           nix-sweep
         ];
+      # no `clean`, which conflicts with `nix.gc.automatic` on standalone home-manager
+      programs.nh = {
+        enable = false;
+        flake = "github:mirkolenz/infra";
+      };
       custom.commands = {
         gc.text = /* bash */ ''
           # @describe Wipe the history of nix profiles, then collect and optimise the store

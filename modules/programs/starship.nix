@@ -29,10 +29,6 @@
         };
       };
       # https://starship.rs/advanced-config/#transientprompt-and-transientrightprompt-in-fish
-      programs.fish.interactiveShellInit = ''
-        function starship_transient_prompt_func
-          printf '\n\n$ '
-        end
-      '';
+      programs.fish.functions.starship_transient_prompt_func = "printf '\\n\\n$ '";
     };
 }

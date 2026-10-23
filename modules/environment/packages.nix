@@ -16,11 +16,9 @@
         inetutils
         zip
         unzip
-        fd
         procs
         sd
         bandwhich
-        delta
         fzf
         rsync
         wget
