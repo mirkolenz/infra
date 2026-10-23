@@ -15,11 +15,8 @@
       # The firmware cuts the SSD's power in D3cold, which the kernel cannot restore.
       # Matched by ID because the controller does not report the NVMe class code.
       # https://github.com/Dunedan/mbp-2016-linux#suspend--hibernation
-      # The same holds for the Thunderbolt hierarchy below root port 1c.4,
-      # whose links then stall resume until the kernel gives up on them.
       services.udev.extraRules = ''
         ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x106b", ATTR{device}=="0x2003", ATTR{d3cold_allowed}="0"
-        ACTION=="add", SUBSYSTEM=="pci", DEVPATH=="/devices/pci0000:00/0000:00:1c.4*", ATTR{d3cold_allowed}="0"
       '';
 
       # All but LID0 wake S3 spuriously, and LID0 can come up disarmed.
