@@ -17,10 +17,6 @@
       virtualisation.podman = {
         enable = true;
         # logDriver = "json-file";
-        autoPrune = {
-          enable = true;
-          dates = "daily";
-        };
       };
       users = lib.mkIf config.virtualisation.podman.enable {
         users.containers = {
