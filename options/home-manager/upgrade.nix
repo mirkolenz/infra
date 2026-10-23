@@ -68,7 +68,11 @@ in
   config = lib.mkIf cfg.enable {
     systemd.user = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
       services.${name} = {
-        Unit.Description = description;
+        Unit = {
+          Description = description;
+          # a switch restarting this unit would kill the upgrade that runs it
+          X-SwitchMethod = "keep-old";
+        };
         Service = {
           Type = "oneshot";
           ExecStart = lib.getExe upgrade;
@@ -88,6 +92,8 @@ in
     # launchd catches up on a missed run after sleep, like a persistent timer
     launchd.agents.${name} = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
       enable = true;
+      # the background session outlives a logout, unlike the default gui domain
+      domain = "user";
       config = {
         ProgramArguments = [ (lib.getExe upgrade) ];
         StartCalendarInterval = [
