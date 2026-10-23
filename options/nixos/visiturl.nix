@@ -56,6 +56,8 @@ in
     systemd.services = lib.mapAttrs' (_: entry: {
       inherit (entry) name;
       value = lib.mkIf entry.enable {
+        wants = [ "network-online.target" ];
+        after = [ "network-online.target" ];
         script = /* bash */ ''
           ${lib.getExe pkgs.wget} "${entry.url}" -O -
         '';
