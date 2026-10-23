@@ -16,9 +16,9 @@ let
       ];
     };
     stateVersions = {
-      linux = "26.05";
+      linux = "26.11";
       darwin = 7;
-      home = "26.05";
+      home = "26.11";
     };
   };
 in
