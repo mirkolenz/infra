@@ -112,6 +112,7 @@
 - After creating new files, add them to the git index to make them visible for nix evaluations.
 - Never run plain find/grep commands in `/` or `/nix/store`.
 - Avoid nested let ... in bindings and favor top-level variables.
+- Prefer `lib.<name>` over `builtins.<name>`.
 
 ## LaTeX
 
