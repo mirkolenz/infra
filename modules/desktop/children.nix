@@ -68,6 +68,12 @@
         sandboxed = [ (lib.getExe pkgs.bubblewrap) ];
         # part of GNOME Shell
         denied = [ "${pkgs.gnome-shell}/bin/{,.}gnome-extensions-app*" ];
+        hidden = [
+          "org.gnome.Extensions"
+          "org.freedesktop.IBus.Setup"
+          # opens the web interface
+          "cups"
+        ];
       };
 
       # dconf prefers /run/dconf/user/<uid> even over DCONF_PROFILE
