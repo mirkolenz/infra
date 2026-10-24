@@ -29,6 +29,11 @@
               type = lib.types.listOf lib.types.str;
               default = [ ];
             };
+            icon = lib.mkOption {
+              type = lib.types.str;
+              default = "web-browser";
+              description = "Name of a Papirus app icon, since Adwaita has no colored ones.";
+            };
           };
         }
       )
@@ -42,7 +47,10 @@
         inherit (site) categories;
         desktopName = site.title;
         exec = "firefox ${site.url}";
-        icon = "web-browser";
+        # a copy spares the closure the whole theme
+        icon = pkgs.runCommand "${site.icon}.svg" { } ''
+          cp ${pkgs.papirus-icon-theme}/share/icons/Papirus/64x64/apps/${site.icon}.svg $out
+        '';
       }
     ) config.custom.websites;
   };

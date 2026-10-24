@@ -64,11 +64,13 @@
           # includes scratch.mit.edu
           allow = [ "https://*.scratch.mit.edu/*" ];
           categories = [ "Education" ];
+          icon = "edu.mit.Scratch";
         };
         antolin = {
           title = "Antolin";
           url = "https://antolin.westermann.de";
           categories = [ "Education" ];
+          icon = "accessories-ebook-reader";
         };
       };
 
