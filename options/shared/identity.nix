@@ -10,6 +10,10 @@
         mail = lib.mkOption { type = lib.types.str; };
         login = lib.mkOption { type = lib.types.str; };
         sshKeys = lib.mkOption { type = lib.types.listOf lib.types.singleLineStr; };
+        keyboard = {
+          layout = lib.mkOption { type = lib.types.str; };
+          options = lib.mkOption { type = lib.types.listOf lib.types.str; };
+        };
       };
     };
   };

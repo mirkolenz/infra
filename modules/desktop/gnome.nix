@@ -108,6 +108,17 @@
             clock-show-date = true;
           };
 
+          # GNOME ignores the system layout
+          "org/gnome/desktop/input-sources" = {
+            sources = [
+              (gv.mkTuple [
+                "xkb"
+                config.custom.user.keyboard.layout
+              ])
+            ];
+            xkb-options = config.custom.user.keyboard.options;
+          };
+
           "org/gnome/desktop/wm/preferences" = {
             button-layout = "appmenu:minimize,maximize,close";
           };

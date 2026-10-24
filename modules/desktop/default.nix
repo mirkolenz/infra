@@ -1,4 +1,4 @@
-# General desktop defaults: NetworkManager, the default keyboard layout, and
+# General desktop defaults: NetworkManager, the keyboard layout of the primary user, and
 # personal-workstation conveniences (nix-ld) for interactive machines.
 {
   flake.modules.nixos.base =
@@ -31,8 +31,8 @@
     }:
     lib.mkIf config.custom.features.graphical.enable {
       services.xserver.xkb = {
-        layout = "us";
-        options = "caps:escape";
+        inherit (config.custom.user.keyboard) layout;
+        options = lib.concatStringsSep "," config.custom.user.keyboard.options;
       };
 
       # Apply the same XKB remapping to the virtual consoles (TTYs).
