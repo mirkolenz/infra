@@ -43,6 +43,11 @@
           copy = "${lib.getExe config.custom.commands.noeol} | pbcopy";
         };
         targets.darwin.copyApps.enableChecks = false; # requires sudo during activation
+
+        programs.desktoppr = {
+          enable = true;
+          settings.picture = "/System/Library/Desktop Pictures/Solid Colors/Black.png";
+        };
       }
     )
 

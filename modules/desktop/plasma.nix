@@ -62,7 +62,10 @@
             colorScheme = "BreezeDark";
             iconTheme = "breeze-dark";
             cursor.theme = "breeze_cursors";
+            wallpaperPlainColor = "0,0,0";
           };
+
+          kscreenlocker.appearance.wallpaperPlainColor = "0,0,0";
 
           fonts = {
             general = {

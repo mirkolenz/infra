@@ -56,6 +56,13 @@
         vicinae
       ];
 
+      # solid black, also on the lock screen
+      background = {
+        picture-options = "none";
+        color-shading-type = "solid";
+        primary-color = "#000000";
+      };
+
       # GNOME stores command shortcuts at indexed custom-keybinding subpaths that
       # must also be listed in `custom-keybindings`; this maps a friendlier attrset
       # of shortcuts (keyed by a slug) onto both the list and the per-shortcut keys.
@@ -116,6 +123,9 @@
             ];
             xkb-options = config.custom.user.keyboard.options;
           };
+
+          "org/gnome/desktop/background" = background;
+          "org/gnome/desktop/screensaver" = background;
 
           "org/gnome/desktop/wm/preferences" = {
             button-layout = "appmenu:minimize,maximize,close";
