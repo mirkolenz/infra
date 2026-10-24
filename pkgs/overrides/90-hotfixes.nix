@@ -57,7 +57,12 @@ in
   sbomnix = splitWrapperArgs prev.sbomnix;
 
   pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
-    (_: pyprev: {
+    (pyfinal: pyprev: {
+      # mcp 2 marks fastmcp-slim and thus fastmcp broken, which takes mcp-nixos down with it.
+      # Drop once fastmcp 4 supports mcp 2.
+      # https://github.com/NixOS/nixpkgs/pull/563493
+      fastmcp-slim = pyprev.fastmcp-slim.override { mcp = pyfinal.mcp_1; };
+
       # typepy 2.0.0 landed before the consumers dropped their `typepy<2` pin.
       # https://github.com/NixOS/nixpkgs/pull/573108
       sqliteschema = pyprev.sqliteschema.overridePythonAttrs { pythonRelaxDeps = [ "typepy" ]; };
