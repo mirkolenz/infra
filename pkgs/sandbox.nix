@@ -1,4 +1,4 @@
-final: prev:
+_: prev:
 # The darwin sandbox profile lists every input store path, and macOS rejects profiles
 # over 64 KiB (roughly 750 paths), so these aggregators of the system and home-manager
 # configs only build outside of it, which `sandbox = relaxed` allows via `__noChroot`.
