@@ -51,36 +51,30 @@
     };
 
   flake.modules.nixos.children =
-    {
-      config,
-      lib,
-      ...
-    }:
-    {
-      users.users = {
-        mirko = {
-          description = "Mirko Lenz";
-          uid = lib.mkDefault 1000;
-          isNormalUser = true;
-          openssh.authorizedKeys.keys = config.custom.user.sshKeys;
-          extraGroups = [
-            "wheel"
-            "networkmanager"
-          ];
-        };
+    { lib, ... }:
+    let
+      kids = {
         mila = {
           description = "Mila Lenz";
-          uid = lib.mkDefault 1001;
-          isNormalUser = true;
-          extraGroups = [ "children" ];
+          uid = 1001;
         };
         levi = {
           description = "Levi Lenz";
-          uid = lib.mkDefault 1002;
-          isNormalUser = true;
-          extraGroups = [ "children" ];
+          uid = 1002;
         };
       };
+    in
+    {
+      custom.user.login = "mirko";
+
+      users.users = lib.mapAttrs (_: kid: {
+        inherit (kid) description;
+        uid = lib.mkDefault kid.uid;
+        isNormalUser = true;
+        group = "children";
+      }) kids;
+
+      users.groups.children.members = lib.attrNames kids;
     };
 
   flake.modules.darwin.default =

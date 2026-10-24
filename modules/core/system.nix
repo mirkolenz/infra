@@ -59,7 +59,10 @@ in
     modules.nixos.user
   ];
 
-  flake.modules.nixos.children.imports = [ modules.nixos.base ];
+  flake.modules.nixos.children.imports = [
+    modules.nixos.base
+    modules.nixos.user
+  ];
 
   flake.modules.nixos.installer.imports = [
     moduleArgs

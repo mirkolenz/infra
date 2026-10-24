@@ -17,8 +17,6 @@ in
         "${inputs.nixos-hardware}/common/pc/laptop"
       ];
 
-      custom.features.graphical.desktopManager = "cosmic";
-
       boot.loader.systemd-boot.enable = true;
 
       # The panel hangs on the GeForce, so i915 would only add a phantom LVDS-1,
