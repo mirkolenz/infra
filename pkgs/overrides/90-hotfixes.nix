@@ -175,6 +175,18 @@ in
     '';
   });
 
+  # The window of tuxpaint identifies itself as TuxPaint.TuxPaint, which its desktop entry does
+  # not declare, so GNOME shows the running app apart from its launcher. No upstream report yet.
+  tuxpaint = prev.lib.dontDistribute (
+    prev.tuxpaint.overrideAttrs (prevAttrs: {
+      nativeBuildInputs = (prevAttrs.nativeBuildInputs or [ ]) ++ [ final.desktop-file-utils ];
+      postInstall = (prevAttrs.postInstall or "") + ''
+        desktop-file-edit --set-key=StartupWMClass --set-value=TuxPaint.TuxPaint \
+          $out/share/applications/tuxpaint.desktop
+      '';
+    })
+  );
+
 })
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
 
