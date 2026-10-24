@@ -5,7 +5,7 @@
 #                user gets it for free. Home scaffolding lives in home-common.nix.
 #   default    - the mlenz home: the cross-platform program set (feature files)
 #                and the mlenz identity values.
-#   linux      - default + Cosmic (Linux desktop specialisation).
+#   linux      - default + the Linux desktop managers.
 #   darwin     - default + macOS specialisation.
 #   standalone - base + the foreign-distro tweaks, combined with a linux/darwin
 #                bucket by the home builder; behaviour lives in home-standalone.nix.

@@ -1,4 +1,4 @@
-# User accounts across nixos base/full/children and darwin.
+# User accounts across nixos base/user/children and darwin.
 {
   flake.modules.nixos.base =
     { pkgs, lib, ... }:
@@ -13,7 +13,7 @@
       services.userborn.enable = lib.mkDefault false;
     };
 
-  flake.modules.nixos.default =
+  flake.modules.nixos.user =
     {
       config,
       pkgs,

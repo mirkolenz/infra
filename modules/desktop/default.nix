@@ -44,7 +44,11 @@
       networking.networkmanager.plugins = with pkgs; [
         networkmanager-openvpn
       ];
+    };
 
+  flake.modules.nixos.user =
+    { lib, config, ... }:
+    lib.mkIf config.custom.features.graphical.enable {
       users.users.${config.custom.user.login}.extraGroups = [ "networkmanager" ];
     };
 }

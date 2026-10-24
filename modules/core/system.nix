@@ -1,6 +1,7 @@
 # Wires the nixos/darwin buckets: the `lib'` module argument, shared home-manager
-# settings, upstream input modules, option declarations, and the composite
-# default/children/installer variants on top of the bases.
+# settings, upstream input modules, option declarations, the primary user with
+# its home (nixos.user), and the composite default/children/installer variants
+# on top of the bases.
 # The package set comes from the configuration builders (see
 # options/flake-parts/nixpkgs.nix), so no bucket may set `nixpkgs.config`
 # or `nixpkgs.overlays`.
@@ -47,12 +48,16 @@ in
     (inputs.import-tree ../../options/nix-darwin)
   ];
 
-  flake.modules.nixos.default =
+  flake.modules.nixos.user =
     { config, ... }:
     {
-      imports = [ modules.nixos.base ];
       home-manager.users.${config.custom.user.login} = modules.homeManager.linux;
     };
+
+  flake.modules.nixos.default.imports = [
+    modules.nixos.base
+    modules.nixos.user
+  ];
 
   flake.modules.nixos.children.imports = [ modules.nixos.base ];
 

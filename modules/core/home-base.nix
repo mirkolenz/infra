@@ -3,6 +3,7 @@
 {
   flake.modules.homeManager.base =
     {
+      lib,
       pkgs,
       config,
       ...
@@ -15,12 +16,14 @@
 
       home = {
         stateVersion = config.custom.stateVersions.home;
-        username = config.custom.user.login;
-        homeDirectory =
+        # within a system, home-manager takes them from the account
+        username = lib.mkIf config.custom.standalone config.custom.user.login;
+        homeDirectory = lib.mkIf config.custom.standalone (
           if pkgs.stdenv.hostPlatform.isDarwin then
             "/Users/${config.custom.user.login}"
           else
-            "/home/${config.custom.user.login}";
+            "/home/${config.custom.user.login}"
+        );
         file = {
           ".hushlogin".text = "";
         };
