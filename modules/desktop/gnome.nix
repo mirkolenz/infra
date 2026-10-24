@@ -29,8 +29,6 @@
         };
 
         environment.gnome.excludePackages = with pkgs; [ gnome-tour ];
-
-        environment.systemPackages = with pkgs; [ gnome-tweaks ];
       };
 
   flake.modules.homeManager.linux =
@@ -79,7 +77,7 @@
         && config.custom.features.graphical.desktopManager == "gnome"
       )
       {
-        home.packages = extensions;
+        home.packages = extensions ++ [ pkgs.gnome-tweaks ];
 
         gtk = {
           enable = true;
