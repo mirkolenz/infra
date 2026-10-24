@@ -24,6 +24,9 @@ in
       boot.kernelParams = [
         "i915.modeset=0"
       ];
+
+      # nouveau garbles the DMA-BUF buffers that WebKitGTK shares, e.g. in GNOME Help.
+      environment.sessionVariables.WEBKIT_DISABLE_DMABUF_RENDERER = "1";
     };
   };
 }
