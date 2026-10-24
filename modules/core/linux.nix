@@ -14,11 +14,6 @@
 
       services.fwupd.enable = !config.boot.isContainer;
 
-      # `nixos-hardware/apple` turns on this out-of-tree webcam driver, which breaks on new kernels.
-      hardware.facetimehd.enable = false;
-      # `nixos-hardware/apple` also turns on this fan daemon, the SMC already drives the fans.
-      services.mbpfan.enable = false;
-
       # nothing uses bcache, so keep its tools and udev rules out of the system and initrd
       boot.bcache.enable = false;
 

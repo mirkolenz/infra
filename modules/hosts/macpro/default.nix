@@ -18,7 +18,6 @@ in
       {
         imports = [
           nixos.default
-          "${inputs.nixos-hardware}/apple"
           "${inputs.nixos-hardware}/common/cpu/intel/cpu-only.nix"
           "${inputs.nixos-hardware}/common/gpu/amd"
         ];

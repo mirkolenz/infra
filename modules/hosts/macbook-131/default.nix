@@ -15,10 +15,11 @@ in
         imports = [
           nixos.default
           nixos.low-memory
-          "${inputs.nixos-hardware}/apple/macbook-pro"
+          "${inputs.nixos-hardware}/common/cpu/intel"
+          "${inputs.nixos-hardware}/common/pc/laptop"
         ];
 
-        # nixos-hardware's Skylake GPU profile without its `i915.enable_guc=2`.
+        # Replicates nixos-hardware's Skylake GPU profile, minus its `i915.enable_guc=2`.
         # i915 keeps GuC and HuC off before Gen12, the parameter taints the kernel,
         # and HuC only adds rate control to low-power H.264 encoding in i965.
         # i965 with the hybrid codec is the only driver that decodes VP9 on Skylake.

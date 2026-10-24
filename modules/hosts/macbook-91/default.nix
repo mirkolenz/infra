@@ -13,8 +13,7 @@ in
     module = {
       imports = [
         nixos.children
-        "${inputs.nixos-hardware}/apple"
-        "${inputs.nixos-hardware}/common/cpu/intel/sandy-bridge/cpu-only.nix"
+        "${inputs.nixos-hardware}/common/cpu/intel/cpu-only.nix"
         "${inputs.nixos-hardware}/common/pc/laptop"
       ];
 
@@ -22,6 +21,8 @@ in
 
       boot.loader.systemd-boot.enable = true;
 
+      # The panel hangs on the GeForce, so i915 would only add a phantom LVDS-1,
+      # and the kernel calls apple_set_os only on newer dual GPU models.
       boot.kernelParams = [
         "i915.modeset=0"
       ];
