@@ -118,12 +118,12 @@
       };
 
       # dconf prefers /run/dconf/user/<uid> even over DCONF_PROFILE
-      systemd.tmpfiles.settings.children = lib.genAttrs' config.users.groups.children.members (
-        name:
-        lib.nameValuePair "/run/dconf/user/${toString config.users.users.${name}.uid}" {
+      systemd.tmpfiles.settings.children = lib.mapAttrs' (
+        _: user:
+        lib.nameValuePair "/run/dconf/user/${toString user.uid}" {
           "L+".argument = "/etc/dconf/profile/children";
         }
-      );
+      ) config.custom.children.users;
 
       programs.dconf.profiles.children.databases = [
         {

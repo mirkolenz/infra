@@ -50,32 +50,20 @@
       };
     };
 
-  flake.modules.nixos.children =
-    { lib, ... }:
-    let
-      kids = {
-        mila = {
-          description = "Mila Lenz";
-          uid = 1001;
-        };
-        levi = {
-          description = "Levi Lenz";
-          uid = 1002;
-        };
+  flake.modules.nixos.children = {
+    custom.user.login = "mirko";
+
+    custom.children.users = {
+      mila = {
+        description = "Mila Lenz";
+        uid = 1001;
       };
-    in
-    {
-      custom.user.login = "mirko";
-
-      users.users = lib.mapAttrs (_: kid: {
-        inherit (kid) description;
-        uid = lib.mkDefault kid.uid;
-        isNormalUser = true;
-        group = "children";
-      }) kids;
-
-      users.groups.children.members = lib.attrNames kids;
+      levi = {
+        description = "Levi Lenz";
+        uid = 1002;
+      };
     };
+  };
 
   flake.modules.darwin.default =
     {

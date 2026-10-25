@@ -28,6 +28,22 @@ let
 in
 {
   options.custom.children = {
+    users = lib.mkOption {
+      type = lib.types.attrsOf (
+        lib.types.submodule {
+          options = {
+            description = lib.mkOption {
+              type = lib.types.str;
+            };
+            uid = lib.mkOption {
+              type = lib.types.int;
+            };
+          };
+        }
+      );
+      default = { };
+      description = "Accounts of the children, all with the primary group `children`.";
+    };
     online = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
@@ -60,5 +76,16 @@ in
         }
       )
     );
+  };
+
+  config = lib.mkIf (cfg.users != { }) {
+    # pam_apparmor picks the hat of the children by their primary group.
+    users.users = lib.mapAttrs (_: user: {
+      inherit (user) description uid;
+      isNormalUser = true;
+      group = "children";
+    }) cfg.users;
+
+    users.groups.children = { };
   };
 }

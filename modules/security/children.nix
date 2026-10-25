@@ -10,8 +10,6 @@
       ...
     }:
     let
-      children = config.users.groups.children.members;
-
       # The store hash alone identifies a path, which keeps the compiled policy small.
       allowed =
         pkgs.apparmorRulesFromClosure
@@ -66,10 +64,6 @@
         {
           assertion = config.services.displayManager.gdm.enable;
           message = "pam_apparmor only confines the children in sessions of GDM.";
-        }
-        {
-          assertion = lib.all (name: config.users.users.${name}.group == "children") children;
-          message = "pam_apparmor picks the hat of the children by their primary group.";
         }
       ];
 
@@ -141,13 +135,13 @@
         # fail closed
         display-manager.requires = [ "apparmor.service" ];
       }
-      // lib.genAttrs' children (
-        name:
-        lib.nameValuePair "user@${toString config.users.users.${name}.uid}" {
+      // lib.mapAttrs' (
+        _: user:
+        lib.nameValuePair "user@${toString user.uid}" {
           overrideStrategy = "asDropin";
           serviceConfig.AppArmorProfile = confinement;
         }
-      );
+      ) config.custom.children.users;
 
       # A switch would deny running sessions the programs of the old generation.
       system.autoUpgrade.operation = "boot";
