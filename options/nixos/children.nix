@@ -14,15 +14,14 @@ let
     Hidden=true
   '';
 
-  # The profile of a user precedes the system in XDG_DATA_DIRS, so these entries mask the system ones.
   # Without a terminal, the entries that need one would fail.
   hiddenEntries = pkgs.runCommandLocal "hidden-entries" { } ''
-    mkdir -p $out/share/applications
+    mkdir $out
     cd ${config.system.path}/share/applications
     for entry in $(grep -l '^Terminal=true' *.desktop) ${
       lib.concatMapStringsSep " " (id: "${id}.desktop") cfg.hidden
     }; do
-      ln -s ${hidden} $out/share/applications/$entry
+      ln -s ${hidden} $out/$entry
     done
   '';
 in
@@ -66,18 +65,6 @@ in
     };
   };
 
-  # Keyed by the primary group, since defining users from the group members would recurse.
-  options.users.users = lib.mkOption {
-    type = lib.types.attrsOf (
-      lib.types.submodule (
-        { config, ... }:
-        {
-          config.packages = lib.mkIf (config.group == "children") [ hiddenEntries ];
-        }
-      )
-    );
-  };
-
   config = lib.mkIf (cfg.users != { }) {
     # pam_apparmor picks the hat of the children by their primary group.
     users.users = lib.mapAttrs (_: user: {
@@ -87,5 +74,13 @@ in
     }) cfg.users;
 
     users.groups.children = { };
+
+    # A stable path keeps the rules of the users from changing with every generation.
+    environment.etc."children/applications".source = hiddenEntries;
+
+    # XDG_DATA_HOME precedes XDG_DATA_DIRS, which wrappers like the one of GNOME Shell prefix with their own entries.
+    systemd.user.tmpfiles.users = lib.mapAttrs (_: _: {
+      rules = [ "L+ %h/.local/share/applications - - - - /etc/children/applications" ];
+    }) cfg.users;
   };
 }
