@@ -9,22 +9,63 @@
       ...
     }:
     let
-      # by desktop entry
-      games = {
-        "org.kde.gcompris" = pkgs.gcompris;
-        tuxpaint = pkgs.tuxpaint;
-        # tuxtype ships no desktop entry
-        tuxtype = pkgs.makeDesktopItem {
-          name = "tuxtype";
-          desktopName = "Tux Typing";
-          exec = lib.getExe pkgs.tuxtype;
-          icon = "${pkgs.tuxtype}/share/tuxtype/images/icons/tuxtype.svg";
-          categories = [
-            "Education"
-            "Game"
-          ];
-        };
-      };
+      # All of them come in German, the app grid lists them.
+      apps = with pkgs; [
+        gcompris
+        tuxpaint
+        kdePackages.klettres
+        kdePackages.ktuberling
+        kdePackages.khangman
+        kdePackages.kanagram
+        # German word lists of khangman and kanagram
+        kdePackages.kdeedu-data
+        kdePackages.blinken
+        kdePackages.ktouch
+        kdePackages.kgeography
+        kdePackages.kturtle
+        stellarium
+        kdePackages.palapeli
+        kdePackages.knavalbattle
+        kdePackages.kapman
+        kdePackages.kbreakout
+        kdePackages.picmi
+        kdePackages.kshisen
+        kdePackages.katomic
+        kdePackages.knetwalk
+        kdePackages.kfourinline
+        kdePackages.kiriki
+        kdePackages.kolf
+        kdePackages.bomber
+        kdePackages.granatier
+        kdePackages.kbounce
+        kdePackages.kgoldrunner
+        kdePackages.skladnik
+        kdePackages.krecorder
+        gnome-2048
+        iagno
+        gnome-nibbles
+        quadrapassel
+        lightsoff
+        swell-foop
+        gnome-chess
+        # the opponent of gnome-chess
+        gnuchess
+        gnome-sudoku
+        gnome-mines
+        gnome-tetravex
+        aisleriot
+        supertux
+        supertuxkart
+        neverball
+        pingus
+        # ignores the locale, its config picks the language
+        (blobby.overrideAttrs (prevAttrs: {
+          postInstall = prevAttrs.postInstall + ''
+            substituteInPlace $out/share/blobby/config.xml \
+              --replace-fail 'name="language" value="en"' 'name="language" value="de"'
+          '';
+        }))
+      ];
 
       # Only the primary user keeps these, since the children may only run system packages.
       # Maps and Weather would be offline for them.
@@ -59,7 +100,7 @@
       services.gnome.rygel.enable = false;
       services.gnome.gnome-user-share.enable = false;
 
-      environment.systemPackages = lib.attrValues games ++ [ pkgs.gnomeExtensions.dash-to-dock ];
+      environment.systemPackages = apps ++ [ pkgs.gnomeExtensions.dash-to-dock ];
 
       custom.children = {
         # downloads voices and music on demand
@@ -94,14 +135,11 @@
               allow-extension-installation = false;
               # Looking Glass
               development-tools = false;
-              favorite-apps = map (name: "${name}.desktop") (
-                lib.attrNames config.custom.websites
-                ++ lib.attrNames games
-                ++ [
-                  "org.gnome.Nautilus"
-                  "org.gnome.TextEditor"
-                ]
-              );
+              # everything else lives in the app grid behind the dock's apps button
+              favorite-apps = [
+                "org.gnome.Nautilus.desktop"
+                "org.gnome.TextEditor.desktop"
+              ];
             };
             "org/gnome/shell/extensions/dash-to-dock" = {
               dock-fixed = true;
