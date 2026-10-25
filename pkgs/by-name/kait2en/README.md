@@ -24,4 +24,6 @@ Every package therefore installs upstream's license notices to `share/licenses/<
 - `t2-fan-control` and `t2-power-tune` change limits the firmware already manages.
 - `t2-kernel-builder` needs a patched Fedora kernel.
 - `kait2en-multicall` drives GRUB and upstream's installer, and its `boot-macos` is `systemctl reboot --boot-loader-entry=auto-osx` on systemd-boot.
+- `t2-sidecar` streams through a Sunshine fork with V4L2 encoding until [LizardByte/Sunshine#5717](https://github.com/LizardByte/Sunshine/pull/5717) lands, the `t2bce_sidecar` encoder it needs is built.
+- `install-macos-mount.sh` probes every APFS volume at boot, the `apfs` driver is built, so `mount -t apfs -o ro,vol=<n>` or a `fileSystems` entry mounts one.
 - `install-acpi-fixes.sh` needs the machine's own patched AML, check `journalctl -kb | grep -E 'AE_AML_BUFFER_LIMIT|Marking method.*_PDC'` first.

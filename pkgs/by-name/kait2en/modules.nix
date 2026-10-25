@@ -39,6 +39,7 @@ let
     "t2thunderbolt"
     "t2smp"
     "t2sbs"
+    "linux-apfs-rw"
   ];
 
   # The keyboard sits behind the T2's virtual USB host controller, and t2smc
@@ -104,16 +105,10 @@ let
   # a null model keeps all of them like on an unknown machine.
   kernelParamsFor =
     model:
-    lib.subtractLists (
-      # The Ethernet controllers of the iMacs do not survive forced ASPM.
-      lib.optional (model != null && lib.hasPrefix "iMac" model) "pcie_aspm=force"
-      # The Navi 14 of this model drops off the PCIe bus under load.
-      ++ lib.optionals (model == "MacBookPro16,1") [
-        "amdgpu.aspm=1"
-        "pcie_aspm=force"
-        "pcie_aspm.policy=powersave"
-      ]
-    ) kernelParams;
+    # The Ethernet controllers of the iMacs do not survive forced ASPM.
+    lib.subtractLists (lib.optional (
+      model != null && lib.hasPrefix "iMac" model
+    ) "pcie_aspm=force") kernelParams;
 
   # Each list above mirrors the array an upstream installer script has built
   # once its assignments ran, which `postPatch` diffs against it so a bump fails
@@ -141,13 +136,13 @@ stdenv.mkDerivation {
 
   # The pin every package here is built from. It cannot live in a file of its
   # own: `nix-update` writes to wherever the `src` attribute is declared.
-  version = "0.1.12-unstable-2026-10-22";
+  version = "0.1.12-unstable-2026-10-24";
 
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";
-    rev = "3bac0fd1aa36706f6a4dc48b806e81f51341ab71";
-    hash = "sha256-2lqzhKvMj33xWZXuNXdb3oUIzo+KmtVdo+l7OombA+k=";
+    rev = "64d952b9758f9cce68265fb24fab60ca8ae95f17";
+    hash = "sha256-OrxgIpmGXT/YAtv2pRo6tISpXsye9FweYlIJmEtu5Ls=";
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies ++ [
@@ -192,10 +187,16 @@ stdenv.mkDerivation {
     # One Kbuild unit, so its members have to be staged into it. Built
     # separately they would each get their own symbol versions.
     cp -r modules/t2bce_{dma,core,vhci,audio} modules/t2bce_stack/
-    cp -r t2-services/t2-ave/kernel/t2bce_ave modules/t2bce_stack/
+    cp -r t2-services/t2-ave/kernel/t2bce_{ave,sidecar} modules/t2bce_stack/
 
-    # Fedora enables these through AVE's Kconfig `select`, which an out-of-tree
-    # build cannot apply, so stage only the ones the stock kernel lacks.
+    # Vendored outside `modules`, and its DKMS `PRE_BUILD` writes the header
+    # with the version it reports.
+    cp -r third-party/linux-apfs-rw modules/
+    (cd modules/linux-apfs-rw && sh genver.sh)
+
+    # Fedora enables these through the Kconfig `select` of AVE and Sidecar,
+    # which an out-of-tree build cannot apply, so stage only the ones the stock
+    # kernel lacks.
     stageKernelModule() {
       local config=$1 source=$2 module
       module="''${source##*/}"
@@ -271,9 +272,11 @@ stdenv.mkDerivation {
     # The drivers keep the SPDX header of the kernel file they forked, which is
     # GPL-2.0-only for some and GPL-2.0-or-later for others. The t2bce stack has
     # no header and declares `MODULE_LICENSE("GPL")`, meaning or-later.
+    # The vendored APFS driver is GPL-2.0-only with BSD-3-Clause decompressors.
     license = with lib.licenses; [
       gpl2Only
       gpl2Plus
+      bsd3
     ];
   };
 }
