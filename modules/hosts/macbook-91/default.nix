@@ -21,8 +21,10 @@ in
 
       # The panel hangs on the GeForce, so i915 would only add a phantom LVDS-1,
       # and the kernel calls apple_set_os only on newer dual GPU models.
+      # Without i915, the PCH audio controller would defer its probe forever, waiting for the audio component.
       boot.kernelParams = [
         "i915.modeset=0"
+        "snd_hda_core.gpu_bind=0"
       ];
 
       # nouveau garbles the DMA-BUF buffers that WebKitGTK shares, e.g. in GNOME Help.
