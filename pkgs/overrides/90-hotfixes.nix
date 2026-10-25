@@ -56,6 +56,11 @@ in
   # https://github.com/NixOS/nixpkgs/pull/575801
   sbomnix = splitWrapperArgs prev.sbomnix;
 
+  # mcp-proxy pins `mcp<2`, which fails the runtime deps check against mcp 2.
+  mcp-proxy = prev.mcp-proxy.override {
+    python3Packages = final.python3Packages.overrideScope (pyfinal: _: { mcp = pyfinal.mcp_1; });
+  };
+
   pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
     (pyfinal: pyprev: {
       # mcp 2 marks fastmcp-slim and thus fastmcp broken, which takes mcp-nixos down with it.
