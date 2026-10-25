@@ -113,6 +113,13 @@
           "org.gnome.Extensions"
           "org.freedesktop.IBus.Setup"
           "com.onepassword.OnePassword"
+          "org.gnome.Contacts"
+          "org.gnome.Calendar"
+          "org.gnome.Characters"
+          "org.gnome.font-viewer"
+          "org.gnome.SimpleScan"
+          # mostly covers the settings and tools they cannot open
+          "org.gnome.Yelp"
           # opens the web interface
           "cups"
         ];
