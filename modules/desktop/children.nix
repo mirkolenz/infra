@@ -112,6 +112,7 @@
         hidden = [
           "org.gnome.Extensions"
           "org.freedesktop.IBus.Setup"
+          "com.onepassword.OnePassword"
           # opens the web interface
           "cups"
         ];
