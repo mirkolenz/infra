@@ -9,48 +9,54 @@
     }:
     let
       # Policies in the wrapper, unlike /etc/firefox/policies, spare the primary user's Firefox.
-      firefox = pkgs.firefox.override {
-        extraPolicies = {
-          WebsiteFilter = {
-            Block = [ "<all_urls>" ];
-            Exceptions = lib.concatMap (site: site.allow) (lib.attrValues config.custom.websites);
-          };
+      # Only the builds of Mozilla come in German, the one of nixpkgs is English.
+      firefox =
+        pkgs.wrapFirefox
+          (pkgs.firefox-bin-unwrapped.override {
+            systemLocale = config.i18n.defaultLocale;
+          })
+          {
+            extraPolicies = {
+              WebsiteFilter = {
+                Block = [ "<all_urls>" ];
+                Exceptions = lib.concatMap (site: site.allow) (lib.attrValues config.custom.websites);
+              };
 
-          BlockAboutConfig = true;
-          # also screens what allowed pages load from elsewhere
-          DNSOverHTTPS = {
-            Enabled = true;
-            ProviderURL = "https://family.cloudflare-dns.com/dns-query";
-            Fallback = false;
-            Locked = true;
-          };
-          DisableDeveloperTools = true;
-          DisableFirefoxAccounts = true;
-          DisableFirefoxStudies = true;
-          DisablePocket = true;
-          DisablePrivateBrowsing = true;
-          DisableProfileImport = true;
-          DisableProfileRefresh = true;
-          DisableSafeMode = true;
-          DisableTelemetry = true;
-          DontCheckDefaultBrowser = true;
-          DownloadRestrictions = 3;
-          HttpsOnlyMode = "enabled";
-          NoDefaultBookmarks = true;
-          OfferToSaveLogins = false;
-          PasswordManagerEnabled = false;
-          SearchSuggestEnabled = false;
+              BlockAboutConfig = true;
+              # also screens what allowed pages load from elsewhere
+              DNSOverHTTPS = {
+                Enabled = true;
+                ProviderURL = "https://family.cloudflare-dns.com/dns-query";
+                Fallback = false;
+                Locked = true;
+              };
+              DisableDeveloperTools = true;
+              DisableFirefoxAccounts = true;
+              DisableFirefoxStudies = true;
+              DisablePocket = true;
+              DisablePrivateBrowsing = true;
+              DisableProfileImport = true;
+              DisableProfileRefresh = true;
+              DisableSafeMode = true;
+              DisableTelemetry = true;
+              DontCheckDefaultBrowser = true;
+              DownloadRestrictions = 3;
+              HttpsOnlyMode = "enabled";
+              NoDefaultBookmarks = true;
+              OfferToSaveLogins = false;
+              PasswordManagerEnabled = false;
+              SearchSuggestEnabled = false;
 
-          DisableSecurityBypass = {
-            InvalidCertificate = true;
-            SafeBrowsing = true;
-          };
+              DisableSecurityBypass = {
+                InvalidCertificate = true;
+                SafeBrowsing = true;
+              };
 
-          ExtensionSettings."*" = {
-            installation_mode = "blocked";
+              ExtensionSettings."*" = {
+                installation_mode = "blocked";
+              };
+            };
           };
-        };
-      };
     in
     {
       system.autoUpgrade.enable = true;
@@ -75,7 +81,7 @@
       };
 
       # the copied binaries of the wrapper, the unwrapped Firefox without policies stays offline
-      custom.children.online = [ "${firefox}/lib/firefox/firefox{,-bin}" ];
+      custom.children.online = [ "${firefox}/lib/${firefox.unwrapped.libName}/firefox{,-bin}" ];
 
       environment.systemPackages = [ firefox ];
     };
