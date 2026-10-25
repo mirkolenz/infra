@@ -90,7 +90,9 @@ in
 
       # patchelf 0.19.2 aborts on the large prebuilt binary with `splitIndex == -1`
       # https://github.com/NixOS/patchelf/pull/672
+      # semgrep imports `mcp.server.fastmcp`, which mcp 2 removed.
       semgrep = pyprev.semgrep.override (prevArgs: {
+        mcp = pyfinal.mcp_1;
         semgrep-core = prevArgs.semgrep-core.override { patchelf = final.buildPackages.patchelf-fixed; };
       });
     })
