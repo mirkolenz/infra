@@ -27,7 +27,7 @@
     {
       options.custom.apple-t2.bridge = {
         enable = lib.mkEnableOption ''
-          the T2 bridge link. Without it the interface is held down, since
+          the T2 bridge link. Without it NetworkManager leaves the interface down, since
           nothing else has a use for it and `network-online.target` would
           otherwise wait for it to time out
         '';
@@ -57,15 +57,11 @@
       config = lib.mkMerge [
         (lib.mkIf (!cfg.enable) {
           # Otherwise the `*-wait-online` units block until they give up on it.
+          networking.networkmanager.unmanaged = [ "mac:${mac}" ];
           systemd.network.networks."10-t2-ethernet" = {
             matchConfig.MACAddress = mac;
-            linkConfig = {
-              ActivationPolicy = "manual";
-              RequiredForOnline = false;
-            };
+            linkConfig.Unmanaged = true;
           };
-
-          networking.networkmanager.unmanaged = [ "mac:${mac}" ];
         })
 
         (lib.mkIf cfg.enable {
