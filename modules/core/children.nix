@@ -22,6 +22,11 @@
               installation_mode = "force_installed";
               install_url = "https://releases.mozilla.org/pub/firefox/releases/${pkgs.firefox.version}/linux-x86_64/xpi/${locale}.xpi";
             };
+            # the language pack lacks spell checking
+            "de-DE@dictionaries.addons.mozilla.org" = {
+              installation_mode = "force_installed";
+              install_url = "https://addons.mozilla.org/firefox/downloads/latest/dictionary-german/latest.xpi";
+            };
           };
 
           WebsiteFilter = {
