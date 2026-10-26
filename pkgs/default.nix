@@ -18,7 +18,11 @@ let
       name: type: type == "directory" && !lib.pathExists (./by-name + "/${name}/package.nix")
     ) (lib.readDir ./by-name)
   );
-  scopes = lib.getAttrs scopeNames byName;
+  # kernel modules from ./by-name/linuxPackages join every kernel package set through
+  # `kernelPackagesExtensions` instead of being merged, flattened for the default kernel
+  scopes = lib.getAttrs scopeNames byName // {
+    linuxPackages = lib.intersectAttrs byName.linuxPackages final.linuxPackages;
+  };
 
   # by-name values keyed by a flat `<prefix>-<name>`, each with the attribute path it lives at
   entry = path: package: { inherit path package; };
@@ -87,7 +91,20 @@ lib.mergeAttrsList [
   (lib.removeAttrs byName scopeNames)
 
   # by-name scopes merged with nixpkgs
-  (lib.mapAttrs (name: scope: (prev.${name} or { }) // scope) scopes)
+  (lib.mapAttrs (name: scope: (prev.${name} or { }) // scope) (
+    lib.removeAttrs scopes [ "linuxPackages" ]
+  ))
+  {
+    kernelPackagesExtensions = prev.kernelPackagesExtensions ++ [
+      (
+        kfinal: _:
+        lib.packagesFromDirectoryRecursive {
+          inherit (kfinal) callPackage;
+          directory = ./by-name/linuxPackages;
+        }
+      )
+    ];
+  }
 
   # internal passthrough (inputs / prev / custom / lib')
   {
