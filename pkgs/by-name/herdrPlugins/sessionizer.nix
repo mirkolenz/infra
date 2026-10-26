@@ -15,14 +15,14 @@
 }:
 mkHerdrPlugin (finalAttrs: {
   pname = "herdr-sessionizer";
-  version = "0.10.0";
+  version = "0.11.0";
   pluginId = "sessionizer";
 
   src = fetchFromGitHub {
     owner = "andrewchng";
     repo = "herdr-sessionizer";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-2xlCjnqawWJGGPCUshU2unIxLFGazf33f/k3GOkh32M=";
+    hash = "sha256-FqIsjBUkBoAAsYQqcQi66AshK43/g81/8ejUA7BC5hk=";
   };
 
   interpreters = [ bun ];
