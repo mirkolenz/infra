@@ -13,7 +13,7 @@ in
 {
   # keep-sorted start block=yes
   agent = {
-    sidebar_side = "left";
+    threads_sidebar.position = "left";
     default_width = 640;
     default_height = 320;
     flexible = true;
