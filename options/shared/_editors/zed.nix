@@ -25,6 +25,12 @@ in
     { name, config, ... }:
     {
       options.editors.zed = {
+        enable = mkOption {
+          type = types.bool;
+          default = true;
+          description = "Whether Zed or one of its extensions provides the language server.";
+        };
+
         name = mkOption {
           type = types.str;
           default = name;

@@ -19,7 +19,7 @@
         lsp.servers.sqruff = {
           package = pkgs.sqruff;
           args = [ "lsp" ];
-          editors.zed.extension = "sqruff";
+          editors.zed.enable = false;
         };
 
         tools.sqruff = rec {

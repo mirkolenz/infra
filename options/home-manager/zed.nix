@@ -16,7 +16,7 @@ let
 
   cfg = config.custom.zed;
   jsonFormat = pkgs.formats.json { };
-  servers = config.custom.active.servers;
+  servers = lib.filterAttrs (_: server: server.editors.zed.enable) config.custom.active.servers;
 
   jsonOption =
     file: default:
@@ -41,8 +41,9 @@ let
       initialization_options = server.initializationOptions;
     };
 
-  zedName = name: servers.${name}.editors.zed.name;
-  universal = map zedName config.custom.universal.servers;
+  zedName = name: servers.${name}.editors.zed.name or null;
+  zedNames = names: lib.remove null (map zedName names);
+  universal = zedNames config.custom.universal.servers;
 
   # Zed runs the tools that read stdin, and code actions of the servers in place of the others.
   mkTool =
@@ -61,17 +62,22 @@ let
       };
 
   # The servers of a language replace Zed's defaults, the universal ones serve the rest.
+  # Its formatter tool stands in for a formatting server that Zed lacks.
   mkLanguage =
     language:
     let
+      inherit (language.formatter) server tool;
       formatter =
         lib.concatMap mkTool language.formatting
-        ++ lib.optional (language.formatter.server != null) {
-          language_server.name = zedName language.formatter.server;
-        };
+        ++ lib.optionals (server != null) (
+          if servers ? ${server} then
+            [ { language_server.name = zedName server; } ]
+          else
+            lib.optionals (tool != null) (mkTool tool)
+        );
     in
     lib.optionalAttrs (language.servers != [ ]) {
-      language_servers = map zedName language.servers ++ universal;
+      language_servers = zedNames language.servers ++ universal;
     }
     // lib.optionalAttrs (formatter != [ ]) { inherit formatter; };
 
