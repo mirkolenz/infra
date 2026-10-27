@@ -7,86 +7,91 @@
       pigz = lib.getExe pkgs.pigz;
     in
     {
-      home.packages = with pkgs; [
-        tree
-        moreutils
-        gnupg
-        gnumake
-        recutils
-        inetutils
-        zip
-        unzip
-        procs
-        sd
-        bandwhich
-        fzf
-        rsync
-        wget
-        sqlite
-        rlwrap
-        wol
-        fuc
-        # json parsing
-        jaq
-        jql
-        yq
-        dasel
-        # http clients and servers
-        xh
-        miniserve
-        # file transfer
-        termscp
-        # bulk renaming
-        pipe-rename
-        # disk usage
-        gdu
-        dua
-        duf
-        # unix tools that would otherwise resolve to the macOS base system
-        bc
-        ed
-        file
-        gnum4
-        libxml2
-        libxslt
-        lsof
-        openssl
-        screen
-        sharutils
-        tcpdump
-        units
-        xxd
-        # required packages: https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/config/system-path.nix
-        # acl # not available on darwin
-        # attr # not available on darwin
-        bashInteractive # bash with ncurses support
-        bzip2
-        coreutils-full
-        cpio
-        curl
-        diffutils
-        findutils
-        gawk
-        stdenv.cc.libc
-        getent
-        getconf
-        gnugrep
-        gnupatch
-        gnused
-        gnutar
-        gzip
-        xz
-        # libcap # not available on darwin
-        (lib.lowPrio ncurses) # ghostty terminfo wins the collision
-        netcat
-        mkpasswd
-        procps
-        # su # not available on darwin
-        time
-        util-linux
-        which
-        zstd
-      ];
+      home.packages =
+        with pkgs;
+        [
+          tree
+          moreutils
+          gnupg
+          gnumake
+          recutils
+          zip
+          unzip
+          procs
+          sd
+          bandwhich
+          fzf
+          rsync
+          wget
+          sqlite
+          rlwrap
+          wol
+          fuc
+          # json parsing
+          jaq
+          jql
+          yq
+          dasel
+          # http clients and servers
+          xh
+          miniserve
+          # file transfer
+          termscp
+          # bulk renaming
+          pipe-rename
+          # disk usage
+          gdu
+          dua
+          duf
+          # unix tools that would otherwise resolve to the macOS base system
+          bc
+          ed
+          file
+          gnum4
+          libxml2
+          libxslt
+          lsof
+          openssl
+          screen
+          sharutils
+          tcpdump
+          units
+          xxd
+          # required packages: https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/config/system-path.nix
+          # acl # not available on darwin
+          # attr # not available on darwin
+          bashInteractive # bash with ncurses support
+          bzip2
+          coreutils-full
+          cpio
+          curl
+          diffutils
+          findutils
+          gawk
+          # stdenv.cc.libc # shadows the host tools on generic linux, e.g. localedef
+          getconf
+          gnugrep
+          gnupatch
+          gnused
+          gnutar
+          gzip
+          xz
+          # libcap # not available on darwin
+          (lib.lowPrio ncurses) # ghostty terminfo wins the collision
+          netcat
+          mkpasswd
+          procps
+          # su # not available on darwin
+          time
+          which
+          zstd
+        ]
+        # glibc's getent lacks the NSS modules of non-NixOS hosts,
+        # unprivileged inetutils shadow the ping and traceroute of the host
+        ++ lib.optionals stdenv.hostPlatform.isDarwin [
+          getent
+          inetutils
+        ];
       custom.commands = {
         gpgfile.text = /* bash */ ''
           # @describe Encrypt and decrypt files with GnuPG
