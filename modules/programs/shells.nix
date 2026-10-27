@@ -19,10 +19,13 @@
       };
       # Regenerates the man page completions in the background whenever the user or system packages change.
       # A login shell is needed, as `man --path` derives the man pages from PATH.
+      # The paths only serve as a change marker, so their context is discarded
+      # to keep their closures out of the darwin sandbox profile.
       xdg.dataFile."fish/home-manager/packages" = {
-        text = lib.concatLines (
-          [ "${config.home.path}" ] ++ lib.optional (args ? osConfig) "${args.osConfig.system.path}"
-        );
+        text = builtins.unsafeDiscardStringContext ''
+          ${config.home.path}
+          ${args.osConfig.system.path or ""}
+        '';
         onChange = ''
           run ${lib.getExe config.programs.fish.package} --login \
             --command 'fish_update_completions_detach=true fish_update_completions'
