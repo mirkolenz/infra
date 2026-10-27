@@ -73,14 +73,33 @@ let
     default = { inherit dir settings; };
   };
 
-  installationLaunchers = lib.mapAttrs' (
+  # completions delegate to those of the regular executable
+  mkLauncher =
     name: installation:
-    lib.nameValuePair "${exe}-${name}" (
-      pkgs.writeShellScriptBin "${exe}-${name}" ''
-        export ${envVar}=${installation.dir}
-        exec ${lib.getExe package} "$@"
-      ''
-    )
+    let
+      cmd = "${exe}-${name}";
+    in
+    pkgs.symlinkJoin {
+      name = cmd;
+      paths = [
+        (pkgs.writeShellScriptBin cmd ''
+          export ${envVar}=${installation.dir}
+          exec ${lib.getExe package} "$@"
+        '')
+        (pkgs.writeTextDir "share/fish/vendor_completions.d/${cmd}.fish" ''
+          complete --command ${cmd} --wraps ${exe}
+        '')
+        (pkgs.writeTextDir "share/zsh/site-functions/_${cmd}" ''
+          #compdef ${cmd}
+          words[1]=${exe}
+          _normal
+        '')
+      ];
+      meta.mainProgram = cmd;
+    };
+
+  installationLaunchers = lib.mapAttrs' (
+    name: installation: lib.nameValuePair "${exe}-${name}" (mkLauncher name installation)
   ) named;
 
   optionType = lib.types.attrsOf (pkgs.formats.${format} { }).type;
