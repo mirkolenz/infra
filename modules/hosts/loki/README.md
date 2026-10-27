@@ -35,3 +35,4 @@ Thus, the DSNs of `~/.odbc.ini` need `Host=127.0.0.1`, and `RetryConnTO=5` to wa
 
 The driver finds its own libraries only through `LD_LIBRARY_PATH`, since Nix's glibc ignores the ldconfig cache of the host.
 The C++ runtime of the host is not in the sandbox, so `LD_LIBRARY_PATH` includes the one from Nix as well.
+Since `LD_LIBRARY_PATH` takes priority over the paths of the Nix binaries, it starts with unixODBC, so the clients load its `libodbc` and `libodbcinst` instead of the incompatible copies from the driver directory.
