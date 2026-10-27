@@ -58,7 +58,7 @@
         pdfpc
         pympress
         jsonfmt
-        caddy
+        caddy-custom
         mailpit
         zapp
         todoist-cli
