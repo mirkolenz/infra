@@ -5,24 +5,19 @@
 let
   command = lib.getExe pkgs.agent-format;
 
-  hook = timeout: [
+  # Codex edits through patches, which `Edit` and `Write` alias.
+  hooks.PostToolUse = [
     {
-      type = "command";
-      command = "${command} hook";
-      inherit timeout;
+      matcher = "Edit|Write";
+      hooks = [
+        {
+          type = "command";
+          command = "${command} hook";
+          timeout = 60;
+        }
+      ];
     }
   ];
-
-  # Codex edits through patches, which `Edit` and `Write` alias.
-  hooks = {
-    PostToolUse = [
-      {
-        matcher = "Edit|Write";
-        hooks = hook 60;
-      }
-    ];
-    Stop = [ { hooks = hook 120; } ];
-  };
 in
 {
   meta.maintainers = with lib.maintainers; [ mirkolenz ];

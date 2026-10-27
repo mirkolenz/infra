@@ -1,9 +1,4 @@
-"""Format the files that coding agents edit with treefmt.
-
-Each edit gets formatted, and at the end of a turn the changed files of the git repository get
-fixed and formatted once more, since fixing mid-edit could drop an import that the next edit
-is about to use. Remaining lints count as failures.
-"""
+"""Format the files that coding agents edit with treefmt."""
 
 import argparse
 import json
@@ -14,14 +9,16 @@ import sys
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, NotRequired, TypedDict
+from typing import NotRequired, TypedDict
 
-from infra_apps.apptools import HelpFormatter, add_command, entrypoint, run_nul
+from infra_apps.apptools import HelpFormatter, add_command, entrypoint
 
 # the headers of a Codex patch that precede the files it adds, updates, or moves to
 PATCH_HEADERS = ("*** Add File: ", "*** Update File: ", "*** Move to: ")
 # the length that the output of a failed run gets truncated to
 MAX_OUTPUT = 2000
+# below the timeout of the `PostToolUse` hook
+TIMEOUT = 30
 
 
 class ToolInput(TypedDict, total=False):
@@ -32,9 +29,8 @@ class ToolInput(TypedDict, total=False):
 
 
 class Payload(TypedDict):
-    """The payload of a hook of Claude Code or Codex."""
+    """The payload of a `PostToolUse` hook of Claude Code or Codex."""
 
-    hook_event_name: Literal["PostToolUse", "Stop"]
     cwd: str
     tool_input: NotRequired[ToolInput]
 
@@ -53,21 +49,19 @@ class Treefmt:
     config_file: Path
     formatters: str
 
-    def run(
-        self, root: Path, files: Iterable[Path], *args: str, timeout: int
-    ) -> str | None:
-        """Run treefmt on files below a root and return its output if it failed or timed out."""
+    def run(self, root: Path, files: Iterable[Path]) -> str | None:
+        """Format files below a root and return the output if it failed or timed out."""
         # a new session lets the formatters be killed with treefmt
         with subprocess.Popen(
             [
                 "treefmt",
                 f"--config-file={self.config_file}",
                 f"--tree-root={root}",
+                f"--formatters={self.formatters}",
                 "--walk=filesystem",
                 "--no-cache",
                 "--quiet",
                 "--on-unmatched=debug",
-                *args,
                 *files,
             ],
             stdout=subprocess.PIPE,
@@ -76,11 +70,11 @@ class Treefmt:
             start_new_session=True,
         ) as process:
             try:
-                output, _ = process.communicate(timeout=timeout)
+                output, _ = process.communicate(timeout=TIMEOUT)
 
             except subprocess.TimeoutExpired:
                 os.killpg(process.pid, signal.SIGKILL)
-                return f"treefmt timed out after {timeout} s"
+                return f"treefmt timed out after {TIMEOUT} s"
 
         return output[:MAX_OUTPUT] if process.returncode else None
 
@@ -93,33 +87,11 @@ class Treefmt:
                 file = file.resolve()
                 roots.setdefault(repo_root(file.parent) or file.parent, []).append(file)
 
-        # below the timeout of the `PostToolUse` hook
         failures = [
-            output
-            for root, group in roots.items()
-            if (
-                output := self.run(
-                    root, group, f"--formatters={self.formatters}", timeout=30
-                )
-            )
+            output for root, group in roots.items() if (output := self.run(root, group))
         ]
 
         return "\n".join(failures) or None
-
-    def fix(self, root: Path) -> str | None:
-        """Fix and format the files of a git repository that differ from its head, including untracked ones, and return the failures."""
-        git = ("git", "-C", root)
-        paths = {
-            *run_nul(*git, "diff", "-z", "--name-only", "--cached"),
-            *run_nul(
-                *git, "ls-files", "-z", "--modified", "--others", "--exclude-standard"
-            ),
-        }
-        files = [file for path in paths if (file := root / path).is_file()]
-
-        # without paths, treefmt would format the whole tree,
-        # and the timeout stays below that of the `Stop` hook
-        return self.run(root, files, timeout=90) if files else None
 
 
 def edited_files(cwd: Path, tool_input: ToolInput) -> Iterator[Path]:
@@ -133,24 +105,16 @@ def edited_files(cwd: Path, tool_input: ToolInput) -> Iterator[Path]:
 
 
 def hook(treefmt: Treefmt) -> None:
-    """Handle the `PostToolUse` or `Stop` hook of Claude Code or Codex, reading its payload from standard input.
+    """Handle the `PostToolUse` hook of Claude Code or Codex, reading its payload from standard input.
 
-    Failures of an edit go to the agent, those at the end of a turn to the user.
+    Failures go to the agent.
     """
     payload: Payload = json.load(sys.stdin)
-    cwd = Path(payload["cwd"])
+    edits = edited_files(Path(payload["cwd"]), payload.get("tool_input", {}))
 
-    match payload["hook_event_name"]:
-        case "PostToolUse":
-            edits = edited_files(cwd, payload.get("tool_input", {}))
-
-            if failures := treefmt.format(edits):
-                output = {"hookEventName": "PostToolUse", "additionalContext": failures}
-                print(json.dumps({"hookSpecificOutput": output}))
-
-        case "Stop":
-            if (root := repo_root(cwd.resolve())) and (failures := treefmt.fix(root)):
-                print(json.dumps({"systemMessage": failures}))
+    if failures := treefmt.format(edits):
+        output = {"hookEventName": "PostToolUse", "additionalContext": failures}
+        print(json.dumps({"hookSpecificOutput": output}))
 
 
 def parser() -> argparse.ArgumentParser:

@@ -1,7 +1,6 @@
 {
   lib,
   mkPythonApp,
-  gitMinimal,
   treefmt-nix,
 }:
 let
@@ -17,10 +16,7 @@ mkPythonApp {
   description = "Format the files that coding agents edit with treefmt";
   # run by the agents and their harnesses, not by people
   interactive = false;
-  runtimeInputs = [
-    gitMinimal
-    treefmt.package
-  ];
+  runtimeInputs = [ treefmt.package ];
   flags = {
     config-file = treefmt.build.configFile;
     formatters = lib.concatStringsSep "," (
