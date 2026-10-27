@@ -208,7 +208,7 @@ node_modules
 
 </details>
 
-## Home-Manger Standalone
+## Home-Manager Standalone
 
 _Note:_ Authorize your key as described in [SSH Key Deployment](#ssh-key-deployment) and reconnect via SSH after installing nix.
 
@@ -216,6 +216,17 @@ _Note:_ Authorize your key as described in [SSH Key Deployment](#ssh-key-deploym
 sudo /nix/var/nix/profiles/default/bin/nix upgrade-nix
 nix run github:mirkolenz/infra
 sudo usermod -s $(which fish) "$USER"
+```
+
+### Missing Locale
+
+The configuration sets `LC_ALL=en_US.UTF-8`, and macOS forwards it via SSH, so the host has to provide this locale.
+Otherwise, its system shell warns `setlocale: LC_ALL: cannot change locale (en_US.UTF-8)` on login.
+Nix programs are not affected, since `targets.genericLinux` points them to the locale archive of Nix, so check with `/usr/bin/locale -a` instead.
+On Ubuntu, the following generates the locale without changing the system default.
+
+```shell
+sudo locale-gen en_US.UTF-8
 ```
 
 ## Utilities and Snippets
