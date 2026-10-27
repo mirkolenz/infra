@@ -28,7 +28,9 @@
         init = ''
           ${socat} TCP-LISTEN:2638,bind=127.0.0.1,fork UNIX-CONNECT:/run/sqlanywhere/socket &
 
-          export LD_LIBRARY_PATH=${lib.makeLibraryPath [ pkgs.unixodbc ]}:${sqlanywhere}/lib64:${lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib ]}
+          export LD_LIBRARY_PATH=${lib.makeLibraryPath [ pkgs.unixodbc ]}:${sqlanywhere}/lib64:${
+            lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib ]
+          }
         '';
       };
     };
