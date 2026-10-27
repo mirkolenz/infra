@@ -15,13 +15,13 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "shadcn";
-  version = "4.22.2";
+  version = "4.23.0";
 
   src = fetchFromGitHub {
     owner = "shadcn-ui";
     repo = "ui";
     tag = "shadcn@${finalAttrs.version}";
-    hash = "sha256-Ji5oybhzb4WZl49WuOf51gxJsZbuPEq5huijTjIJNLc=";
+    hash = "sha256-+4gHikCJfYSSUfqSzktljflJb2MqnPJMieIt2PI44Z0=";
   };
 
   pnpmWorkspaces = [ "shadcn..." ];
@@ -44,7 +44,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       ;
     pnpm = pnpm_10;
     fetcherVersion = 4;
-    hash = "sha256-HOXQTK9tq0KZe/dWF1RE4GVvW2wDzPyyQXBQkfFPdyc=";
+    hash = "sha256-f/bAiR/Utw9GaqQoNIOeyvuS66LV9iHLjFG38JCluzg=";
   };
 
   nativeBuildInputs = [
