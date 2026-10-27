@@ -1,14 +1,14 @@
 {
-  "tag_name": "v1.0.158",
+  "tag_name": "v1.0.159",
   "assets": {
     "officecli-mac-arm64": {
-      "digest": "sha256:67cf08d95fab556cad9d1e9d0d3b76a7962b5658c716aeaef2e83cbc19af7ff7"
+      "digest": "sha256:b78ac7f9213e5fd0de0e3cb5d0f81bd427f9dd74b6c31e134fd1167427559167"
     },
     "officecli-linux-arm64": {
-      "digest": "sha256:b1d5e74d93a8471a47b037cc7774ac29c559940e226f99b9fdf788966cc395b8"
+      "digest": "sha256:a27778548f2820771f54a70887af3c3ec214fe60e63b32836b09b3f3e2c4c493"
     },
     "officecli-linux-x64": {
-      "digest": "sha256:9ee41d5558caea7bcd5aab1b3e76b2bd70f0535f09cf65dda3668130510cc719"
+      "digest": "sha256:92d9aeed324d91ed2a107f7f8dc7468829b14390a66cf2bbdfb25c40beac50ea"
     }
   }
 }

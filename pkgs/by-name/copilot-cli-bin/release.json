@@ -1,14 +1,14 @@
 {
-  "tag_name": "v1.0.103",
+  "tag_name": "v1.0.104",
   "assets": {
     "copilot-darwin-arm64.tar.gz": {
-      "digest": "sha256:33e6553b23d1e15946685df297cac12e0b3efe98102009d5e7093453ecc6e60b"
+      "digest": "sha256:c6084c40bb761be1b1bbaff3f69426ee51d842327b6b4af0d9290436477cc708"
     },
     "copilot-linux-arm64.tar.gz": {
-      "digest": "sha256:728a91dffb9a02817bd98c5b01bf2f9cb08c4fdac3c0ca8c48d7f1ccbfe282a1"
+      "digest": "sha256:29b3978051df684109e2343b2fccd733f971f8ebe472732fa3e07cfc2093f8e7"
     },
     "copilot-linux-x64.tar.gz": {
-      "digest": "sha256:9aeb4430e9ac9523546db07b227c7aba179a4710a55f9ac29ad143b0f9e1b325"
+      "digest": "sha256:fa9722665f2c670aa6ce26f1eb30fbfe7ed0177606bf61c21125855345c9c447"
     }
   }
 }
