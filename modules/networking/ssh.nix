@@ -84,12 +84,11 @@ in
     let
       # forwarded agent of the newest ssh login, stable across reconnects
       agentLink = "${config.home.homeDirectory}/.ssh/ssh_auth_sock";
-      # Points a dangling link at the newest forwarded agent, since sshd removes the sockets of
-      # ended logins (in ~/.ssh/agent since OpenSSH 10.1, in /tmp before) and fails without one.
-      agentRelink = pkgs.writeShellScript "ssh-agent-relink" ''
-        [ -S ${agentLink} ] && exit 0
-        sock=$(ls -td "$HOME"/.ssh/agent/s.*.sshd.* /tmp/ssh-*/agent.* 2>/dev/null | head -n 1)
-        [ -n "$sock" ] && ln -sf "$sock" ${agentLink}
+      # The link dangles once its login ends or goes stale after a crash.
+      # Exit code 2 of ssh-add means unreachable, the timeout guards against stalled connections.
+      agentAlive = pkgs.writeShellScript "ssh-agent-alive" ''
+        SSH_AUTH_SOCK=${agentLink} ${lib.getExe' pkgs.coreutils "timeout"} 3 ${lib.getExe' pkgs.openssh "ssh-add"} -l >/dev/null 2>&1
+        [ $? -le 1 ]
       '';
     in
     {
@@ -132,7 +131,7 @@ in
           # Prefer a live forwarded agent in shells over the IdentityAgent of `*` (1Password),
           # GUI apps lack the link and stay with 1Password.
           forwardedAgent = {
-            header = "Match exec 'test \"$SSH_AUTH_SOCK\" = ${agentLink} && ${agentRelink}'";
+            header = "Match exec 'test \"$SSH_AUTH_SOCK\" = ${agentLink} && ${agentAlive}'";
             IdentityAgent = agentLink;
           };
           "gpu" = {
