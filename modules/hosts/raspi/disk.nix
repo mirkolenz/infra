@@ -74,5 +74,8 @@
           size = 8 * 1024;
         }
       ];
+
+      # The swapfile does not fit into the image, so it is created after the root is grown.
+      systemd.services.mkswap-swap-swapfile.after = [ "systemd-growfs-root.service" ];
     };
 }
