@@ -6,7 +6,7 @@
   autoPatchelfHook,
   versionCheckHook,
   writableTmpDirAsHomeHook,
-  makeBinaryWrapper,
+  makeShellWrapper,
   installShellFiles,
   writeShellApplication,
   cacert,
@@ -51,7 +51,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [
     installShellFiles
-    makeBinaryWrapper
+    makeShellWrapper
     zstd
   ]
   ++ lib.optionals isLinux [
@@ -64,12 +64,15 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     installBin claude
 
+    # on darwin, the system cert store only reads the keychain search list without the Apple roots,
+    # so add the CA bundle of nix (e.g., from nix-darwin) unless the user provides extra certs
     wrapProgram $out/bin/claude \
       --set DISABLE_AUTOUPDATER 1 \
       --set DISABLE_INSTALLATION_CHECKS 1 \
       --set-default FORCE_AUTOUPDATE_PLUGINS 1 \
       --set USE_BUILTIN_RIPGREP 0 \
       --set-default CLAUDE_CODE_CERT_STORE system \
+      --run 'export NODE_EXTRA_CA_CERTS=''${NODE_EXTRA_CA_CERTS-''${NIX_SSL_CERT_FILE-}}' \
       ${lib.optionalString isLinux ''
         --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ alsa-lib ]} \
       ''}--prefix PATH : ${
