@@ -1,0 +1,41 @@
+diff --git a/Sources/utiluti/ManageCommand.swift b/Sources/utiluti/ManageCommand.swift
+index 6a2d731..9c031f0 100644
+--- a/Sources/utiluti/ManageCommand.swift
++++ b/Sources/utiluti/ManageCommand.swift
+@@ -48,6 +48,12 @@ struct ManageCommand: AsyncParsableCommand {
+     return prefs.dictionaryRepresentation(forKeys: Array(keys))
+   }
+ 
++  // since macOS 26.4, every change prompts the user, so unchanged defaults are skipped
++  func isDefault(_ bundleID: String, appURL: URL?) -> Bool {
++    guard let appURL, let current = Bundle(url: appURL)?.bundleIdentifier else { return false }
++    return current.caseInsensitiveCompare(bundleID) == .orderedSame
++  }
++
+   func manageTypes(types: [String:Any]) async throws {
+     for (uti, value) in types {
+       var uti = uti
+@@ -66,6 +72,11 @@ struct ManageCommand: AsyncParsableCommand {
+         }
+       }
+ 
++      if isDefault(bundleID, appURL: LSKit.defaultAppURL(forTypeIdentifier: uti)) {
++        if verbose { print("\(bundleID) is already set for \(display)") }
++        continue
++      }
++
+       let result = await LSKit.setDefaultApp(identifier: bundleID, forTypeIdentifier: uti)
+       if result == 0 {
+         print("set \(bundleID) for \(display)")
+@@ -83,6 +94,11 @@ struct ManageCommand: AsyncParsableCommand {
+         continue
+       }
+ 
++      if isDefault(bundleID, appURL: LSKit.defaultAppURL(forScheme: urlScheme)) {
++        if verbose { print("\(bundleID) is already set for \(urlScheme)") }
++        continue
++      }
++
+       let result = await LSKit.setDefaultApp(identifier: bundleID, forScheme: urlScheme)
+ 
+       if result == 0 {
