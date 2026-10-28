@@ -21,7 +21,7 @@
       description = ''
         Days a package release must age before the package managers that support a cooldown install it,
         which are uv, npm, and bun, but neither cargo nor composer,
-        and before `bumpctl ranges` offers it as the new tag of a GitHub Action or flake input.
+        and before `bumpctl` offers it as the new tag of a GitHub Action or flake input.
       '';
     };
 

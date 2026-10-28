@@ -1,13 +1,17 @@
-"""Update and commit the dependencies of projects, or bump their dependency ranges.
+"""Update and commit the dependencies of the projects at or below the working directory.
 
-`bumpctl update [MANAGER ...]`, or plain `bumpctl` for all managers, updates the projects at or below
-the working directory and commits them per project and package manager.
+For each package manager, the projects with its lockfile bump their dependency ranges, run its commands,
+and commit the lockfile with the other files it changes as `chore(deps/<manager>): update[ <path>]`,
+amending the commit if a command already made one, such as `nix flake update --commit-lock-file`.
 The managers `nix` and `actions` of flakes and GitHub Actions are built in,
 and the config of `--config` adds others or replaces them.
-`bumpctl ranges ECOSYSTEM` interactively bumps the dependency ranges of a workspace
-that exclude the latest versions, which `update` also does ahead of the commands of a manager.
-Both take the options of the range bumps after their command name,
-and with `--dry-run`, `update` only lists the range bumps of each project.
+
+The range bumps interactively move the ranges that exclude the latest versions, keeping their precision.
+So `>=2,<3` becomes `>=3,<4` instead of `>=3.1.4,<4`, like with npm-check-updates.
+The package managers resolve the latest versions and edit the manifests, honoring their minimum release ages,
+while the tags of GitHub Actions and flake inputs follow the releases older than `--min-age`
+whose commits reached a branch at least as long ago, which also gates relocking an `actions.lock`.
+With `--dry-run`, it only lists the range bumps of each project and runs no commands.
 
 The config is a JSON object mapping the name of each package manager,
 which is its scope in the commit messages, to an object of
@@ -57,7 +61,6 @@ from infra_apps.apptools import (
     ConfigOption,
     Error,
     HelpFormatter,
-    add_command,
     complete,
     entrypoint,
     run,
@@ -67,16 +70,6 @@ from infra_apps.apptools import (
 
 type Args = tuple[str, ...]
 
-RANGES_DOC = """Interactively bump the dependency ranges that exclude the latest versions.
-
-Covers every project of the workspace, so run it in the workspace root.
-
-Ranges that already allow the latest version stay untouched, the others keep their precision.
-So `>=2,<3` becomes `>=3,<4` instead of `>=3.1.4,<4`, like with npm-check-updates.
-The package managers resolve the latest versions and edit the manifests, honoring their minimum release ages,
-while the tags of GitHub Actions and flake inputs follow the releases older than `--min-age`
-whose commits reached a branch at least as long ago, which also gates relocking an `actions.lock`.
-"""
 OPERATORS = "^~=<>!"
 # operators whose version moves to the latest one, with `<` moving one past it
 BUMPED = {"", "=", "==", "^", "~", "~=", ">=", "<"}
@@ -1078,13 +1071,13 @@ class Command:
 
 @dataclass(frozen=True, slots=True)
 class Manager:
-    """A package manager of `bumpctl update`, with the fields described by the module."""
+    """A package manager, with the fields described by the module."""
 
     name: str
     lockfile: str
     excludes: Args = ()
     pathspecs: Args = ()
-    ranges: str | None = None
+    ranges: Ecosystem | None = None
     commands: tuple[Command, ...] = ()
     env: Mapping[str, str] = field(default_factory=dict)
 
@@ -1109,10 +1102,8 @@ class Manager:
         message = f"chore(deps/{self.name}): update {prefix}".rstrip()
         head = run("git", "rev-parse", "HEAD")
 
-        ranges = ECOSYSTEMS[self.ranges] if self.ranges is not None else None
-
-        if ranges is not None:
-            ranges.bump(mode)
+        if self.ranges is not None:
+            self.ranges.bump(mode)
 
         if mode.dry_run:
             return
@@ -1120,7 +1111,7 @@ class Manager:
         for command in self.commands:
             command(message, self.env)
 
-        edited = ranges.pathspecs if ranges is not None else ()
+        edited = self.ranges.pathspecs if self.ranges is not None else ()
         commit((self.lockfile, *self.pathspecs, *edited), message, head)
 
 
@@ -1153,7 +1144,7 @@ def load_config(data: Mapping[str, Any]) -> dict[str, Manager]:
             spec["lockfile"],
             tuple(spec.get("excludes", ())),
             tuple(spec.get("pathspecs", ())),
-            spec.get("ranges"),
+            ECOSYSTEMS[spec["ranges"]] if spec.get("ranges") else None,
             tuple(
                 Command(tuple(command["args"]), command.get("ifExists"))
                 for command in spec.get("commands", ())
@@ -1169,7 +1160,7 @@ MANAGERS = {
     "nix": Manager(
         "nix",
         "flake.lock",
-        ranges="nix",
+        ranges=ECOSYSTEMS["nix"],
         # the summary of the lockfile updates goes into the body of the commit
         commands=(
             Command(
@@ -1184,45 +1175,31 @@ MANAGERS = {
             ),
         ),
     ),
-    "actions": Manager("actions", str(ACTIONS_LOCK), ranges="actions"),
+    "actions": Manager("actions", str(ACTIONS_LOCK), ranges=ECOSYSTEMS["actions"]),
 }
 CONFIG = ConfigOption(
-    load_config, MANAGERS, "JSON file of further package managers of `update`."
+    load_config, MANAGERS, "JSON file of further package managers."
 )
 
 
-def update(managers: Mapping[str, Manager], names: Collection[str], mode: Mode) -> None:
-    """Update the dependencies of the projects at or below the working directory and commit them per project and package manager.
-
-    For each package manager, the projects with its lockfile bump their ranges, run its commands,
-    and commit the lockfile with the other files it changes as `chore(deps/<manager>): update[ <path>]`,
-    amending the commit if a command already made one, such as `nix flake update --commit-lock-file`.
-    """
-    for name, manager in managers.items():
-        if not names or name in names:
-            manager.update(mode)
-
-
 def parser(managers: Collection[str] = ()) -> argparse.ArgumentParser:
-    """The parser of the global options followed by a command with its own options, choosing among the package managers."""
+    """The parser of the command line, choosing among the package managers."""
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=HelpFormatter, parents=[CONFIG.parser()]
     )
-
-    options = argparse.ArgumentParser(add_help=False)
-    options.add_argument(
+    parser.add_argument(
         "--accept",
         type=Level,
         choices=list(Level),
         help="Accept the bumps up to this level without prompting and skip the others, so `minor` skips the major ones.",
     )
-    options.add_argument(
+    parser.add_argument(
         "--qualified",
         action=argparse.BooleanOptionalAction,
         default=False,
         help="Only bump full versions such as `1.2.3`, leaving floating ones such as `v2` or `^1.2` alone.",
     )
-    options.add_argument(
+    parser.add_argument(
         "--precision",
         type=Level,
         choices=list(Level),
@@ -1230,33 +1207,29 @@ def parser(managers: Collection[str] = ()) -> argparse.ArgumentParser:
         help="Write the moved versions with at most this precision, counted like the levels, such as `^4` for `major`, unless that allows older versions, while version tags such as `v7.0.1` shorten to their floating tag `v7` even without a newer release. `patch` keeps the precision of versions with up to three components.",
     )
     # a pair of flags instead of `--no-zero-major` to keep their names symmetric
-    zero = options.add_mutually_exclusive_group()
+    zero = parser.add_mutually_exclusive_group()
     zero.add_argument(
         "--zero-major",
         action="store_true",
         help="Whether a change after leading zeros, such as from `0.29.1` to `0.30.0`, is a major or a minor one.",
     )
     zero.add_argument("--zero-minor", dest="zero_major", action="store_false")
-    options.set_defaults(zero_major=True)
+    parser.set_defaults(zero_major=True)
     # a string default goes through `type` like a passed value
-    options.add_argument(
+    parser.add_argument(
         "--min-age",
         type=int,
         default=os.environ.get("BUMP_MIN_AGE", "0"),
         help="Days a release of a GitHub Action or flake input must age before it is offered, also set by `BUMP_MIN_AGE`.",
     )
-    options.add_argument(
+    parser.add_argument(
         "-n",
         "--dry-run",
         action="store_true",
-        help="List the bumps that would be applied without applying them, so `update` runs no commands.",
+        help="List the bumps that would be applied without applying them or running commands.",
     )
 
-    commands = parser.add_subparsers(
-        title="commands", dest="command", metavar="COMMAND"
-    )
-    update_parser = add_command(commands, "update", update.__doc__, parents=[options])
-    update_parser.add_argument(
+    parser.add_argument(
         "managers",
         nargs="*",
         choices=managers,
@@ -1264,27 +1237,14 @@ def parser(managers: Collection[str] = ()) -> argparse.ArgumentParser:
         help="Package managers to run, defaulting to all.",
     )
 
-    ranges = add_command(commands, "ranges", RANGES_DOC, parents=[options])
-    ecosystems = ranges.add_subparsers(
-        title="ecosystems", dest="ecosystem", metavar="ECOSYSTEM", required=True
-    )
-
-    for name, ecosystem in ECOSYSTEMS.items():
-        add_command(ecosystems, name, ecosystem.bump.__doc__)
-
     return parser
 
 
 @entrypoint
 def main() -> None:
-    """Parse the command line and run the chosen command."""
+    """Parse the command line and update the projects with the chosen package managers."""
     managers = CONFIG.parse()
-    cli = complete(parser(managers))
-    args = cli.parse_args()
-
-    # global options precede the command, so it can be appended
-    if args.command is None:
-        args = cli.parse_args([*sys.argv[1:], "update"])
+    args = complete(parser(managers)).parse_args()
 
     mode = Mode(
         args.accept,
@@ -1294,12 +1254,9 @@ def main() -> None:
         args.min_age,
     )
 
-    match args.command:
-        case "ranges":
-            ECOSYSTEMS[args.ecosystem].bump(mode)
-
-        case "update":
-            update(managers, args.managers, mode)
+    for name, manager in managers.items():
+        if not args.managers or name in args.managers:
+            manager.update(mode)
 
 
 if __name__ == "__main__":

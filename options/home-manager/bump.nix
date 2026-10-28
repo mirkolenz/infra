@@ -1,4 +1,4 @@
-# `bumpctl update`, which updates the dependencies of the projects at or below the working directory
+# `bumpctl`, which updates the dependencies of the projects at or below the working directory
 # and commits them per project and package manager.
 {
   config,
@@ -56,7 +56,7 @@ in
               ]
             );
             default = null;
-            description = "Ecosystem of `bumpctl ranges` whose dependency ranges to bump ahead of the commands.";
+            description = "Ecosystem whose dependency ranges to bump ahead of the commands.";
           };
           commands = mkOption {
             type = types.listOf (types.coercedTo (with types; listOf str) (args: { inherit args; }) command);
@@ -83,7 +83,7 @@ in
     );
     default = { };
     description = ''
-      Package managers of `bumpctl update`, keyed by their scope in the commit messages,
+      Package managers of `bumpctl`, keyed by their scope in the commit messages,
       in addition to its built-in `nix` and `actions`, which they may replace.
     '';
   };
