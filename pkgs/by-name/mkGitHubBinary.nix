@@ -99,6 +99,8 @@ lib.extendMkDerivation {
       srcs = map (
         name:
         fetchurl {
+          # named like upstream fetchers so CI skips pushing it, archives keep the extension to unpack by
+          name = if bareExecutable then "source" else name;
           url = "https://github.com/${owner}/${repo}/releases/download/${release.tag_name}/${name}";
           hash = release.assets.${name}.digest;
         }

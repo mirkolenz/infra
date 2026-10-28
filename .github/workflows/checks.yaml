@@ -92,10 +92,9 @@ jobs:
         with:
           name: mirkolenz
           authToken: ${{ secrets.CACHIX_TOKEN }}
-          # build-only dependency fetches (cargo, go, npm, pnpm, yarn), refetched on a cache miss.
-          # Matches `<hash>-<name>-<suffix>`, so a package named like a suffix stays.
+          # build-only fetches, refetched on a cache miss: sources, archives, and dependencies (cargo, go, npm, pnpm, yarn).
           # Debug outputs stay, since `--skip-cached` rebuilds a target missing any output.
-          pushFilter: "-.+-(vendor|vendor-staging|go-modules|npm-deps|pnpm-deps|yarn-deps)$"
+          pushFilter: '-(source|vendor|vendor-staging|go-modules|npm-deps|pnpm-deps|yarn-deps)$|\.(tar\..+|zip|zst)$'
       - run: nix run . -- check-build --max-memory-size 2048 --no-nom --max-jobs "$MAX_JOBS"
         env:
           MAX_JOBS: ${{ matrix.max-jobs }}
