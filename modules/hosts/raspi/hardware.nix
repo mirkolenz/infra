@@ -41,6 +41,11 @@
         ];
       };
 
+      # Without an RTC, the clock boots at the systemd release date until NTP corrects it,
+      # so calendar timers would fire right away. They are ordered after time-sync.target.
+      systemd.additionalUpstreamSystemUnits = [ "systemd-time-wait-sync.service" ];
+      systemd.services.systemd-time-wait-sync.wantedBy = [ "sysinit.target" ];
+
       environment.systemPackages = with pkgs; [
         raspberrypi-eeprom
       ];
