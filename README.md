@@ -226,6 +226,20 @@ On Ubuntu, the following generates the locale without changing the system defaul
 sudo locale-gen en_US.UTF-8
 ```
 
+### Binary Cache
+
+Determinate Nix overwrites `/etc/nix/nix.conf` on upgrades, so append the cache to the included `/etc/nix/nix.custom.conf` instead.
+
+```shell
+sudo vi /etc/nix/nix.custom.conf
+sudo systemctl restart nix-daemon
+```
+
+```ini
+extra-trusted-substituters = https://mirkolenz.cachix.org
+extra-trusted-public-keys = mirkolenz.cachix.org-1:R0dgCJ93t33K/gncNbKgUdJzwgsYVXeExRsZNz5jpho=
+```
+
 ## Utilities and Snippets
 
 ### GitHub Tokens
