@@ -6,10 +6,8 @@
   lib,
   stdenv,
   fetchFromGitHub,
-  jq,
   kait2en,
   linuxPackages_7_2,
-  shfmt,
 }:
 let
   # Re-exported through `passthru`, so the modules cannot be loaded into a
@@ -17,13 +15,8 @@ let
   # release upstream targets, since its amdgpu patches are written against it.
   inherit (linuxPackages_7_2) kernel kernelModuleMakeFlags;
 
-  # Runs a Kbuild target for the module directory `dir`, with `kernelModuleMakeFlags`
-  # as `makeFlags`. The install strips them before `cmd_sign` signs them,
-  # as for the in-tree ones, and `updates` is where DKMS puts them,
-  # which depmod prefers over the in-tree ones.
-  kbuild =
-    target: dir:
-    ''make -C ${kernel.dev}/lib/modules/${kernel.modDirVersion}/build -j"$NIX_BUILD_CORES" "''${makeFlags[@]}" M="${dir}" INSTALL_MOD_PATH="$out" INSTALL_MOD_DIR=updates INSTALL_MOD_STRIP=1 ${target}'';
+  # The Kbuild directories of `packages`.
+  packageDirs = map (package: "$PWD/modules/${package}") packages;
 
   # One directory per DKMS package.
   packages = [
@@ -110,9 +103,7 @@ let
       model != null && lib.hasPrefix "iMac" model
     ) "pcie_aspm=force") kernelParams;
 
-  # Each list above mirrors the array an upstream installer script has built
-  # once its assignments ran, which `postPatch` diffs against it so a bump fails
-  # loudly instead of silently.
+  # Each list above mirrors an array of an upstream installer script.
   mirrored = [
     {
       file = "scripts/fedora/install-dkms-modules.sh";
@@ -145,44 +136,13 @@ stdenv.mkDerivation {
     hash = "sha256-OrxgIpmGXT/YAtv2pRo6tISpXsye9FweYlIJmEtu5Ls=";
   };
 
-  nativeBuildInputs = kernel.moduleBuildDependencies ++ [
-    jq
-    shfmt
-  ];
+  nativeBuildInputs = kernel.moduleBuildDependencies;
   hardeningDisable = [ "pic" ];
 
   # The drift check runs here rather than in a `checkPhase`, so a moved list
   # fails in a second instead of after every module has compiled.
   postPatch = ''
-    # Prints the named array as a script leaves it after its top-level
-    # assignments. shfmt parses those out, so nothing else in it runs.
-    upstreamArray() {
-      local assignments
-      assignments=$(shfmt --to-json <"$1" |
-        jq '.Stmts |= map(select(.Cmd.Type == "CallExpr" and .Cmd.Args == null))' |
-        shfmt --from-json)
-
-      (
-        # Some call helpers from the unsourced `lib.sh`, which only leaves
-        # those variables empty.
-        eval "$assignments" || true
-        local -n array=$2
-        printf '%s\n' "''${array[@]}"
-      ) | sort
-    }
-
-    ${lib.concatMapStringsSep "\n" (
-      {
-        file,
-        array,
-        values,
-      }:
-      ''
-        diff -u <(upstreamArray ${file} ${array}) \
-          <(printf '%s\n' ${lib.escapeShellArgs values} | sort) ||
-          { echo "${array} in ${file} changed upstream, see .agents/skills/kait2en/SKILL.md" >&2; exit 1; }
-      ''
-    ) mirrored}
+    ${kait2en.checkUpstreamArrays mirrored}
 
     # One Kbuild unit, so its members have to be staged into it. Built
     # separately they would each get their own symbol versions.
@@ -221,9 +181,7 @@ stdenv.mkDerivation {
   buildPhase = ''
     runHook preBuild
 
-    for package in ${lib.escapeShellArgs packages}; do
-      ${kbuild "modules" "$PWD/modules/$package"}
-    done
+    ${kait2en.kbuild "modules" packageDirs}
 
     runHook postBuild
   '';
@@ -231,9 +189,7 @@ stdenv.mkDerivation {
   installPhase = ''
     runHook preInstall
 
-    for package in ${lib.escapeShellArgs packages}; do
-      ${kbuild "modules_install" "$PWD/modules/$package"}
-    done
+    ${kait2en.kbuild "modules_install" packageDirs}
 
     ${kait2en.installLicenses "kait2en-modules"}
 
@@ -244,7 +200,6 @@ stdenv.mkDerivation {
   passthru = {
     inherit
       earlyModules
-      kbuild
       kernel
       kernelParamsFor
       replacedModules
