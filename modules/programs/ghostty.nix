@@ -13,7 +13,7 @@
         # https://ghostty.org/docs/config/reference
         settings = {
           auto-update = if pkgs.stdenv.hostPlatform.isDarwin then "download" else "off";
-          auto-update-channel = "tip";
+          auto-update-channel = "stable";
           background-blur = false;
           cursor-click-to-move = true;
           font-family = config.custom.font.family;
