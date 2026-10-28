@@ -10,6 +10,7 @@ The packages install upstream's systemd units, patched with `--replace-fail`, an
 ## NixOS fork
 
 [KaiT2en-NixOS](https://github.com/LukeChannings/KaiT2en-NixOS) packages the same upstream in a fork, with a patched kernel and hand-written units.
+Its workarounds without an upstream counterpart are not carried over, such as the `cdc_ncm` rebind when the bridge link lacks carrier after boot, and the UCM and DSP rework leaving the DSP sink as the only speaker device.
 
 ## Licensing
 
@@ -23,6 +24,8 @@ Every package therefore installs upstream's license notices to `share/licenses/<
 - `t2-force-click` is replaced by `trackpad.nix`.
 - `t2-fan-control` and `t2-power-tune` change limits the firmware already manages.
 - `t2-kernel-builder` needs a patched Fedora kernel.
+- `kait2en-update` and the installer's `update-map` rerun upstream's installer from a git checkout.
+- KaiT2en Vornehm restyles GNOME, Firefox and Ptyxis for the invoking user, and its wallpapers carry no redistribution license.
 - `kait2en-multicall` drives GRUB and upstream's installer, and its `boot-macos` is `systemctl reboot --boot-loader-entry=auto-osx` on systemd-boot.
 - `t2-sidecar` streams through a Sunshine fork with V4L2 encoding until [LizardByte/Sunshine#5717](https://github.com/LizardByte/Sunshine/pull/5717) lands, the `t2bce_sidecar` encoder it needs is built.
 - `install-macos-mount.sh` probes every APFS volume at boot, the `apfs` driver is built, so `mount -t apfs -o ro,vol=<n>` or a `fileSystems` entry mounts one.

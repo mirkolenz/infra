@@ -27,9 +27,8 @@
     {
       options.custom.apple-t2.bridge = {
         enable = lib.mkEnableOption ''
-          the T2 bridge link. Without it NetworkManager leaves the interface down, since
-          nothing else has a use for it and `network-online.target` would
-          otherwise wait for it to time out
+          the T2 bridge link. Without it the interface stays down, since
+          nothing else has a use for it
         '';
 
         packages = lib.mkOption {
@@ -55,32 +54,25 @@
       };
 
       config = lib.mkMerge [
-        (lib.mkIf (!cfg.enable) {
-          # Otherwise the `*-wait-online` units block until they give up on it.
+        {
+          # Upstream's `10-t2-services.conf`. NetworkManager would take the link
+          # down on `PrepareForSleep`, before the suspend hooks close their T2
+          # sessions, and the `*-wait-online` units would block on it.
           networking.networkmanager.unmanaged = [ "mac:${mac}" ];
           systemd.network.networks."10-t2-ethernet" = {
             matchConfig.MACAddress = mac;
             linkConfig.Unmanaged = true;
           };
-        })
+        }
 
         (lib.mkIf cfg.enable {
           environment.systemPackages = [ pkgs.kait2en.journal ];
 
+          # Upstream's rule brings the link up with a kernel link-local address.
+          services.udev.packages = [ ncm ];
           services.udev.extraRules = ''
             SUBSYSTEM=="net", SUBSYSTEMS=="usb", ATTRS{idVendor}=="05ac", ATTRS{idProduct}=="8233", TAG+="systemd", ENV{SYSTEMD_ALIAS}="/dev/t2bridge"
           '';
-
-          # Copied rather than linked, since NetworkManager only loads a profile
-          # owned by root with mode 0600.
-          environment.etc = {
-            "NetworkManager/conf.d/10-t2-services.conf".source =
-              "${ncm}/etc/NetworkManager/conf.d/10-t2-services.conf";
-            "NetworkManager/system-connections/t2-ncm.nmconnection" = {
-              source = "${ncm}/etc/NetworkManager/system-connections/t2-ncm.nmconnection";
-              mode = "0600";
-            };
-          };
 
           systemd.packages = [ ncm ] ++ cfg.packages;
 
@@ -92,7 +84,7 @@
               # needs the daemon to remain running through suspend.
               wantedBy = [ bridgeDevice ];
               after = [ bridgeDevice ];
-              # The device exists before NetworkManager has addressed it, so the
+              # The device exists before the kernel has addressed it, so the
               # first attempts lose that race. Ten starts back off over ~3min,
               # then stop until the next resume requests the unit again. The
               # window only has to outlast those three minutes. Not `infinity`,

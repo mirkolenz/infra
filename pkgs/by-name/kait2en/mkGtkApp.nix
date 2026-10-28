@@ -9,7 +9,7 @@
   libadwaita,
 }:
 # The GTK apps under `apps`, which ship a desktop entry and an icon, and load
-# the KaiT2en wordmark from where Fedora's installer puts it. A `build.rs`
+# the KaiT2en wordmarks from where Fedora's installer puts them. A `build.rs`
 # compiles the icon into a resource bundle with glib and libxml2.
 lib.extendMkDerivation {
   constructDrv = kait2en.mkService;
@@ -27,7 +27,7 @@ lib.extendMkDerivation {
     }:
     let
       root = "apps/t2-${component}";
-      wordmark = "share/kait2en/kait2en-wordmark.png";
+      assets = "share/kait2en";
     in
     {
       inherit root;
@@ -47,15 +47,16 @@ lib.extendMkDerivation {
 
       # Some entries name the binary by its Fedora path, which is optional.
       postPatch = ''
-        substituteInPlace $(grep -rl /usr/local/${wordmark} ${root}/src) \
-          --replace-fail /usr/local/${wordmark} $out/${wordmark}
+        substituteInPlace $(grep -rl /usr/local/${assets}/ ${root}/src) \
+          --replace-fail /usr/local/${assets}/ $out/${assets}/
         substituteInPlace ${root}/${appId}.desktop \
           --replace-quiet /usr/local/bin/ ""
       ''
       + postPatch;
 
       postInstall = ''
-        install -Dm444 assets/kait2en-app-logo.png $out/${wordmark}
+        install -Dm444 assets/kait2en-app-logo.png $out/${assets}/kait2en-wordmark.png
+        install -Dm444 assets/kait2en-app-logo-light.png $out/${assets}/kait2en-wordmark-light.png
         install -Dm444 -t $out/share/applications ${root}/${appId}.desktop
         install -Dm444 -t $out/share/icons/hicolor/scalable/apps \
           ${root}/assets/icons/hicolor/scalable/apps/${appId}.svg
