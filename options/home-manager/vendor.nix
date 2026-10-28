@@ -1,4 +1,4 @@
-# `vendor`, which replaces the copies of live checkouts in the current project, see pkgs/by-name/vendor.
+# `vendorctl`, which replaces the copies of live checkouts in the current project, see pkgs/by-name/vendorctl.
 {
   config,
   lib,
@@ -44,12 +44,12 @@ in
       }
     );
     default = { };
-    description = "Checkouts of the `vendor` command, keyed by name.";
+    description = "Checkouts of the `vendorctl` command, keyed by name.";
   };
 
   config = lib.mkIf (cfg != { }) {
     home.packages = [
-      (pkgs.vendor.withConfig cfg)
+      (pkgs.vendorctl.withConfig cfg)
     ];
   };
 }

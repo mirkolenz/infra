@@ -1,7 +1,7 @@
 { mkPythonApp, gitMinimal }:
-# Configurations select their checkouts through `withConfig`, e.g. `pkgs.vendor.withConfig { ... }`.
+# Configurations select their checkouts through `withConfig`, e.g. `pkgs.vendorctl.withConfig { ... }`.
 mkPythonApp {
-  script = "vendor";
+  script = "vendorctl";
   description = "Replace the vendored copies of checkouts in the current project";
   runtimeInputs = [ gitMinimal ];
 }
