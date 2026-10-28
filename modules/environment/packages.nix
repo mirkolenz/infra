@@ -32,6 +32,9 @@
           jql
           yq
           dasel
+          # tabular data viewers
+          tabiew
+          csvlens
           # http clients and servers
           xh
           miniserve
