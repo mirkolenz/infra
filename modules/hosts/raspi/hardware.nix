@@ -27,6 +27,10 @@
       };
       # keeps the firmware from drawing warning icons over the framebuffer of the kernel
       hardware.raspberry-pi.configtxt.settings.all.avoid_warnings = true;
+      # Overclock cooled by the PoE+ HAT fan, the firmware scales the voltage on its own.
+      # A fixed over_voltage would disable that, use over_voltage_delta if it turns unstable.
+      # https://www.raspberrypi.com/documentation/computers/config_txt.html#overclocking
+      hardware.raspberry-pi.configtxt.settings.pi4.arm_freq = 2000;
 
       # U-Boot hands the kernel the mainline device tree of the generation,
       # as vc4 fails on the vendor one that the firmware would pass on.
