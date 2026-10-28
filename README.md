@@ -91,13 +91,10 @@ To revert, disable Secure Boot in the firmware before switching back to systemd-
 
 ### Tailscale
 
-- Create auth key: <https://login.tailscale.com/admin/settings/keys>
-- SSH into the machine
-- Save the auth key to `./tsauth.txt`
-- Run `sudo tailscale up --auth-key file:tsauth.txt`
-- Run `tailscale status` to verify the connection
-- Remove the auth key file: `rm ./tsauth.txt`
-- Approve exit-node/routes: <https://login.tailscale.com/admin/machines>
+- Create an auth key, tagged `tag:server` for servers: <https://login.tailscale.com/admin/settings/keys>
+- Save it on the machine to `./tsauth.txt`
+- Run `sudo tailscale up --auth-key file:tsauth.txt && rm tsauth.txt`
+- Run `sudo systemctl restart tailscaled` to reapply `extraSetFlags`
 
 ## Mac Computers
 
