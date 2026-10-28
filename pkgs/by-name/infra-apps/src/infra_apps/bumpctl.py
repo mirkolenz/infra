@@ -946,8 +946,16 @@ def settled(repo: str, ref: str, min_age: int) -> bool:
     )
 
 
-def relock(min_age: int) -> None:
-    """Advance the floating refs of the lockfile, except for the workflows depending on a commit that has not settled yet."""
+def relock(mode: Mode) -> None:
+    """Lock the bumped refs of the `actions.lock` of a repository if it has one, then advance its floating refs.
+
+    The workflows depending on a commit that has not settled yet keep their floating refs.
+    """
+    if not ACTIONS_LOCK.is_file():
+        return
+
+    # locks the bumped refs and prunes the replaced ones
+    run("gh-actions-lock", *LOCK_FLAGS)
     lock = yaml.safe_load(ACTIONS_LOCK.read_text())
     workflows: Mapping[str, Sequence[str]] = lock.get("workflows") or {}
     dependencies: Mapping[str, Mapping[str, Any]] = lock.get("dependencies") or {}
@@ -959,10 +967,10 @@ def relock(min_age: int) -> None:
         locked = dependencies[key]["commit"].partition("-")[2]
 
         return (
-            min_age > 0
+            mode.min_age > 0
             and ref != locked
             and head(repo, ref) != locked
-            and not settled(repo, ref, min_age)
+            and not settled(repo, ref, mode.min_age)
         )
 
     def closure(keys: Iterable[str]) -> Iterator[str]:
@@ -989,67 +997,50 @@ def relock(min_age: int) -> None:
         run("gh-actions-lock", "--relock", *LOCK_FLAGS, *paths)
 
 
-def python(mode: Mode) -> None:
-    """Bump the ranges of a uv workspace, honoring settings such as `exclude-newer`."""
-    mode.apply(uv_bumps(mode.precision))
+@dataclass(frozen=True, slots=True)
+class Ecosystem:
+    """The range bumps of an ecosystem, the pathspecs of the files they edit in a project, and a step after applying them."""
+
+    bumps: Callable[[Mode], Iterable[Bump]]
+    pathspecs: Args
+    after: Callable[[Mode], None] | None = None
+
+    def bump(self, mode: Mode) -> None:
+        """Apply the bumps, then run the step after them unless only listing them."""
+        mode.apply(self.bumps(mode))
+
+        if self.after is not None and not mode.dry_run:
+            self.after(mode)
 
 
-def node(mode: Mode) -> None:
-    """Bump the ranges of an npm or bun workspace with installed packages, honoring `min-release-age` of npm."""
-    mode.apply(
-        manifest_bumps(
+ECOSYSTEMS = {
+    "python": Ecosystem(
+        lambda mode: uv_bumps(mode.precision), (":(glob)**/pyproject.toml",)
+    ),
+    "node": Ecosystem(
+        lambda mode: manifest_bumps(
             npm_outdated(), "package.json", NODE_SECTIONS, npm_edit, mode.precision
-        )
-    )
-
-
-def php(mode: Mode) -> None:
-    """Bump the ranges of a composer project."""
-    mode.apply(
-        manifest_bumps(
+        ),
+        (":(glob)**/package.json",),
+    ),
+    "php": Ecosystem(
+        lambda mode: manifest_bumps(
             composer_outdated(),
             "composer.json",
             PHP_SECTIONS,
             composer_edit,
             mode.precision,
-        )
-    )
-
-
-def actions(mode: Mode) -> None:
-    """Bump the version tags of the GitHub Actions in a repository at the chosen precision, then relock its `actions.lock` if it has one.
-
-    The floating refs, such as `v7`, only advance once their new commits settled.
-    """
-    mode.apply(action_bumps(mode.min_age, mode.precision))
-
-    if mode.dry_run or not ACTIONS_LOCK.is_file():
-        return
-
-    # locks the bumped refs and prunes the replaced ones
-    run("gh-actions-lock", *LOCK_FLAGS)
-    relock(mode.min_age)
-
-
-def nix(mode: Mode) -> None:
-    """Bump the version tags of the GitHub inputs of a flake at the chosen precision."""
-    mode.apply(flake_bumps(mode.min_age, mode.precision))
-
-
-@dataclass(frozen=True, slots=True)
-class Ecosystem:
-    """The range bumps of an ecosystem, with the pathspecs of the files they edit in a project."""
-
-    bump: Callable[[Mode], None]
-    pathspecs: Args
-
-
-ECOSYSTEMS = {
-    "python": Ecosystem(python, (":(glob)**/pyproject.toml",)),
-    "node": Ecosystem(node, (":(glob)**/package.json",)),
-    "php": Ecosystem(php, ("composer.json",)),
-    "actions": Ecosystem(actions, ACTION_PATHSPECS),
-    "nix": Ecosystem(nix, ("flake.nix",)),
+        ),
+        ("composer.json",),
+    ),
+    "actions": Ecosystem(
+        lambda mode: action_bumps(mode.min_age, mode.precision),
+        ACTION_PATHSPECS,
+        relock,
+    ),
+    "nix": Ecosystem(
+        lambda mode: flake_bumps(mode.min_age, mode.precision), ("flake.nix",)
+    ),
 }
 
 
