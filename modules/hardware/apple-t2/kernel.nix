@@ -10,7 +10,11 @@
       # drift apart.
       boot.kernelPackages = drivers.linuxPackages;
 
-      boot.extraModulePackages = [ drivers ];
+      # Upstream rebuilds the Broadcom drivers on every T2 Mac.
+      boot.extraModulePackages = [
+        drivers
+        pkgs.kait2en.wireless
+      ];
 
       boot.initrd.kernelModules = drivers.earlyModules;
 
