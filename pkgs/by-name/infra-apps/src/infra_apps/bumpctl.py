@@ -1050,7 +1050,9 @@ def ecosystem(name: str | None) -> Ecosystem | None:
         return None
 
     if name not in ECOSYSTEMS:
-        raise Error(f"Unknown ecosystem {name}, expected one of {', '.join(ECOSYSTEMS)}")
+        raise Error(
+            f"Unknown ecosystem {name}, expected one of {', '.join(ECOSYSTEMS)}"
+        )
 
     return ECOSYSTEMS[name]
 
@@ -1179,9 +1181,7 @@ MANAGERS = {
     ),
     "actions": Manager("actions", str(ACTIONS_LOCK), ranges=ECOSYSTEMS["actions"]),
 }
-CONFIG = ConfigOption(
-    load_config, MANAGERS, "JSON file of further package managers."
-)
+CONFIG = ConfigOption(load_config, MANAGERS, "JSON file of further package managers.")
 
 
 def parser(managers: Collection[str] = ()) -> argparse.ArgumentParser:
