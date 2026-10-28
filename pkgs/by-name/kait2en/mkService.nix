@@ -13,6 +13,7 @@ lib.extendMkDerivation {
     "component"
     "root"
     "integration"
+    "bridge"
   ];
   extendDrvArgs =
     _finalAttrs:
@@ -22,6 +23,9 @@ lib.extendMkDerivation {
       root ? "t2-services/t2-${component}",
       # Upstream's units and configuration, from its `install-integration`.
       integration ? false,
+      # A daemon on the bridge link, which starts with it instead of waiting for
+      # `network-online.target`, see `apple-t2/bridge.nix`.
+      bridge ? false,
       meta ? { },
       postInstall ? "",
       ...
@@ -33,12 +37,12 @@ lib.extendMkDerivation {
       cargoRoot = root;
       buildAndTestSubdir = root;
 
-      # The daemons on the bridge link start with it instead of waiting for
-      # `network-online.target`, see `apple-t2/bridge.nix`.
       postInstall =
         kait2en.installLicenses "kait2en-${component}"
         + lib.optionalString integration ''
           make -C $cargoRoot install-integration PREFIX=$out SYSCONFDIR=$out/etc
+        ''
+        + lib.optionalString bridge ''
           substituteInPlace $out/lib/systemd/system/*.service \
             --replace-fail ' network-online.target' ""
         ''

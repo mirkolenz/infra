@@ -24,6 +24,7 @@ kait2en.mkService {
   # Also the fprintd drop-in, and the D-Bus policy for the name announcing the
   # prompt to the Touch Bar.
   integration = true;
+  bridge = true;
 
   meta = {
     description = "Apple T2 Touch ID bridge for fprintd";

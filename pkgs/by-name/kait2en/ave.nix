@@ -14,6 +14,7 @@ kait2en.mkService {
   cargoHash = "sha256-mQ7D13m0wGRb7uW6s/sE22AjIvsfIUK5HObUoz2ey1I=";
 
   integration = true;
+  bridge = true;
 
   # The hook needs `t2remote` and `timeout` on a PATH sleep does not provide.
   postInstall = ''
