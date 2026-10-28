@@ -1044,6 +1044,17 @@ ECOSYSTEMS = {
 }
 
 
+def ecosystem(name: str | None) -> Ecosystem | None:
+    """The ecosystem of a name, if given."""
+    if name is None:
+        return None
+
+    if name not in ECOSYSTEMS:
+        raise Error(f"Unknown ecosystem {name}, expected one of {', '.join(ECOSYSTEMS)}")
+
+    return ECOSYSTEMS[name]
+
+
 @dataclass(frozen=True, slots=True)
 class Command:
     """A command of a package manager, which only runs if the path `if_exists` exists, if given."""
@@ -1135,7 +1146,7 @@ def load_config(data: Mapping[str, Any]) -> dict[str, Manager]:
             spec["lockfile"],
             tuple(spec.get("excludes", ())),
             tuple(spec.get("pathspecs", ())),
-            ECOSYSTEMS[spec["ranges"]] if spec.get("ranges") else None,
+            ecosystem(spec.get("ranges")),
             tuple(
                 Command(tuple(command["args"]), command.get("ifExists"))
                 for command in spec.get("commands", ())
