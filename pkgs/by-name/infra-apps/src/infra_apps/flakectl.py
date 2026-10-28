@@ -508,14 +508,14 @@ def commit_dir(path: str, message: str) -> None:
 
 
 def update_deps(cfg: Config, dry_run: bool) -> None:
-    """Update and commit the flake inputs and GitHub Actions through `bump update`, then refresh pinned hashes.
+    """Update and commit the flake inputs and GitHub Actions through `bumpctl update`, then refresh pinned hashes.
 
     The version tags of the inputs and actions move to their latest major
     releases, honoring `BUMP_MIN_AGE`.
     """
     cfg.require_worktree()
 
-    bump = [*flake_program(cfg, "bump"), "update", "nix", "actions"]
+    bump = [*flake_program(cfg, "bumpctl"), "update", "nix", "actions"]
     run_logged([*bump, "--dry-run" if dry_run else "--accept=major"])
 
     if dry_run:
@@ -1264,7 +1264,7 @@ def parser() -> argparse.ArgumentParser:
 @entrypoint
 def main() -> None:
     """Run the command given on the command line, build-config without one."""
-    # Kept for every child, nix and the tools running it alike, such as bump or nixos-rebuild.
+    # Kept for every child, nix and the tools running it alike, such as bumpctl or nixos-rebuild.
     config = os.environ.get("NIX_CONFIG")
     os.environ["NIX_CONFIG"] = f"{config}\n{NIX_CONFIG}" if config else NIX_CONFIG
     cli = complete(parser())

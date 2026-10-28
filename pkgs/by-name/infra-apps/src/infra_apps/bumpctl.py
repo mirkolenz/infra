@@ -1,10 +1,10 @@
 """Update and commit the dependencies of projects, or bump their dependency ranges.
 
-`bump update [MANAGER ...]`, or plain `bump` for all managers, updates the projects at or below
+`bumpctl update [MANAGER ...]`, or plain `bumpctl` for all managers, updates the projects at or below
 the working directory and commits them per project and package manager.
 The managers `nix` and `actions` of flakes and GitHub Actions are built in,
 and the config of `--config` adds others or replaces them.
-`bump ranges ECOSYSTEM` interactively bumps the dependency ranges of a workspace
+`bumpctl ranges ECOSYSTEM` interactively bumps the dependency ranges of a workspace
 that exclude the latest versions, which `update` also does ahead of the commands of a manager.
 Both take the options of the range bumps after their command name,
 and with `--dry-run`, `update` only lists the range bumps of each project.
@@ -1078,7 +1078,7 @@ class Command:
 
 @dataclass(frozen=True, slots=True)
 class Manager:
-    """A package manager of `bump update`, with the fields described by the module."""
+    """A package manager of `bumpctl update`, with the fields described by the module."""
 
     name: str
     lockfile: str

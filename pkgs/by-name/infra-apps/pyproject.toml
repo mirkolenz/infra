@@ -7,14 +7,14 @@ dependencies = ["argcomplete>=3"]
 
 [project.scripts]
 agent-format = "infra_apps.agent_format:main"
-bump = "infra_apps.bump:main"
+bumpctl = "infra_apps.bumpctl:main"
 flakectl = "infra_apps.flakectl:main"
 nono-launch = "infra_apps.nono_launch:main"
 vendorctl = "infra_apps.vendorctl:main"
 
 # the libraries of each app, keyed by the name of its script
 [project.optional-dependencies]
-bump = ["packaging>=26", "pyyaml>=6", "questionary>=2"]
+bumpctl = ["packaging>=26", "pyyaml>=6", "questionary>=2"]
 flakectl = ["obstore>=0.9"]
 
 [build-system]

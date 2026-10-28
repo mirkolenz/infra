@@ -1,4 +1,4 @@
-# `bump update`, which updates the dependencies of the projects at or below the working directory
+# `bumpctl update`, which updates the dependencies of the projects at or below the working directory
 # and commits them per project and package manager.
 {
   config,
@@ -56,7 +56,7 @@ in
               ]
             );
             default = null;
-            description = "Ecosystem of `bump ranges` whose dependency ranges to bump ahead of the commands.";
+            description = "Ecosystem of `bumpctl ranges` whose dependency ranges to bump ahead of the commands.";
           };
           commands = mkOption {
             type = types.listOf (types.coercedTo (with types; listOf str) (args: { inherit args; }) command);
@@ -83,12 +83,12 @@ in
     );
     default = { };
     description = ''
-      Package managers of `bump update`, keyed by their scope in the commit messages,
+      Package managers of `bumpctl update`, keyed by their scope in the commit messages,
       in addition to its built-in `nix` and `actions`, which they may replace.
     '';
   };
 
   config.home.packages = lib.mkIf config.custom.features.extras.enable [
-    (if cfg == { } then pkgs.bump else pkgs.bump.withConfig cfg)
+    (if cfg == { } then pkgs.bumpctl else pkgs.bumpctl.withConfig cfg)
   ];
 }
