@@ -37,6 +37,9 @@ jobs:
             accept-flake-config = true
             eval-cores = 1
             log-lines = 200
+      - uses: cachix/cachix-action@v17
+        with:
+          name: mirkolenz
       - run: nix run . -- check-flake --workers 2 --max-memory-size 6656
   check-build:
     name: check-build-${{ matrix.system }}

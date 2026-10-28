@@ -11,6 +11,7 @@ workflows:
     '.github/workflows/update.yaml':
         - 'actions/checkout@v7'
         - 'actions/create-github-app-token@v3'
+        - 'cachix/cachix-action@v17'
         - 'determinatesystems/determinate-nix-action@v3'
         - 'peter-evans/create-pull-request@v8'
 dependencies:
