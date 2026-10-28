@@ -45,11 +45,11 @@
     "ast-grep-mcp": {
       "flake": false,
       "locked": {
-        "lastModified": 1787617425,
-        "narHash": "sha256-G2bnsfmzpirQmcllr+wmrvR6n5exe/5OrHnfXDXoyPg=",
+        "lastModified": 1793212890,
+        "narHash": "sha256-ojES2CjlN2bTEfGmZJO4gj+juuRF8808kn6YuDpqnxQ=",
         "owner": "ast-grep",
         "repo": "ast-grep-mcp",
-        "rev": "149e20d47bb7125fb0c1451feea2f48a98742034",
+        "rev": "1e41164726d7ead57c8aa25f74946c4badba7f8a",
         "type": "github"
       },
       "original": {
@@ -675,11 +675,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791657700,
-        "narHash": "sha256-vcCAvhtA7hG+/gOge29hYHy7I/dLkIsr5nLx4sFEQic=",
+        "lastModified": 1793200762,
+        "narHash": "sha256-oZ055iZrhdr6BemnmU825xz3AlGIoYHdPJgPKFaKXo0=",
         "owner": "pyproject-nix",
         "repo": "pyproject.nix",
-        "rev": "ddc400a6883b042646d0940e65971bb7f7e96107",
+        "rev": "489adad94b0360044ae9b16f5265925f73d439f0",
         "type": "github"
       },
       "original": {
