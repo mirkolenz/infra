@@ -27,25 +27,26 @@
               content = {
                 type = "btrfs";
                 extraArgs = [ "-f" ];
+                # zstd:1 instead of the default level 3 spares the Pi's CPU on writes.
                 subvolumes = {
                   "/root" = {
                     mountpoint = "/";
                     mountOptions = [
-                      "compress=zstd"
+                      "compress=zstd:1"
                       "noatime"
                     ];
                   };
                   "/home" = {
                     mountpoint = "/home";
                     mountOptions = [
-                      "compress=zstd"
+                      "compress=zstd:1"
                       "noatime"
                     ];
                   };
                   "/nix" = {
                     mountpoint = "/nix";
                     mountOptions = [
-                      "compress=zstd"
+                      "compress=zstd:1"
                       "noatime"
                     ];
                   };
