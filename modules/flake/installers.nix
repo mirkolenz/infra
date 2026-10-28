@@ -1,9 +1,5 @@
 # Installer ISO images from the nixos.installer bucket, keyed by system.
-{
-  inputs,
-  config,
-  ...
-}:
+{ config, ... }:
 let
   inherit (config.flake) modules;
 in
@@ -19,18 +15,6 @@ in
         ];
       };
     };
-    aarch64-linux = {
-      default = modules.nixos.installer;
-      raspi = {
-        imports = [
-          modules.nixos.installer
-          "${inputs.nixos-hardware}/raspberry-pi/4"
-        ];
-        boot.tmp = {
-          useTmpfs = true;
-          tmpfsSize = "16G";
-        };
-      };
-    };
+    aarch64-linux.default = modules.nixos.installer;
   };
 }

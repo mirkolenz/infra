@@ -283,8 +283,6 @@ If building for another architecture on NixOS:
 ```shell
 # for iso installer disc
 nix build github:mirkolenz/infra#.legacyPackages.x86_64-linux.installer-default.iso-installer
-# for raspberry pi sd card
-nix build github:mirkolenz/infra#.legacyPackages.aarch64-linux.installer-raspi.sd-card
 # for apple t2
 nix build github:mirkolenz/infra#.legacyPackages.x86_64-linux.installer-apple-t2.iso-installer
 ```
@@ -295,13 +293,22 @@ Flash the image to a USB drive or SD card with `caligula`:
 sudo caligula burn --hash skip --compression auto result/iso/*.iso
 ```
 
-### Update Raspberry Pi
+### Raspberry Pi
 
-<https://nix.dev/tutorials/installing-nixos-on-a-raspberry-pi#updating-firmware>
+The SD card image holds the final `raspi` system, which then updates itself like every other host.
+Building it runs a VM, so the builder needs `/dev/kvm`.
+The root partition grows to the size of the card on first boot.
 
 ```shell
-sudo mount /dev/disk/by-label/FIRMWARE /mnt
-sudo env BOOTFS=/mnt FIRMWARE_RELEASE_STATUS=default rpi-eeprom-update -d -a
+nix build github:mirkolenz/infra#nixosConfigurations.raspi.config.system.build.diskoImages
+sudo caligula burn --hash skip --compression auto result/main.raw.zst
+```
+
+Every switch rewrites the boot code, U-Boot, and `config.txt` on `/boot`.
+The bootloader in the EEPROM is updated by hand, the update applies on the next reboot.
+
+```shell
+sudo rpi-eeprom-update -a
 sudo reboot
 ```
 

@@ -1,15 +1,78 @@
+# Flashed as image, see the README, and grown to the card size on first boot.
 {
-  configurations.nixos.raspi.module = {
-    fileSystems."/" = {
-      device = "/dev/disk/by-label/NIXOS_SD";
-      fsType = "ext4";
-    };
+  configurations.nixos.raspi.module =
+    { lib, pkgs, ... }:
+    {
+      disko.devices.disk.main = {
+        type = "disk";
+        device = lib.mkDefault "/dev/mmcblk0";
+        imageSize = "8G";
+        content = {
+          type = "gpt";
+          partitions = {
+            # The firmware loads itself, U-Boot and config.txt from the first FAT partition,
+            # U-Boot then reads extlinux.conf and the kernels from the same one.
+            firmware = {
+              size = "1G";
+              type = "0700";
+              content = {
+                type = "filesystem";
+                format = "vfat";
+                mountpoint = "/boot";
+                mountOptions = [ "umask=0077" ];
+              };
+            };
+            root = {
+              size = "100%";
+              content = {
+                type = "btrfs";
+                extraArgs = [ "-f" ];
+                subvolumes = {
+                  "/root" = {
+                    mountpoint = "/";
+                    mountOptions = [
+                      "compress=zstd"
+                      "noatime"
+                    ];
+                  };
+                  "/home" = {
+                    mountpoint = "/home";
+                    mountOptions = [
+                      "compress=zstd"
+                      "noatime"
+                    ];
+                  };
+                  "/nix" = {
+                    mountpoint = "/nix";
+                    mountOptions = [
+                      "compress=zstd"
+                      "noatime"
+                    ];
+                  };
+                  "/swap" = {
+                    mountpoint = "/swap";
+                    mountOptions = [ "noatime" ];
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
 
-    swapDevices = [
-      {
-        device = "/swapfile";
-        size = 8 * 1024;
-      }
-    ];
-  };
+      disko.imageBuilder.extraPostVM = ''
+        ${lib.getExe pkgs.zstd} --rm -T0 "$out"/*.raw
+      '';
+
+      boot.growPartition = true;
+      fileSystems."/".autoResize = true;
+
+      # Managed by NixOS instead of disko so that changing `size` recreates the file.
+      swapDevices = [
+        {
+          device = "/swap/swapfile";
+          size = 8 * 1024;
+        }
+      ];
+    };
 }

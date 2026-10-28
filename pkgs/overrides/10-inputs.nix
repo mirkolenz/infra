@@ -7,12 +7,6 @@ let
   inherit (final) inputs;
   overlay = input: inputs.${input}.overlays.default final prev;
 
-  # the kernel `nixos-hardware/raspberry-pi/4` gives the raspi host, built by CI
-  # without evaluating that host
-  raspi-kernel = lib.addMetaAttrs { platforms = [ "aarch64-linux" ]; } (
-    final.callPackage "${inputs.nixos-hardware}/raspberry-pi/common/kernel.nix" { rpiVersion = 4; }
-  );
-
   disko = final.callPackage "${inputs.disko}/package.nix" {
     diskoVersion = (import "${inputs.disko}/version.nix").version;
   };
@@ -55,7 +49,7 @@ lib.genAttrs [
   # whose require check runs it
   neovim-nightly = (overlay "neovim-nightly-overlay").neovim-unwrapped;
 
-  inherit disko raspi-kernel;
+  inherit disko;
   # the final disko with its other program as main one for `nix run`,
   # merged by hand since `lib.addMetaAttrs` would rebuild it
   disko-install = final.disko // {

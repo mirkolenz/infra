@@ -1,0 +1,67 @@
+// PoE+ HAT fan for the mainline device tree, which lacks the labels the vendor
+// `rpi-poe-plus` overlay targets. Trips and cooling levels match that overlay.
+// https://github.com/raspberrypi/linux/blob/rpi-6.18.y/arch/arm/boot/dts/overlays/rpi-poe-plus-overlay.dts
+/dts-v1/;
+/plugin/;
+
+/ {
+  compatible = "brcm,bcm2711";
+};
+
+&firmware {
+  fwpwm: pwm {
+    compatible = "raspberrypi,firmware-poe-pwm";
+    #pwm-cells = <2>;
+  };
+};
+
+&{/} {
+  fan: pwm-fan {
+    compatible = "pwm-fan";
+    cooling-levels = <0 32 64 128 255>;
+    #cooling-cells = <2>;
+    pwms = <&fwpwm 0 80000>;
+  };
+};
+
+&{/thermal-zones/cpu-thermal/trips} {
+  trip0: trip0 {
+    temperature = <40000>;
+    hysteresis = <2000>;
+    type = "active";
+  };
+  trip1: trip1 {
+    temperature = <45000>;
+    hysteresis = <2000>;
+    type = "active";
+  };
+  trip2: trip2 {
+    temperature = <50000>;
+    hysteresis = <2000>;
+    type = "active";
+  };
+  trip3: trip3 {
+    temperature = <55000>;
+    hysteresis = <5000>;
+    type = "active";
+  };
+};
+
+&{/thermal-zones/cpu-thermal/cooling-maps} {
+  map0 {
+    trip = <&trip0>;
+    cooling-device = <&fan 0 1>;
+  };
+  map1 {
+    trip = <&trip1>;
+    cooling-device = <&fan 1 2>;
+  };
+  map2 {
+    trip = <&trip2>;
+    cooling-device = <&fan 2 3>;
+  };
+  map3 {
+    trip = <&trip3>;
+    cooling-device = <&fan 3 4>;
+  };
+};
