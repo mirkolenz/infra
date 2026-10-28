@@ -4,13 +4,13 @@ final: prev:
 # unlike `90-hotfixes.nix` they have no fix to track and are expected to live here for a
 # long time. Each one says what it does and what would let it go.
 {
-  # lighthouse only needs a chromium based browser for CHROME_PATH, and nixpkgs chromium is
-  # linux-only. google-chrome builds on every platform we use and is the browser lighthouse
-  # targets, so it replaces chromium everywhere to keep the hosts consistent.
-  # google-chrome is unfree and too large for the binary cache
-  google-lighthouse = prev.lib.dontDistribute (
-    prev.google-lighthouse.override { chromium = final.google-chrome; }
-  );
+  # lighthouse pins CHROME_PATH to nixpkgs chromium, which is linux-only.
+  # Without it, chrome-launcher finds the Chrome installed on the host, by Homebrew or home-manager.
+  # A google-chrome app bundle in the store gets the protected com.apple.macl xattr once launched,
+  # which makes it undeletable for gc.
+  google-lighthouse = (prev.google-lighthouse.override { chromium = null; }).overrideAttrs {
+    postInstall = "";
+  };
 }
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
 
