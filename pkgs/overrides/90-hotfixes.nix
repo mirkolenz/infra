@@ -56,11 +56,6 @@ in
   # https://github.com/NixOS/nixpkgs/pull/575801
   sbomnix = splitWrapperArgs prev.sbomnix;
 
-  # mcp-proxy pins `mcp<2`, which fails the runtime deps check against mcp 2.
-  mcp-proxy = prev.mcp-proxy.override {
-    python3Packages = final.python3Packages.overrideScope (pyfinal: _: { mcp = pyfinal.mcp_1; });
-  };
-
   pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
     (pyfinal: pyprev: {
       # mcp 2 marks fastmcp-slim and thus fastmcp broken, which takes mcp-nixos down with it.
@@ -77,16 +72,6 @@ in
       # so the man output is never built. A single space-separated entry works around it.
       # https://github.com/NixOS/nixpkgs/pull/573479
       reuse = pyprev.reuse.overridePythonAttrs { sphinxBuilders = [ "html man" ]; };
-
-      # `is_archive` rejects the squashfs fixtures although libmagic still identifies them.
-      # No upstream report yet, the hydra job shows when it passes again.
-      # https://hydra.nixos.org/job/nixpkgs/unstable/python314Packages.typecode.aarch64-linux
-      typecode = pyprev.typecode.overridePythonAttrs (prevAttrs: {
-        disabledTests = prevAttrs.disabledTests ++ [
-          "test_archive_squashfs_lzo"
-          "test_archive_squashfs_xz"
-        ];
-      });
 
       # patchelf 0.19.2 aborts on the large prebuilt binary with `splitIndex == -1`
       # https://github.com/NixOS/patchelf/pull/672
@@ -173,19 +158,6 @@ in
   # No upstream report, drop it once the pin is gone.
   # https://github.com/vicinaehq/vicinae/blob/main/nix/vicinae.nix
   vicinae = prev.vicinae.override { gcc15Stdenv = final.stdenv; };
-
-  # kingfisher links mimalloc 3.3.2 (libmimalloc-sys 0.1.49) with the `override` feature, so it
-  # replaces libc's malloc and free. glibc 2.44 calls free(NULL) while libstdc++ initializes,
-  # before mimalloc has set up its page map, so the binary segfaults before main() and prints
-  # nothing. Fixed in mimalloc 3.4.4. Dropping the feature keeps mimalloc as the rust allocator.
-  # https://github.com/microsoft/mimalloc/issues/1341
-  kingfisher = prev.kingfisher.overrideAttrs (prevAttrs: {
-    postPatch = (prevAttrs.postPatch or "") + ''
-      substituteInPlace Cargo.toml \
-        --replace-fail 'mimalloc = { version = "0.1.52", features = ["override"] }' \
-                       'mimalloc = "0.1.52"'
-    '';
-  });
 
   # The window of tuxpaint identifies itself as TuxPaint.TuxPaint, which its desktop entry does
   # not declare, so GNOME shows the running app apart from its launcher. No upstream report yet.
