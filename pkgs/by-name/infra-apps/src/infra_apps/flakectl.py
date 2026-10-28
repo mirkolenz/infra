@@ -7,9 +7,12 @@ import getpass
 import itertools
 import json
 import os
+import pwd
 import re
 import shlex
 import shutil
+import socket
+import struct
 import subprocess
 import sys
 import tempfile
@@ -121,6 +124,10 @@ APPS_APPLY = "builtins.mapAttrs (_: builtins.mapAttrs (_: app: app.program))"
 # (about 4.7 GB).
 EVAL_WORKERS = 1
 EVAL_MAX_MEMORY_SIZE = 6144
+
+# GKD_CONTROL_OP_CHANGE and GKD_CONTROL_RESULT_OK of the gnome-keyring control socket.
+KEYRING_OP_CHANGE = 2
+KEYRING_RESULT_OK = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -342,6 +349,47 @@ def prompt_secret(prompt: str) -> str:
         print("Error: The two entered values do not match.", file=sys.stderr)
 
 
+def keyring_control(user: str) -> Path | None:
+    """Control socket of the gnome-keyring daemon in a running session of `user`."""
+    try:
+        uid = pwd.getpwnam(user).pw_uid
+    except KeyError:
+        return None
+
+    path = Path(f"/run/user/{uid}/keyring/control")
+    return path if path.is_socket() else None
+
+
+def change_keyring(control: Path, original: str, password: str) -> None:
+    """Re-encrypt the login keyring from `original` to `password`.
+
+    Sends the request of pam_gnome_keyring on a password change, see
+    `gkd_control_change_lock` in gnome-keyring's `daemon/control/gkd-control-client.c`:
+    a credential byte, then a packet of big-endian u32 length, op,
+    and length-prefixed strings. The reply is the u32 length and result.
+    """
+    fields = b"".join(
+        struct.pack(">I", len(field)) + field
+        for field in (original.encode(), password.encode())
+    )
+    packet = struct.pack(">II", 8 + len(fields), KEYRING_OP_CHANGE) + fields
+
+    with socket.socket(socket.AF_UNIX) as sock:
+        # The daemon only serves peers whose uid at connect time matches its own.
+        os.seteuid(control.stat().st_uid)
+
+        try:
+            sock.connect(str(control))
+        finally:
+            os.seteuid(0)
+
+        sock.sendall(b"\0" + packet)
+        reply = sock.recv(8, socket.MSG_WAITALL)
+
+    if reply != struct.pack(">II", 8, KEYRING_RESULT_OK):
+        raise Error("The keyring rejected the current password.")
+
+
 def passwd(cfg: Config, machine: str, user: str, root: Path) -> None:
     """Hash a prompted password into the `hashedPasswordFile` of `user` on `machine`.
 
@@ -381,10 +429,20 @@ def passwd(cfg: Config, machine: str, user: str, root: Path) -> None:
         raise
 
     print(f"Setting the password of {user}@{machine} in {file}", file=sys.stderr)
+    # A live session on this host keeps the login keyring in step,
+    # which needs its current password. Host names default to the machine names.
+    local = root == Path("/") and machine == socket.gethostname()
+    control = keyring_control(user) if local else None
+    original = getpass.getpass("Current password: ") if control else ""
     password = prompt_secret("New password")
 
     if not password:
         raise Error("No password supplied.")
+
+    # Before the hash, so that a mistyped current password changes nothing.
+    if control:
+        change_keyring(control, original, password)
+        print(f"Re-encrypted the login keyring of {user}.", file=sys.stderr)
 
     # Hand the password over on stdin; argv is world-readable via /proc.
     hashed = run(

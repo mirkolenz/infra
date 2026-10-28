@@ -341,6 +341,7 @@ sudo podman run --rm --subuidname=$USER ubuntu cat /proc/self/uid_map
 ### Password Hashing
 
 Prompts for a password and writes its yescrypt hash to the `users.users.USER.hashedPasswordFile` that the configuration of `MACHINE_NAME` declares.
+If `USER` has a running GNOME session on this host, it also asks for the current password and re-encrypts the login keyring right away, so the keyring keeps unlocking at login.
 
 ```shell
 sudo nix run github:mirkolenz/infra -- passwd MACHINE_NAME USER
