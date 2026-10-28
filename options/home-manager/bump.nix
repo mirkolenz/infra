@@ -89,6 +89,6 @@ in
   };
 
   config.home.packages = lib.mkIf config.custom.features.extras.enable [
-    (if cfg == { } then pkgs.bumpctl else pkgs.bumpctl.withConfig cfg)
+    (pkgs.bumpctl.withConfig cfg)
   ];
 }
