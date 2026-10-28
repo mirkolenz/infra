@@ -30,8 +30,7 @@ in
           model = "MacBookPro16,1";
           user = config.custom.user.login;
           firmware.enable = true;
-          # Parks the discrete GPU, which on this model otherwise trips CATERR.
-          graphics.mode = "integrated";
+          graphics.mode = "hybrid";
           touchid.enable = true;
           touchbar.enable = true;
           ave.enable = true;

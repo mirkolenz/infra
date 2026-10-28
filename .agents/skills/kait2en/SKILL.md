@@ -82,7 +82,6 @@ Upstream rejects issues and pull requests it believes an AI wrote, so never open
    ```
 
 After moving the kernel pin, or a nixpkgs bump within its series, steps 5 and 7 alone show whether the drivers and the amdgpu patches still apply.
-The host runs the integrated GPU, so only step 5 builds `kait2en-amdgpu`.
 
 ## Conventions
 
