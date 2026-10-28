@@ -16,6 +16,7 @@
   bubblewrap,
   socat,
   procps,
+  unzip,
   ripgrep,
   alsa-lib,
   updateChannel ? "latest",
@@ -73,15 +74,15 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       --set USE_BUILTIN_RIPGREP 0 \
       --set-default CLAUDE_CODE_CERT_STORE system \
       --run 'export NODE_EXTRA_CA_CERTS=''${NODE_EXTRA_CA_CERTS-''${NIX_SSL_CERT_FILE-}}' \
-      ${lib.optionalString isLinux ''
-        --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ alsa-lib ]} \
-      ''}--prefix PATH : ${
+      --prefix PATH : ${
         lib.makeBinPath (
           [
-            # https://github.com/pkrumins/node-tree-kill requires procps
+            # process tree inspection
             procps
             # https://code.claude.com/docs/en/troubleshooting#search-and-discovery-issues
             ripgrep
+            # extraction of plugin archives from claude.ai
+            unzip
           ]
           # https://code.claude.com/docs/en/sandboxing#prerequisites
           ++ lib.optionals isLinux [
@@ -89,7 +90,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
             socat
           ]
         )
-      }
+      } \
+      ${lib.optionalString isLinux "--prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ alsa-lib ]}"}
 
     runHook postInstall
   '';
