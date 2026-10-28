@@ -49,7 +49,7 @@
       };
     };
     disko = {
-      url = "github:nix-community/disko/v1.13.0";
+      url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     flake-parts = {
