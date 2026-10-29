@@ -33,6 +33,9 @@ buildPythonPackage {
 
   pythonImportsCheck = [ "SystemConfiguration" ];
 
+  # version and source follow pyobjc-core from nixpkgs, so there is nothing to update here
+  passthru.updateScript = null;
+
   meta = {
     description = "PyObjC wrappers for the SystemConfiguration framework on macOS";
     homepage = "https://github.com/ronaldoussoren/pyobjc";
