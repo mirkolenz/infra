@@ -1,6 +1,5 @@
 {
   lib,
-  stdenv,
   versionCheckHook,
   mkGitHubBinary,
 }:
@@ -10,11 +9,9 @@ mkGitHubBinary {
   file = ./release.json;
   assets = {
     aarch64-darwin = "pyrefly-macos-arm64.tar.gz";
-    aarch64-linux = "pyrefly-linux-arm64.tar.gz";
-    x86_64-linux = "pyrefly-linux-x86_64.tar.gz";
+    aarch64-linux = "pyrefly-linux-arm64-musl.tar.gz";
+    x86_64-linux = "pyrefly-linux-x86_64-musl.tar.gz";
   };
-
-  buildInputs = [ stdenv.cc.cc ];
 
   sourceRoot = ".";
 

@@ -9,16 +9,14 @@ mkGitHubBinary {
   repo = "uv";
   file = ./release.json;
   assets = {
-    x86_64-linux = "uv-x86_64-unknown-linux-gnu.tar.gz";
-    aarch64-linux = "uv-aarch64-unknown-linux-gnu.tar.gz";
+    x86_64-linux = "uv-x86_64-unknown-linux-musl.tar.gz";
+    aarch64-linux = "uv-aarch64-unknown-linux-musl.tar.gz";
     aarch64-darwin = "uv-aarch64-apple-darwin.tar.gz";
   };
   binaries = [
     "uv"
     "uvx"
   ];
-
-  buildInputs = lib.optionals stdenv.hostPlatform.isElf [ stdenv.cc.cc ];
 
   installShellCompletionPhase = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
     installShellCompletion --cmd uv \
