@@ -9,13 +9,11 @@ mkGitHubBinary {
   repo = "ty";
   file = ./release.json;
   assets = {
-    x86_64-linux = "ty-x86_64-unknown-linux-gnu.tar.gz";
-    aarch64-linux = "ty-aarch64-unknown-linux-gnu.tar.gz";
+    x86_64-linux = "ty-x86_64-unknown-linux-musl.tar.gz";
+    aarch64-linux = "ty-aarch64-unknown-linux-musl.tar.gz";
     aarch64-darwin = "ty-aarch64-apple-darwin.tar.gz";
   };
   allowPrereleases = true;
-
-  buildInputs = lib.optionals stdenv.hostPlatform.isElf [ stdenv.cc.cc ];
 
   installShellCompletionPhase = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
     installShellCompletion --cmd ty \

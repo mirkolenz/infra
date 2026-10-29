@@ -4,11 +4,11 @@
     "ty-aarch64-apple-darwin.tar.gz": {
       "digest": "sha256:2f74dec02c3a417f68c96bd7300ec2c0727c363daf3561e0eb7516e5c9f8d286"
     },
-    "ty-aarch64-unknown-linux-gnu.tar.gz": {
-      "digest": "sha256:ba90c093d3d810986ae5162e91a70d6c0c6248d755f7ce89463df14d6957a433"
+    "ty-aarch64-unknown-linux-musl.tar.gz": {
+      "digest": "sha256:04ee49f46792c53d918e4b89cb9eb9ac1a020fea0db3033d399013e10d99a377"
     },
-    "ty-x86_64-unknown-linux-gnu.tar.gz": {
-      "digest": "sha256:4213096cf7985ed5866428a7afe7dc96f5200bb1913b8b27464b03cf0831ede6"
+    "ty-x86_64-unknown-linux-musl.tar.gz": {
+      "digest": "sha256:3f79bf073f0f2ee33d3731092231e3a741597d08803fdb3299c3252f5a7e350b"
     }
   }
 }
