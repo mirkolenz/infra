@@ -55,7 +55,8 @@
 
 - Use dependency constraints with only the first significant version number, ^1 for 1.2.3 and ^0.1 for 0.1.2, since the lockfiles pin the exact versions.
 - Never add, update, or remove dependencies without user consent, and then only edit the manifests such as `package.json`, `pyproject.toml` or `Cargo.toml`, leaving the lockfiles to the user.
-- Never attempt to bypass sandbox or network restrictions such as blocked package registries, report them to the user instead.
+- Look up packages through the deps.dev API, such as `xh https://api.deps.dev/v3/systems/pypi/packages/requests`, never through a package manager or registry.
+- Never retry or attempt to bypass sandbox or network restrictions such as blocked package registries, report them to the user instead.
 
 ## Tests
 

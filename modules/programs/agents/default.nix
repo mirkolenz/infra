@@ -63,7 +63,6 @@
             "*.anchore.io"
             "*.osv.dev"
             "osv-vulnerabilities.storage.googleapis.com"
-            "*.deps.dev"
             "vuln.go.dev"
             "*.nist.gov"
             # the sigstore public-good instance, for verifying a release chain
@@ -71,6 +70,9 @@
             # the trivy database, published as an image. its fallback is ghcr.io, which stays
             # denied, so the mirror is what keeps trivy working without reopening that registry
             "mirror.gcr.io"
+            # the package metadata of the registries denied below, see AGENTS.md,
+            # and the dependency graphs the my-security skill reads
+            "*.deps.dev"
           ];
           # Package registries, kept shut: an agent that pulls from one is running code
           # nobody reviewed. Denying beats omitting, because an omitted host is still one
