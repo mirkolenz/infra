@@ -71,8 +71,6 @@ let
     "intel_iommu=on"
     "iommu=pt"
     "pm_async=off"
-    # The Broadcom part wedges when it brings up a peer-to-peer interface.
-    "brcmfmac.p2pon=0"
     # Apple leaves ASPM disabled in firmware, the AMD dGPU included.
     "amdgpu.aspm=1"
     "pcie_aspm=force"
@@ -132,8 +130,8 @@ stdenv.mkDerivation {
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";
-    rev = "4d897d7cb18fe736930b30a6344a85cab81ea8c8";
-    hash = "sha256-kajTV3srUyuJS4VI+UCtVVf+J7hTSLkB3fEe7NV4VPk=";
+    rev = "be7f136c0f9b2bf9811d88d6fd1abdc126c977d3";
+    hash = "sha256-rvQqbMpZ1K5n0bWLnUGNouyUpaqCv2PGJ21CPoPtXUk=";
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies;

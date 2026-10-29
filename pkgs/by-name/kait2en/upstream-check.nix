@@ -9,8 +9,8 @@ runCommand "kait2en-upstream-check"
     # Kept outside modules.nix so nix-update cannot advance the reviewed pin.
     reviewedSrc = fetchFromGitHub {
       inherit (kait2en.modules.src) owner repo;
-      rev = "4d897d7cb18fe736930b30a6344a85cab81ea8c8";
-      hash = "sha256-kajTV3srUyuJS4VI+UCtVVf+J7hTSLkB3fEe7NV4VPk=";
+      rev = "be7f136c0f9b2bf9811d88d6fd1abdc126c977d3";
+      hash = "sha256-rvQqbMpZ1K5n0bWLnUGNouyUpaqCv2PGJ21CPoPtXUk=";
     };
     inherit (kait2en.modules) src;
     # The last commit reviewed of the NixOS fork packaging the same upstream.
