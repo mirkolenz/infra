@@ -6,15 +6,17 @@ description: |
   Use when a file, network, or command operation fails with a permission error, or when the user asks what the sandbox allows.
 ---
 
-Confirm a denial with nono before concluding anything, then report it instead of working around it.
+Check a denial with nono before concluding anything, then report it instead of working around it.
 This only applies when `$NONO_CAP_FILE` is set, otherwise the agent runs outside nono.
 
 ## Scope
 
 nono confines the agent with the profile `agents` or one extending it, so the native sandbox of the agent is off.
-The working directory and the directories in `$NONO_ALLOW` are writable, and network access goes through a proxy that enforces the allowed and denied domains of the profile.
+The working directory and the directories in `$NONO_ALLOW` are writable.
+Network access goes through a proxy that enforces the allowed and denied domains of the profile.
 Localhost may be open, so local dev servers and models are reachable directly, and Unix sockets work within `/tmp` and `$TMPDIR`.
-Within every workspace, files that configure code running outside the sandbox later, such as git hooks or editor and agent settings, are read-only, and `.env` files are unreadable.
+Within every workspace, files that configure code running outside the sandbox later are read-only, such as git hooks or editor and agent settings.
+`.env` files are unreadable.
 
 ## Tools
 
@@ -26,13 +28,16 @@ nono profile show agents
 ```
 
 `$NONO_CAP_FILE` points to a JSON file with the current capabilities.
-`nono why` misses the protected workspace paths, which macOS enforces through the raw seatbelt rules of the profile and Linux through the bubblewrap sandbox that the agent launcher on `PATH` (`nono-launch`) puts around nono.
+`nono why` misses the protected workspace paths.
+macOS enforces them through the raw seatbelt rules of the profile, and Linux through the bubblewrap sandbox that `nono-launch` puts around nono.
 
 ## Steps
 
-1. Check the failed path or host with the tools, since generic errors such as `Operation not permitted` do not prove a sandbox denial.
-   When the error names no path, rerun the command with its verbose or debug flags, and run its sibling subcommands to narrow the step that fails.
-2. On a denial, do not retry or work around it through another path, a copy, a different tool, or the terminal of the user, and do not suggest chmod, sudo, or Full Disk Access.
+1. Check the failed path or host with the tools, since `Operation not permitted` and similar errors do not prove a denial.
+   When the error names no path, rerun the command with its verbose or debug flags.
+   Run its sibling subcommands to narrow the step that fails.
+2. On a denial, do not retry or work around it through another path, a copy, a different tool, or the terminal of the user.
+   Do not suggest chmod, sudo, or Full Disk Access.
 3. Never edit the profiles in `~/.config/nono/profiles` or run `nono profile promote`, only the user may grant access.
 
 ## Output

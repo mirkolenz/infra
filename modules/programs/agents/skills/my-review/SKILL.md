@@ -52,7 +52,7 @@ golangci-lint run
 nilaway ./...
 
 # nixf-diagnose, statix, deadnix: nix diagnostics, antipatterns, and unused bindings.
-# `nix flake check --no-build` confirms the flake evaluates without building every output
+# `nix flake check --no-build` checks that the flake evaluates without building every output
 nixf-diagnose
 statix check
 deadnix
@@ -87,8 +87,8 @@ The same line may be flagged twice for different reasons.
 - Defects: what input, state, timing, or platform makes a line wrong.
   Inverted conditions, off-by-one, null dereference, missing `await`, falsy-zero checks, wrong-variable copy-paste, and swallowed errors.
   Coercion, closure-captured loop variables, mutable default arguments, nil-map writes, injection, timezone drift, float equality, and narrowed lock scope.
-  Confirm each tool hit in context, then keep reading for what no rule covers.
-- Removed behavior: the invariant a deleted line enforced, and where the new code re-establishes it.
+  Check each tool hit in context, then keep reading for what no rule covers.
+- Removed behavior: the invariant a removed line enforced, and where the new code re-establishes it.
   A guard, error path, or test with no replacement is a finding.
 - Cross-file impact: whether a new precondition, return shape, exception, or ordering breaks the callers or callees.
   Wrappers such as caches, proxies, and adapters are where this hides.

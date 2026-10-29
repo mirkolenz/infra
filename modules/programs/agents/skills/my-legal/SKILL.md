@@ -1,7 +1,8 @@
 ---
 name: my-legal
 description: |
-  Reviews documents and source code against German and EU law, covering data protection, the AI Act, regulatory cybersecurity duties, contract terms, publication duties, and the copyright and patent statutes behind a licensing question.
+  Reviews documents and source code against German and EU law.
+  It covers data protection, the AI Act, regulatory cybersecurity duties, contract terms, publication duties, and the copyright and patent statutes behind a licensing question.
   The argument names the target and defaults to uncommitted changes.
   Use when the user asks for a legal or regulatory compliance review.
 ---
@@ -72,7 +73,7 @@ harper-cli lint <file>
 ## Starting points
 
 These are pointers and not authority, so fetch before citing.
-Confirm a German abbreviation with `recht list`, since only the catalogue spelling resolves.
+Check a German abbreviation with `recht list`, since only the catalogue spelling resolves.
 
 ### EU law, via `eurlex get <celex>`
 
@@ -123,7 +124,7 @@ Guidance binds nobody, so cite the article it interprets and name the guidance a
 
 - Code of Practice on Transparency of AI-generated Content, for KI-VO Art 50
   - digital-strategy.ec.europa.eu/en/policies/code-practice-ai-generated-content
-  - confirmed adequate by the Commission, so adherence is evidence of Art 50 compliance
+  - found adequate by the Commission, so adherence is evidence of Art 50 compliance
 - Commission guidelines on Art 50 transparency obligations
   - digital-strategy.ec.europa.eu/en/policies/guidelines-transparency-ai-generated-content
 - GPAI Code of Practice, chapters Transparency, Copyright, Safety and Security
@@ -143,23 +144,28 @@ Cover every angle below, grouping angles that read the same material into one ag
 Skip an angle whose subject the target does not contain, and say so.
 
 - Data protection: the privacy policy, records of processing, and the code against DSGVO and BDSG.
-  Every purpose needs a legal basis under Art 6, every processor a contract under Art 28, every transfer a basis under Chapter V, and the rights of Art 15 to 22 an implementation.
+  Every purpose needs a legal basis under Art 6, and every processor a contract under Art 28.
+  Every transfer needs a basis under Chapter V, and the rights of Art 15 to 22 an implementation.
   Personal data in logs, telemetry, or fixtures is a finding.
-- AI obligations: the system classified under the KI-VO against Art 5, the Annex III high-risk triggers, the Art 50 transparency duties, and the GPAI duties in Chapter V.
+- AI obligations: the system classified under the KI-VO.
+  Check it against Art 5, the Annex III high-risk triggers, the Art 50 transparency duties, and the GPAI duties in Chapter V.
   State which application date binds, since the regulation phases in.
   The Art 53(1)(c) copyright policy rests on the mining opt-out of DSM Art 4 and UrhG 44b, so say whether the source reserved it.
 - Product cybersecurity: the CRA and NIS2 documents, meaning the declaration of conformity, CE marking, Annex VII technical documentation, and the Art 14 reporting path.
   Read the `my-security` findings as evidence for or against conformity.
 - Contract terms: terms of service and AGB against BGB 305 to 310 and UWG.
-  German AGB law allows no reduction to the permissible extent, so a clause survives only if the invalid part can be struck without rewriting the rest.
+  German AGB law allows no reduction to the permissible extent.
+  A clause survives only if the invalid part can be struck without rewriting the rest.
   Check liability caps, unilateral change rights, and choice of law or venue in consumer contracts.
 - Publication duties: the Impressum under DDG 5, website and app disclosures, accessibility under the Barrierefreiheits-RL, and trademark and naming use.
   A product claim the product does not keep is a UWG finding.
-- Handed-over questions: what `my-license` could not settle, meaning protectability under UrhG 69a, authorship and employment under 69b, and whether a technique performs an act PatG 9 reserves.
+- Handed-over questions: what `my-license` could not settle.
+  These are protectability under UrhG 69a, authorship and employment under 69b, and whether a technique performs an act PatG 9 reserves.
   Answer each from the norm, naming the evidence the other skill supplied.
 
 ## Output
 
 Each finding names the file and line, states the issue in one sentence, and gives the norm with its article, the evidence, and the remedy.
 Rank by exposure with publication or release blockers first.
-Close with every norm that could not be fetched, every command and angle that did not run, and a note that this is a review aid and not legal advice.
+Close with every norm that could not be fetched and every command and angle that did not run.
+Note that this is a review aid and not legal advice.

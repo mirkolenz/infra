@@ -1,13 +1,14 @@
 ---
 name: my-proofread
 description: |
-  Proofreads prose, comments, docstrings, user-facing strings, and identifiers for spelling, grammar, punctuation, and consistency mistakes in English and German, then reports the findings.
+  Proofreads prose, comments, docstrings, user-facing strings, and identifiers in English and German.
+  It reports spelling, grammar, punctuation, and consistency mistakes.
   The argument names the target and defaults to uncommitted changes.
   Use when the user asks to proofread, spell check, or grammar check.
 ---
 
 Find the spelling and grammar mistakes in the target, and give the corrected text.
-Checkers flag many words they merely do not know, so confirm every hit in context.
+Checkers flag many words they merely do not know, so check every hit in context.
 
 ## Scope
 

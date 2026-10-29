@@ -9,7 +9,8 @@ description: |
 Judge whether the product may be distributed under the license it claims, and whether anything in it belongs to someone else.
 Every finding cites tool output and names the breached obligation.
 Regulatory law belongs to `my-legal` and vulnerabilities to `my-security`.
-When a finding turns on the statute, such as whether a fragment is protectable, a mining opt-out binds, or a technique infringes, hand the question to `my-legal`.
+Hand a finding that turns on the statute to `my-legal`.
+Such a finding asks whether a fragment is protectable, a mining opt-out binds, or a technique infringes.
 
 ## Scope
 
@@ -22,7 +23,7 @@ First fix the outbound license from `LICENSE`, `REUSE.toml`, and the package man
 These are installed.
 Run a tool once into a shared scratch directory when several angles read it, otherwise let the agent that needs it run it.
 Settle the bill of materials and the outbound license once, since every angle rests on them.
-A detector that cannot reach its knowledge base reports no match rather than an error, so confirm it ran.
+A detector that cannot reach its knowledge base reports no match rather than an error, so check that it ran.
 Record every command that was skipped or failed, since an unscanned tree proves nothing.
 
 ```sh
@@ -104,11 +105,13 @@ Skip an angle whose subject the target does not contain, and say so.
 - Undeclared and conflicting: a component without a license, a string with no SPDX identifier, or a declaration contradicting the detectors.
   An undeterminable license is a finding.
 - Attribution and notices: full license texts and copyright notices for every dependency requiring them, propagated Apache-2.0 `NOTICE` files, and a generated attribution set matching what ships.
-- Patent exposure: patent obligations and termination clauses such as Apache-2.0 section 3, GPL-3.0 section 11, and MPL-2.0 section 5, and permissive licenses without a patent grant where a patented technique is used.
+- Patent exposure: patent obligations and termination clauses such as Apache-2.0 section 3, GPL-3.0 section 11, and MPL-2.0 section 5.
+  Permissive licenses without a patent grant are a finding where the code uses a patented technique.
   State the termination trigger, and for an unlicensed technique name the patent and the lines practising it, leaving infringement to `my-legal`.
 
 ## Output
 
 Each finding names the file and line, states the breach in one sentence, and gives the obligation, the upstream license or norm, and the remedy.
 Rank by distribution risk with release blockers first, and merge findings of the same obligation for the same component.
-Close with every command and angle that did not run and why, the questions handed to `my-legal`, and a note that this is a review aid and not legal advice.
+Close with every command and angle that did not run and why, and the questions handed to `my-legal`.
+Note that this is a review aid and not legal advice.

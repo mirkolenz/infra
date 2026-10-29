@@ -13,7 +13,8 @@ Leave correctness to the `my-review` skill.
 ## Scope
 
 A commit, range, branch, or pull request is diff mode, and a path or the whole tree is file mode.
-Over a whole tree, target accumulated cruft, rank by duplication and complexity, then split along the repository's own units such as a module, package, or crate.
+Over a whole tree, target accumulated cruft and rank by duplication and complexity.
+Then split along the repository's own units such as a module, package, or crate.
 A unit is the smallest scope a helper is shared within, so splitting finer hides duplication.
 Give each unit to exactly one agent, and say which parts nobody reached.
 Fix in small self-contained edits rather than one sweeping rewrite.
