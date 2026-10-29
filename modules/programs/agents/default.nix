@@ -74,25 +74,128 @@
             # and the dependency graphs the my-security skill reads
             "*.deps.dev"
           ];
-          # Package registries, kept shut: an agent that pulls from one is running code
-          # nobody reviewed. Denying beats omitting, because an omitted host is still one
-          # a per-command request could open. Nix is the deliberate exception, since a
-          # flake input is pinned and reviewable.
+          # Package registries with their mirrors, CDNs and toolchain installers, kept shut:
+          # an agent that pulls from one is running code nobody reviewed. Denying beats omitting,
+          # because an omitted host is still one a per-command request could open. Nix is the
+          # deliberate exception, since a flake input is pinned and reviewable. deps.dev covers
+          # the metadata of npm, PyPI, crates.io, Go, Maven, NuGet and RubyGems.
+          # Checked against the hosts the Copilot cloud agent needs to install packages,
+          # https://docs.github.com/en/copilot/reference/copilot-allowlist-reference,
+          # leaving out its documentation sites, OS package repositories and path-scoped entries.
           domains.deny = [
+            # GitHub Packages of every ecosystem, which `*.github.com` would otherwise allow
+            "*.pkg.github.com"
+            # python
             "pypi.org"
+            "pypi.python.org"
             "*.pythonhosted.org"
+            "bootstrap.pypa.io"
+            "download.pytorch.org"
+            "anaconda.org"
+            "*.anaconda.org"
+            "repo.anaconda.com"
+            "repo.continuum.io"
+            "binstar.org"
+            "*.binstar.org"
+            "*.prefix.dev"
+            # javascript
             "registry.npmjs.org"
-            # the only registry here that `*.github.com` would otherwise allow
-            "npm.pkg.github.com"
+            "registry.npmjs.com"
+            "registry.yarnpkg.com"
+            "repo.yarnpkg.com"
+            "*.npmmirror.com"
+            "registry.bower.io"
+            "pkg.pr.new"
+            "jsr.io"
+            "*.jsr.io"
+            "deno.land"
+            "unpkg.com"
+            "cdn.jsdelivr.net"
+            "esm.sh"
+            "cdn.skypack.dev"
+            "ga.jspm.io"
+            "get.pnpm.io"
+            "bun.sh"
+            "binaries.prisma.sh"
+            # rust
             "crates.io"
             "*.crates.io"
+            "sh.rustup.rs"
+            "static.rust-lang.org"
+            # go
+            "proxy.golang.org"
+            "goproxy.io"
+            "goproxy.cn"
+            # jvm
+            "repo.maven.apache.org"
+            "repo1.maven.org"
+            "search.maven.org"
+            "maven-central.storage-download.googleapis.com"
+            "maven.google.com"
+            "maven.oracle.com"
+            "oss.sonatype.org"
+            "repo.spring.io"
+            "repo.grails.org"
+            "plugins.gradle.org"
+            "plugins-artifacts.gradle.org"
+            "services.gradle.org"
+            # dotnet
+            "nuget.org"
+            "*.nuget.org"
+            "nugetregistryv2prod.blob.core.windows.net"
+            "pkgs.dev.azure.com"
+            "builds.dotnet.microsoft.com"
+            "dotnetcli.azureedge.net"
+            "dotnetcli.blob.core.windows.net"
+            "ci.dot.net"
+            # ruby
+            "rubygems.org"
+            "*.rubygems.org"
+            "gems.rubyonrails.org"
+            "cache.ruby-lang.org"
+            "*.rvm.io"
+            # registries beyond deps.dev
             "packagist.org"
             "*.packagist.org"
-            "proxy.golang.org"
-            # ghcr also serves homebrew bottles
+            "getcomposer.org"
+            "hex.pm"
+            "*.hex.pm"
+            "pub.dev"
+            "pub.dartlang.org"
+            "hackage.haskell.org"
+            "*.hackage.haskell.org"
+            "get-ghcup.haskell.org"
+            "downloads.haskell.org"
+            "cpan.org"
+            "www.cpan.org"
+            "cpan.metacpan.org"
+            "cdn.cocoapods.org"
+            "download.swift.org"
+            # container images, ghcr also serves homebrew bottles
             "*.docker.io"
+            "registry.hub.docker.com"
+            "production.cloudflare.docker.com"
             "ghcr.io"
+            "quay.io"
+            "gcr.io"
+            "mcr.microsoft.com"
+            "public.ecr.aws"
             "*.brew.sh"
+            # infrastructure tools and their package sources
+            "releases.hashicorp.com"
+            "*.releases.hashicorp.com"
+            "registry.terraform.io"
+            "dl.k8s.io"
+            "pkgs.k8s.io"
+            "packagecloud.io"
+            "packages.cloud.google.com"
+            "packages.microsoft.com"
+            # browsers, the preinstalled ones are the only ones to use
+            "playwright.download.prss.microsoft.com"
+            "cdn.playwright.dev"
+            "playwright.azureedge.net"
+            "playwright-akamai.azureedge.net"
+            "playwright-verizon.azureedge.net"
             # model weights
             "huggingface.co"
             "*.hf.co"
