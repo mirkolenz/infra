@@ -33,6 +33,9 @@ harper-cli lint --format compact --quiet <files>
 
 # codebook: german spelling, it understands typst, latex, and markdown
 codebook-lsp lint --unique <files>
+
+# ste-lint: the structural rules of simplified technical english, on english text that agents read
+ste-lint <files>
 ```
 
 ## Angles
@@ -46,6 +49,8 @@ Skip an angle whose subject the target does not contain, and say so.
   Checkers miss most grammar mistakes, so read the prose yourself.
 - Consistency: one spelling per term, one dialect per document, and consistent capitalization and hyphenation.
 - Conventions: the writing rules in AGENTS.md, naming the broken rule.
+- Plain English: the hard `ste-lint` findings in skills, prompts, and other text that agents read.
+  Its advisory findings, such as passive voice, are findings only where they hide the actor.
 
 ## Output
 

@@ -34,6 +34,8 @@
         # harper for english comes with its language server, codebook for german spelling
         typos
         codebook
+        # simplified technical english, for text that agents read
+        ste-lint
         # link rot
         lychee
 
