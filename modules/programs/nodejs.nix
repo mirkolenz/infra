@@ -20,10 +20,10 @@
           prefix = "\${HOME}/.npm";
           ignore-scripts = true;
           min-release-age = config.custom.minReleaseAge; # days
-          allow-directory = "none";
-          allow-file = "none";
-          allow-git = "none";
-          allow-remote = "none";
+          allow-directory = "root";
+          allow-file = "root";
+          allow-git = "root";
+          allow-remote = "root";
         };
       };
       home.packages = with pkgs; [
