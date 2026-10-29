@@ -72,6 +72,7 @@ in
             effortLevel = "high";
           });
           enableAllProjectMcpServers = true;
+          idleCompaction = false;
           includeGitInstructions = true;
           outputStyle = "Concise";
           skipAutoPermissionPrompt = true;
