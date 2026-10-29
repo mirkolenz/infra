@@ -9,12 +9,31 @@
     }:
     let
       inherit (pkgs.stdenv.hostPlatform) isDarwin isLinux;
+
+      # A skill fails to build unless it follows the spec and its `SKILL.md` passes the
+      # hard rules of simplified technical english. skills-ref matches the name against
+      # the directory, which in the store carries a hash.
+      mkSkill =
+        name: _:
+        pkgs.runCommandLocal name
+          {
+            nativeBuildInputs = with pkgs; [
+              skills-ref
+              ste-lint
+            ];
+          }
+          ''
+            cp -r ${./skills + "/${name}"} ${name}
+            skills-ref validate ${name}
+            ste-lint ${name}/SKILL.md
+            cp -r ${name} $out
+          '';
     in
     {
       programs.agents = {
         enable = lib.mkDefault config.custom.features.agents.enable;
         context = ./AGENTS.md;
-        skills = ./skills;
+        skills = lib.mapAttrs mkSkill (lib.readDir ./skills);
         sandbox = {
           localhost = true;
           domains.allow = [
