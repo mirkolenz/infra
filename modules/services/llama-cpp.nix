@@ -12,6 +12,7 @@
           cache-type-k = "q8_0";
           cache-type-v = "q8_0";
           ctx-size = 256 * 1024 * parallel;
+          dedup-cache-models = true;
           fit = "off";
           flash-attn = "on";
           kv-unified = false;
