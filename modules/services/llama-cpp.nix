@@ -5,20 +5,20 @@
     let
       # https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md
       modelsPreset = {
-        "*" = rec {
+        "*" = {
           # keep-sorted start
           agent = true;
           cache-ram = 8 * 1024; # MiB, prompt states kept when switching between sessions
           cache-type-k = "q8_0";
           cache-type-v = "q8_0";
-          ctx-size = 256 * 1024 * parallel;
+          ctx-size = 256 * 1024; # shared by all slots
           dedup-cache-models = true;
           fit = "off";
           flash-attn = "on";
-          kv-unified = false;
+          kv-unified = true;
           load-mode = "mlock";
           n-gpu-layers = "all";
-          parallel = 1;
+          parallel = 4;
           reasoning-preserve = true;
           sleep-idle-seconds = -1;
           spec-draft-type-k = "q8_0";
