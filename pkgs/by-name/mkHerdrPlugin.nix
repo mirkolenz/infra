@@ -87,8 +87,8 @@ lib.extendMkDerivation {
 
       strictDeps = true;
 
-      # `binary` stays reachable for `nix-update --subpackage binary`, which
-      # resolves it as an attribute of the plugin
+      # the binary's dependency fetchers are exposed where nix-update looks for
+      # them, so their hashes are only refreshed alongside a version bump
       passthru =
         passthru
         // {
@@ -96,7 +96,12 @@ lib.extendMkDerivation {
           root = pluginRoot;
           manifest = "${pluginRoot}/herdr-plugin.toml";
         }
-        // lib.optionalAttrs (binary != null) { inherit binary; };
+        // lib.optionalAttrs (binary != null) (
+          lib.intersectAttrs {
+            cargoDeps = null;
+            goModules = null;
+          } binary
+        );
 
       # the plugins reach herdr through shell entry points, so the windows halves
       # of the manifests are out of reach whatever the binary's toolchain supports

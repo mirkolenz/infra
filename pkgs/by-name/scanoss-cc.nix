@@ -120,12 +120,10 @@ buildGoModule (finalAttrs: {
       '';
     };
 
-    updateScript = nix-update-script {
-      extraArgs = [
-        "--subpackage"
-        "frontend"
-      ];
-    };
+    # exposed where nix-update looks for it, so the hash is only refreshed alongside a version bump
+    inherit (finalAttrs.passthru.frontend) npmDeps;
+
+    updateScript = nix-update-script { };
   };
 
   meta = {

@@ -58,12 +58,7 @@ mkHerdrPlugin (finalAttrs: {
     "1"
   ];
 
-  passthru.updateScript = nix-update-script {
-    extraArgs = [
-      "--subpackage"
-      "binary"
-    ];
-  };
+  passthru.updateScript = nix-update-script { };
 
   meta = {
     description = "Git-aware, read-only file viewer for herdr";

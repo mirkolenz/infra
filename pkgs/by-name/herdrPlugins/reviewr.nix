@@ -30,12 +30,7 @@ mkHerdrPlugin (finalAttrs: {
 
   runtimeInputs = [ gitMinimal ];
 
-  passthru.updateScript = nix-update-script {
-    extraArgs = [
-      "--subpackage"
-      "binary"
-    ];
-  };
+  passthru.updateScript = nix-update-script { };
 
   meta = {
     description = "Code review sidebar for herdr that sends line comments back to the agent";

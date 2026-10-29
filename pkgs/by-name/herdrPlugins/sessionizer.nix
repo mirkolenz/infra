@@ -95,7 +95,7 @@ mkHerdrPlugin (finalAttrs: {
 
     updateScript = nix-update-script {
       extraArgs = [
-        "--subpackage"
+        "--custom-dep"
         "nodeModules"
       ];
     };
