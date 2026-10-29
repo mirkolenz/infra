@@ -6,8 +6,8 @@
 }:
 let
   cfg = config.custom.autoUpgrade;
-  name = "custom-home-manager-auto-upgrade";
-  description = "Custom Home Manager auto upgrade";
+  name = "infra-upgrade";
+  description = "Infra upgrade";
 
   upgrade = pkgs.writeShellApplication {
     inherit name;
