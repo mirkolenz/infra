@@ -212,7 +212,6 @@ _Note:_ Authorize your key as described in [SSH Key Deployment](#ssh-key-deploym
 ```shell
 sudo /nix/var/nix/profiles/default/bin/nix upgrade-nix
 nix run github:mirkolenz/infra
-sudo usermod -s $(which fish) "$USER"
 ```
 
 ### Missing Locale
