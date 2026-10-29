@@ -76,7 +76,7 @@ in
       open_ai_compatible_api = {
         api_url = "${llamaCppUrl}/v1";
         max_output_tokens = 16;
-        model = "qwen3.6-35b-a3b";
+        model = "qwen3.8-27b";
       };
     })
   ];

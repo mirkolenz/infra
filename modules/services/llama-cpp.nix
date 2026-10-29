@@ -25,33 +25,6 @@
           tools = true;
           # keep-sorted end
         };
-        # https://unsloth.ai/docs/models/gemma-4/qat
-        "gemma4-26b-a4b" = {
-          # keep-sorted start
-          hf-repo = "unsloth/gemma-4-26B-A4B-it-qat-GGUF:UD-Q4_K_XL";
-          temperature = 1.0;
-          top-k = 20;
-          top-p = 0.95;
-          # keep-sorted end
-        };
-        "gemma4-31b" = {
-          # keep-sorted start
-          hf-repo = "unsloth/gemma-4-31B-it-qat-GGUF:UD-Q4_K_XL";
-          temperature = 1.0;
-          top-k = 20;
-          top-p = 0.95;
-          # keep-sorted end
-        };
-        # https://unsloth.ai/docs/models/qwen3.6
-        "qwen3.6-35b-a3b" = {
-          # keep-sorted start
-          hf-repo = "unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_XL";
-          min-p = 0.0;
-          temperature = 1.0;
-          top-k = 20;
-          top-p = 0.95;
-          # keep-sorted end
-        };
         "qwen3.8-27b" = {
           # keep-sorted start
           hf-repo = "unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_XL";
