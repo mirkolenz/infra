@@ -29,8 +29,9 @@
           # keep-sorted start
           hf-repo = "unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_XL";
           min-p = 0.0;
-          spec-default = true;
-          spec-type = "draft-mtp";
+          spec-draft-n-max = 3;
+          # ngram-mod drafts repeated text for free and has priority, MTP is the fallback
+          spec-type = "ngram-mod,draft-mtp";
           temperature = 1.0;
           top-k = 20;
           top-p = 0.95;
