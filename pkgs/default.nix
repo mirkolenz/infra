@@ -60,7 +60,7 @@ let
     attrPaths = lib.mapAttrs (_: { path, ... }: path) (
       lib.removeAttrs ownPackages (lib.attrNames overrides)
     );
-    # derivations with an in-tree hash, built by `update-deps` so it can fix them
+    # derivations with an in-tree hash, built by `update deps` so it can fix them
     hashedPackages = {
       inherit (final) caddy-custom;
     };

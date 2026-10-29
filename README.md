@@ -31,7 +31,7 @@ nixos-generate-config --no-filesystems --show-hardware-config
 # set up user passwords
 nix run github:mirkolenz/infra -- passwd --root /mnt MACHINE_NAME USER
 # install the system
-nix run github:mirkolenz/infra -- nixos-install MACHINE_NAME
+nix run github:mirkolenz/infra -- install nixos MACHINE_NAME
 ```
 
 ### Installer Swap
@@ -108,7 +108,7 @@ To revert, disable Secure Boot in the firmware before switching back to systemd-
 6. Sign into 1Password and enable `Settings > Developer > Use the SSH agent`
 
 ```shell
-sudo nix run github:mirkolenz/infra
+sudo nix run github:mirkolenz/infra -- rebuild
 sudo reboot
 ```
 
@@ -211,7 +211,7 @@ _Note:_ Authorize your key as described in [SSH Key Deployment](#ssh-key-deploym
 
 ```shell
 sudo /nix/var/nix/profiles/default/bin/nix upgrade-nix
-nix run github:mirkolenz/infra
+nix run github:mirkolenz/infra -- rebuild
 ```
 
 ### Missing Locale
@@ -273,16 +273,16 @@ The service account token stays in `/etc/opnix-token`, readable by root only, si
 ### S3 Binary Cache
 
 `flakectl` is prepared to replace Cachix with an S3 bucket such as Cloudflare R2.
-With `--cache s3://...`, `check-build` pushes every target and its build closure, and `gc-cache` deletes everything not needed by the current targets of any system and older than 30 days.
+With `--cache s3://...`, `check build` pushes every target and its build closure, and `cache gc` deletes everything not needed by the current targets of any system and older than 30 days.
 Switching requires the following steps:
 
 1. Create an R2 bucket, serve it publicly via a custom domain (e.g., `cache.mirkolenz.com`), and create an API token with write access.
 2. Generate a signing key with `nix key generate-secret --key-name cache.mirkolenz.com-1 > key` and derive its public half with `nix key convert-secret-to-public < key`.
 3. Add the secrets `CACHE_SIGNING_KEY`, `CACHE_ACCESS_KEY_ID`, and `CACHE_SECRET_ACCESS_KEY` as well as the variables `CACHE_BUCKET` and `CACHE_ENDPOINT` (`https://<account-id>.r2.cloudflarestorage.com`) to the repository.
 4. In `flake.nix`, replace the Cachix substituter and public key with the custom domain and the new public key.
-5. In `checks.yaml`, replace `cachix-action` with `secret-key-files` pointing to the signing key and run `nix run . -- --cache "s3://$CACHE_BUCKET?endpoint=$CACHE_ENDPOINT&region=auto&compression=zstd" check-build` with the secrets exported as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
-   `gc-cache` reads them from the environment only, not from `~/.aws` profiles.
-6. Add a job that runs `gc-cache` with the same arguments after `check-build` on pushes to `main`.
+5. In `checks.yaml`, replace `cachix-action` with `secret-key-files` pointing to the signing key and run `nix run . -- --cache "s3://$CACHE_BUCKET?endpoint=$CACHE_ENDPOINT&region=auto&compression=zstd" check build` with the secrets exported as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
+   `cache gc` reads them from the environment only, not from `~/.aws` profiles.
+6. Add a job that runs `cache gc` with the same arguments after `check build` on pushes to `main`.
 7. Replace `*.cachix.org` in the agent sandbox domains with the custom domain.
 
 ### Image Building

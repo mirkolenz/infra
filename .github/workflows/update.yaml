@@ -38,7 +38,7 @@ jobs:
       - uses: cachix/cachix-action@v17
         with:
           name: mirkolenz
-      - run: nix run . -- update-all
+      - run: nix run . -- update all
         env:
           GH_TOKEN: ${{ github.token }}
           BUMP_MIN_AGE: 3

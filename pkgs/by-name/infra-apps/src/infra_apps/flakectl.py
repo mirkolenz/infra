@@ -17,6 +17,7 @@ import subprocess
 import sys
 import tempfile
 import urllib.parse
+from argparse import _SubParsersAction
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, fields
 from datetime import UTC, datetime, timedelta
@@ -74,7 +75,7 @@ FILTER_ATTRS = (
     " (builtins.filter (name: !pred set.${name}) (builtins.attrNames set))"
 )
 
-# `check-build`: the targets of one system's `checks` that CI builds.
+# `check build`: the targets of one system's `checks` that CI builds.
 BUILD_SELECT = f"""
 let
   isHydraTarget = {IS_HYDRA_TARGET};
@@ -83,7 +84,7 @@ in
 filterAttrs isHydraTarget
 """
 
-# `check-flake`: every derivation `nix flake check` evaluates that `check-build`
+# `check flake`: every derivation `nix flake check` evaluates that `check build`
 # does not, so that both jobs together cover the flake exactly once.
 EVAL_SELECT = f"""
 flake:
@@ -101,7 +102,7 @@ in
 }}
 """
 
-# `gc-cache`: the store derivations of the targets that `check-build` builds
+# `cache gc`: the store derivations of the targets that `check build` builds
 # and pushes, across all systems.
 ROOTS_APPLY = f"""
 systems:
@@ -118,7 +119,7 @@ builtins.concatMap (set: builtins.attrValues ({TARGET_APPLY} (select set))) (
 # `legacyPackages.<system>.overlays` instead.
 APPS_APPLY = "builtins.mapAttrs (_: builtins.mapAttrs (_: app: app.program))"
 
-# nix-eval-jobs bounds shared by `check-flake` and `check-build`. A worker past
+# nix-eval-jobs bounds shared by `check flake` and `check build`. A worker past
 # its share is restarted, so peak memory stays at `workers * max_memory_size` MiB.
 # One worker of 6 GiB fits any host as well as the largest single configuration
 # (about 4.7 GB).
@@ -266,7 +267,7 @@ def build_targets(targets: Mapping[str, BuildTarget], *, check: bool = True) -> 
     return run_logged(["nix", "build", "--no-link", *refs], check=check)
 
 
-def build_config(
+def rebuild(
     cfg: Config, extra_args: Sequence[str], operation: str, name: str | None
 ) -> None:
     """Build and apply a darwin / nixos / home-manager configuration."""
@@ -315,12 +316,12 @@ def disko(cfg: Config, extra_args: Sequence[str], machine: str) -> None:
     run_flake_tool(cfg, extra_args, "disko", machine)
 
 
-def disko_install(cfg: Config, extra_args: Sequence[str], machine: str) -> None:
+def install_disko(cfg: Config, extra_args: Sequence[str], machine: str) -> None:
     """Partition the disks of `machine` and install it in one go."""
     run_flake_tool(cfg, extra_args, "disko-install", machine)
 
 
-def nixos_install(cfg: Config, extra_args: Sequence[str], machine: str) -> None:
+def install_nixos(cfg: Config, extra_args: Sequence[str], machine: str) -> None:
     """Install `machine` onto the disks that `disko` mounted."""
     run_flake_tool(
         cfg,
@@ -518,7 +519,7 @@ def is_worktree_of(flake: str) -> bool:
     included, since `nix run .` snapshots uncommitted edits too.
 
     Answering this is only sound before we edit anything, which is why `main`
-    settles it once at startup: `update-deps` rewrites flake.nix, so asking
+    settles it once at startup: `update deps` rewrites flake.nix, so asking
     again afterwards compares against a snapshot our own bump just made stale.
     """
     target = Path("flake.nix")
@@ -619,11 +620,11 @@ def check_build(
 ) -> None:
     """Build the CI targets of the current system that no binary cache holds.
 
-    `path` holds the targets per system, like `checks`, so that `gc-cache`
+    `path` holds the targets per system, like `checks`, so that `cache gc`
     finds what every system pushed under the same path.
 
     Extra arguments go to nix-fast-build, which builds each target as soon as it
-    has evaluated. Its nix-eval-jobs workers are bounded as in `check-flake`,
+    has evaluated. Its nix-eval-jobs workers are bounded as in `check flake`,
     which evaluates everything else.
     """
     path = path or cfg.build_path
@@ -735,11 +736,11 @@ def cache_closure(cache: str, paths: Iterable[str]) -> dict[str, Any]:
     return infos["info"]
 
 
-def gc_cache(cfg: Config, keep_days: int, dry_run: bool) -> None:
+def cache_gc(cfg: Config, keep_days: int, dry_run: bool) -> None:
     """Delete what the binary cache holds beyond the closure of the CI targets.
 
-    Keeps the outputs of the current `check-build` targets of every system and
-    of their build dependencies, which `check-build` pushes as well, and the
+    Keeps the outputs of the current `check build` targets of every system and
+    of their build dependencies, which `check build` pushes as well, and the
     paths uploaded within `keep_days`, each with its closure, so that no
     kept path loses a reference. A NAR goes once no kept narinfo points at it
     and it is older than `keep_days`, which spares one whose narinfo is still
@@ -941,9 +942,9 @@ def eval_jobs(cfg: Config, workers: int, max_memory_size: int) -> CheckResult:
 
 
 def check_flake(cfg: Config, workers: int, max_memory_size: int) -> None:
-    """Check formatting and evaluate what `check-build` leaves out.
+    """Check formatting and evaluate what `check build` leaves out.
 
-    Together with `check-build` on every system, this covers what
+    Together with `check build` on every system, this covers what
     `nix flake check --no-build --all-systems` evaluates, while the memory of
     evaluation stays bounded. Every step runs, so one failure hides no other.
     """
@@ -1130,7 +1131,7 @@ def update_pkgs(cfg: Config, package: str | None, dry_run: bool) -> None:
     cfg.require_worktree()
 
     if cfg.update_path is None:
-        raise Error("update-pkgs requires --update-path.")
+        raise Error("update pkgs requires --update-path.")
 
     print("Discovering updateScripts...", file=sys.stderr)
     scripts = discover_update_scripts(
@@ -1205,7 +1206,7 @@ def update_pkgs(cfg: Config, package: str | None, dry_run: bool) -> None:
 
 
 def update_all(cfg: Config, dry_run: bool) -> None:
-    """Run update-deps then update-pkgs in sequence, committing the updates."""
+    """Run `update deps` then `update pkgs` in sequence, committing the updates."""
     update_deps(cfg, dry_run=dry_run)
     update_pkgs(cfg, package=None, dry_run=dry_run)
 
@@ -1214,6 +1215,13 @@ HELP = "Show this message and exit."
 
 # Keeps the wrapped tool's own --help reachable.
 WRAPPER_HELP = "--wrapper-help"
+
+
+def subcommands(
+    parser: argparse.ArgumentParser,
+) -> _SubParsersAction[argparse.ArgumentParser]:
+    """The commands of `parser`, one of which is required."""
+    return parser.add_subparsers(title="commands", metavar="COMMAND", required=True)
 
 
 def parser() -> argparse.ArgumentParser:
@@ -1234,23 +1242,23 @@ def parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--max-workers", type=int, default=8, help="Update scripts run at once."
     )
-    parser.set_defaults(func=None)
-    subparsers = parser.add_subparsers(title="commands", metavar="COMMAND")
+    commands = subcommands(parser)
 
     def command(
+        parent: _SubParsersAction[argparse.ArgumentParser],
         func: FunctionType,
         *,
         extra_args: bool = False,
         help_flag: str = "--help",
         parents: Sequence[argparse.ArgumentParser] = (),
     ) -> argparse.ArgumentParser:
-        """Add `func` as the command named after it and documented by its docstring.
+        """Add `func` as the command named after its last word, documented by its docstring.
 
         With `extra_args`, the arguments it does not know go to the tool it wraps.
         """
         subparser = add_command(
-            subparsers,
-            func.__name__.replace("_", "-"),
+            parent,
+            func.__name__.rpartition("_")[2],
             func.__doc__,
             parents=parents,
             add_help=False,
@@ -1263,7 +1271,14 @@ def parser() -> argparse.ArgumentParser:
 
         return subparser
 
-    # nix-eval-jobs bounds, shared by `check-build` and `check-flake`
+    def group(name: str, doc: str) -> _SubParsersAction[argparse.ArgumentParser]:
+        """Add the command `name` of subcommands."""
+        subparser = add_command(commands, name, doc, add_help=False)
+        subparser.add_argument("--help", action="help", help=HELP)
+
+        return subcommands(subparser)
+
+    # nix-eval-jobs bounds, shared by `check build` and `check flake`
     eval_options = argparse.ArgumentParser(add_help=False)
     eval_options.add_argument(
         "--workers", type=int, default=EVAL_WORKERS, help="nix-eval-jobs workers."
@@ -1279,7 +1294,7 @@ def parser() -> argparse.ArgumentParser:
         "--dry-run", "-n", action="store_true", help="Show what would change."
     )
 
-    config = command(build_config, extra_args=True, help_flag=WRAPPER_HELP)
+    config = command(commands, rebuild, extra_args=True, help_flag=WRAPPER_HELP)
     config.add_argument(
         "--operation",
         "-o",
@@ -1290,48 +1305,52 @@ def parser() -> argparse.ArgumentParser:
     )
     config.add_argument("--name", "-n")
 
-    for func in (disko, disko_install, nixos_install):
-        command(func, extra_args=True, help_flag=WRAPPER_HELP).add_argument("machine")
+    install = group("install", "Install a machine onto its disks.")
 
-    password = command(passwd)
+    for parent, func in (
+        (commands, disko),
+        (install, install_disko),
+        (install, install_nixos),
+    ):
+        command(parent, func, extra_args=True, help_flag=WRAPPER_HELP).add_argument(
+            "machine"
+        )
+
+    password = command(commands, passwd)
     password.add_argument("machine")
     password.add_argument("user")
     password.add_argument(
         "--root", type=Path, default=Path("/"), help="Mount point of the target."
     )
 
-    command(update_deps, parents=[dry_run])
+    update = group("update", "Update the flake and its packages.")
+    command(update, update_all, parents=[dry_run])
+    command(update, update_deps, parents=[dry_run])
+    pkgs = command(update, update_pkgs, parents=[dry_run])
+    pkgs.add_argument("--package", "-p")
 
-    build = command(check_build, extra_args=True, parents=[eval_options])
+    check = group("check", "Check the flake like CI does.")
+    build = command(check, check_build, extra_args=True, parents=[eval_options])
     build.add_argument("--path", "-p")
+    command(check, check_flake, parents=[eval_options])
 
-    gc = command(gc_cache, parents=[dry_run])
+    cache = group("cache", "Maintain the binary cache.")
+    gc = command(cache, cache_gc, parents=[dry_run])
     gc.add_argument(
         "--keep-days", type=int, default=30, help="Days to keep any upload."
     )
-
-    command(check_flake, parents=[eval_options])
-
-    pkgs = command(update_pkgs, parents=[dry_run])
-    pkgs.add_argument("--package", "-p")
-    command(update_all, parents=[dry_run])
 
     return parser
 
 
 @entrypoint
 def main() -> None:
-    """Run the command given on the command line, build-config without one."""
+    """Run the command given on the command line."""
     # Kept for every child, nix and the tools running it alike, such as bumpctl or nixos-rebuild.
     config = os.environ.get("NIX_CONFIG")
     os.environ["NIX_CONFIG"] = f"{config}\n{NIX_CONFIG}" if config else NIX_CONFIG
     cli = complete(parser())
-    argv = sys.argv[1:]
-    args, extra_args = cli.parse_known_args(argv)
-
-    # global options precede the command, so it can be appended
-    if args.func is None:
-        args, extra_args = cli.parse_known_args([*argv, "build-config"])
+    args, extra_args = cli.parse_known_args()
 
     options = vars(args)
     func: Callable[..., None] = options.pop("func")

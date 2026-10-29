@@ -1,4 +1,4 @@
-# Working-tree update-script introspection for `flakectl update-pkgs`. Imports
+# Working-tree update-script introspection for `flakectl update pkgs`. Imports
 # the repo at `root` (keeping package files editable in place) and inspects the
 # derivations under `path` that carry a `passthru.updateScript`. Shipped with
 # flakectl (rather than the target flake) so any attrset of derivations works

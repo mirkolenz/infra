@@ -1,5 +1,5 @@
 # Non-flake entry point: evaluates the overlaid package set from the working
-# tree, the shape `nix-update` and `flakectl update-pkgs` expect from
+# tree, the shape `nix-update` and `flakectl update pkgs` expect from
 # `import ./. { }`. See https://github.com/Mic92/nix-update/blob/main/nix_update/eval.py
 {
   system ? builtins.currentSystem,
