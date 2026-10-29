@@ -15,13 +15,13 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "knip";
-  version = "6.43.0";
+  version = "6.44.0";
 
   src = fetchFromGitHub {
     owner = "webpro-nl";
     repo = "knip";
     tag = "knip@${finalAttrs.version}";
-    hash = "sha256-oybKKsbXqdLeN52xiP+Fd+7MgLZi8ruaSUZex7yabJk=";
+    hash = "sha256-ZOhxrDkPgKiwrcldkqnW08Vvy48kxjjhrESaFUhwWtc=";
   };
 
   pnpmWorkspaces = [ "knip" ];
@@ -44,7 +44,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       ;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-rsI6vrGpaweoNxo1M+xkdLZyI1DMiUGPwwK3oGlmFBs=";
+    hash = "sha256-tmrU7a04HuninwTr61NeqFaBFySy1T9qLwm/pFhx0dI=";
   };
 
   nativeBuildInputs = [
