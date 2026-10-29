@@ -8,7 +8,7 @@
         "*" = rec {
           # keep-sorted start
           agent = true;
-          cache-ram = 0; # unified memory
+          cache-ram = 8 * 1024; # MiB, prompt states kept when switching between sessions
           cache-type-k = "q8_0";
           cache-type-v = "q8_0";
           ctx-size = 256 * 1024 * parallel;
