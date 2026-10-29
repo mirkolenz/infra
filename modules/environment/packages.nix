@@ -7,6 +7,9 @@
       pigz = lib.getExe pkgs.pigz;
     in
     {
+      home.shellAliases = {
+        csvlens = "${lib.getExe pkgs.csvlens} --delimiter auto";
+      };
       home.packages =
         with pkgs;
         [
