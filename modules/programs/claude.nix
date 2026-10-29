@@ -65,6 +65,7 @@ in
         inherit (agents) context skills;
         settings = {
           autoMemoryEnabled = false;
+          awaySummaryEnabled = false;
           cleanupPeriodDays = 30;
           effortLevel = "high";
           modelSettings = lib.genAttrs (lib.attrValues models) (_model: {
