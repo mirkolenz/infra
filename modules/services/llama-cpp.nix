@@ -26,6 +26,18 @@
           tools = true;
           # keep-sorted end
         };
+        # the regular GGUF repo lacks the MTP head
+        "qwen3.6-35b-a3b" = {
+          # keep-sorted start
+          hf-repo = "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_XL";
+          min-p = 0.0;
+          spec-draft-n-max = 2;
+          spec-type = "ngram-mod,draft-mtp";
+          temperature = 1.0;
+          top-k = 20;
+          top-p = 0.95;
+          # keep-sorted end
+        };
         "qwen3.8-27b" = {
           # keep-sorted start
           hf-repo = "unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_XL";

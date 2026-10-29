@@ -44,6 +44,7 @@
             name = "llama.cpp";
             package = "@opencode/ai/providers/openai-compatible";
             settings.baseURL = "http://127.0.0.1:${toString llamaCpp.settings.port}/v1";
+            models."qwen3.6-35b-a3b".name = "Qwen 3.6 MoE";
             models."qwen3.8-27b".name = "Qwen 3.8";
           };
           # home-manager's `enableMcpIntegration` still renders the V1 shape
