@@ -14,7 +14,7 @@ This only applies when `$NONO_CAP_FILE` is set, otherwise the agent runs outside
 nono confines the agent with the profile `agents` or one extending it, so the native sandbox of the agent is off.
 The working directory and the directories in `$NONO_ALLOW` are writable.
 Network access goes through a proxy that enforces the allowed and denied domains of the profile.
-Localhost may be open, so local dev servers and models are reachable directly, and Unix sockets work within `/tmp` and `$TMPDIR`.
+Localhost may be open, so local dev servers and models are reachable directly, and Unix sockets work only within `$TMPDIR` and the ones the profile grants.
 Within every workspace, files that configure code running outside the sandbox later are read-only, such as git hooks or editor and agent settings.
 `.env` files are unreadable.
 
