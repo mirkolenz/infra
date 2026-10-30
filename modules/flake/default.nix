@@ -2,7 +2,6 @@
   inputs,
   config,
   lib,
-  self,
   lib',
   ...
 }:
@@ -26,7 +25,7 @@
       allowInsecurePredicate = pkg: lib.getName pkg == "firefox-esr-140-bin-unwrapped";
     };
     overlayArgs = {
-      inherit self inputs lib';
+      inherit inputs lib';
     };
   };
 }

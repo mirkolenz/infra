@@ -6,8 +6,6 @@ let
   registry = {
     # the channel the configuration itself is built from
     nixpkgs.flake = inputs.nixpkgs;
-    unstable.flake = inputs.nixpkgs;
-    stable.flake = inputs.nixpkgs-stable;
     infra.to = {
       type = "github";
       owner = "mirkolenz";

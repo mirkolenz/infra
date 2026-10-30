@@ -115,7 +115,6 @@
         flake-compat.follows = "";
       };
     };
-    nixpkgs-stable.url = "https://channels.nixos.org/nixos-26.05/nixexprs.tar.zst";
     nixpkgs.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.zst";
     nixvim = {
       url = "github:nix-community/nixvim";

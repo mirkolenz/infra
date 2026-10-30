@@ -13,17 +13,17 @@ Judge against the locked sources, hydra, and upstream trackers, never against me
 - `pkgs/overrides/90-hotfixes.nix`, where each entry names the fix it waits for.
 - `pkgs/overrides/40-ports.nix` and `60-determinate.nix`, where each entry says what would let it go.
 - `pkgs/by-name/`, for wrapped `prev` packages, `patches`, `pythonRelaxDeps`, `doCheck = false`, and fixes noted as landed after a tag.
-- `modules/` and `options/`, for todos, commented-out packages, `final.stable` pins, and links to nixpkgs, home-manager, nix-darwin, or nix issues.
+- `modules/` and `options/`, for todos, commented-out packages, and links to nixpkgs, home-manager, nix-darwin, or nix issues.
 
 Skip `pkgs/by-name/kait2en/`, which tracks its upstream through `upstream-check.nix`.
 
 ```sh
-rg -n -i 'todo|fixme|broken|until|once |fixed upstream|issues/|pull/|patch|override|relax|doCheck|disabledTests|stable\.' --type nix
+rg -n -i 'todo|fixme|broken|until|once |fixed upstream|issues/|pull/|patch|override|relax|doCheck|disabledTests' --type nix
 ```
 
 ## Evidence
 
-Every system builds from `nixpkgs` (nixos-unstable), and `final.stable` from `nixpkgs-stable` (nixos-26.05).
+Every system builds from `nixpkgs` (nixos-unstable).
 Check an `isLinux` or `isDarwin` entry against its platform only, any other entry against all of them.
 
 ```sh
@@ -40,7 +40,7 @@ gh issue view <n> -R <owner/repo> --json state,comments
 
 ## Rules
 
-- A build fix or `stable` pin is obsolete once hydra builds the unpatched job on every system it covers.
+- A build fix is obsolete once hydra builds the unpatched job on every system it covers.
 - A runtime fix is obsolete once the locked source has it, so compare the version, `Cargo.lock`, or the patched lines in `src`.
 - A version-gated override is obsolete once the version moved on.
 - An override of an argument the package no longer takes is obsolete.
