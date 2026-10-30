@@ -8,10 +8,10 @@
       programs = {
         # keep-sorted start
         btop.enable = true;
+        fx.enable = true;
         home-manager.enable = true;
         htop.enable = true;
         jq.enable = true;
-        jqp.enable = true;
         lazydocker.enable = true;
         less.enable = true;
         # nix-index-database already sets lib.mkDefault true
