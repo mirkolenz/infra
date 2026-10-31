@@ -56,8 +56,8 @@ in
 
       localhost = lib.mkEnableOption ''
         connecting to and listening on localhost, for local models and dev servers.
-        nono on Linux matches ports but not addresses, so it opens the unprivileged ports
-        to every host there, while the privileged ones, HTTP and HTTPS among them, stay with the proxy
+        nono on Linux gives the agents a loopback of their own instead, unreachable from the host
+        and without access to its services
       '';
 
       # Absolute paths, covering everything below.

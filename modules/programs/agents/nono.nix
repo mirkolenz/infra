@@ -205,35 +205,33 @@
             allow_domain = lib.unique (sandbox.domains.allow ++ harnessDomains);
             deny_domain = sandbox.domains.deny;
           }
-          # Port 0 is a wildcard on localhost for macOS, which caps port ranges, and nono refuses it on Linux.
-          # Landlock needs a bind rule for port 0 to bind an ephemeral port, such as the OAuth callback.
-          // lib.optionalAttrs sandbox.localhost (
-            if isDarwin then
-              { open_port = [ 0 ]; }
-            else
-              {
-                open_port_range = [
-                  [
-                    1024
-                    65535
-                  ]
-                ];
-                listen_port = [ 0 ];
-              }
-          );
+          # Port 0 connects to every localhost port on macOS, where binding is unfiltered anyway.
+          // lib.optionalAttrs (isDarwin && sandbox.localhost) { open_port = [ 0 ]; };
           # Opened in the browser of the host by nono after checking the origin, for logins and dev servers.
           # Unlike `allow_launch_services`, this cannot open files or apps.
           open_urls = {
             allow_origins = map (domain: "https://${domain}") harnessDomains;
-            allow_localhost = true;
+            # the host cannot reach the loopback of the network namespace on Linux
+            allow_localhost = isDarwin && sandbox.localhost;
           };
           environment = {
             deny_vars = sandbox.environment.unset;
             set_vars = sandbox.environment.set;
           };
           unsafe_macos_seatbelt_rules = lib.mkIf isDarwin seatbeltRules;
-          # makes `unix_socket` an allowlist on Linux as well, refusing every abstract socket
-          linux.af_unix_mediation = "pathname";
+          linux = {
+            # makes `unix_socket` an allowlist on Linux as well, refusing every abstract socket
+            af_unix_mediation = "pathname";
+            # Namespaces apart from the host, the network one only leaving through the proxy,
+            # with a loopback of its own on every port.
+            # The host cannot reach its listeners, so logins with a loopback callback need `NO_NONO=1`.
+            isolate = {
+              network = true;
+              loopback = sandbox.localhost;
+              ipc = true;
+              uts = true;
+            };
+          };
         };
       };
 

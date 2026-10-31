@@ -15,6 +15,7 @@ nono confines the agent with the profile `agents` or one extending it, so the na
 The working directory and the directories in `$NONO_ALLOW` are writable.
 Network access goes through a proxy that enforces the allowed and denied domains of the profile.
 Localhost may be open, so local dev servers and models are reachable directly, and Unix sockets work only within `$TMPDIR` and the ones the profile grants.
+On Linux, the agent has a loopback of its own, so services of the host are unreachable and the host cannot reach its servers.
 Within every workspace, files that configure code running outside the sandbox later are read-only, such as git hooks or editor and agent settings.
 `.env` files are unreadable.
 
@@ -48,6 +49,7 @@ Report what was denied and the rule behind it, then offer these options.
 2. For read-only access, a file, or a host, request a profile draft, see below.
 3. For a lasting need, the user changes the `programs.agents.sandbox` options in `modules/programs/agents` of the infra repository and rebuilds.
 4. If nono itself is at fault, the user restarts the agent with `NO_NONO=1 <agent>` to use its native sandbox instead.
+   Logins with a loopback callback need this on Linux.
 
 ## Profile Drafts
 
