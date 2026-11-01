@@ -55,7 +55,6 @@ in
         package = pkgs.claude-code-bin;
         enableMcpIntegration = true;
         inherit (agents) context skills;
-        defaultLauncher = false;
         installations = {
           personal = { };
           work = { };

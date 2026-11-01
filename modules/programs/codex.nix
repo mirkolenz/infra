@@ -21,7 +21,6 @@
         package = pkgs.codex-bin;
         enableMcpIntegration = true;
         inherit (agents) context skills;
-        defaultLauncher = false;
         installations = {
           personal = { };
           work = { };
