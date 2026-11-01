@@ -30,6 +30,7 @@ in
   config = lib.mkMerge [
     {
       xdg.userDirs.projects = lib.mkDefault "${config.home.homeDirectory}/${config.custom.projectsDir}";
+      home.sessionVariables.XDG_PROJECTS_DIR = cfg.userDirs.projects;
     }
 
     (lib.mkIf cfg.enable {

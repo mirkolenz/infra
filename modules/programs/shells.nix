@@ -7,6 +7,7 @@
       ...
     }@args:
     {
+      home.sessionVariables.PROJ = config.xdg.userDirs.projects;
       programs.fish = {
         enable = true;
         # fish generates the man page completions at runtime instead of one derivation per package
