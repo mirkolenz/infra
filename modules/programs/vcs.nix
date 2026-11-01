@@ -367,19 +367,6 @@
           icon_set = "nerd-font-v3";
           fuzzy_finder_input = true;
           theme = "monokai";
-          custom_commands.universal = {
-            c = {
-              command = "claude";
-              description = "Claude Code";
-              show_help = true;
-              new_tab = true;
-            };
-            e = {
-              command = "zed";
-              description = "Editor";
-              show_help = true;
-            };
-          };
         };
       };
       home.shellAliases = {
