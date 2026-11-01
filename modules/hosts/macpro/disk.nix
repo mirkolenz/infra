@@ -10,11 +10,6 @@
       fsType = "vfat";
     };
 
-    fileSystems."/mnt/backup" = {
-      device = "/dev/disk/by-label/backup";
-      fsType = "ext4";
-    };
-
     swapDevices = [ { device = "/dev/disk/by-label/swap"; } ];
 
     boot.loader.efi.efiSysMountPoint = "/boot";
