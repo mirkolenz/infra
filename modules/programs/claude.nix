@@ -70,6 +70,8 @@ in
           enableAllProjectMcpServers = true;
           disableClaudeAiConnectors = true;
           editorMode = "vim";
+          # OSC 9, which `iterm2` names after the terminal that introduced it
+          preferredNotifChannel = "iterm2";
           idleCompaction = false;
           includeGitInstructions = true;
           outputStyle = "Concise";

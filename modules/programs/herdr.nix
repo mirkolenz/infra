@@ -184,7 +184,9 @@
             pane_borders = "off";
             mobile_width_threshold = 80;
             toast = {
-              delivery = "herdr";
+              # OSC 9 to the outer terminal, also over SSH,
+              # since panes cannot reach it with their own notifications
+              delivery = "terminal";
               delay_seconds = 0;
               clipboard.enabled = false;
             };

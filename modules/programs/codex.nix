@@ -87,8 +87,8 @@
             memories = false;
           };
           tui = {
-            notifications = true;
             vim_mode_default = true;
+            notification_method = "osc9";
             # scrolling within codex deadlocks its pty with nono
             alternate_screen = "never";
             copy_on_select = "always";
