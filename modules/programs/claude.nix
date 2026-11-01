@@ -68,18 +68,17 @@ in
             effortLevel = "high";
           });
           enableAllProjectMcpServers = true;
+          disableClaudeAiConnectors = true;
           idleCompaction = false;
           includeGitInstructions = true;
           outputStyle = "Concise";
+          # still read, suppresses the one-time auto mode entry warning
           skipAutoPermissionPrompt = true;
           spinnerTipsEnabled = false;
           tui = "fullscreen";
           forceLoginMethod = "claudeai";
-          attribution = {
-            commit = "";
-            pr = "";
-            sessionUrl = false;
-          };
+          attribution = false;
+          feedbackDrafts = "off";
           sandbox = {
             enabled = true;
             # Closes the unsandboxed retry escape hatch. Without this a blocked
@@ -120,7 +119,6 @@ in
             "codex@openai-codex" = true;
           };
           env = sandbox.environment.set // {
-            ENABLE_CLAUDEAI_MCP_SERVERS = false;
             # suppresses the in-session rating/feedback survey popup
             CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = true;
             CLAUDE_CODE_SUBAGENT_MODEL = "sonnet";
@@ -157,9 +155,7 @@ in
                 "Edit"
               ]
               # matched on the command line
-              ++ bashRules sandbox.commands.deny
-              # drafts feedback reports to Anthropic on its own
-              ++ [ "SendFeedback" ];
+              ++ bashRules sandbox.commands.deny;
             ask = [ ];
           };
           statusLine = {
