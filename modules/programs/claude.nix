@@ -47,14 +47,6 @@ in
         path = "$HOME/Library/Keychains";
         when = "macos";
       };
-
-      # https://code.claude.com/docs/en/model-config
-      models = {
-        fable = "claude-fable-5-1";
-        opus = "claude-opus-5-5";
-        sonnet = "claude-sonnet-5-5";
-        haiku = "claude-haiku-4-5";
-      };
     in
     lib.mkIf config.programs.agents.enable {
       # https://code.claude.com/docs/en/settings-reference
@@ -68,7 +60,7 @@ in
           awaySummaryEnabled = false;
           cleanupPeriodDays = 30;
           effortLevel = "high";
-          modelSettings = lib.genAttrs (lib.attrValues models) (_model: {
+          modelSettings = lib.genAttrs (lib.attrValues agents.harnesses.claude-code.models) (_model: {
             effortLevel = "high";
           });
           enableAllProjectMcpServers = true;
@@ -173,6 +165,13 @@ in
       programs.agents = {
         harnesses.claude-code = {
           inherit (cfg) launchers;
+          # https://code.claude.com/docs/en/model-config
+          models = {
+            fable = "claude-fable-5-1";
+            opus = "claude-opus-5-5";
+            sonnet = "claude-sonnet-5-5";
+            haiku = "claude-haiku-4-5";
+          };
           addDirFlag = "--add-dir";
           # nono takes over, merged above the user settings without writing them
           sandboxArgs = [
@@ -221,6 +220,5 @@ in
           ];
         };
       };
-      home.shellAliases = lib.mapAttrs (_name: model: "claude --model ${model}") models;
     };
 }

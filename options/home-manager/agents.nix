@@ -1,6 +1,8 @@
-{ lib, ... }:
+{ config, lib, ... }:
 let
   inherit (lib) mkOption types;
+
+  cfg = config.programs.agents;
 
   absolutePath = types.pathWith { absolute = true; };
 
@@ -121,6 +123,16 @@ in
                 description = "Executables of the harness by name, each shadowed by a wrapper.";
               };
 
+              models = mkOption {
+                type = with types; attrsOf str;
+                default = { };
+                example.opus = "claude-opus-5-5";
+                description = ''
+                  Models by alias, each run through a shell alias per launcher passing `--model`,
+                  named `<alias>-<installation>` for the launcher of an installation and `<alias>` otherwise.
+                '';
+              };
+
               sandboxArgs = mkOption {
                 type = with types; listOf str;
                 default = [ ];
@@ -174,5 +186,18 @@ in
         to the harness through its `addDirFlag`.
       '';
     };
+  };
+
+  config = lib.mkIf cfg.enable {
+    home.shellAliases = lib.concatMapAttrs (
+      _name: harness:
+      lib.concatMapAttrs (
+        launcher: package:
+        lib.mapAttrs' (
+          alias: model:
+          lib.nameValuePair "${alias}${lib.optionalString (package ? installation) "-${package.installation}"}" "${launcher} --model ${model}"
+        ) harness.models
+      ) harness.launchers
+    ) cfg.harnesses;
   };
 }
