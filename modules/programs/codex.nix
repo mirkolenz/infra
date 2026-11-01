@@ -54,10 +54,6 @@
           web_search = "live";
           service_tier = "default";
           forced_login_method = "chatgpt";
-          memories = {
-            generate_memories = false;
-            use_memories = false;
-          };
           # https://developers.openai.com/codex/permissions
           default_permissions = "workspace-net";
           permissions.workspace-net = {
@@ -85,8 +81,11 @@
               unix_sockets = lib.genAttrs sandbox.unixSockets (_: "allow");
             };
           };
-          # the domain rules above need it to apply
-          features.network_proxy = true;
+          features = {
+            # the domain rules above need it to apply
+            network_proxy = true;
+            memories = false;
+          };
           tui = {
             notifications = true;
             vim_mode_default = false;
