@@ -21,7 +21,11 @@
         package = pkgs.codex-bin;
         enableMcpIntegration = true;
         inherit (agents) context skills;
-        installations.work = { };
+        defaultLauncher = false;
+        installations = {
+          personal = { };
+          work = { };
+        };
         # https://developers.openai.com/codex/rules
         rules.commands = lib.concatStrings (
           map (prefixRule "allow") sandbox.commands.allow

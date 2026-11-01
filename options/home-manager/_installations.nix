@@ -1,10 +1,11 @@
-# Module adding `installations` to `programs.${program}`, further installations of an
-# agent in config directories of their own, and thus with logins of their own. Each
-# gets the regular settings file with its overrides merged on top, the `sharedEntries`
+# Module adding `installations` to `programs.${program}`, installations of an agent
+# in config directories of their own, and thus with logins of their own. Each gets
+# the regular settings file with its overrides merged on top, the `sharedEntries`
 # of the regular config directory as symlinks, and a wrapper pointing `envVar` at its
-# directory. `settingsFile` is the `home.file` attribute upstream writes the settings to,
-# replaced by writable copies if `mutable`. `protectedEntries` are further entries of every
-# config directory that agents may only read, like the managed ones.
+# directory. Without `defaultLauncher`, the regular config directory only serves as their base.
+# `settingsFile` is the `home.file` attribute upstream writes the settings to, replaced by
+# writable copies if `mutable`. `protectedEntries` are further entries of every config
+# directory that agents may only read, like the managed ones.
 {
   program,
   package,
@@ -81,11 +82,13 @@ let
     in
     pkgs.symlinkJoin {
       name = cmd;
+      nativeBuildInputs = [ pkgs.makeBinaryWrapper ];
+      postBuild = ''
+        makeBinaryWrapper ${lib.getExe package} $out/bin/${cmd} \
+          --set ${envVar} ${installation.dir} \
+          --set AGENTS_INSTALLATION ${name}
+      '';
       paths = [
-        (pkgs.writeShellScriptBin cmd ''
-          export ${envVar}=${installation.dir}
-          exec ${lib.getExe package} "$@"
-        '')
         (pkgs.writeTextDir "share/fish/vendor_completions.d/${cmd}.fish" ''
           complete --command ${cmd} --wraps ${exe}
         '')
@@ -104,6 +107,22 @@ let
     name: installation: lib.nameValuePair "${exe}-${name}" (mkLauncher name installation)
   ) named;
 
+  # Shadows the regular executable that upstream installs.
+  # Within an installation of any agent, it runs the installation of the same name,
+  # through `PATH` to keep the sandbox of its launcher.
+  dispatcher = lib.hiPrio (
+    pkgs.writeShellScriptBin exe ''
+      case "''${AGENTS_INSTALLATION-}" in
+        ${lib.concatStringsSep "|" (lib.attrNames named)})
+          exec ${exe}-"$AGENTS_INSTALLATION" "$@"
+          ;;
+      esac
+
+      echo "${exe} has no default installation, use one of: ${toString (lib.attrNames installationLaunchers)}" >&2
+      exit 1
+    ''
+  );
+
   optionType = lib.types.attrsOf (pkgs.formats.${format} { }).type;
 in
 {
@@ -116,10 +135,20 @@ in
       default = { };
       inherit example;
       description = ''
-        Further installations keyed by name, each holding settings merged recursively
+        Installations keyed by name, each holding settings merged recursively
         over the regular ones, with lists replaced. An installation gets a config
         directory of its own, and thus a login of its own, reached through a wrapper
         named after the executable and the installation.
+      '';
+    };
+
+    defaultLauncher = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Whether the regular executable runs the regular installation, otherwise it runs
+        the installation named by `AGENTS_INSTALLATION`, which every installation of every
+        agent exports, and refuses to run without it.
       '';
     };
 
@@ -128,7 +157,7 @@ in
       default = lib.mapAttrsToList (_name: installation: installation.dir) all;
       readOnly = true;
       internal = true;
-      description = "Config directories of every installation, the regular one included.";
+      description = "Config directories of every installation and the regular one they are based on.";
     };
 
     protectedPaths = lib.mkOption {
@@ -147,12 +176,10 @@ in
 
     launchers = lib.mkOption {
       type = lib.types.attrsOf lib.types.package;
-      default = installationLaunchers // {
-        ${exe} = package;
-      };
+      default = installationLaunchers // lib.optionalAttrs cfg.defaultLauncher { ${exe} = package; };
       readOnly = true;
       internal = true;
-      description = "Executables of every installation by name, the regular one included.";
+      description = "Executables of every installation by name, the regular one included with `defaultLauncher`.";
     };
   };
 
@@ -169,7 +196,8 @@ in
           )
         ) named;
 
-        home.packages = lib.attrValues installationLaunchers;
+        home.packages =
+          lib.attrValues installationLaunchers ++ lib.optional (!cfg.defaultLauncher) dispatcher;
       }
       (
         if mutable then
