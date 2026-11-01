@@ -69,6 +69,7 @@ in
           });
           enableAllProjectMcpServers = true;
           disableClaudeAiConnectors = true;
+          editorMode = "vim";
           idleCompaction = false;
           includeGitInstructions = true;
           outputStyle = "Concise";

@@ -88,7 +88,7 @@
           };
           tui = {
             notifications = true;
-            vim_mode_default = false;
+            vim_mode_default = true;
             # scrolling within codex deadlocks its pty with nono
             alternate_screen = "never";
             copy_on_select = "always";
