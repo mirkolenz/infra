@@ -64,7 +64,6 @@ in
           awaySummaryEnabled = false;
           cleanupPeriodDays = 30;
           model = "opus";
-          effortLevel = "high";
           modelSettings = lib.genAttrs (lib.attrValues agents.harnesses.claude-code.models) (_model: {
             effortLevel = "high";
           });
