@@ -35,13 +35,13 @@ in
 
       bibliographyPath = lib.mkOption {
         type = lib.types.str;
-        default = "${config.custom.projectsPath}/mirkolenz/bibliography";
+        default = "${config.xdg.userDirs.projects}/mirkolenz/bibliography";
         description = "Location of the bibliography checkout.";
       };
 
       texmfPath = lib.mkOption {
         type = lib.types.str;
-        default = "${config.custom.projectsPath}/mirkolenz/texmf";
+        default = "${config.xdg.userDirs.projects}/mirkolenz/texmf";
         description = "Location of the texmf checkout, linked to ~/texmf, the default TEXMFHOME.";
       };
 

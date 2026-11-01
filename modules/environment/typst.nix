@@ -8,7 +8,7 @@
       ...
     }:
     let
-      checkout = "${config.custom.projectsPath}/mirkolenz/typst-lib";
+      checkout = "${config.xdg.userDirs.projects}/mirkolenz/typst-lib";
       # Must match the typst.toml of the checkout, which pure evaluation cannot read.
       packageDir = "local/mirkolenz/0.1.0";
       # Typst resolves `@local` packages from its data directory, which ignores XDG on darwin.

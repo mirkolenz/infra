@@ -27,9 +27,13 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    home = {
-      file = lib.mapAttrs' (name: file: lib.nameValuePair "${cfg.binHome}/${name}" file) cfg.binFile;
-    };
-  };
+  config = lib.mkMerge [
+    {
+      xdg.userDirs.projects = lib.mkDefault "${config.home.homeDirectory}/${config.custom.projectsDir}";
+    }
+
+    (lib.mkIf cfg.enable {
+      home.file = lib.mapAttrs' (name: file: lib.nameValuePair "${cfg.binHome}/${name}" file) cfg.binFile;
+    })
+  ];
 }

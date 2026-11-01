@@ -8,7 +8,7 @@
     }:
     let
       inherit (config.programs.herdr) plugins;
-      inherit (config.custom) projectsPath;
+      inherit (config.xdg.userDirs) projects;
 
       popup = {
         type = "popup";
@@ -29,11 +29,11 @@
         text = ''
           repo=$(
             fd --hidden --no-ignore --type d --max-depth 3 --glob .git \
-              --base-directory "${projectsPath}" --format '{//}' \
+              --base-directory "${projects}" --format '{//}' \
               | fzf --prompt 'project> '
           ) || exit 0
 
-          herdr worktree open --cwd "${projectsPath}/$repo" --path "${projectsPath}/$repo" --focus
+          herdr worktree open --cwd "${projects}/$repo" --path "${projects}/$repo" --focus
         '';
       };
 

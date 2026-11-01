@@ -1,7 +1,7 @@
 # Home-relative location of checked out repositories, shared across all module
 # systems (nixos/darwin/home/nixvim). Only the name is shared because nixvim has
 # no notion of a home directory; homes turn it into an absolute path via
-# custom.projectsPath in options/home-manager/custom.nix.
+# xdg.userDirs.projects in options/home-manager/xdg.nix.
 { lib, pkgs, ... }:
 {
   options.custom.projectsDir = lib.mkOption {

@@ -3,15 +3,9 @@
   config.home.sessionVariables.BUMP_MIN_AGE = config.custom.minReleaseAge;
 
   options.custom = {
-    projectsPath = lib.mkOption {
-      type = lib.types.path;
-      default = "${config.home.homeDirectory}/${config.custom.projectsDir}";
-      description = "Absolute path to custom.projectsDir on the machine.";
-    };
-
     configPath = lib.mkOption {
       type = lib.types.path;
-      default = "${config.custom.projectsPath}/mirkolenz/infra";
+      default = "${config.xdg.userDirs.projects}/mirkolenz/infra";
       description = "Path to the nix config on the machine.";
     };
 

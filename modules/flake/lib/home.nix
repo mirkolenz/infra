@@ -20,7 +20,7 @@
       );
 
     # Home-manager activation entry that links `target` to the live checkout at
-    # `checkout`, typically below `config.custom.projectsPath`, so edits take effect
+    # `checkout`, typically below `config.xdg.userDirs.projects`, so edits take effect
     # without a rebuild. Hosts without the checkout are skipped, keeping it optional.
     mkCheckoutLink =
       {
