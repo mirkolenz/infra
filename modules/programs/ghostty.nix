@@ -22,7 +22,7 @@
           macos-option-as-alt = "left";
           macos-titlebar-style = "tabs";
           notify-on-command-finish = "unfocused";
-          notify-on-command-finish-action = "bell,notify";
+          notify-on-command-finish-action = "notify";
           notify-on-command-finish-after = "10s";
           quick-terminal-position = "center";
           quick-terminal-size = "1000px,600px";
