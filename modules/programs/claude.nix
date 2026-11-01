@@ -79,6 +79,7 @@ in
           forceLoginMethod = "claudeai";
           attribution = false;
           feedbackDrafts = "off";
+          syncClaudeAiPlugins = false;
           sandbox = {
             enabled = true;
             # Closes the unsandboxed retry escape hatch. Without this a blocked
