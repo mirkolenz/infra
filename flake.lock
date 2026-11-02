@@ -249,11 +249,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793607645,
-        "narHash": "sha256-B4lOgtrwDlRpX0Y/Wqgp7jV+D4LS4FVI0gUUk3CqqFw=",
+        "lastModified": 1793608862,
+        "narHash": "sha256-1z709SKtCt00dEKU2CH9pEsXphZXuk8298lk3SydaS0=",
         "owner": "mirkolenz",
         "repo": "flocken",
-        "rev": "f130f4dcf457feb5884bc0d6d1dfd86c704a904d",
+        "rev": "e086cc86736c8f175f74517ff07b85d7af40966f",
         "type": "github"
       },
       "original": {
