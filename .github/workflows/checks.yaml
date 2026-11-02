@@ -55,14 +55,17 @@ jobs:
           - system: aarch64-linux
             runner: ubuntu-26.04-arm
             max-jobs: 4
+            sandbox: true
           # 4 vCPU, 16 GB RAM
           - system: x86_64-linux
             runner: ubuntu-26.04
             max-jobs: 4
+            sandbox: true
           # 3 vCPU, 7 GB RAM
           - system: aarch64-darwin
             runner: macos-26
             max-jobs: 3
+            sandbox: relaxed
     steps:
       - uses: actions/checkout@v7
         with:
@@ -80,6 +83,7 @@ jobs:
       - uses: DeterminateSystems/determinate-nix-action@v3
         with:
           summarize: false
+          # the sandbox mode follows modules/nix/settings.nix
           # nix-fast-build does not pass `--max-jobs` on, so every build
           # realizes its own dependencies one at a time
           extra-conf: |
@@ -91,6 +95,7 @@ jobs:
             keep-going = true
             log-lines = 200
             max-jobs = 1
+            sandbox = ${{ matrix.sandbox }}
       - uses: cachix/cachix-action@v17
         with:
           name: mirkolenz
