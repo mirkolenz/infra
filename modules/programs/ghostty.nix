@@ -16,6 +16,7 @@
           auto-update-channel = "stable";
           background-blur = false;
           cursor-click-to-move = true;
+          cursor-style = "block";
           font-family = config.custom.font.family;
           font-size = config.custom.font.size;
           font-thicken = true;
