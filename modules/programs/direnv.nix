@@ -17,14 +17,6 @@
             # log_filter = "^$";
           };
         };
-        # todo: once out of beta, use hardcoded package path instead of plain `op` command
-        stdlib = ''
-          use_op() {
-            set -a
-            source <(op environment read "$1")
-            set +a
-          }
-        '';
       };
     };
 }

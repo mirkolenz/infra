@@ -23,6 +23,18 @@ in
 
     package = mkPackageOption pkgs "_1password-cli" { nullable = true; };
 
+    program = mkOption {
+      type = lib.types.str;
+      default =
+        if pkgs.stdenv.hostPlatform.isDarwin then "/usr/local/bin/op" else "/run/wrappers/bin/op";
+      description = ''
+        Path to the `op` installed by the host that the 1Password app integrates with,
+        the copy of nix-darwin on Darwin and the setgid wrapper of NixOS on Linux.
+      '';
+    };
+
+    direnv.enable = mkEnableOption "the direnv function `use_op` that loads a 1Password Environment";
+
     sshAgent = {
       enable = mkEnableOption "1password ssh agent";
       socket = mkOption {
@@ -73,6 +85,14 @@ in
   #
   config = lib.mkIf cfg.enable {
     home.packages = lib.mkIf (cfg.package != null) [ cfg.package ];
+
+    programs.direnv.stdlib = lib.mkIf cfg.direnv.enable ''
+      use_op() {
+        set -a
+        source <(${cfg.program} environment read "$1")
+        set +a
+      }
+    '';
 
     programs.ssh = lib.mkIf cfg.sshAgent.enable {
       includes = [

@@ -50,6 +50,7 @@
       programs.op = {
         enable = true;
         package = args.osConfig.programs._1password.package;
+        direnv.enable = true;
         sshAgent = {
           enable = true;
           settings = {
