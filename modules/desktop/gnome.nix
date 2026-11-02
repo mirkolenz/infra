@@ -124,6 +124,11 @@
             xkb-options = config.custom.user.keyboard.options;
           };
 
+          "org/gnome/desktop/peripherals/keyboard" = with config.custom.user.keyboard.repeat; {
+            delay = gv.mkUint32 delay;
+            repeat-interval = gv.mkUint32 interval;
+          };
+
           "org/gnome/desktop/background" = background;
           "org/gnome/desktop/screensaver" = background;
 

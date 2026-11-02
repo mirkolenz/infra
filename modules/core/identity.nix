@@ -17,6 +17,11 @@ let
       keyboard = {
         layout = "us";
         options = [ "caps:escape" ];
+        # The fastest macOS slider values, InitialKeyRepeat 15 and KeyRepeat 2 in 15ms units.
+        repeat = {
+          delay = 225;
+          interval = 30;
+        };
       };
     };
     stateVersions = {

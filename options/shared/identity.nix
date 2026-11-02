@@ -13,6 +13,16 @@
         keyboard = {
           layout = lib.mkOption { type = lib.types.str; };
           options = lib.mkOption { type = lib.types.listOf lib.types.str; };
+          repeat = {
+            delay = lib.mkOption {
+              type = lib.types.ints.positive;
+              description = "Milliseconds a key is held before it repeats.";
+            };
+            interval = lib.mkOption {
+              type = lib.types.ints.positive;
+              description = "Milliseconds between repeats.";
+            };
+          };
         };
       };
     };

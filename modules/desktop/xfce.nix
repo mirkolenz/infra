@@ -55,6 +55,11 @@
             "general/title_font" = "Inter Bold 11";
           };
 
+          keyboards = with config.custom.user.keyboard.repeat; {
+            "Default/KeyRepeat/Delay" = delay;
+            "Default/KeyRepeat/Rate" = 1000 / interval;
+          };
+
           xfce4-keyboard-shortcuts = {
             "commands/custom/<Primary>space" = "vicinae vicinae://toggle";
           };

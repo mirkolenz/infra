@@ -45,6 +45,16 @@
         wayland.desktopManager.cosmic = {
           enable = true;
           appearance.theme.mode = "dark";
+          # Replaces the whole keyboard config, so the layout is set here as well.
+          compositor.xkb_config = with config.custom.user.keyboard; {
+            inherit layout;
+            options = cosmicLib.cosmic.mkRON "optional" (lib.concatStringsSep "," options);
+            model = "pc104";
+            rules = "";
+            variant = "";
+            repeat_delay = repeat.delay;
+            repeat_rate = 1000 / repeat.interval;
+          };
           # Written to configFile directly rather than via the higher-level
           # `shortcuts` option, whose action type builds a regex with a lazy
           # quantifier that Nix's POSIX regex engine rejects.

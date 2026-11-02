@@ -65,6 +65,11 @@
             wallpaperPlainColor = "0,0,0";
           };
 
+          input.keyboard = with config.custom.user.keyboard.repeat; {
+            repeatDelay = delay;
+            repeatRate = 1000.0 / interval;
+          };
+
           kscreenlocker.appearance.wallpaperPlainColor = "0,0,0";
 
           fonts = {
