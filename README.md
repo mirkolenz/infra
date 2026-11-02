@@ -14,6 +14,18 @@ This flake follows the **dendritic pattern**: every `.nix` file under `modules/`
 Feature modules are grouped by the **config-path namespace** they write, mirroring the option tree (and the `options/` layout), so anything is found where it sits in the configuration.
 A module is one cohesive feature filed under one directory, the namespace of its primary subject, while keeping all of its config inline, so a feature like `ssh` or `nix` is configured end-to-end across home-manager and nixos/darwin in a single file.
 
+## Remote Deployment
+
+`flakectl deploy` wraps `nixos-rebuild-ng --target-host` for NixOS machines.
+It evaluates locally, then builds and activates on the host named like the machine.
+Its sudo authenticates via `pam_rssh` with the forwarded SSH agent, pass `--ask-sudo-password` for hosts without it.
+Extra arguments go to `nixos-rebuild-ng`.
+
+```shell
+nix run . -- deploy MACHINE_NAME
+nix run . -- deploy MACHINE_NAME --operation boot --host ADDRESS
+```
+
 ## NixOS Computers
 
 ### Installation

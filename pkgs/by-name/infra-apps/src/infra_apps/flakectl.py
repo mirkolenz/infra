@@ -287,13 +287,53 @@ def rebuild(
     else:
         builder, attr = "nixos-rebuild-ng", "nixosConfigurations"
 
-    impure = (
-        ["--impure"]
-        if cfg.impure_attr
-        and nix_eval_json(f"{flake_ref(cfg.flake, attr, name)}.{cfg.impure_attr}")
-        else []
+    run_flake_tool(
+        cfg, extra_args, builder, name, operation, *impure_flags(cfg, attr, name)
     )
-    run_flake_tool(cfg, extra_args, builder, name, operation, *impure)
+
+
+def impure_flags(cfg: Config, attr: str, name: str) -> list[str]:
+    """`--impure` if the configuration `name` under `attr` sets `cfg.impure_attr`."""
+    if cfg.impure_attr and nix_eval_json(
+        f"{flake_ref(cfg.flake, attr, name)}.{cfg.impure_attr}"
+    ):
+        return ["--impure"]
+
+    return []
+
+
+def deploy(
+    cfg: Config,
+    extra_args: Sequence[str],
+    operation: str,
+    machine: str,
+    host: str | None,
+) -> None:
+    """Deploy the NixOS configuration `machine` to its host over SSH.
+
+    Evaluates locally, then builds and activates on the host through sudo,
+    which pam_rssh authenticates by the forwarded agent. Building there needs
+    no trusted user on the host, which copying a local build would. Extra
+    arguments go to nixos-rebuild-ng, e.g. `--build-host localhost` to build
+    locally or `--ask-sudo-password` for a host without pam_rssh.
+    """
+    host = host or machine
+    # also for a `--host` that ssh_config does not forward the agent to
+    sshopts = os.environ.get("NIX_SSHOPTS", "")
+    os.environ["NIX_SSHOPTS"] = f"{sshopts} -o ForwardAgent=yes".strip()
+    run_flake_tool(
+        cfg,
+        extra_args,
+        "nixos-rebuild-ng",
+        machine,
+        operation,
+        "--target-host",
+        host,
+        "--build-host",
+        host,
+        "--sudo",
+        *impure_flags(cfg, "nixosConfigurations", machine),
+    )
 
 
 def run_flake_tool(
@@ -1294,8 +1334,9 @@ def parser() -> argparse.ArgumentParser:
         "--dry-run", "-n", action="store_true", help="Show what would change."
     )
 
-    config = command(commands, rebuild, extra_args=True, help_flag=WRAPPER_HELP)
-    config.add_argument(
+    # shared by `rebuild` and `deploy`
+    operation = argparse.ArgumentParser(add_help=False)
+    operation.add_argument(
         "--operation",
         "-o",
         "--mode",
@@ -1303,7 +1344,17 @@ def parser() -> argparse.ArgumentParser:
         default="switch",
         help="Operation of the configuration tool.",
     )
+
+    config = command(
+        commands, rebuild, extra_args=True, help_flag=WRAPPER_HELP, parents=[operation]
+    )
     config.add_argument("--name", "-n")
+
+    remote = command(
+        commands, deploy, extra_args=True, help_flag=WRAPPER_HELP, parents=[operation]
+    )
+    remote.add_argument("machine")
+    remote.add_argument("--host", help="SSH destination, the machine by default.")
 
     install = group("install", "Install a machine onto its disks.")
 
