@@ -70,8 +70,8 @@ final: prev:
       }
       // prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
         # Importing libvirt loads system frameworks down to Apple's LibreSSL, which aborts once the
-        # darwin sandbox denies it /private/etc/ssl/openssl.cnf, and two tests fail on further
-        # unlogged denials, so it builds outside the sandbox. No upstream report yet.
+        # darwin sandbox denies it /private/etc/ssl/openssl.cnf, a path it hardcodes, so it builds
+        # outside the sandbox. No upstream report yet.
         libvirt-python = pyprev.libvirt-python.overridePythonAttrs { __noChroot = true; };
       }
     )
@@ -167,6 +167,18 @@ final: prev:
 
 })
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
+
+  # libvirt links with -flat_namespace for its test mocks, so once a process has loaded Apple's
+  # libxml2 2.9 through system frameworks, its libxml2 calls bind there instead of to libxml2 2.15.
+  # The void xmlSchemaInitTypes of 2.9 then returns garbage, failing XML validation at random.
+  # Two-level binding fixes that, but breaks the test mocks, which need flat lookups.
+  # No upstream report yet.
+  libvirt = prev.libvirt.overrideAttrs (prevAttrs: {
+    postPatch = prevAttrs.postPatch + ''
+      substituteInPlace meson.build --replace-fail "'-Wl,-flat_namespace'" "[]"
+    '';
+    doCheck = false;
+  });
 
   # Replace the SVG driver's Windows-only header with POSIX headers, as Homebrew does.
   # https://github.com/Homebrew/homebrew-core/pull/261141
