@@ -25,8 +25,7 @@ in
 
     program = mkOption {
       type = lib.types.str;
-      default =
-        if pkgs.stdenv.hostPlatform.isDarwin then "/usr/local/bin/op" else "/run/wrappers/bin/op";
+      default = if pkgs.stdenv.hostPlatform.isDarwin then "/usr/local/bin/op" else "/run/wrappers/bin/op";
       description = ''
         Path to the `op` installed by the host that the 1Password app integrates with,
         the copy of nix-darwin on Darwin and the setgid wrapper of NixOS on Linux.
