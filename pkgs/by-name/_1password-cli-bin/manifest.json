@@ -1,0 +1,8 @@
+{
+  "version": "2.43.0-beta.02",
+  "hashes": {
+    "darwin_arm64": "sha256-0d3FLzrXbPyIt6ySEpRjni/ELN2k1bgVX09Oqd8uPpE=",
+    "linux_arm64": "sha256-wILgn8705FpwAViGxYVE4NHxMXu/8BCJgGdNheMSBas=",
+    "linux_amd64": "sha256-gxvrI3TgiZPFNiwXmtQWa34v9NCo8hx9ppZNa//eoK0="
+  }
+}
