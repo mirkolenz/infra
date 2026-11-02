@@ -34,6 +34,11 @@ mkGitHubBinary {
     runHook postInstall
   '';
 
+  # bun reads the system icu data for Intl.Segmenter during the version check
+  sandboxProfile = ''
+    (allow file-read* (subpath "/usr/share/icu"))
+  '';
+
   nativeInstallCheckInputs = [
     versionCheckHook
   ];
