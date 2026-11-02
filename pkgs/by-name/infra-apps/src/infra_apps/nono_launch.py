@@ -27,6 +27,7 @@ class Config:
     Attributes:
         harness: Absolute path of the harness executable.
         nono: Absolute path of nono, since `PATH` reaches the harness, as for every executable.
+        wrapper: Absolute path of the command that runs the harness within nono.
         profile: nono profile the session extends unless `NONO_PROFILE` is set.
         herdr_agent: Label by which herdr identifies the harness on nono.
         sandbox_args: Arguments prepended to those of the harness.
@@ -39,6 +40,7 @@ class Config:
 
     harness: str
     nono: str
+    wrapper: str
     profile: str
     herdr_agent: str
     sandbox_args: Sequence[str]
@@ -178,6 +180,7 @@ def launch(config: Config, args: Sequence[str]) -> int:
                 "--allow-unix-socket-subtree-bind",
                 tmp,
                 "--",
+                config.wrapper,
                 *harness,
             ],
             env,
