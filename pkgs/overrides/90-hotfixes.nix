@@ -1,13 +1,4 @@
 final: prev:
-let
-  # Under __structuredAttrs, makeWrapper receives each `makeWrapperArgs` entry as one argument,
-  # so a single "--prefix PATH : ..." string has to be split into its words.
-  splitWrapperArgs =
-    pkg:
-    pkg.overridePythonAttrs (prevAttrs: {
-      makeWrapperArgs = prev.lib.concatMap (prev.lib.splitString " ") prevAttrs.makeWrapperArgs;
-    });
-in
 {
   # mago keeps a path into rustc, an unused `LC_RPATH` on darwin, which pulls its gigabyte into
   # every closure with mago, such as those of the formatters. No upstream fix yet.
@@ -53,25 +44,12 @@ in
     '';
   };
 
-  # https://github.com/NixOS/nixpkgs/pull/575801
-  sbomnix = splitWrapperArgs prev.sbomnix;
-
   pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
     (pyfinal: pyprev: {
-      # mcp 2 marks fastmcp-slim and thus fastmcp broken, which takes mcp-nixos down with it.
-      # Drop once fastmcp 4 supports mcp 2.
-      # https://github.com/NixOS/nixpkgs/pull/563493
-      fastmcp-slim = pyprev.fastmcp-slim.override { mcp = pyfinal.mcp_1; };
-
       # typepy 2.0.0 landed before the consumers dropped their `typepy<2` pin.
       # https://github.com/NixOS/nixpkgs/pull/573108
       sqliteschema = pyprev.sqliteschema.overridePythonAttrs { pythonRelaxDeps = [ "typepy" ]; };
       simplesqlite = pyprev.simplesqlite.overridePythonAttrs { pythonRelaxDeps = [ "typepy" ]; };
-
-      # sphinxHook only reads the first entry of an array `sphinxBuilders` under __structuredAttrs,
-      # so the man output is never built. A single space-separated entry works around it.
-      # https://github.com/NixOS/nixpkgs/pull/573479
-      reuse = pyprev.reuse.overridePythonAttrs { sphinxBuilders = [ "html man" ]; };
 
       # patchelf 0.19.2 aborts on the large prebuilt binary with `splitIndex == -1`
       # https://github.com/NixOS/patchelf/pull/672
