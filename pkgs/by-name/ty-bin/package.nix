@@ -28,5 +28,6 @@ mkGitHubBinary {
   meta = {
     description = "Extremely fast Python type checker and language server, written in Rust";
     license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 }

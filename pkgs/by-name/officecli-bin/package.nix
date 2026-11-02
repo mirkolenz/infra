@@ -39,5 +39,6 @@ mkGitHubBinary {
   meta = {
     description = "Office suite for AI agents to read, edit, and automate Word, Excel, and PowerPoint files";
     license = lib.licenses.asl20;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 }

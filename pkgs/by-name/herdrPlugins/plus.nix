@@ -38,5 +38,6 @@ mkHerdrPlugin (finalAttrs: {
     homepage = "https://github.com/cloudmanic/herdr-plus";
     changelog = "https://github.com/cloudmanic/herdr-plus/releases/tag/${finalAttrs.src.tag}";
     license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 })

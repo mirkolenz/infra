@@ -18,7 +18,6 @@ lib.extendMkDerivation {
 
       # cross-compiled to wasm, not a CI build target on any host platform
       meta = {
-        maintainers = with lib.maintainers; [ mirkolenz ];
         hydraPlatforms = [ ];
       }
       // meta;

@@ -22,5 +22,6 @@ mkGitHubBinary {
   meta = {
     description = "gh extension that pins the actions of GitHub workflows in a lockfile";
     license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 }

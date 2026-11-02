@@ -21,5 +21,6 @@ mkGitHubBinary {
   meta = {
     description = "Fast type checker and language server for Python";
     license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 }

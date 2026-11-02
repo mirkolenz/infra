@@ -20,5 +20,6 @@ mkGitHubBinary {
   meta = {
     description = "New markup-based typesetting system that is powerful and easy to learn";
     license = lib.licenses.asl20;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 }

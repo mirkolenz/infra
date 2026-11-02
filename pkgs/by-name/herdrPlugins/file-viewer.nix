@@ -65,5 +65,6 @@ mkHerdrPlugin (finalAttrs: {
     homepage = "https://github.com/smarzban/herdr-file-viewer";
     changelog = "https://github.com/smarzban/herdr-file-viewer/releases/tag/${finalAttrs.src.tag}";
     license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 })

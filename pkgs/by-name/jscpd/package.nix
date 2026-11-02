@@ -26,5 +26,6 @@ mkGitHubBinary {
   meta = {
     description = "Copy-paste detector covering 220 languages, with a Rust engine";
     license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 }

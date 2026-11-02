@@ -20,5 +20,6 @@ mkGitHubBinary {
   meta = {
     description = "Terminal based IDE and text editor that is easy, powerful, and fast";
     license = lib.licenses.gpl2Only;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 }

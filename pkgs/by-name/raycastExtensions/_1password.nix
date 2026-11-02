@@ -1,4 +1,5 @@
 {
+  lib,
   mkRaycastExtension,
   fetchFromGitHub,
 }:
@@ -15,4 +16,6 @@ mkRaycastExtension {
   };
 
   npmDepsHash = "sha256-WsFo+xxZXYzMkN3+1GBTfQMxHhiE8vVXqiCD+eC6AP0=";
+
+  meta.maintainers = with lib.maintainers; [ mirkolenz ];
 }

@@ -50,7 +50,6 @@ lib.extendMkDerivation {
 
       meta = {
         homepage = "https://github.com/raycast/extensions/tree/${src.rev}/extensions/${name}";
-        maintainers = with lib.maintainers; [ mirkolenz ];
         platforms = lib.platforms.linux ++ lib.platforms.darwin;
       }
       // meta;

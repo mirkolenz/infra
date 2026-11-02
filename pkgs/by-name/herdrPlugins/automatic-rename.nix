@@ -60,5 +60,6 @@ mkHerdrPlugin (finalAttrs: {
     homepage = "https://github.com/qu8n/herdr-automatic-rename";
     changelog = "https://github.com/qu8n/herdr-automatic-rename/releases/tag/${finalAttrs.src.tag}";
     license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 })

@@ -58,5 +58,6 @@ mkGitHubBinary (finalAttrs: {
   meta = {
     description = "Lightweight coding agent that runs in your terminal";
     license = lib.licenses.asl20;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 })

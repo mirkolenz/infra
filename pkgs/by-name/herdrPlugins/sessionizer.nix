@@ -106,5 +106,6 @@ mkHerdrPlugin (finalAttrs: {
     homepage = "https://github.com/andrewchng/herdr-sessionizer";
     changelog = "https://github.com/andrewchng/herdr-sessionizer/releases/tag/${finalAttrs.src.tag}";
     license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 })

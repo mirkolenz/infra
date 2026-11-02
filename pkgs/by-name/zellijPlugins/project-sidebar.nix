@@ -25,5 +25,6 @@ mkZellijPlugin (_finalAttrs: {
     description = "Project sidebar plugin for Zellij";
     homepage = "https://github.com/AndrewBeniston/zellij-project-sidebar";
     license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 })

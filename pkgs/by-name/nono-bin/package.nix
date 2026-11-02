@@ -37,5 +37,6 @@ mkGitHubBinary {
   meta = {
     description = "Capability-based sandbox for AI agents";
     license = lib.licenses.asl20;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 }

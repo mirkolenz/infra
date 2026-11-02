@@ -27,5 +27,6 @@ mkGitHubBinary {
   meta = {
     description = "Extremely fast Python linter and code formatter, written in Rust";
     license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 }

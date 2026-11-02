@@ -37,5 +37,6 @@ mkHerdrPlugin (finalAttrs: {
     homepage = "https://github.com/persiyanov/herdr-reviewr";
     changelog = "https://github.com/persiyanov/herdr-reviewr/releases/tag/${finalAttrs.src.tag}";
     license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 })

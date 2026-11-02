@@ -22,5 +22,6 @@ mkGitHubBinary {
   meta = {
     description = "HomeKit Bridge for KNX";
     license = lib.licenses.unfree;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 }

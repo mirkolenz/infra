@@ -40,5 +40,6 @@ mkGitHubBinary {
     description = "GitHub Copilot CLI - AI-powered command line tool";
     license = lib.licenses.unfree;
     mainProgram = "copilot";
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 }

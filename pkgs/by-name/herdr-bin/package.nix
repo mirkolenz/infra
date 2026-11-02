@@ -22,5 +22,6 @@ mkGitHubBinary {
   meta = {
     description = "Agent multiplexer that lives in your terminal";
     license = lib.licenses.asl20;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 }

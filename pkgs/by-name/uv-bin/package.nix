@@ -34,5 +34,6 @@ mkGitHubBinary {
       mit
       asl20
     ];
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 }

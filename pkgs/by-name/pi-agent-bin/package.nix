@@ -42,5 +42,6 @@ mkGitHubBinary {
   meta = {
     description = "AI-powered coding assistant";
     license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ mirkolenz ];
   };
 }

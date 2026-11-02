@@ -106,7 +106,6 @@ lib.extendMkDerivation {
       # the plugins reach herdr through shell entry points, so the windows halves
       # of the manifests are out of reach whatever the binary's toolchain supports
       meta = {
-        maintainers = with lib.maintainers; [ mirkolenz ];
         platforms = lib.platforms.unix;
       }
       // meta;
