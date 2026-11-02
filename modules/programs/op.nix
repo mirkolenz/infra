@@ -49,6 +49,7 @@
 
       programs.op = {
         enable = true;
+        package = args.osConfig.programs._1password.package;
         sshAgent = {
           enable = true;
           settings = {

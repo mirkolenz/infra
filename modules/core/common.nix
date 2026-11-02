@@ -9,7 +9,10 @@ let
         systemPackages = [ pkgs.opnix ];
       };
       programs = {
-        _1password.enable = true;
+        _1password = {
+          enable = true;
+          package = pkgs._1password-cli-bin;
+        };
         bash.enable = true;
         fish.enable = true;
         zsh.enable = true;

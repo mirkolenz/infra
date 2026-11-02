@@ -5,7 +5,6 @@
       caskApps = [
         # keep-sorted start
         "1password"
-        "1password-cli@beta"
         "affinity"
         "alt-tab"
         "anydesk"
