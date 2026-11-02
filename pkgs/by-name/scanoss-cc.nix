@@ -52,6 +52,11 @@ buildGoModule (finalAttrs: {
     install -Dm644 assets/appicon.png build/appicon.png
   '';
 
+  # wails clears the quarantine attribute of the binary and ad-hoc signs the bundle with these
+  sandboxProfile = ''
+    (allow file-read* process-exec (literal "/usr/bin/xattr") (literal "/usr/bin/codesign"))
+  '';
+
   buildPhase = ''
     runHook preBuild
 
