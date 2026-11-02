@@ -47,9 +47,10 @@
       )
     ) config.configurations.home;
 
-    evalTargets.home = lib.mapAttrs (name: { system, ... }: {
-      inherit system;
-      package = config.flake.homeConfigurations.${name}.activationPackage;
-    }) (lib.filterAttrs (_: home: home.check) config.configurations.home);
+    # flocken's evalChecks would otherwise evaluate pkgs to find the system
+    evalTargets.home = lib.mapAttrs (_: home: {
+      inherit (home) system;
+      enable = home.check;
+    }) config.configurations.home;
   };
 }

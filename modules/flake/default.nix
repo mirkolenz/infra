@@ -9,6 +9,8 @@
   systems = import inputs.systems;
   imports = [
     inputs.flake-parts.flakeModules.modules
+    inputs.flocken.flakeModules.evalChecks
+    inputs.flocken.flakeModules.lib
     inputs.disko.flakeModules.default
     inputs.nix-darwin.flakeModules.default
     inputs.home-manager.flakeModules.default

@@ -61,9 +61,9 @@
       ]
     ) config.configurations.nixos;
 
-    evalTargets.nixos = lib.mapAttrs (name: { system, ... }: {
+    # flocken's evalChecks would otherwise evaluate pkgs to find the system
+    evalTargets.nixos = lib.mapAttrs (_: { system, ... }: {
       inherit system;
-      package = config.flake.nixosConfigurations.${name}.config.system.build.toplevel;
     }) config.configurations.nixos;
   };
 }

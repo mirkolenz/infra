@@ -71,6 +71,9 @@ lib.mergeAttrsList [
   # base overlay providing darwin packages
   (inputs.nix-darwin.overlays.default final prev)
 
+  # builders such as mkGitHubBinary and mkDarwinApp
+  (inputs.flocken.overlays.default final prev)
+
   # overrides/ fragments
   overrides
 

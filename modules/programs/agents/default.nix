@@ -270,7 +270,10 @@
           ];
           workspace.write = [ ".env.example" ];
           unixSockets = [
-            (lib'.nixDaemonSocket pkgs.stdenv)
+            (lib'.nixDaemonSocket {
+              inherit (pkgs) stdenv;
+              determinate = true;
+            })
           ];
           environment.set = {
             ASTRO_TELEMETRY_DISABLED = "1";

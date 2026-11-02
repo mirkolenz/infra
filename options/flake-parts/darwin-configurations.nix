@@ -43,9 +43,9 @@
       }
     ) config.configurations.darwin;
 
-    evalTargets.darwin = lib.mapAttrs (name: { system, ... }: {
+    # flocken's evalChecks would otherwise evaluate pkgs to find the system
+    evalTargets.darwin = lib.mapAttrs (_: { system, ... }: {
       inherit system;
-      package = config.flake.darwinConfigurations.${name}.config.system.build.toplevel;
     }) config.configurations.darwin;
   };
 }
