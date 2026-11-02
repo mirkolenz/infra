@@ -27,6 +27,13 @@ final: prev:
     '';
   });
 
+  # Release builds give redaction 250 ms, so a loaded builder records captured messages as
+  # "took too long to redact", and the ai-session e2e tests that read them back fail at random.
+  # nixpkgs#578792 skips them one by one, which keeps missing some, and the tests compile the
+  # workspace a second time. Drop once hydra builds atuin on every system again.
+  # https://hydra.nixos.org/build/351752391
+  atuin = prev.atuin.overrideAttrs { doCheck = false; };
+
   # direnv's buildPhase and installPhase never run their hooks, so the postInstall that drops
   # share/fish is skipped. The shipped vendor_conf.d/direnv.fish then hooks every fish,
   # including each `fish -c`, where home-manager only hooks interactive shells.
@@ -45,20 +52,29 @@ final: prev:
   };
 
   pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
-    (pyfinal: pyprev: {
-      # typepy 2.0.0 landed before the consumers dropped their `typepy<2` pin.
-      # https://github.com/NixOS/nixpkgs/pull/573108
-      sqliteschema = pyprev.sqliteschema.overridePythonAttrs { pythonRelaxDeps = [ "typepy" ]; };
-      simplesqlite = pyprev.simplesqlite.overridePythonAttrs { pythonRelaxDeps = [ "typepy" ]; };
+    (
+      pyfinal: pyprev:
+      {
+        # typepy 2.0.0 landed before the consumers dropped their `typepy<2` pin.
+        # https://github.com/NixOS/nixpkgs/pull/573108
+        sqliteschema = pyprev.sqliteschema.overridePythonAttrs { pythonRelaxDeps = [ "typepy" ]; };
+        simplesqlite = pyprev.simplesqlite.overridePythonAttrs { pythonRelaxDeps = [ "typepy" ]; };
 
-      # patchelf 0.19.2 aborts on the large prebuilt binary with `splitIndex == -1`
-      # https://github.com/NixOS/patchelf/pull/672
-      # semgrep imports `mcp.server.fastmcp`, which mcp 2 removed.
-      semgrep = pyprev.semgrep.override (prevArgs: {
-        mcp = pyfinal.mcp_1;
-        semgrep-core = prevArgs.semgrep-core.override { patchelf = final.buildPackages.patchelf-fixed; };
-      });
-    })
+        # patchelf 0.19.2 aborts on the large prebuilt binary with `splitIndex == -1`
+        # https://github.com/NixOS/patchelf/pull/672
+        # semgrep imports `mcp.server.fastmcp`, which mcp 2 removed.
+        semgrep = pyprev.semgrep.override (prevArgs: {
+          mcp = pyfinal.mcp_1;
+          semgrep-core = prevArgs.semgrep-core.override { patchelf = final.buildPackages.patchelf-fixed; };
+        });
+      }
+      // prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
+        # Importing libvirt loads system frameworks down to Apple's LibreSSL, which aborts once the
+        # darwin sandbox denies it /private/etc/ssl/openssl.cnf, and two tests fail on further
+        # unlogged denials, so it builds outside the sandbox. No upstream report yet.
+        libvirt-python = pyprev.libvirt-python.overridePythonAttrs { __noChroot = true; };
+      }
+    )
   ];
 }
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
