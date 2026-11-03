@@ -148,7 +148,7 @@
           "org/gnome/settings-daemon/plugins/color" = {
             night-light-enabled = true;
             night-light-schedule-automatic = true;
-            night-light-temperature = gv.mkUint32 2000;
+            night-light-temperature = gv.mkUint32 3700;
           };
 
           "org/gnome/desktop/peripherals/touchpad" = {
