@@ -3,6 +3,7 @@
   kait2en,
   glib,
   libxml2,
+  makeBinaryWrapper,
   pkg-config,
   wrapGAppsHook4,
   gtk4,
@@ -36,7 +37,7 @@ lib.extendMkDerivation {
         glib
         libxml2
         pkg-config
-        wrapGAppsHook4
+        (wrapGAppsHook4.override { makeWrapper = makeBinaryWrapper; })
       ]
       ++ nativeBuildInputs;
       buildInputs = [

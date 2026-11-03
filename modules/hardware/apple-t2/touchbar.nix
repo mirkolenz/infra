@@ -41,10 +41,7 @@
         services.udev.packages = [ package ];
         services.upower.enable = true;
         systemd.packages = [ package ];
-        systemd.user.services.kait2en-touchbar = {
-          wantedBy = [ "graphical-session.target" ];
-          path = [ config.services.pipewire.wireplumber.package ];
-        };
+        systemd.user.services.kait2en-touchbar.wantedBy = [ "graphical-session.target" ];
 
         users.groups.${group}.members = lib.optional (user != null) user;
       };

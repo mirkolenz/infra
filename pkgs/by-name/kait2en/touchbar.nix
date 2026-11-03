@@ -11,6 +11,7 @@
   pkg-config,
   udev,
   udevCheckHook,
+  wireplumber,
 }:
 kait2en.mkService {
   component = "touchbar";
@@ -53,6 +54,9 @@ kait2en.mkService {
     install -Dm444 -t $out/share/licenses/kait2en-touchbar \
       $cargoRoot/THIRD-PARTY-NOTICES.md
   '';
+
+  # It reads the volume levels through `wpctl`.
+  runtimeInputs."bin/kait2en-touchbar" = [ wireplumber ];
 
   doInstallCheck = true;
 

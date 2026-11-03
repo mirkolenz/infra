@@ -5,6 +5,7 @@
 # https://github.com/kaiT2en/KaiT2en-Fedora/tree/main/t2-services/t2-autobrightness
 {
   kait2en,
+  glib,
 }:
 kait2en.mkService {
   component = "autobrightness";
@@ -14,6 +15,9 @@ kait2en.mkService {
 
   # A user unit and the shell extension.
   integration = true;
+
+  # It switches GNOME's own automatics through `gsettings`.
+  runtimeInputs."bin/t2-autobrightness" = [ glib ];
 
   meta = {
     description = "Automatic display brightness for Apple T2 MacBooks on GNOME";

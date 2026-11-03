@@ -19,11 +19,7 @@
         # The shell extension, which the daemon enables for each user.
         environment.systemPackages = [ package ];
         systemd.packages = [ package ];
-        systemd.user.services.kait2en-t2-autobrightness = {
-          wantedBy = [ "graphical-session.target" ];
-          # It switches GNOME's settings through `gsettings`.
-          path = [ pkgs.glib ];
-        };
+        systemd.user.services.kait2en-t2-autobrightness.wantedBy = [ "graphical-session.target" ];
       };
     };
 }

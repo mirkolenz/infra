@@ -8,7 +8,7 @@
   extraPaths ? [ ],
 }:
 let
-  binPath = lib.concatStringsSep ":" (map (pkg: "${lib.getBin pkg}/bin") runtimeInputs ++ extraPaths);
+  binPath = lib.concatStringsSep ":" ([ (lib.makeBinPath runtimeInputs) ] ++ extraPaths);
 in
 ''
   substituteInPlace ${path} --replace-fail '#!/usr/bin/env bash' \

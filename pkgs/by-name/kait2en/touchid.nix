@@ -5,6 +5,7 @@
 # https://github.com/kaiT2en/KaiT2en-Fedora/tree/main/t2-services/t2-touchid
 {
   kait2en,
+  fprintd,
   libinput,
   pkg-config,
   udev,
@@ -25,6 +26,9 @@ kait2en.mkService {
   # prompt to the Touch Bar.
   integration = true;
   bridge = true;
+
+  # Binding an identity runs `fprintd-enroll`, which answers itself.
+  runtimeInputs."bin/t2-touchid" = [ fprintd ];
 
   meta = {
     description = "Apple T2 Touch ID bridge for fprintd";

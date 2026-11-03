@@ -5,6 +5,9 @@
 {
   lib,
   kait2en,
+  iproute2,
+  iw,
+  networkmanager,
 }:
 kait2en.mkGtkApp (finalAttrs: {
   component = "airshare";
@@ -39,6 +42,13 @@ kait2en.mkGtkApp (finalAttrs: {
     install -Dm444 -t $out/share/licenses/kait2en-airshare \
       $cargoRoot/{THIRD-PARTY-NOTICES.md,proto/LICENSE-Apache-2.0,proto/LICENSE-Chromium}
   '';
+
+  # The hotspot helper adds its interface and connection through these.
+  runtimeInputs."libexec/t2-quickshare-hotspot" = [
+    iproute2
+    iw
+    networkmanager
+  ];
 
   passthru.port = 8771;
 

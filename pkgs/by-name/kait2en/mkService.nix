@@ -2,6 +2,7 @@
   lib,
   rustPlatform,
   kait2en,
+  makeBinaryWrapper,
 }:
 # The Rust daemons under `t2-services` and `apps`: each crate sits in a
 # subdirectory, but its path dependencies reach out of it, so the whole tree is
@@ -14,6 +15,7 @@ lib.extendMkDerivation {
     "root"
     "integration"
     "bridge"
+    "runtimeInputs"
   ];
   extendDrvArgs =
     _finalAttrs:
@@ -26,6 +28,9 @@ lib.extendMkDerivation {
       # A daemon on the bridge link, which starts with it instead of waiting for
       # `network-online.target`, see `apple-t2/bridge.nix`.
       bridge ? false,
+      # The packages each program, relative to the output, finds on its PATH.
+      runtimeInputs ? { },
+      nativeBuildInputs ? [ ],
       meta ? { },
       postInstall ? "",
       ...
@@ -36,6 +41,8 @@ lib.extendMkDerivation {
 
       cargoRoot = root;
       buildAndTestSubdir = root;
+
+      nativeBuildInputs = nativeBuildInputs ++ lib.optional (runtimeInputs != { }) makeBinaryWrapper;
 
       postInstall =
         kait2en.installLicenses "kait2en-${component}"
@@ -67,7 +74,10 @@ lib.extendMkDerivation {
           substituteInPlace $out/lib/systemd/system/*.service \
             --replace-fail ' network-online.target' ""
         ''
-        + postInstall;
+        + postInstall
+        + lib.concatMapAttrsStringSep "\n" (program: packages: ''
+          wrapProgram $out/${program} --prefix PATH : ${lib.makeBinPath packages}
+        '') runtimeInputs;
 
       __structuredAttrs = true;
 

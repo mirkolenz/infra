@@ -4,6 +4,8 @@
 # https://github.com/kaiT2en/KaiT2en-Fedora/tree/main/apps/t2-drop
 {
   kait2en,
+  iproute2,
+  networkmanager,
 }:
 kait2en.mkService {
   component = "drop";
@@ -11,6 +13,12 @@ kait2en.mkService {
   inherit (kait2en.modules) src;
 
   cargoHash = "sha256-zMTkBLXFiwo3L955nDF0F/Rx2YllhS09kVLWGNsIBHY=";
+
+  # It sets up the AWDL interface through both.
+  runtimeInputs."bin/t2drop" = [
+    iproute2
+    networkmanager
+  ];
 
   passthru.port = 8770;
 

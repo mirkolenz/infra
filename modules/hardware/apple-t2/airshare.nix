@@ -15,10 +15,6 @@
         airshare
         drop
       ];
-      helperPath = [
-        pkgs.iproute2
-        config.networking.networkmanager.package
-      ];
     in
     {
       options.custom.apple-t2.airshare = {
@@ -42,8 +38,6 @@
         hardware.bluetooth.enable = true;
         services.dbus.packages = packages;
         systemd.packages = packages;
-        systemd.services.t2-drop.path = helperPath;
-        systemd.services.t2-quickshare-hotspot.path = helperPath ++ [ pkgs.iw ];
 
         # `t2-drop` owns the AWDL interface.
         networking.networkmanager.unmanaged = [ "interface-name:awdl*" ];

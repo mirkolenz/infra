@@ -27,9 +27,6 @@
         services.fprintd.enable = true;
         services.dbus.packages = [ package ];
 
-        # Binding an identity runs `fprintd-enroll`, which answers itself.
-        systemd.services.kait2en-t2-touchid.path = [ config.services.fprintd.package ];
-
         # Upstream's installer binds the fingers to the user running it.
         environment.etc."kait2en/t2-touchid.conf".source = pkgs.substitute {
           src = "${package}/etc/kait2en/t2-touchid.conf";
