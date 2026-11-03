@@ -221,8 +221,8 @@ class Mode:
     dry_run: bool
     min_age: int
 
-    def apply(self, bumps: Iterable[Bump]) -> None:
-        """Apply the bumps of the mode, running each command once."""
+    def apply(self, bumps: Iterable[Bump], label: str) -> None:
+        """Apply the bumps of the mode, running each command once, naming the project by its label if there are none."""
         bumps = [bump for bump in bumps if bump.qualified or not self.qualified]
 
         if self.accept is not None:
@@ -234,7 +234,7 @@ class Mode:
             ]
 
         if not bumps:
-            print("No dependency ranges to bump.")
+            print(f"No dependency ranges to bump in {label}.")
             return
 
         if self.dry_run:
@@ -947,15 +947,15 @@ def settled(repo: str, ref: str, min_age: int) -> bool:
 
 
 def relock(mode: Mode) -> None:
-    """Lock the bumped refs of the `actions.lock` of a repository if it has one, then advance its floating refs.
+    """Relock the `actions.lock` of a repository if it has one, locking the bumped refs, pruning the replaced ones, and advancing the floating ones.
 
-    The workflows depending on a commit that has not settled yet keep their floating refs.
+    The workflows depending on a locked commit whose ref moved to one that has not settled yet keep their floating refs,
+    so then a plain run locks the bumped refs of all workflows and only the others relock.
+    The bumped refs need no check, since their tags only follow settled commits.
     """
     if not ACTIONS_LOCK.is_file():
         return
 
-    # locks the bumped refs and prunes the replaced ones
-    run("gh-actions-lock", *LOCK_FLAGS)
     lock = yaml.safe_load(ACTIONS_LOCK.read_text())
     workflows: Mapping[str, Sequence[str]] = lock.get("workflows") or {}
     dependencies: Mapping[str, Mapping[str, Any]] = lock.get("dependencies") or {}
@@ -986,15 +986,20 @@ def relock(mode: Mode) -> None:
             if hold
         }
 
+    if not held:
+        run("gh-actions-lock", "--relock", *LOCK_FLAGS, output=False)
+        return
+
     for key in sorted(held):
         print(
             f"Holding back {key}, its new commit has not settled yet.", file=sys.stderr
         )
 
+    run("gh-actions-lock", *LOCK_FLAGS, output=False)
     paths = [path for path, keys in workflows.items() if held.isdisjoint(closure(keys))]
 
     if paths:
-        run("gh-actions-lock", "--relock", *LOCK_FLAGS, *paths)
+        run("gh-actions-lock", "--relock", *LOCK_FLAGS, *paths, output=False)
 
 
 @dataclass(frozen=True, slots=True)
@@ -1005,9 +1010,9 @@ class Ecosystem:
     pathspecs: Args
     after: Callable[[Mode], None] | None = None
 
-    def bump(self, mode: Mode) -> None:
-        """Apply the bumps, then run the step after them unless only listing them."""
-        mode.apply(self.bumps(mode))
+    def bump(self, mode: Mode, label: str) -> None:
+        """Apply the bumps of the project with the label, then run the step after them unless only listing them."""
+        mode.apply(self.bumps(mode), label)
 
         if self.after is not None and not mode.dry_run:
             self.after(mode)
@@ -1103,11 +1108,12 @@ class Manager:
         The message names the project by its path in the repository unless it is the root.
         """
         prefix = run("git", "rev-parse", "--show-prefix").strip().removesuffix("/")
+        label = f"{self.name} {prefix}".rstrip()
         message = f"chore(deps/{self.name}): update {prefix}".rstrip()
         head = run("git", "rev-parse", "HEAD")
 
         if self.ranges is not None:
-            self.ranges.bump(mode)
+            self.ranges.bump(mode, label)
 
         if mode.dry_run:
             return
