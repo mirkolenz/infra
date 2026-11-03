@@ -21,9 +21,9 @@
       services.gnome.gcr-ssh-agent.enable = false;
     };
 
-  # The SSH agent and git signing rely on the 1Password app installed by the
-  # host (programs._1password-gui on NixOS, homebrew on Darwin). Standalone
-  # home-manager has no host config, so skip the integration.
+  # The CLI comes from the host (programs._1password), the SSH agent and git signing
+  # rely on the 1Password app installed by the host (programs._1password-gui on NixOS,
+  # homebrew on Darwin). Standalone home-manager has no host config, so skip the integration.
   flake.modules.homeManager.default =
     {
       pkgs,
@@ -31,10 +31,13 @@
       config,
       ...
     }@args:
-    lib.mkIf (config.custom.features.graphical.enable && !config.custom.standalone) {
+    let
+      graphical = config.custom.features.graphical.enable;
+    in
+    lib.mkIf (!config.custom.standalone) {
       # The SSH agent only runs while the app does, and the "Start at login" setting
       # of the app does not create its autostart entry on Linux.
-      systemd.user.services."1password" = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
+      systemd.user.services."1password" = lib.mkIf (graphical && pkgs.stdenv.hostPlatform.isLinux) {
         Unit = {
           Description = "1Password";
           PartOf = [ "graphical-session.target" ];
@@ -49,10 +52,10 @@
 
       programs.op = {
         enable = true;
-        package = args.osConfig.programs._1password.package;
+        package = null;
         direnv.enable = true;
         sshAgent = {
-          enable = true;
+          enable = graphical;
           settings = {
             ssh-keys = [
               {
