@@ -140,6 +140,11 @@
             default-folder-viewer = "list-view";
           };
 
+          # Night light derives its automatic schedule from geoclue
+          "org/gnome/system/location" = {
+            enabled = true;
+          };
+
           "org/gnome/settings-daemon/plugins/color" = {
             night-light-enabled = true;
             night-light-schedule-automatic = true;
