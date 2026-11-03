@@ -32,7 +32,7 @@ in
       '';
     };
 
-    direnv.enable = mkEnableOption "the direnv function `use_op` that loads a 1Password Environment";
+    direnv.enable = mkEnableOption "the direnv function `use_openv` that loads a 1Password Environment";
 
     sshAgent = {
       enable = mkEnableOption "1password ssh agent";
@@ -84,19 +84,23 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = lib.mkIf (cfg.package != null) [ cfg.package ];
 
-    # The app integration prompts on the local display, which hangs over SSH,
-    # so disable it there to fall back to `op signin` or a service account token.
-    programs.direnv.stdlib = lib.mkIf cfg.direnv.enable ''
-      use_op() {
-        local vars line
-        vars=$(''${SSH_CONNECTION:+env OP_BIOMETRIC_UNLOCK_ENABLED=false} ${cfg.program} environment read "$1") || return
+    custom.commands.openv.text = /* bash */ ''
+      # @describe Run a command with the variables of a 1Password Environment
+      # @arg id!       ID of the Environment
+      # @arg command~  Command to run
 
-        # The values are unquoted, so export them verbatim instead of evaluating them.
-        while IFS= read -r line; do
-          if [[ $line == *=* ]]; then
-            export "$line"
-          fi
-        done <<<"$vars"
+      # The app integration prompts on the local display, which hangs over SSH,
+      # so disable it there to fall back to `op signin` or a service account token.
+      if [[ -n ''${SSH_CONNECTION:-} ]]; then
+        export OP_BIOMETRIC_UNLOCK_ENABLED=false
+      fi
+
+      exec ${cfg.program} run --environment "$argc_id" -- "''${argc_command[@]}"
+    '';
+
+    programs.direnv.stdlib = lib.mkIf cfg.direnv.enable ''
+      use_openv() {
+        direnv_load ${lib.getExe config.custom.commands.openv} "$1" "$direnv" dump
       }
     '';
 
