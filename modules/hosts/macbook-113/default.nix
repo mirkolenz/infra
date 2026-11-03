@@ -21,6 +21,9 @@ in
         extras.enable = true;
       };
 
+      # The ambient light sensor drives GNOME's automatic screen brightness.
+      hardware.sensor.iio.enable = true;
+
       boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
       boot.loader.systemd-boot.enable = true;
     };

@@ -19,6 +19,9 @@ in
 
       boot.loader.systemd-boot.enable = true;
 
+      # The ambient light sensor drives GNOME's automatic screen brightness.
+      hardware.sensor.iio.enable = true;
+
       # The panel hangs on the GeForce, so i915 would only add a phantom LVDS-1,
       # and the kernel calls apple_set_os only on newer dual GPU models.
       # Without i915, the PCH audio controller would defer its probe forever, waiting for the audio component.

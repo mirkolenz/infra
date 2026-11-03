@@ -42,6 +42,9 @@ in
         # devices as untrusted, so they get no bounce buffers or strict unmapping.
         boot.kernelParams = [ "intel_iommu=on" ];
 
+        # The ACPI ambient light sensor drives GNOME's automatic screen brightness.
+        hardware.sensor.iio.enable = true;
+
         boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
         boot.loader.systemd-boot.enable = true;
       };
