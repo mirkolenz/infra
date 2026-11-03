@@ -13,7 +13,9 @@
         # fish generates the man page completions at runtime instead of one derivation per package
         generateCompletions = false;
         functions.fish_greeting.body = ''
-          if set -q SSH_CONNECTION
+          # multiplexers allocate their own pty, so this only matches the ssh login shell itself
+          if status is-login
+            and test "$SSH_TTY" = (tty)
             ${lib.getExe config.programs.fastfetch.package}
           end
         '';
