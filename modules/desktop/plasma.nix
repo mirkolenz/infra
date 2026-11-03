@@ -86,7 +86,7 @@
           kwin.nightLight = {
             enable = true;
             mode = "automatic";
-            temperature.night = 2000;
+            temperature.night = 3700;
           };
 
           panels = [
