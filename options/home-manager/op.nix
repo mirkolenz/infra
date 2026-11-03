@@ -90,8 +90,9 @@ in
       # @arg command~  Command to run
 
       # The app integration prompts on the local display, which hangs over SSH,
-      # so disable it there to fall back to `op signin` or a service account token.
-      if [[ -n ''${SSH_CONNECTION:-} ]]; then
+      # so disable it while an ssh login is live to fall back to `op signin` or a service account token.
+      # Unlike SSH_CONNECTION, this holds in multiplexer panes that outlive or predate the login.
+      if ${lib.getExe config.custom.commands.ssh-agent-alive}; then
         export OP_BIOMETRIC_UNLOCK_ENABLED=false
       fi
 

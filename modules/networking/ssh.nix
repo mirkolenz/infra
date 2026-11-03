@@ -84,12 +84,6 @@ in
     let
       # forwarded agent of the newest ssh login, stable across reconnects
       agentLink = "${config.home.homeDirectory}/.ssh/ssh_auth_sock";
-      # The link dangles once its login ends or goes stale after a crash.
-      # Exit code 2 of ssh-add means unreachable, the timeout guards against stalled connections.
-      agentAlive = pkgs.writeShellScript "ssh-agent-alive" ''
-        SSH_AUTH_SOCK=${agentLink} ${lib.getExe' pkgs.coreutils "timeout"} 3 ${lib.getExe' pkgs.openssh "ssh-add"} -l >/dev/null 2>&1
-        [ $? -le 1 ]
-      '';
     in
     {
       home.file.".ssh/rc".text = ''
@@ -107,6 +101,19 @@ in
           ssh = lib.getExe pkgs.openssh;
         in
         {
+          # The link dangles once its login ends or goes stale after a crash.
+          # Exit code 2 of ssh-add means unreachable, the timeout guards against stalled connections.
+          ssh-agent-alive = {
+            runtimeInputs = [
+              pkgs.coreutils
+              pkgs.openssh
+            ];
+            text = /* bash */ ''
+              # @describe Check whether the forwarded agent of the newest ssh login is reachable
+
+              SSH_AUTH_SOCK=${agentLink} timeout 3 ssh-add -l >/dev/null 2>&1 || [[ $? -le 1 ]]
+            '';
+          };
           # Discarding the known hosts file makes ssh announce the host key as
           # newly added on every run, so drop anything below an error.
           ssh-once.text = /* bash */ ''
@@ -131,7 +138,7 @@ in
           # Prefer a live forwarded agent in shells over the IdentityAgent of `*` (1Password),
           # GUI apps lack the link and stay with 1Password.
           forwardedAgent = {
-            header = "Match exec 'test \"$SSH_AUTH_SOCK\" = ${agentLink} && ${agentAlive}'";
+            header = "Match exec 'test \"$SSH_AUTH_SOCK\" = ${agentLink} && ${lib.getExe config.custom.commands.ssh-agent-alive}'";
             IdentityAgent = agentLink;
           };
           "gpu" = {
