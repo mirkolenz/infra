@@ -1,8 +1,8 @@
 {
-  "version": "2.43.0-beta.02",
+  "version": "2.44.0-beta.01",
   "hashes": {
-    "darwin_arm64": "sha256-0d3FLzrXbPyIt6ySEpRjni/ELN2k1bgVX09Oqd8uPpE=",
-    "linux_arm64": "sha256-wILgn8705FpwAViGxYVE4NHxMXu/8BCJgGdNheMSBas=",
-    "linux_amd64": "sha256-gxvrI3TgiZPFNiwXmtQWa34v9NCo8hx9ppZNa//eoK0="
+    "darwin_arm64": "sha256-4Y3+Z61TnMb0voypgAAlGDH72cch1Z9ODuqFUIJ8fG4=",
+    "linux_arm64": "sha256-OS7pK8njcwkNtM7mwSMLbpFucy/W56B6KrpYByeotdI=",
+    "linux_amd64": "sha256-BBSe3GdPT9V0GlfgBE+8savpCHfaEFp+pTT8CvLdLaQ="
   }
 }
