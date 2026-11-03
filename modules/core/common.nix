@@ -3,7 +3,7 @@ let
   shared =
     { lib, pkgs, ... }:
     {
-      time.timeZone = "Europe/Berlin";
+      time.timeZone = lib.mkDefault "Europe/Berlin";
       environment = {
         defaultPackages = lib.mkForce [ ];
         systemPackages = [ pkgs.opnix ];

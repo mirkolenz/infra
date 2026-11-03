@@ -29,6 +29,9 @@
         };
 
         environment.gnome.excludePackages = with pkgs; [ gnome-tour ];
+
+        # Lets GNOME's automatic time zone set it through timedated.
+        time.timeZone = null;
       };
 
   flake.modules.homeManager.linux =
@@ -140,9 +143,13 @@
             default-folder-viewer = "list-view";
           };
 
-          # Night light derives its automatic schedule from geoclue
+          # Night light and the time zone follow the location from geoclue
           "org/gnome/system/location" = {
             enabled = true;
+          };
+
+          "org/gnome/desktop/datetime" = {
+            automatic-timezone = true;
           };
 
           "org/gnome/settings-daemon/plugins/color" = {
