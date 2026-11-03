@@ -9,10 +9,24 @@
   gnugrep,
   systemd,
 }:
+let
+  script = "apps/t2-dgpu-control/contrib/t2-dgpu-control-helper";
+in
 kait2en.mkScript {
   pname = "kait2en-dgpu";
 
-  script = "apps/t2-dgpu-control/contrib/t2-dgpu-control-helper";
+  version = "0.1.12-unstable-2026-11-02";
+
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-vmsXkLn9BIQBeWjhj1eXfzR5tQaW7+r4tsMI3ufwmxI=";
+    paths = [
+      script
+      "apps/t2-dgpu-control/systemd/"
+    ];
+  };
+
+  inherit script;
 
   runtimeInputs = [
     coreutils

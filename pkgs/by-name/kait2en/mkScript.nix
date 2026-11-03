@@ -22,8 +22,6 @@ lib.extendMkDerivation {
       program = "$out/bin/${finalAttrs.meta.mainProgram}";
     in
     {
-      inherit (kait2en.modules) version src;
-
       dontConfigure = true;
       dontBuild = true;
 

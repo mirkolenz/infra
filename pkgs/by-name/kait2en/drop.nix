@@ -8,9 +8,13 @@
   networkmanager,
 }:
 kait2en.mkService {
-  component = "drop";
-  root = "apps/t2-drop";
-  inherit (kait2en.modules) src;
+  version = "0.1.12-unstable-2026-11-02";
+
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-NX5dqzSA6dAYEPoRjCPOLVa+a94R5OxRNeLJhfrdfDc=";
+    root = "apps/t2-drop";
+  };
 
   cargoHash = "sha256-zMTkBLXFiwo3L955nDF0F/Rx2YllhS09kVLWGNsIBHY=";
 

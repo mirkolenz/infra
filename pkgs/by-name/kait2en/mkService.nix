@@ -4,15 +4,13 @@
   kait2en,
   makeBinaryWrapper,
 }:
-# The Rust daemons under `t2-services` and `apps`: each crate sits in a
-# subdirectory, but its path dependencies reach out of it, so the whole tree is
-# unpacked.
-# Callers declare `src` so nix-update writes Cargo hashes to their files.
+# The Rust daemons under `t2-services` and `apps`. Each crate sits in a
+# subdirectory of its sparse checkout, which keeps upstream's layout for path
+# dependencies reaching out of it.
+# Callers declare `version` and `src` so nix-update writes to their files.
 lib.extendMkDerivation {
   constructDrv = rustPlatform.buildRustPackage;
   excludeDrvArgNames = [
-    "component"
-    "root"
     "integration"
     "bridge"
     "runtimeInputs"
@@ -20,9 +18,8 @@ lib.extendMkDerivation {
   extendDrvArgs =
     _finalAttrs:
     {
-      component,
-      # The crate, relative to the repository root.
-      root ? "t2-services/t2-${component}",
+      # Its `root` is the crate, named `t2-<component>` upstream.
+      src,
       # Upstream's units and configuration, from its `install-integration`.
       integration ? false,
       # A daemon on the bridge link, which starts with it instead of waiting for
@@ -35,9 +32,12 @@ lib.extendMkDerivation {
       postInstall ? "",
       ...
     }:
+    let
+      inherit (src) root;
+      component = lib.removePrefix "t2-" (baseNameOf root);
+    in
     {
       pname = "kait2en-${component}";
-      inherit (kait2en.modules) version;
 
       cargoRoot = root;
       buildAndTestSubdir = root;

@@ -1,46 +1,60 @@
+# Fails until every package builds from the upstream revision last reviewed.
+# `outdated` replays each sparse checkout on the reviewed tree with git itself,
+# so its patterns mean exactly what they mean to the fetcher.
 {
   lib,
   fetchFromGitHub,
+  git,
   runCommand,
   kait2en,
 }:
+let
+  # The revisions last reviewed, written only by `review.py advance`.
+  reviewed = lib.importJSON ./reviewed.json;
+
+  # Every scope attribute fetched through `fetchSource`.
+  packages = lib.filterAttrs (_: package: package.src.sparseCheckout or null != null) (
+    lib.removeAttrs kait2en [ "upstream-check" ]
+  );
+
+  reviewedSrc = fetchFromGitHub {
+    owner = "kaiT2en";
+    repo = "KaiT2en-Fedora";
+    inherit (reviewed.upstream) rev hash;
+  };
+
+  # The names of the packages whose files differ there, which `review.py
+  # update` runs nix-update for.
+  outdated = runCommand "kait2en-upstream-outdated" { nativeBuildInputs = [ git ]; } ''
+    cp -r --no-preserve=mode ${reviewedSrc} reviewed
+    cd reviewed
+    git init --quiet
+    git add --all
+    git -c user.name=check -c user.email=check commit --quiet --message reviewed
+    touch $out
+
+    ${lib.concatMapAttrsStringSep "\n" (name: package: ''
+      git sparse-checkout set --no-cone ${lib.escapeShellArgs package.src.sparseCheckout}
+      diff -rq --no-dereference --exclude=.git . ${package.src} > /dev/null || echo ${name} >> $out
+    '') packages}
+  '';
+in
 runCommand "kait2en-upstream-check"
   {
-    # Kept outside modules.nix so nix-update cannot advance the reviewed pin.
-    reviewedSrc = fetchFromGitHub {
-      inherit (kait2en.modules.src) owner repo;
-      rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
-      hash = "sha256-2Fd27qMuXdF5fKk29AeWi+g/m1gXY/kPXoLH9DL16tw=";
-    };
-    inherit (kait2en.modules) src;
-    # The last commit reviewed of the NixOS fork packaging the same upstream.
-    # https://github.com/LukeChannings/KaiT2en-NixOS
-    passthru.reviewedFork = "207707a2b8da87e00011b6056786625999b45672";
+    passthru = { inherit reviewedSrc outdated; };
     meta = {
-      description = "Detect changes to reviewed KaiT2en build and integration metadata";
+      description = "Check that every KaiT2en package builds from the reviewed upstream revision";
       platforms = lib.platforms.unix;
       # the diff is the same on every system, so CI runs it once
       hydraPlatforms = [ "x86_64-linux" ];
     };
   }
   ''
-    metadata() {
-      mkdir "$2"
-
-      find "$1" ! -type d \( \
-        -name Cargo.toml -o -name Cargo.lock -o -name build.rs -o \
-        -name Makefile -o -name makefile -o -name GNUmakefile -o \
-        -name '*.service' -o -path '*/systemd/*' -o -path '*/integration/*' \
-      \) -printf '%P\0' | tar -C "$1" --null -T - -cf - | tar -xf - -C "$2"
-    }
-
-    metadata "$reviewedSrc" reviewed
-    metadata "$src" current
-
-    if ! diff --no-dereference -ru reviewed current; then
-      echo "Upstream build or integration metadata changed, review it before advancing reviewedSrc in upstream-check.nix." >&2
+    if [ -s ${outdated} ]; then
+      echo "Not built from the reviewed revision, see .agents/skills/kait2en/SKILL.md:" >&2
+      cat ${outdated} >&2
       exit 1
     fi
 
-    touch "$out"
+    touch $out
   ''

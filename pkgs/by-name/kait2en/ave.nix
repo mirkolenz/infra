@@ -1,5 +1,6 @@
-# Userspace half of the T2's audio/video engine: `kait2en.modules` exposes the
-# device, this daemon opens the sessions and ships the sleep hook closing them.
+# Userspace half of the T2's audio/video engine: the driver in `kait2en.modules`
+# exposes the device, this daemon opens the sessions and ships the sleep hook
+# closing them.
 # https://github.com/kaiT2en/KaiT2en-Fedora/tree/main/t2-services/t2-ave
 {
   lib,
@@ -8,8 +9,16 @@
   kmod,
 }:
 kait2en.mkService {
-  component = "ave";
-  inherit (kait2en.modules) src;
+  version = "0.1.12-unstable-2026-11-02";
+
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-OldN+PFCoyB5gtIGOrrZ+KNEZHlcoGwJVhLmHITTaEY=";
+    root = "t2-services/t2-ave";
+    bridgexpc = true;
+    # The AVE driver, built by `kait2en.modules`.
+    paths = [ "!t2-services/t2-ave/kernel/" ];
+  };
 
   cargoHash = "sha256-mQ7D13m0wGRb7uW6s/sE22AjIvsfIUK5HObUoz2ey1I=";
 

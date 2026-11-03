@@ -11,7 +11,16 @@
     let
       inherit (pkgs.kait2en) dsp ucm;
 
-      ucm2Dir = "${ucm}/share/alsa/ucm2";
+      # KaiT2en only adds directories of its own, so the two trees merge cleanly.
+      ucm2Dir = "${
+        pkgs.symlinkJoin {
+          name = "alsa-ucm-conf-apple-t2";
+          paths = [
+            pkgs.alsa-ucm-conf
+            ucm
+          ];
+        }
+      }/share/alsa/ucm2";
       # Systemd services do not inherit `environment.variables`.
       # https://github.com/nix-community/nixos-apple-silicon/blob/66d8dd2c27f99bd5420c99938b60695aac1785c4/apple-silicon-support/modules/sound/default.nix#L46
       audioServices = lib.genAttrs [ "pipewire" "pipewire-pulse" "wireplumber" ] (_: {

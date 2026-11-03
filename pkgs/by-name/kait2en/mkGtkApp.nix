@@ -18,7 +18,7 @@ lib.extendMkDerivation {
   extendDrvArgs =
     finalAttrs:
     {
-      component,
+      src,
       appId,
       nativeBuildInputs ? [ ],
       buildInputs ? [ ],
@@ -27,12 +27,10 @@ lib.extendMkDerivation {
       ...
     }:
     let
-      root = "apps/t2-${component}";
+      inherit (src) root;
       assets = "share/kait2en";
     in
     {
-      inherit root;
-
       nativeBuildInputs = [
         glib
         libxml2

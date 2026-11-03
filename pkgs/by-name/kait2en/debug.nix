@@ -6,9 +6,16 @@
   kait2en,
 }:
 kait2en.mkGtkApp {
-  component = "debug";
   appId = "org.t2debug.gtk";
-  inherit (kait2en.modules) src;
+  version = "0.1.12-unstable-2026-11-02";
+
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-ICfmiP2Bk4hNu4u/9E4i0JKDlZHSzlluxQhJRiASibQ=";
+    root = "apps/t2-debug";
+    bridgexpc = true;
+    logos = true;
+  };
 
   cargoHash = "sha256-6zciw4vmiI2APy2f4z1XmYlSpXU/F38CT/0H8h2UvSE=";
 

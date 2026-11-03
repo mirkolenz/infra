@@ -10,9 +10,15 @@
   networkmanager,
 }:
 kait2en.mkGtkApp (finalAttrs: {
-  component = "airshare";
   appId = "org.t2airshare.gtk";
-  inherit (kait2en.modules) src;
+  version = "0.1.12-unstable-2026-11-02";
+
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-JP1iCmIVQWhhB4FyE+vMwtFttcwMQ1nKYD70FEVHeDc=";
+    root = "apps/t2-airshare";
+    logos = true;
+  };
 
   cargoHash = "sha256-qk4Tt1J4xuEQwFyLiGbVy6QRt5htNIT6Dkw2vyxdSyE=";
 

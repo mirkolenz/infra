@@ -8,9 +8,15 @@
   util-linux,
 }:
 kait2en.mkGtkApp {
-  component = "smc-control";
   appId = "org.t2smccontrol.gtk";
-  inherit (kait2en.modules) src;
+  version = "0.1.12-unstable-2026-11-02";
+
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-hIP5yG7RATrwOHwZUnlFPK1gP3vFnQ+goxM9895OCaU=";
+    root = "apps/t2-smc-control";
+    logos = true;
+  };
 
   cargoHash = "sha256-eh1i9ud2m3FHog4+VRhWcL87z2QWVoWQZ829MKJSGVY=";
 

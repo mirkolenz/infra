@@ -5,35 +5,35 @@ import argparse
 import json
 import os
 import subprocess
-from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any, TypedDict
 
-CHECK = Path("pkgs/by-name/kait2en/upstream-check.nix")
+REVIEWED = Path("pkgs/by-name/kait2en/reviewed.json")
+OUTDATED_ATTR = ".#packages.x86_64-linux.kait2en-upstream-check.outdated"
+UPSTREAM = "kaiT2en/KaiT2en-Fedora"
 FORK = "LukeChannings/KaiT2en-NixOS"
 # Only the fork's Nix layer, the rest mirrors upstream.
 FORK_PREFIXES = ("nix/", "patches/nixos/", ".agents/")
-PINS_EXPR = """c: {
-  upstream = "${c.src.owner}/${c.src.repo}";
-  reviewed_fork = c.reviewedFork;
-  reviewed_rev = c.reviewedSrc.rev;
-  reviewed_hash = c.reviewedSrc.outputHash;
-  rev = c.src.rev;
-  hash = c.src.outputHash;
-}"""
 
 
-@dataclass(frozen=True, slots=True)
-class Pins:
-    """Pinned revisions of `upstream-check.nix` and the upstream they track."""
+class ForkPin(TypedDict):
+    """Revision of the NixOS fork."""
 
-    upstream: str
-    reviewed_fork: str
-    reviewed_rev: str
-    reviewed_hash: str
     rev: str
+
+
+class UpstreamPin(ForkPin):
+    """Revision of upstream and the hash of its tree."""
+
     hash: str
+
+
+class Reviewed(TypedDict):
+    """Contents of `reviewed.json`, the revisions last reviewed."""
+
+    upstream: UpstreamPin
+    fork: ForkPin
 
 
 class CommitDetail(TypedDict):
@@ -73,18 +73,9 @@ def run_json(*args: str) -> Any:
     return json.loads(run(*args))
 
 
-def load_pins() -> Pins:
-    """Evaluates every pin at once so a failure aborts before any request."""
-    return Pins(
-        **run_json(
-            "nix",
-            "eval",
-            "--json",
-            ".#packages.x86_64-linux.kait2en-upstream-check",
-            "--apply",
-            PINS_EXPR,
-        )
-    )
+def load_reviewed() -> Reviewed:
+    """Reads the revisions last reviewed."""
+    return json.loads(REVIEWED.read_text())
 
 
 def compare(repo: str, base: str, head: str, keep: Callable[[str], bool]) -> None:
@@ -116,58 +107,74 @@ def is_fork_nix(filename: str) -> bool:
     )
 
 
-def replace_once(path: Path, replacements: Mapping[str, str]) -> None:
-    """Replaces each quoted old value in a file with the new one, requiring exactly one match."""
-    text = path.read_text()
-
-    for old, new in replacements.items():
-        if (count := text.count(f'"{old}"')) != 1:
-            raise SystemExit(f'{path}: expected "{old}" once, found {count}')
-
-        text = text.replace(f'"{old}"', f'"{new}"')
-
-    path.write_text(text)
-
-
 def main() -> None:
     """Parses the arguments and runs the subcommand."""
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser(
         "upstream",
-        help="commits and files upstream changed from `reviewedSrc` to `src`",
+        help="commits and files upstream changed since its reviewed revision",
     )
     commands.add_parser(
         "fork",
-        help="commits and Nix layer files the NixOS fork changed since `reviewedFork`",
+        help="commits and Nix layer files the NixOS fork changed since its reviewed revision",
     )
     commands.add_parser(
         "advance",
-        help="moves `reviewedSrc` to `src` and `reviewedFork` to the fork's main",
+        help="moves both reviewed revisions to the main branches",
+    )
+    commands.add_parser(
+        "update",
+        help="runs nix-update for the packages whose files differ from the reviewed revision",
     )
     args = parser.parse_args()
 
     os.chdir(run("git", "rev-parse", "--show-toplevel").strip())
-    pins = load_pins()
+    reviewed = load_reviewed()
 
     match args.command:
         case "upstream":
-            compare(pins.upstream, pins.reviewed_rev, pins.rev, lambda _: True)
+            compare(UPSTREAM, reviewed["upstream"]["rev"], "main", lambda _: True)
 
         case "fork":
-            compare(FORK, pins.reviewed_fork, "main", is_fork_nix)
+            compare(FORK, reviewed["fork"]["rev"], "main", is_fork_nix)
 
         case "advance":
-            fork_head: Commit = run_json("gh", "api", f"repos/{FORK}/commits/main")
-            replace_once(
-                CHECK,
-                {
-                    pins.reviewed_rev: pins.rev,
-                    pins.reviewed_hash: pins.hash,
-                    pins.reviewed_fork: fork_head["sha"],
-                },
+            # Locks the default branch, so revision and hash match.
+            upstream = run_json(
+                "nix", "flake", "prefetch", "--json", f"github:{UPSTREAM}"
             )
-            subprocess.run(("git", "diff", "--stat", "--", CHECK), check=True)
+            fork_head: Commit = run_json("gh", "api", f"repos/{FORK}/commits/main")
+            reviewed = {
+                "upstream": {
+                    "rev": upstream["locked"]["rev"],
+                    "hash": upstream["hash"],
+                },
+                "fork": {"rev": fork_head["sha"]},
+            }
+            REVIEWED.write_text(json.dumps(reviewed, indent=2) + "\n")
+            subprocess.run(("git", "diff", "--", REVIEWED), check=True)
+
+        case "update":
+            outdated = run(
+                "nix",
+                "build",
+                "--no-link",
+                "--print-out-paths",
+                OUTDATED_ATTR,
+            )
+
+            for name in Path(outdated.strip()).read_text().split():
+                subprocess.run(
+                    (
+                        "nix-update",
+                        f"kait2en.{name}",
+                        "--system",
+                        "x86_64-linux",
+                        "--version=branch",
+                    ),
+                    check=True,
+                )
 
 
 if __name__ == "__main__":

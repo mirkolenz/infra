@@ -16,9 +16,17 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "kait2en-dsp";
-  inherit (kait2en.modules) version src;
+  version = "0.1.12-unstable-2026-11-02";
 
-  sourceRoot = "${finalAttrs.src.name}/dsp";
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-eYqIg5MJtDvRZ7Zv+MRZiBWGd1GzmWQQDJ4mxDi5YiE=";
+    root = "dsp";
+    # Installed by the Makefile and removed again below.
+    paths = [ "packaging/lifecycle/kait2en-lifecycle.py" ];
+  };
+
+  sourceRoot = "${finalAttrs.src.name}/${finalAttrs.src.root}";
 
   nativeBuildInputs = [ python3 ];
 

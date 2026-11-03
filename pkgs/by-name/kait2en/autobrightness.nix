@@ -8,8 +8,13 @@
   glib,
 }:
 kait2en.mkService {
-  component = "autobrightness";
-  inherit (kait2en.modules) src;
+  version = "0.1.12-unstable-2026-11-02";
+
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-sJ7KdKdQmrJwG9Nmcjup3sqY66jtVDiuHlqzja0z7mk=";
+    root = "t2-services/t2-autobrightness";
+  };
 
   cargoHash = "sha256-IQzkA2Zkp2Sy19GLZypYUTFwTDZlWHIJx3mMQaLse3E=";
 

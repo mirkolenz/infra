@@ -11,8 +11,14 @@
   udev,
 }:
 kait2en.mkService {
-  component = "touchid";
-  inherit (kait2en.modules) src;
+  version = "0.1.12-unstable-2026-11-02";
+
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-L4mFqcnqCL/M6ivgVyOLdP4MjWtFlWeXOM85Ccsz06M=";
+    root = "t2-services/t2-touchid";
+    bridgexpc = true;
+  };
 
   cargoHash = "sha256-lU3F7BtkKm6SA3pFNEHC0SU/EvXvVCPvUuADMmBPHtw=";
 

@@ -14,9 +14,13 @@
   wireplumber,
 }:
 kait2en.mkService {
-  component = "touchbar";
-  root = "apps/t2-touchbar";
-  inherit (kait2en.modules) src;
+  version = "0.1.12-unstable-2026-11-02";
+
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-hNbNJLJVQU07RGR6sW4+vKWNsAuGqrhzBbkApHULLWQ=";
+    root = "apps/t2-touchbar";
+  };
 
   cargoHash = "sha256-xy9RLyEAtiN8f9JkboVx1N7j1Q81XIJjCjsrXoMPvdo=";
 

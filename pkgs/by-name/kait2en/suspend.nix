@@ -6,10 +6,25 @@
   coreutils,
   kmod,
 }:
+let
+  script = "scripts/fedora/kait2en-suspend.sh";
+  installer = "scripts/fedora/install-suspend-service.sh";
+in
 kait2en.mkScript {
   pname = "kait2en-suspend";
 
-  script = "scripts/fedora/kait2en-suspend.sh";
+  version = "0.1.12-unstable-2026-11-02";
+
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-QRVprkZuuqLSc6ARWBEenxf0AZR4wvaHF686uc3pExg=";
+    paths = [
+      script
+      installer
+    ];
+  };
+
+  inherit script;
 
   runtimeInputs = [
     coreutils
@@ -21,7 +36,7 @@ kait2en.mkScript {
     unit=$out/lib/systemd/system/kait2en-suspend.service
     mkdir -p $out/lib/systemd/system
     awk '/<<.EOF.$/ { unit = 1; next } /^EOF$/ { unit = 0 } unit' \
-      scripts/fedora/install-suspend-service.sh > $unit
+      ${installer} > $unit
     substituteInPlace $unit \
       --replace-fail /usr/local/libexec/kait2en/kait2en-suspend.sh $out/bin/kait2en-suspend
   '';

@@ -6,9 +6,15 @@
   kait2en,
 }:
 kait2en.mkGtkApp {
-  component = "zone-power";
   appId = "org.t2zonepower.gtk";
-  inherit (kait2en.modules) src;
+  version = "0.1.12-unstable-2026-11-02";
+
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-VD0zcVKvN6sH+f42jCZ/ASnEjaTQGLKEED9djGBCf4E=";
+    root = "apps/t2-zone-power";
+    logos = true;
+  };
 
   cargoHash = "sha256-wznUu7QKYZsKl+CLMPvPfK6aOJs96a9Pqwi0SqxR34c=";
 

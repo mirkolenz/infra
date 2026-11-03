@@ -5,7 +5,6 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
   kait2en,
   linuxPackages_7_2,
 }:
@@ -14,6 +13,18 @@ let
   # kernel they were not built against. Pinned to the series of the Fedora
   # release upstream targets, since its amdgpu patches are written against it.
   inherit (linuxPackages_7_2) kernel kernelModuleMakeFlags;
+
+  # Staged into the `t2bce_stack` Kbuild unit, from `modules` and from AVE.
+  bceMembers = [
+    "t2bce_dma"
+    "t2bce_core"
+    "t2bce_vhci"
+    "t2bce_audio"
+  ];
+  aveMembers = [
+    "t2bce_ave"
+    "t2bce_sidecar"
+  ];
 
   # The Kbuild directories of `packages`.
   packageDirs = map (package: "$PWD/modules/${package}") packages;
@@ -123,15 +134,16 @@ in
 stdenv.mkDerivation {
   pname = "kait2en-modules";
 
-  # The pin every package here is built from. It cannot live in a file of its
-  # own: `nix-update` writes to wherever the `src` attribute is declared.
   version = "0.1.12-unstable-2026-11-02";
 
-  src = fetchFromGitHub {
-    owner = "kaiT2en";
-    repo = "KaiT2en-Fedora";
+  src = kait2en.fetchSource {
     rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
-    hash = "sha256-2Fd27qMuXdF5fKk29AeWi+g/m1gXY/kPXoLH9DL16tw=";
+    hash = "sha256-GPU9pLM1yS8vZHLsV4gLHiz/mx4uz8IQaUZgsGchCsQ=";
+    paths =
+      map (dir: "modules/${dir}/") (lib.remove "linux-apfs-rw" packages ++ bceMembers)
+      ++ map (dir: "t2-services/t2-ave/kernel/${dir}/") aveMembers
+      ++ [ "third-party/linux-apfs-rw/" ]
+      ++ map (mirror: mirror.file) mirrored;
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies;
@@ -144,8 +156,10 @@ stdenv.mkDerivation {
 
     # One Kbuild unit, so its members have to be staged into it. Built
     # separately they would each get their own symbol versions.
-    cp -r modules/t2bce_{dma,core,vhci,audio} modules/t2bce_stack/
-    cp -r t2-services/t2-ave/kernel/t2bce_{ave,sidecar} modules/t2bce_stack/
+    cp -r ${lib.concatMapStringsSep " " (dir: "modules/${dir}") bceMembers} modules/t2bce_stack/
+    cp -r ${
+      lib.concatMapStringsSep " " (dir: "t2-services/t2-ave/kernel/${dir}") aveMembers
+    } modules/t2bce_stack/
 
     # Vendored outside `modules`, and its DKMS `PRE_BUILD` writes the header
     # with the version it reports.
@@ -204,21 +218,6 @@ stdenv.mkDerivation {
       ;
     # The set itself, so the NixOS module does not instantiate a second one.
     linuxPackages = linuxPackages_7_2;
-    # Refresh the Cargo hashes together with the shared source pin.
-    inherit (kait2en)
-      airshare
-      autobrightness
-      ave
-      debug
-      drop
-      journal
-      kbd-backlight
-      power-explorer
-      smc-control
-      touchbar
-      touchid
-      zone-power
-      ;
   };
 
   strictDeps = true;

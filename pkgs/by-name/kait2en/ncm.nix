@@ -10,14 +10,25 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "kait2en-ncm";
-  inherit (kait2en.modules) version src;
+  version = "0.1.12-unstable-2026-11-02";
+
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-Vx8QcRZeebzogAy3fZpNll65BhQrwS+IdN/5TuFuxWY=";
+    root = "t2-services/shared";
+    paths = [
+      "!t2-services/shared/protocols/"
+      # Installed by the Makefile and removed again below.
+      "packaging/lifecycle/kait2en-lifecycle.py"
+    ];
+  };
 
   dontConfigure = true;
   dontBuild = true;
 
   makeFlags = [
     "-C"
-    "t2-services/shared"
+    finalAttrs.src.root
     "PREFIX=${placeholder "out"}"
     "SYSCONFDIR=${placeholder "out"}/etc"
   ];

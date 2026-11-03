@@ -9,9 +9,13 @@
   udev,
 }:
 kait2en.mkService {
-  component = "kbd-backlight";
-  root = "apps/t2-kbd-backlight";
-  inherit (kait2en.modules) src;
+  version = "0.1.12-unstable-2026-11-02";
+
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-Ggp0pPfmmwhXjzQDGivBupwffd45MwO/oilsHSXiUas=";
+    root = "apps/t2-kbd-backlight";
+  };
 
   cargoHash = "sha256-gBM8pN50szxul36GrGlKPtn0XqZ1ll/VsyTPS4+N0Kg=";
 

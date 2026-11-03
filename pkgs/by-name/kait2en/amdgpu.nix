@@ -7,7 +7,7 @@
   kait2en,
 }:
 let
-  installer = "${kait2en.modules.src}/scripts/fedora/install-gpu-runtime-pm.sh";
+  installer = "scripts/fedora/install-gpu-runtime-pm.sh";
   driver = "drivers/gpu/drm/amd/amdgpu";
 
   # Upstream writes it from a heredoc in its installer, checked in `postPatch`.
@@ -24,7 +24,14 @@ in
 kait2en.mkPatchedDrivers {
   pname = "kait2en-amdgpu";
 
-  series = "gpu-runtime-pm";
+  version = "0.1.12-unstable-2026-11-02";
+
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-CRO+wWzNMJU1Ol2dMQwKC27EajdI0msKJcGqUY0jSko=";
+    root = "patches/runtime/gpu-runtime-pm";
+    paths = [ installer ];
+  };
   inherit mergedSince;
 
   # The patches touch nothing outside the AMD tree, but amdgpu includes a few
@@ -33,11 +40,11 @@ kait2en.mkPatchedDrivers {
   drivers = [ driver ];
 
   postPatch = ''
-    grep -qxF ${lib.escapeShellArg modprobeConfig} ${installer} ||
+    grep -qxF ${lib.escapeShellArg modprobeConfig} $src/${installer} ||
       { echo "the amdgpu softdep changed upstream, see .agents/skills/kait2en/SKILL.md" >&2; exit 1; }
 
     ${lib.concatMapAttrsStringSep "\n" (name: version: ''
-      grep -A3 -F ${lib.escapeShellArg "${name})"} ${installer} |
+      grep -A3 -F ${lib.escapeShellArg "${name})"} $src/${installer} |
         grep -qF ${lib.escapeShellArg (cutoff version)} ||
         { echo "the merged amdgpu patches changed upstream, see .agents/skills/kait2en/SKILL.md" >&2; exit 1; }
     '') mergedSince}

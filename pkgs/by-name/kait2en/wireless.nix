@@ -26,7 +26,13 @@ in
 kait2en.mkPatchedDrivers {
   pname = "kait2en-wireless";
 
-  series = "wireless";
+  version = "0.1.12-unstable-2026-11-02";
+
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-s62J2+RuzRkRthdTthSe9uZ08e28gw/27aIHfPaAWug=";
+    root = "patches/runtime/wireless";
+  };
 
   # brcmfmac includes the shared headers of its parent.
   sources = [

@@ -4,7 +4,9 @@ Support for Macs with an Apple T2 security chip, taken from [KaiT2en](https://gi
 Each package explains itself in its header, the NixOS module lives in `modules/hardware/apple-t2`.
 This file records the packaging decisions, updating is covered by the `kait2en` skill in `.agents/skills/kait2en`.
 
-`modules.nix` pins the revision every runtime package is built from, and the kernel series of the Fedora release upstream targets, not `linuxPackages_latest`, since upstream's amdgpu patches break on newer kernels.
+Every package pins its own sparse checkout of upstream with only the files it builds from, so an upstream commit rebuilds only what it touched.
+Each takes upstream's latest release tag as its version, through `nix-update --version=branch`, since every crate stays at 0.1.0.
+`modules.nix` pins the kernel series of the Fedora release upstream targets, not `linuxPackages_latest`, since upstream's amdgpu patches break on newer kernels.
 The packages install upstream's systemd units, patched with `--replace-fail`, and the modules load them through `systemd.packages` and set `wantedBy`, since NixOS ignores `[Install]`.
 Upstream relies on Fedora's firewalld zones, which allow any high port and open `nm-shared` to the hotspot, so `kait2en.airshare` listens for Quick Share on the fixed port 8771 instead of a random one, and its module opens that port and AirDrop's on `awdl0`.
 It trusts the one-off hotspot interface `t2qs0` as a whole, which needs DHCP, DNS and another random port, and which only the phone handed its random WPA key over Bluetooth can join.

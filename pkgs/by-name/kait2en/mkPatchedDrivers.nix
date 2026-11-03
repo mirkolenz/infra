@@ -5,11 +5,11 @@
 }:
 # In-tree drivers upstream rebuilds with one of its patch series under
 # `patches/runtime`. Only these are rebuilt, the kernel stays the cached one,
-# and `updates` shadows the in-tree ones.
+# and `updates` shadows the in-tree ones. The drivers come out of the kernel's
+# own source.
 lib.extendMkDerivation {
   constructDrv = stdenv.mkDerivation;
   excludeDrvArgNames = [
-    "series"
     "mergedSince"
     "sources"
     "drivers"
@@ -17,7 +17,8 @@ lib.extendMkDerivation {
   extendDrvArgs =
     finalAttrs:
     {
-      series,
+      # Its `root` is the patch series.
+      src,
       # Patches upstream's installer skips from a kernel version on.
       mergedSince ? { },
       # The subtrees of the kernel source the drivers need.
@@ -31,20 +32,16 @@ lib.extendMkDerivation {
     let
       inherit (kait2en.modules) kernel;
       inherit (kait2en.modules.linuxPackages) kernelModuleMakeFlags;
-      upstream = kait2en.modules.src;
-      patches = "${upstream}/patches/runtime/${series}";
+      patches = "${src}/${src.root}";
       merged = lib.attrNames (lib.filterAttrs (_: lib.versionAtLeast kernel.version) mergedSince);
       members = map (dir: "linux-${kernel.version}/${dir}") sources;
       driverDirs = map (dir: "$PWD/${dir}") drivers;
     in
     {
-      inherit (kait2en.modules) version;
-      inherit (kernel) src;
-
       unpackPhase = ''
         runHook preUnpack
 
-        tar -xf "$src" ${lib.escapeShellArgs members}
+        tar -xf ${kernel.src} ${lib.escapeShellArgs members}
         cd linux-${kernel.version}
 
         runHook postUnpack
@@ -90,7 +87,7 @@ lib.extendMkDerivation {
 
         ${kait2en.kbuild "modules_install" driverDirs}
 
-        (cd ${upstream} && ${kait2en.installLicenses finalAttrs.pname})
+        (cd $src && ${kait2en.installLicenses finalAttrs.pname})
 
         runHook postInstall
       '';

@@ -6,14 +6,20 @@
   kait2en,
 }:
 kait2en.mkService {
-  component = "journal";
-  inherit (kait2en.modules) src;
+  version = "0.1.12-unstable-2026-11-02";
+
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-EJA9Bp21BXBwudjOD1aaCrb+90zMTvFu1raEdZWrNao=";
+    root = "t2-services/t2-journal";
+    bridgexpc = true;
+  };
 
   cargoHash = "sha256-ojuhTG4MIPtmk7RiwvzeVdHP+veS2ojz1Fslz2sPWtw=";
 
   # The vendored log parser is the one part of the tree that is not GPL.
   postInstall = ''
-    install -Dm444 t2-services/t2-journal/libs/macos-unifiedlogs/LICENSE \
+    install -Dm444 $cargoRoot/libs/macos-unifiedlogs/LICENSE \
       $out/share/licenses/kait2en-journal/LICENSE.macos-unifiedlogs
   '';
 

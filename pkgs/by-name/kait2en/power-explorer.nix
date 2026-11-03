@@ -10,9 +10,15 @@
   gnused,
 }:
 kait2en.mkGtkApp {
-  component = "power-explorer";
   appId = "org.t2powerexplorer.gtk";
-  inherit (kait2en.modules) src;
+  version = "0.1.12-unstable-2026-11-02";
+
+  src = kait2en.fetchSource {
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-IMG5D6elZFj0uYHjG+MhZ7OVqrbkjrBmBlS0DcKWxRI=";
+    root = "apps/t2-power-explorer";
+    logos = true;
+  };
 
   cargoHash = "sha256-zrvhh/tp/tDp/Oerq5RzIZgRWY/9VOxJcJzCnAJ3T54=";
 
