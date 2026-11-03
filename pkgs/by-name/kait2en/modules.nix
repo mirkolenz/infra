@@ -125,13 +125,13 @@ stdenv.mkDerivation {
 
   # The pin every package here is built from. It cannot live in a file of its
   # own: `nix-update` writes to wherever the `src` attribute is declared.
-  version = "0.1.12-unstable-2026-10-28";
+  version = "0.1.12-unstable-2026-11-02";
 
   src = fetchFromGitHub {
     owner = "kaiT2en";
     repo = "KaiT2en-Fedora";
-    rev = "be7f136c0f9b2bf9811d88d6fd1abdc126c977d3";
-    hash = "sha256-rvQqbMpZ1K5n0bWLnUGNouyUpaqCv2PGJ21CPoPtXUk=";
+    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
+    hash = "sha256-2Fd27qMuXdF5fKk29AeWi+g/m1gXY/kPXoLH9DL16tw=";
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies;
@@ -210,6 +210,7 @@ stdenv.mkDerivation {
       ave
       debug
       journal
+      kbd-backlight
       power-explorer
       smc-control
       touchbar

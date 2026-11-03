@@ -1,8 +1,7 @@
 # brcmfmac and the Broadcom Bluetooth drivers with upstream's patches for the
-# chips Apple fits: two spatial streams instead of one beamformed on the
-# BCM4364, a 200 ms power save timeout, no P2P from the firmware's "hp2p"
-# capability, the AP 4-way handshake left to the host, and a raised ACL
-# priority against audio dropouts while Wi-Fi runs on 2.4 GHz.
+# chips Apple fits. They tune Wi-Fi streams, power save and resume, add the AWDL
+# interface `t2-drop` uses, and fix Bluetooth LE scanning and audio dropouts
+# next to 2.4 GHz Wi-Fi.
 # https://github.com/kaiT2en/KaiT2en-Fedora/blob/main/scripts/fedora/install-wireless.sh
 {
   lib,

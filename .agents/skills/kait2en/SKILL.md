@@ -27,6 +27,7 @@ Upstream rejects issues and pull requests it believes an AI wrote, so never open
      --subpackage=ave \
      --subpackage=debug \
      --subpackage=journal \
+     --subpackage=kbd-backlight \
      --subpackage=power-explorer \
      --subpackage=smc-control \
      --subpackage=touchbar \

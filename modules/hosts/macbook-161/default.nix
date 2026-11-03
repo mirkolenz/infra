@@ -33,6 +33,7 @@ in
           graphics.mode = "hybrid";
           touchid.enable = true;
           touchbar.enable = true;
+          kbd-backlight.enable = true;
           ave.enable = true;
           zone-power.enable = true;
         };
