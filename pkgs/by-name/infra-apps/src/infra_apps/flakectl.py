@@ -332,6 +332,7 @@ def deploy(
         "--build-host",
         host,
         "--sudo",
+        "--no-reexec",
         *impure_flags(cfg, "nixosConfigurations", machine),
     )
 
