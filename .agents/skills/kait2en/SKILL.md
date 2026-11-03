@@ -23,9 +23,11 @@ Upstream rejects issues and pull requests it believes an AI wrote, so never open
 
    ```sh
    nix-update kait2en.modules --system x86_64-linux --version=branch \
+     --subpackage=airshare \
      --subpackage=autobrightness \
      --subpackage=ave \
      --subpackage=debug \
+     --subpackage=drop \
      --subpackage=journal \
      --subpackage=kbd-backlight \
      --subpackage=power-explorer \

@@ -206,9 +206,11 @@ stdenv.mkDerivation {
     linuxPackages = linuxPackages_7_2;
     # Refresh the Cargo hashes together with the shared source pin.
     inherit (kait2en)
+      airshare
       autobrightness
       ave
       debug
+      drop
       journal
       kbd-backlight
       power-explorer

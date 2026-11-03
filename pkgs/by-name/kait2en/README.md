@@ -6,6 +6,8 @@ This file records the packaging decisions, updating is covered by the `kait2en` 
 
 `modules.nix` pins the revision every runtime package is built from, and the kernel series of the Fedora release upstream targets, not `linuxPackages_latest`, since upstream's amdgpu patches break on newer kernels.
 The packages install upstream's systemd units, patched with `--replace-fail`, and the modules load them through `systemd.packages` and set `wantedBy`, since NixOS ignores `[Install]`.
+Upstream relies on Fedora's firewalld zones, which allow any high port and open `nm-shared` to the hotspot, so `kait2en.airshare` listens for Quick Share on the fixed port 8771 instead of a random one, and its module opens that port and AirDrop's on `awdl0`.
+It trusts the one-off hotspot interface `t2qs0` as a whole, which needs DHCP, DNS and another random port, and which only the phone handed its random WPA key over Bluetooth can join.
 
 ## NixOS fork
 
@@ -16,7 +18,7 @@ Its workarounds without an upstream counterpart are not carried over, such as th
 
 Upstream's drivers are GPL-2.0, everything else is GPL-3.0-or-later with an attribution term under section 7(b).
 Every package therefore installs upstream's license notices to `share/licenses/<pname>`.
-`kait2en.journal` also vendors Apache-2.0 code, and `kait2en.touchbar` derives from the MIT-licensed tiny-dfr.
+`kait2en.journal` also vendors Apache-2.0 code, `kait2en.airshare` Apache-2.0 and BSD-style protobuf definitions, and `kait2en.touchbar` derives from the MIT-licensed tiny-dfr.
 
 ## Deliberately not packaged
 
@@ -29,5 +31,4 @@ Every package therefore installs upstream's license notices to `share/licenses/<
 - `kait2en-multicall` drives GRUB and upstream's installer, and its `boot-macos` is `systemctl reboot --boot-loader-entry=auto-osx` on systemd-boot.
 - `t2-sidecar` streams through a Sunshine fork with V4L2 encoding until [LizardByte/Sunshine#5717](https://github.com/LizardByte/Sunshine/pull/5717) lands, the `t2bce_sidecar` encoder it needs is built.
 - `install-macos-mount.sh` probes every APFS volume at boot, the `apfs` driver is built, so `mount -t apfs -o ro,vol=<n>` or a `fileSystems` entry mounts one.
-- `t2-share` is a Quick Share client unrelated to the T2, and its daemon listens on a random TCP port the NixOS firewall drops, `rquickshare` from nixpkgs covers the same.
 - `install-acpi-fixes.sh` needs the machine's own patched AML, check `journalctl -kb | grep -E 'AE_AML_BUFFER_LIMIT|Marking method.*_PDC'` first.
