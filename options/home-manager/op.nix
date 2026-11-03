@@ -81,15 +81,22 @@ in
     };
   };
 
-  #
   config = lib.mkIf cfg.enable {
     home.packages = lib.mkIf (cfg.package != null) [ cfg.package ];
 
+    # The app integration prompts on the local display, which hangs over SSH,
+    # so disable it there to fall back to `op signin` or a service account token.
     programs.direnv.stdlib = lib.mkIf cfg.direnv.enable ''
       use_op() {
-        set -a
-        source <(${cfg.program} environment read "$1")
-        set +a
+        local vars line
+        vars=$(''${SSH_CONNECTION:+env OP_BIOMETRIC_UNLOCK_ENABLED=false} ${cfg.program} environment read "$1") || return
+
+        # The values are unquoted, so export them verbatim instead of evaluating them.
+        while IFS= read -r line; do
+          if [[ $line == *=* ]]; then
+            export "$line"
+          fi
+        done <<<"$vars"
       }
     '';
 
