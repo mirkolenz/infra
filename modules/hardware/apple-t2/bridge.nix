@@ -15,6 +15,11 @@
       # The address of the T2's bridge interface, the same on every T2 Mac.
       mac = "ac:de:48:00:11:22";
 
+      network = {
+        matchConfig.MACAddress = mac;
+        linkConfig.Unmanaged = true;
+      };
+
       # The shared helper runs every executable in one directory.
       hooks = pkgs.symlinkJoin {
         name = "apple-t2-sleep-hooks";
@@ -59,10 +64,9 @@
           # down on `PrepareForSleep`, before the suspend hooks close their T2
           # sessions, and the `*-wait-online` units would block on it.
           networking.networkmanager.unmanaged = [ "mac:${mac}" ];
-          systemd.network.networks."10-t2-ethernet" = {
-            matchConfig.MACAddress = mac;
-            linkConfig.Unmanaged = true;
-          };
+          systemd.network.networks."10-t2-ethernet" = network;
+          # The initrd loads `cdc_ncm` for USB Ethernet adapters, which also brings up the link.
+          boot.initrd.systemd.network.networks."10-t2-ethernet" = network;
         }
 
         (lib.mkIf cfg.enable {
