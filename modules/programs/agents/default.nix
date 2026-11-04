@@ -30,6 +30,15 @@
           '';
     in
     {
+      # Every miniflare 5 run, such as `wrangler dev`, `cf dev` or `astro build`, registers
+      # its Workers here instead of in the config dirs of wrangler or cf, which stay ungranted.
+      # Set for the host, so sessions inside and outside of nono reach each other.
+      home.sessionVariables.CLOUDFLARE_DEV_REGISTRY_PATH = "${config.xdg.cacheHome}/cloudflare/dev-registry";
+      # the device id and telemetry choice of wrangler and cf, which they rewrite on every run
+      programs.nono.profiles.agents.filesystem.allow_file = [
+        "${config.xdg.configHome}/.wrangler/metrics.json"
+        "${config.xdg.configHome}/cloudflare/state.json"
+      ];
       programs.agents = {
         enable = lib.mkDefault config.custom.features.agents.enable;
         context = ./AGENTS.md;
@@ -230,7 +239,11 @@
             config.xdg.cacheHome
             # nono grants it write-only, but agents and scripts read back what they put there
             "/tmp"
-            "${config.xdg.configHome}/.wrangler"
+            # The state of wrangler and cf, granted once they exist. Their config dirs also hold
+            # the logins, the `cloudflared` binary wrangler downloads and the agent skills it installs.
+            "${config.xdg.configHome}/.wrangler/logs"
+            "${config.xdg.configHome}/cloudflare/cache"
+            "${config.xdg.configHome}/cloudflare/state"
             "${config.xdg.configHome}/.semgrep"
             # codebook downloads its dictionaries here on first use
             "${config.xdg.dataHome}/codebook"
