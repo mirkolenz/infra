@@ -62,13 +62,21 @@ in
     };
 
   flake.modules.darwin.base =
-    { config, ... }:
+    { config, pkgs, ... }:
     {
       # https://github.com/DeterminateSystems/determinate/blob/main/modules/nix-darwin/default.nix
       # https://docs.determinate.systems/determinate-nix#determinate-nixd-configuration
       determinateNix.determinateNixd.garbageCollector.strategy = "automatic";
       environment.etc."nix/nix.custom.conf".text = secretsInclude config.services.onepassword-secrets;
-      nix.enable = false;
+      # determinate-nixd never deletes profile generations and forces `nix.enable` off,
+      # which nix-darwin's `nix.gc` asserts on, so this mirrors its daemon at the nixos schedule.
+      launchd.daemons.nix-gc.command = "${pkgs.determinate-nix}/bin/nix-collect-garbage --delete-older-than ${gcAge}";
+      launchd.daemons.nix-gc.serviceConfig.StartCalendarInterval = [
+        {
+          Hour = 3;
+          Minute = 15;
+        }
+      ];
     };
 
   flake.modules.homeManager.standalone =
