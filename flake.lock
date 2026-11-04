@@ -685,11 +685,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793799286,
-        "narHash": "sha256-o8wWFyaavDNbjKKGW1mCX6CHfpuILAXMBVyYwTtWll8=",
+        "lastModified": 1793832538,
+        "narHash": "sha256-hPtKxoRZ/vNgrgOpQBeJ9V0VIRrr5D+/CNNbYbZHXlI=",
         "owner": "mirkolenz",
         "repo": "quadlet-nix",
-        "rev": "af7810b1d09cf99647901f3b66429acd7e34437e",
+        "rev": "5d19d152b8ecfc7218a086f211473ebba3c9ae83",
         "type": "github"
       },
       "original": {
