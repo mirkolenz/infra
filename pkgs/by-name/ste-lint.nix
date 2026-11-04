@@ -7,14 +7,14 @@
 # A single stdlib-only script, whose repository is the asd-ste100 skill as well.
 python3Packages.buildPythonApplication {
   pname = "ste-lint";
-  version = "0-unstable-2026-11-03";
+  version = "0-unstable-2026-11-04";
   pyproject = false;
 
   src = fetchFromGitHub {
     owner = "danyuchn";
     repo = "asd-ste100-skill";
-    rev = "ffc6618c3f12c3726d705340dc3acb852e37a4cb";
-    hash = "sha256-4nYyMTA3xdYlOS00t/tS39TfGxf7FEUU9u2fIe0VdKg=";
+    rev = "a610dbdfb27366653798bcdd4cebe745c92e1ac5";
+    hash = "sha256-+QIbwxGcpzUjc7cYD0J/d9FVn1rY7fJqFZWJVImvwgs=";
   };
 
   installPhase = ''
