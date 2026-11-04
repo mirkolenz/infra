@@ -6,14 +6,14 @@
 }:
 python3Packages.buildPythonApplication (finalAttrs: {
   pname = "skills-ref";
-  version = "0-unstable-2026-08-09";
+  version = "0-unstable-2026-11-04";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "agentskills";
     repo = "agentskills";
-    rev = "69ef37e9424c0a7ea9dd2293b559e43ec8176379";
-    hash = "sha256-9coLvkonrdbkIAf6DVvCH6rfjPuyaCA/eb1RsFBMiSg=";
+    rev = "83021e2be457a9b6679148719c1f6074f0ad975e";
+    hash = "sha256-Q2oP3T9rjKIULarCDlsnGl8pow+6aHMB32bJ3gpfodY=";
   };
 
   sourceRoot = "${finalAttrs.src.name}/skills-ref";
