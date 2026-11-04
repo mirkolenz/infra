@@ -55,11 +55,6 @@ final: prev:
     (
       pyfinal: pyprev:
       {
-        # typepy 2.0.0 landed before the consumers dropped their `typepy<2` pin.
-        # https://github.com/NixOS/nixpkgs/pull/573108
-        sqliteschema = pyprev.sqliteschema.overridePythonAttrs { pythonRelaxDeps = [ "typepy" ]; };
-        simplesqlite = pyprev.simplesqlite.overridePythonAttrs { pythonRelaxDeps = [ "typepy" ]; };
-
         # patchelf 0.19.2 aborts on the large prebuilt binary with `splitIndex == -1`
         # https://github.com/NixOS/patchelf/pull/672
         # semgrep imports `mcp.server.fastmcp`, which mcp 2 removed.
