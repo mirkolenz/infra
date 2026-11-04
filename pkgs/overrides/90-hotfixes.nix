@@ -1,14 +1,21 @@
 final: prev:
 {
-  # mago keeps a path into rustc, an unused `LC_RPATH` on darwin, which pulls its gigabyte into
-  # every closure with mago, such as those of the formatters. No upstream fix yet.
-  mago = prev.mago.overrideAttrs (prevAttrs: {
-    nativeBuildInputs = prevAttrs.nativeBuildInputs ++ [ final.removeReferencesTo ];
-    postFixup = (prevAttrs.postFixup or "") + ''
-      remove-references-to -t ${final.rustc.unwrapped} $out/bin/mago
-    '';
-    disallowedReferences = [ final.rustc.unwrapped ];
-  });
+  # mago links with an rpath into the rustlib of rustc, which pulls its gigabyte into every
+  # closure with mago, such as those of the formatters. No upstream report yet.
+  # Patching the cached binary avoids compiling mago, which outlasts the CI timeouts.
+  # `runCommand` over `runCommandLocal`, since substituting the result spares fetching rustc.
+  mago =
+    final.runCommand prev.mago.name
+      {
+        inherit (prev.mago) pname version meta;
+        nativeBuildInputs = [ final.removeReferencesTo ];
+        disallowedReferences = [ final.rustc.unwrapped ];
+      }
+      ''
+        cp -R ${prev.mago} $out
+        chmod -R u+w $out
+        remove-references-to -t ${final.rustc.unwrapped} $out/bin/mago
+      '';
 
   # nix-update 1.16.0 resolves a package's current ref as `rev or tag`. A src written with
   # nixpkgs' newer `fetchFromGitHub { tag = ...; }` expands that to `refs/tags/v1.2.3`, which
