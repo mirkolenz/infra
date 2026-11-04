@@ -175,6 +175,17 @@ final: prev:
     doCheck = false;
   });
 
+  # xcp 0.24.9 renamed its tests to `test_case_1_test_with_parallel_file_driver`,
+  # so the darwin skips of nixpkgs no longer match. Skipping the modules survives such renames.
+  # No upstream report yet.
+  xcp = prev.xcp.overrideAttrs {
+    checkFlags = map (module: "--skip=${module}::") [
+      "test_socket_file"
+      "test_sockets_dir"
+      "dir_copy_deref_symlinks"
+    ];
+  };
+
   # Replace the SVG driver's Windows-only header with POSIX headers, as Homebrew does.
   # https://github.com/Homebrew/homebrew-core/pull/261141
   pstoedit = prev.pstoedit.overrideAttrs (prevAttrs: {
