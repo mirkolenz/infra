@@ -40,6 +40,8 @@
             # Every host apart from the denied ones.
             # The allowed ones below are what the skills and tools need once this is dropped.
             "*"
+            "*.localhost"
+            # github
             "github.com"
             "*.github.com"
             "*.githubusercontent.com"
