@@ -25,6 +25,8 @@ lib.extendMkDerivation {
       sources,
       # The Kbuild directories to build.
       drivers,
+      # Passed to Kbuild after the kernel's own.
+      makeFlags ? [ ],
       postPatch ? "",
       meta ? { },
       ...
@@ -72,7 +74,7 @@ lib.extendMkDerivation {
       ''
       + postPatch;
 
-      makeFlags = kernelModuleMakeFlags;
+      makeFlags = kernelModuleMakeFlags ++ makeFlags;
 
       buildPhase = ''
         runHook preBuild

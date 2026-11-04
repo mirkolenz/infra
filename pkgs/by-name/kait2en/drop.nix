@@ -8,11 +8,11 @@
   networkmanager,
 }:
 kait2en.mkService {
-  version = "0.1.12-unstable-2026-11-02";
+  version = "0.1.13-unstable-2026-11-04";
 
   src = kait2en.fetchSource {
-    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
-    hash = "sha256-NX5dqzSA6dAYEPoRjCPOLVa+a94R5OxRNeLJhfrdfDc=";
+    rev = "6488ad36b71b10d692305bb29c00e476c48d1cc8";
+    hash = "sha256-6jALNEnkJrg4XgoGC1slOqEGDmSoOQH0CiOnUXebXqo=";
     root = "apps/t2-drop";
   };
 

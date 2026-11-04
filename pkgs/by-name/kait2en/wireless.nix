@@ -1,7 +1,7 @@
 # brcmfmac and the Broadcom Bluetooth drivers with upstream's patches for the
 # chips Apple fits. They tune Wi-Fi streams, power save and resume, add the AWDL
 # interface `t2-drop` uses, and fix Bluetooth LE scanning and audio dropouts
-# next to 2.4 GHz Wi-Fi.
+# next to 2.4 GHz Wi-Fi. Like upstream, brcmfmac keeps its debug messages.
 # https://github.com/kaiT2en/KaiT2en-Fedora/blob/main/scripts/fedora/install-wireless.sh
 {
   lib,
@@ -14,6 +14,7 @@ let
   # The patched drivers and those linking to them, as upstream's installer
   # selects them. The rest of their directories stays in-tree.
   modules = [
+    "brcmutil"
     "brcmfmac"
     "brcmfmac-wcc"
     "brcmfmac-cyw"
@@ -26,12 +27,14 @@ in
 kait2en.mkPatchedDrivers {
   pname = "kait2en-wireless";
 
-  version = "0.1.12-unstable-2026-11-02";
+  version = "0.1.13-unstable-2026-11-04";
 
   src = kait2en.fetchSource {
-    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
-    hash = "sha256-s62J2+RuzRkRthdTthSe9uZ08e28gw/27aIHfPaAWug=";
+    rev = "6488ad36b71b10d692305bb29c00e476c48d1cc8";
+    hash = "sha256-y4bE7AKfkImQzryaTREevyPPGwfQmosAxqztvaYtcC8=";
     root = "patches/runtime/wireless";
+    # Only tracked, so the check flags a change to what `makeFlags` mirrors.
+    paths = [ "scripts/fedora/install-wireless.sh" ];
   };
 
   # brcmfmac includes the shared headers of its parent.
@@ -39,9 +42,18 @@ kait2en.mkPatchedDrivers {
     brcm80211
     bluetooth
   ];
+  # The parent builds brcmutil along, which exports brcmfmac's debug helpers.
   drivers = [
-    "${brcm80211}/brcmfmac"
+    brcm80211
     bluetooth
+  ];
+
+  # The parent turns `CONFIG_BRCMDBG` into `-DDEBUG` for its subdirectories,
+  # the C code checks the macro, and brcmsmac is left in-tree.
+  makeFlags = [
+    "CONFIG_BRCMDBG=y"
+    "CONFIG_BRCMSMAC="
+    "KCPPFLAGS=-DCONFIG_BRCMDBG=1"
   ];
 
   postInstall = ''
