@@ -45,11 +45,11 @@
     "ast-grep-mcp": {
       "flake": false,
       "locked": {
-        "lastModified": 1793212890,
-        "narHash": "sha256-ojES2CjlN2bTEfGmZJO4gj+juuRF8808kn6YuDpqnxQ=",
+        "lastModified": 1793914008,
+        "narHash": "sha256-1Ajt7VGnYi7S+SteX/65HEOB4SXGGGZbyucGD2+d0AE=",
         "owner": "ast-grep",
         "repo": "ast-grep-mcp",
-        "rev": "1e41164726d7ead57c8aa25f74946c4badba7f8a",
+        "rev": "51d5a23f025c73c02032a98748dc06942548c5e1",
         "type": "github"
       },
       "original": {
