@@ -183,7 +183,7 @@
           };
           remote = {
             # overwrite version tags
-            # not compatible with jujutsu
+            # breaks git clone with "multiple updates for ref" errors
             # origin.fetch = "+refs/tags/v*:refs/tags/v*";
           };
           difftool.prompt = false;
