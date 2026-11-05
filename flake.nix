@@ -152,10 +152,7 @@
     };
     quadlet-nix = {
       url = "github:mirkolenz/quadlet-nix/v1";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        flake-parts.follows = "flake-parts";
-      };
+      inputs.flake-parts.follows = "flake-parts";
     };
     systems.url = "github:nix-systems/default";
     treefmt-nix = {
