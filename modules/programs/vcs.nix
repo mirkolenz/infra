@@ -10,6 +10,10 @@
       gh = lib.getExe config.programs.gh.package;
       jq = lib.getExe config.programs.jq.package;
       extras = config.custom.features.extras.enable;
+
+      # Adds untracked files as new-file diffs to `git diff HEAD`. Those exit with 1,
+      # which diffnav would take as a failed refresh.
+      worktreeDiff = "git diff --no-ext-diff HEAD; git ls-files -z --others --exclude-standard | xargs -0 -I {} git diff --no-ext-diff --no-index -- /dev/null {}; true";
     in
     {
       home.packages =
@@ -361,6 +365,31 @@
           disableStartupPopups = true;
         };
       };
+      # Both open in narrow terminals such as herdr on a phone, unlike lazygit.
+      programs.diffnav = {
+        enable = true;
+        # https://github.com/dlvhdr/diffnav#configuration
+        settings.ui = {
+          fileTreeWidth = 24;
+          hideHeader = true;
+          icons = "nerd-fonts-full";
+          # diffnav cannot switch the layout by width, so unified fits every screen
+          sideBySide = false;
+          # pairs with the delta syntax theme Monokai Extended
+          theme = "monokai_pro";
+        };
+      };
+      programs.hunk = {
+        enable = true;
+        # https://hunk.dev/docs/reference/config/
+        settings = {
+          menu_bar = false;
+          theme = "monokai";
+          wrap_lines = true;
+          # `hunk diff` follows the working tree as agents change it
+          vcs.watch = true;
+        };
+      };
       programs.lazyworktree = {
         enable = lib.mkDefault extras;
         settings = {
@@ -371,6 +400,8 @@
         };
       };
       home.shellAliases = {
+        dn = "${lib.getExe config.programs.diffnav.package} --watch-cmd ${lib.escapeShellArg worktreeDiff}";
+        hk = "${lib.getExe config.programs.hunk.package} diff";
         lg = lib.getExe config.programs.lazygit.package;
         lw = lib.mkIf config.programs.lazyworktree.enable (lib.getExe config.programs.lazyworktree.package);
       };
