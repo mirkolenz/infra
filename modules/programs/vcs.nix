@@ -318,11 +318,18 @@
         settings = {
           customCommands = [
             {
-              key = "T";
+              key = "<alt+t>";
               context = "global";
               command = "git fetch --tags --force";
               description = "Force-fetch remote tags";
               loadingText = "Fetching tags";
+            }
+            {
+              key = "<alt+p>";
+              context = "global";
+              command = "git pull --tags --force";
+              description = "Force-pull with remote tags";
+              loadingText = "Pulling";
             }
           ];
           gui = {
