@@ -75,13 +75,13 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     ];
     runtimeEnv.SSL_CERT_FILE = "${cacert}/etc/ssl/certs/ca-bundle.crt";
     text = ''
-      # the update feed of agilebits, Y for the beta and N for the stable channel
+      # the update feed of agilebits, Y for beta and N for stable, Y also serves stable releases
       version="$(
         curl -fsSL "https://app-updates.agilebits.com/check/1/0/CLI2/en/0/${if beta then "Y" else "N"}" \
-        | jq -r .version
+        | jq -r '.version | select(contains("-beta") == ${lib.boolToString beta})'
       )"
 
-      if [[ "$version" == "${finalAttrs.version}" ]]; then
+      if [[ -z "$version" || "$version" == "${finalAttrs.version}" ]]; then
         exit 0
       fi
 
