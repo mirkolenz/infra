@@ -206,9 +206,18 @@ final: prev:
   # stale: the go module proxy no longer reproduces it, so the fixed-output go-modules derivation
   # fails before the build starts. The linux hash still matches, which is why hydra only reports
   # darwin failures. Pin the hash the current dependency set produces until nixpkgs rewrites it.
+  # The vendored modernc.org/libc also panics in the darwin sandbox when it reads /etc/protocols
+  # and /etc/services, so the tests get the iana-etc copies through libredirect.
+  # Its setup hook would also apply to `go build` and break it, so it is only injected for tests.
   scorecard = prev.scorecard.overrideAttrs (
     prevAttrs:
-    prev.lib.optionalAttrs (prevAttrs.version == "5.5.0") {
+    {
+      preCheck = prevAttrs.preCheck + ''
+        export DYLD_INSERT_LIBRARIES=${final.libredirect}/lib/libredirect.dylib
+        export NIX_REDIRECTS=/etc/protocols=${final.iana-etc}/etc/protocols:/etc/services=${final.iana-etc}/etc/services
+      '';
+    }
+    // prev.lib.optionalAttrs (prevAttrs.version == "5.5.0") {
       vendorHash = "sha256-0KKKZheDNRPLBWtwXgXXG+ixpESO+Gq1FsW83PldiVo=";
     }
   );
