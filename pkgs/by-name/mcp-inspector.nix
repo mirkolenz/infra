@@ -25,18 +25,18 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "mcp-inspector";
-  version = "2.13.0";
+  version = "2.14.0";
 
   src = fetchFromGitHub {
     owner = "modelcontextprotocol";
     repo = "inspector";
     tag = finalAttrs.version;
-    hash = "sha256-eUPx16AfEtI+F3mrrte5DyVZFwHeso3iXmydQC9KoJ4=";
+    hash = "sha256-iCf/hVWYjgAjfHJKjBXtgA39NL87StgnJjwjAmrukWM=";
   };
 
   npmDepsHashes = {
-    root = "sha256-haDdCwR9QmRiEd9IPzD+07DUtajctrbc916zrS2PyG4=";
-    web = "sha256-8pvmARCvPfRrM581nE4P4Rmx8jCsIrm5aM3gU4hqRDc=";
+    root = "sha256-EcmIdl7L+3GM8VOag5r+nGmQgE4sjGffnP2pY8LRWtE=";
+    web = "sha256-0AwMjW4RxIhC0ZLpD5oV+DgyFIiZZKu+lpiWLwIRBbs=";
     cli = "sha256-Q/Fgk+lerQXLobJYpLjOFGVk0Sc61deqSeJQG67MYyU=";
     mcpdo = "sha256-ZSsYxDSQTrLSd37tJ90ZChB+IvtPxYpktimSFBEkXgU=";
     tui = "sha256-DEWTLEbnC0XNuAtEhCmE+ZyvMLlwFfP89+GvwX6irfY=";
