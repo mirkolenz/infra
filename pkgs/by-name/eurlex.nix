@@ -10,7 +10,7 @@
 # structured json in any of the 24 official languages
 buildNpmPackage (finalAttrs: {
   pname = "eurlex";
-  version = "fulltext-2026-10-06.01-unstable-2026-11-02";
+  version = "fulltext-2026-11-05.01-unstable-2026-11-02";
 
   src = fetchFromGitHub {
     owner = "maastrichtlawtech";
