@@ -30,6 +30,7 @@ buildGo127Module (finalAttrs: {
   versionCheckProgramArg = "version";
   doInstallCheck = true;
 
+  __darwinAllowLocalNetworking = true;
   __structuredAttrs = true;
 
   meta = {
