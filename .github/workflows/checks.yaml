@@ -36,11 +36,9 @@ jobs:
           extra-conf: |
             accept-flake-config = true
             extra-trusted-public-keys = cache.flakehub.com-3:hJuILl5sVK4iKm86JzgdXW12Y2Hwd5G07qKtHTOcDCM=
+            extra-trusted-public-keys = mirkolenz.cachix.org-1:R0dgCJ93t33K/gncNbKgUdJzwgsYVXeExRsZNz5jpho=
             eval-cores = 1
             log-lines = 200
-      - uses: cachix/cachix-action@v17
-        with:
-          name: mirkolenz
       - run: nix run . -- check flake --workers 2 --max-memory-size 6656
   check-build:
     name: check-build-${{ matrix.system }}
@@ -90,6 +88,7 @@ jobs:
           extra-conf: |
             accept-flake-config = true
             extra-trusted-public-keys = cache.flakehub.com-3:hJuILl5sVK4iKm86JzgdXW12Y2Hwd5G07qKtHTOcDCM=
+            extra-trusted-public-keys = mirkolenz.cachix.org-1:R0dgCJ93t33K/gncNbKgUdJzwgsYVXeExRsZNz5jpho=
             build-dir = /nix/build
             cores = 0
             eval-cores = 1
@@ -102,6 +101,7 @@ jobs:
         with:
           name: mirkolenz
           authToken: ${{ secrets.CACHIX_TOKEN }}
+          skipAddingSubstituter: true
           # build-only fetches, refetched on a cache miss: sources, archives, and dependencies (cargo, go, npm, pnpm, yarn).
           # Debug outputs stay, since `--skip-cached` rebuilds a target missing any output.
           pushFilter: '-(source|vendor|vendor-staging|go-modules|npm-deps|pnpm-deps|yarn-deps)$|\.(tar\..+|zip|zst)$'
