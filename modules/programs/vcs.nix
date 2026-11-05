@@ -276,28 +276,21 @@
             ];
             tug = [
               "bookmark"
-              "move"
-              "--from"
-              "closest_bookmark(@)"
-              "--to"
-              "closest_nonempty(@)"
+              "advance"
             ];
             # keep-sorted end
           };
           # https://github.com/jj-vcs/jj/discussions/3549
           experimental-advance-branches = {
             enabled-branches = [
-              "glob:*"
+              "*"
             ];
             disabled-branches = [
               "main"
-              "glob:push-*"
+              "push-*"
             ];
           };
-          revset-aliases = {
-            "closest_bookmark(to)" = "heads(::to & bookmarks())";
-            "closest_nonempty(to)" = "heads(::to ~ empty())";
-          };
+          revsets.bookmark-advance-to = "heads(::@ ~ empty())";
           ui = {
             merge-editor = lib.mkIf config.programs.mergiraf.enable "mergiraf";
             # editor = "micro";
