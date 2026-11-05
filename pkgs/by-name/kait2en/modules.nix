@@ -143,7 +143,7 @@ stdenv.mkDerivation {
       map (dir: "modules/${dir}/") (lib.remove "linux-apfs-rw" packages ++ bceMembers)
       ++ map (dir: "t2-services/t2-ave/kernel/${dir}/") aveMembers
       ++ [ "third-party/linux-apfs-rw/" ]
-      ++ map (mirror: mirror.file) mirrored;
+      ++ lib.catAttrs "file" mirrored;
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies;

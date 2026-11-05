@@ -154,7 +154,7 @@ in
 
     configDirs = lib.mkOption {
       type = with lib.types; listOf str;
-      default = lib.mapAttrsToList (_name: installation: installation.dir) all;
+      default = lib.catAttrs "dir" (lib.attrValues all);
       readOnly = true;
       internal = true;
       description = "Config directories of every installation and the regular one they are based on.";

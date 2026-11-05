@@ -9,7 +9,7 @@ in
 
   imports = [ ../shared/_editors ];
 
-  config.home.packages = map (entry: entry.package) (
+  config.home.packages = lib.catAttrs "package" (
     lib.attrValues active.servers ++ lib.attrValues active.tools
   );
 }

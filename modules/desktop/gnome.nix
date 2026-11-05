@@ -100,7 +100,7 @@
         dconf.settings = {
           "org/gnome/shell" = {
             disable-user-extensions = false;
-            enabled-extensions = map (ext: ext.extensionUuid) extensions;
+            enabled-extensions = lib.catAttrs "extensionUuid" extensions;
             favorite-apps = map (name: "${name}.desktop") favorites;
           };
 
