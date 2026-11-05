@@ -290,6 +290,7 @@
               "push-*"
             ];
           };
+          remotes.origin.auto-track-created-bookmarks = "*";
           revsets.bookmark-advance-to = "heads(::@ ~ empty())";
           ui = {
             merge-editor = lib.mkIf config.programs.mergiraf.enable "mergiraf";
