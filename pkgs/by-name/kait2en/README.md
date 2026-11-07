@@ -25,6 +25,7 @@ Every package therefore installs upstream's license notices to `share/licenses/<
 ## Deliberately not packaged
 
 - `t2-dgpu-control` and `t2-hybrid-gpu-control` are replaced by `custom.apple-t2.graphics.mode`.
+- `t2-gpu-preboot` resets to the iGPU before POST after macOS chose the dGPU, `apple-t2-gpu` only catches up on the following boot. It chainloads Fedora's shim, needs nightly `-Z build-std` for its UEFI target, and moves its own entry to the front of `BootOrder` on every boot.
 - `t2-force-click` is replaced by `trackpad.nix`.
 - `t2-fan-control` and `t2-power-tune` change limits the firmware already manages.
 - `t2-kernel-builder` needs a patched Fedora kernel.

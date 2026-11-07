@@ -1,4 +1,4 @@
-# Broadcom Wi-Fi and Bluetooth across S3. See `pkgs/by-name/kait2en/suspend.nix`.
+# Broadcom Wi-Fi across S3. See `pkgs/by-name/kait2en/suspend.nix`.
 {
   flake.modules.nixos.apple-t2 =
     { pkgs, ... }:

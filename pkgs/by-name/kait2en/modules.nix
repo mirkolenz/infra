@@ -77,11 +77,9 @@ let
   ];
 
   kernelParams = [
-    # The t2bce stack needs the IOMMU, audio and suspend need it passed through,
-    # and `pm_async=off` serialises the resume ordering the T2 depends on.
+    # The t2bce stack needs the IOMMU, audio and suspend need it passed through.
     "intel_iommu=on"
     "iommu=pt"
-    "pm_async=off"
     # Apple leaves ASPM disabled in firmware, the AMD dGPU included.
     "amdgpu.aspm=1"
     "pcie_aspm=force"
@@ -134,11 +132,11 @@ in
 stdenv.mkDerivation {
   pname = "kait2en-modules";
 
-  version = "0.1.12-unstable-2026-11-02";
+  version = "0.1.13-unstable-2026-11-07";
 
   src = kait2en.fetchSource {
-    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
-    hash = "sha256-GPU9pLM1yS8vZHLsV4gLHiz/mx4uz8IQaUZgsGchCsQ=";
+    rev = "76bfd1fe4f7c085d16b421a27f2161ca52b82568";
+    hash = "sha256-GwqTwf44udBYtXiHbIwgGdOKC/BkOLpwor6YaT2sndA=";
     paths =
       map (dir: "modules/${dir}/") (lib.remove "linux-apfs-rw" packages ++ bceMembers)
       ++ map (dir: "t2-services/t2-ave/kernel/${dir}/") aveMembers

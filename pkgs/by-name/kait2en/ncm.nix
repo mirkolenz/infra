@@ -10,11 +10,11 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "kait2en-ncm";
-  version = "0.1.12-unstable-2026-11-02";
+  version = "0.1.13-unstable-2026-11-07";
 
   src = kait2en.fetchSource {
-    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
-    hash = "sha256-Vx8QcRZeebzogAy3fZpNll65BhQrwS+IdN/5TuFuxWY=";
+    rev = "76bfd1fe4f7c085d16b421a27f2161ca52b82568";
+    hash = "sha256-S+uzWHgSj/07UQnQp7ezwlj70apJzhDvwkTGAleV3Oc=";
     root = "t2-services/shared";
     paths = [
       "!t2-services/shared/protocols/"
