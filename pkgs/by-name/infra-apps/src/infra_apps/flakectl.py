@@ -53,8 +53,10 @@ COLOR = GITHUB_ACTIONS or sys.stderr.isatty()
 # The settings of every nix that runs, also within the tools that flakectl runs.
 NIX_CONFIG = "extra-experimental-features = nix-command flakes"
 
+STORE_DIR = Path("/nix/store")
+
 # The store directory and hash of a store path, which logs leave out.
-STORE_PATH_PREFIX = re.compile(r"/nix/store/[0-9a-z]{32}-")
+STORE_PATH_PREFIX = re.compile(rf"{STORE_DIR}/[0-9a-z]{{32}}-")
 
 
 TARGET_APPLY = "builtins.mapAttrs (_: drv: drv.drvPath)"
@@ -445,7 +447,7 @@ def passwd(cfg: Config, machine: str, user: str, root: Path) -> None:
 
     path = Path(target)
 
-    if not path.is_absolute() or path.is_relative_to("/nix/store"):
+    if not path.is_absolute() or path.is_relative_to(STORE_DIR):
         raise Error(f"Refusing to write {path}, not a mutable path.")
 
     file = root / path.relative_to("/")
@@ -741,7 +743,7 @@ def cache_gc(
         roots |= {hash_part(path) for path in job["outputs"].values()}
     # nix finds a path by its hash part, `x` is the name it gives an unknown one
     seeds = [
-        f"/nix/store/{digest}-x"
+        f"{STORE_DIR}/{digest}-x"
         for digest, obj in narinfos.items()
         if digest in roots or obj["last_modified"] >= cutoff
     ]
