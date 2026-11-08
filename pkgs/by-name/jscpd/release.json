@@ -2,12 +2,15 @@
   "tag_name": "v5.4.3",
   "assets": {
     "jscpd-darwin-arm64.tar.gz": {
+      "id": 723169096,
       "digest": "sha256:e119c4c5388118ad348a799c478589f7ad0fa707c0b7c819d6febc94f6f98522"
     },
     "jscpd-linux-arm64-gnu.tar.gz": {
+      "id": 723169094,
       "digest": "sha256:221a62a254ab4cc42f26e076943ca79ecd311ae41646a76a08e4b790ed8c5fbe"
     },
     "jscpd-linux-x64-gnu.tar.gz": {
+      "id": 723169098,
       "digest": "sha256:a19d719331b21a047a7537f982566dabcf6d6e5f51581c3b80d9c420979cc92c"
     }
   }

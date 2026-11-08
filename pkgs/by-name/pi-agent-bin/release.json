@@ -2,12 +2,15 @@
   "tag_name": "v1.5.0",
   "assets": {
     "pi-darwin-arm64.tar.gz": {
+      "id": 701404873,
       "digest": "sha256:a9bf0d82d58d2a7d337f4ae4171b5fc9ebffe42509527a831364c4b65adf2cdf"
     },
     "pi-linux-arm64.tar.gz": {
+      "id": 701404874,
       "digest": "sha256:5d5711b48600756473682e86360b026b11abf7591e5d112eb411d4da2c100d9a"
     },
     "pi-linux-x64.tar.gz": {
+      "id": 701404869,
       "digest": "sha256:df870ba0e344cb7b3358d8d8f19397b8b8d225a8669784736ad68a5c2169d53b"
     }
   }

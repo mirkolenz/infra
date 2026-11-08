@@ -2,12 +2,15 @@
   "tag_name": "v0.4.1",
   "assets": {
     "darwin-arm64": {
+      "id": 702813195,
       "digest": "sha256:f205ea5dbbda67165e08aab1fb6395290ca62f0a038bf27d4b684abd0816635c"
     },
     "linux-arm64": {
+      "id": 702813294,
       "digest": "sha256:aee61c993da36a5f09be2c77e6e4a1a22542a1b30ded4996bf8301c15dcf2b39"
     },
     "linux-amd64": {
+      "id": 702813259,
       "digest": "sha256:39deb2fe714dbf74b073d8245fc7f3d50cd0eee18d5c0900e9e849ae933ae17e"
     }
   }

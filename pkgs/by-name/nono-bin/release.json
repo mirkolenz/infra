@@ -2,12 +2,15 @@
   "tag_name": "v0.81.0",
   "assets": {
     "nono-v0.81.0-aarch64-apple-darwin.tar.gz": {
+      "id": 689330156,
       "digest": "sha256:728b1deefbf6390c9b74fc982efbded1e1c4b37b99dcdefa2e07266dfef4d9e9"
     },
     "nono-v0.81.0-aarch64-unknown-linux-gnu.tar.gz": {
+      "id": 689330154,
       "digest": "sha256:a4d87ddb0917ef96224bcc41a2587318d7d0e92441e7ff454696e5980c9f7924"
     },
     "nono-v0.81.0-x86_64-unknown-linux-gnu.tar.gz": {
+      "id": 689330155,
       "digest": "sha256:7ecc33ff9c349bdfa84b4496e7a7555f67bcc33f1e125c7df9efb653c6c4e569"
     }
   }

@@ -2,12 +2,15 @@
   "tag_name": "v1.0.160",
   "assets": {
     "officecli-mac-arm64": {
+      "id": 691242970,
       "digest": "sha256:fe2b31c6c27534dfbbf155386b6b9105420f9315bbb606335ec61490d171386d"
     },
     "officecli-linux-arm64": {
+      "id": 691242969,
       "digest": "sha256:e8f06aff6c59f11a73a1a1218bda3ce170299201fd56bce6d62ecd4d0c024e53"
     },
     "officecli-linux-x64": {
+      "id": 691242973,
       "digest": "sha256:baa084b64ec634bd9d41a0592db3ed85f11658b358bab898679537ea7f3e73a9"
     }
   }
