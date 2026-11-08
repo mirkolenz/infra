@@ -18,7 +18,7 @@ import sys
 import tempfile
 import urllib.parse
 from argparse import _SubParsersAction
-from collections.abc import Callable, Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, fields
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -102,24 +102,12 @@ in
 }}
 """
 
-# `cache gc`: the store derivations of the targets that `check build` builds
-# and pushes, across all systems.
-ROOTS_APPLY = f"""
-systems:
-let
-  select = {BUILD_SELECT};
-in
-builtins.concatMap (set: builtins.attrValues ({TARGET_APPLY} (select set))) (
-  builtins.attrValues systems
-)
-"""
-
 # The outputs of `nix flake check` that are no derivations. `overlays.default` is
 # left out, since every package set applies it, and `.#overlays` would select
 # `legacyPackages.<system>.overlays` instead.
 APPS_APPLY = "builtins.mapAttrs (_: builtins.mapAttrs (_: app: app.program))"
 
-# nix-eval-jobs bounds shared by `check flake` and `check build`. A worker past
+# nix-eval-jobs bounds shared by `check flake`, `check build`, and `cache gc`. A worker past
 # its share is restarted, so peak memory stays at `workers * max_memory_size` MiB.
 # One worker of 6 GiB fits any host as well as the largest single configuration
 # (about 4.7 GB).
@@ -687,7 +675,7 @@ def check_build(
             "--eval-max-memory-size",
             str(max_memory_size),
             "--skip-cached",
-            *(["--copy-to", cfg.cache, "--push-build-closure"] if cfg.cache else []),
+            *(["--copy-to", cfg.cache] if cfg.cache else []),
             *extra_args,
         ]
     )
@@ -696,41 +684,6 @@ def check_build(
 def hash_part(path: str) -> str:
     """The hash of a store path or its basename, which keys its narinfo."""
     return Path(path).name.split("-", 1)[0]
-
-
-def build_closure_outputs(drvs: Iterable[str]) -> set[str]:
-    """The output paths of `drvs` and of every derivation they depend on.
-
-    Resolved from the store derivations without building or substituting
-    anything, which also covers the fixed-output paths that
-    `nix derivation show` leaves out.
-    """
-    requisites = run(
-        "nix",
-        "path-info",
-        "--recursive",
-        "--stdin",
-        stdin="\n".join(drvs),
-        capture=True,
-    )
-    installables = "\n".join(
-        f"{path}^*" for path in requisites.splitlines() if path.endswith(".drv")
-    )
-    outputs = run_json(
-        "nix",
-        "path-info",
-        "--json",
-        "--json-format",
-        "2",
-        "--option",
-        "substitute",
-        "false",
-        "--stdin",
-        stdin=installables,
-        capture=True,
-    )
-
-    return set(outputs["info"])
 
 
 def s3_store(url: str) -> S3Store:
@@ -752,37 +705,13 @@ def s3_store(url: str) -> S3Store:
     return S3Store(parsed.netloc, endpoint=endpoint, region=region)
 
 
-def cache_closure(cache: str, paths: Iterable[str]) -> dict[str, Any]:
-    """The path infos of `paths` and everything they reference in `cache`, by
-    basename, each of them held by `cache`.
-
-    `--refresh` bypasses the local narinfo cache, which may still remember a
-    path that the bucket no longer holds.
-    """
-    infos = run_json(
-        "nix",
-        "path-info",
-        "--refresh",
-        "--store",
-        cache,
-        "--recursive",
-        "--json",
-        "--json-format",
-        "2",
-        "--stdin",
-        stdin="\n".join(paths),
-        capture=True,
-    )
-
-    return infos["info"]
-
-
-def cache_gc(cfg: Config, keep_days: int, dry_run: bool) -> None:
+def cache_gc(
+    cfg: Config, keep_days: int, dry_run: bool, workers: int, max_memory_size: int
+) -> None:
     """Delete what the binary cache holds beyond the closure of the CI targets.
 
     Keeps the outputs of the current `check build` targets of every system and
-    of their build dependencies, which `check build` pushes as well, and the
-    paths uploaded within `keep_days`, each with its closure, so that no
+    the paths uploaded within `keep_days`, each with its closure, so that no
     kept path loses a reference. A NAR goes once no kept narinfo points at it
     and it is older than `keep_days`, which spares one whose narinfo is still
     being uploaded.
@@ -793,39 +722,57 @@ def cache_gc(cfg: Config, keep_days: int, dry_run: bool) -> None:
 
     store = s3_store(cfg.cache)
     cutoff = datetime.now(UTC) - timedelta(days=keep_days)
-    objects = {
-        obj["path"]: obj
-        for chunk in obstore.list(store, chunk_size=1000)
-        for obj in chunk
-    }
+    objects = {obj["path"]: obj for obj in obstore.list(store).collect()}
     narinfos = {
         key.removesuffix(".narinfo"): obj
         for key, obj in objects.items()
         if key.endswith(".narinfo") and "/" not in key
     }
-    drvs = nix_eval_json(f"{cfg.flake}#{cfg.build_path}", "--apply", ROOTS_APPLY)
-    roots = {hash_part(path) for path in build_closure_outputs(drvs)}
-    recent = {
-        digest for digest, obj in narinfos.items() if obj["last_modified"] >= cutoff
-    }
-    store_dir = nix_eval_json("--expr", "builtins.storeDir")
+    # the targets that `check build` builds and pushes, across all systems
+    select = (
+        f"flake: builtins.mapAttrs (_: {BUILD_SELECT}) flake.outputs.{cfg.build_path}"
+    )
+    roots: set[str] = set()
+
+    for job in nix_eval_jobs(cfg, select, workers, max_memory_size):
+        if error := job.get("error"):
+            raise Error(f"Cannot evaluate {job['attr']}: {error}")
+
+        roots |= {hash_part(path) for path in job["outputs"].values()}
     # nix finds a path by its hash part, `x` is the name it gives an unknown one
-    seeds = [f"{store_dir}/{digest}-x" for digest in narinfos.keys() & (roots | recent)]
-    kept = cache_closure(cfg.cache, seeds) if seeds else {}
+    seeds = [
+        f"/nix/store/{digest}-x"
+        for digest, obj in narinfos.items()
+        if digest in roots or obj["last_modified"] >= cutoff
+    ]
+    # `--refresh` bypasses the local narinfo cache, which may still remember a
+    # path that the bucket no longer holds
+    kept = run_json(
+        "nix",
+        "path-info",
+        "--refresh",
+        "--store",
+        cfg.cache,
+        "--recursive",
+        "--json",
+        "--json-format",
+        "2",
+        "--stdin",
+        stdin="\n".join(seeds),
+        capture=True,
+    )["info"]
     live_nars = {info["url"] for info in kept.values()}
     # narinfos first, so that no narinfo outlives its NAR
     stale = [
-        *(
-            f"{digest}.narinfo"
-            for digest in narinfos.keys() - {hash_part(name) for name in kept}
-        ),
-        *(
-            key
-            for key, obj in objects.items()
-            if key.startswith("nar/")
-            and key not in live_nars
-            and obj["last_modified"] < cutoff
-        ),
+        f"{digest}.narinfo"
+        for digest in narinfos.keys() - {hash_part(name) for name in kept}
+    ]
+    stale += [
+        key
+        for key, obj in objects.items()
+        if key.startswith("nar/")
+        and key not in live_nars
+        and obj["last_modified"] < cutoff
     ]
     size = sum(objects[key]["size"] for key in stale)
     print(
@@ -908,22 +855,22 @@ def colored(text: str, color: int) -> str:
     return f"\033[{color}m{text}\033[0m" if COLOR else text
 
 
-def eval_jobs(cfg: Config, workers: int, max_memory_size: int) -> CheckResult:
-    """Evaluate `EVAL_SELECT` with nix-eval-jobs, reporting each failing attribute.
+def nix_eval_jobs(
+    cfg: Config, select: str, workers: int, max_memory_size: int
+) -> Iterator[dict[str, Any]]:
+    """Evaluate `select` of the flake with nix-eval-jobs and yield each job.
 
     A worker is restarted once it exceeds `max_memory_size` MiB, which keeps the
     peak at `workers * max_memory_size` however many configurations the flake has.
+    Raises `CommandError` after the last job if nix-eval-jobs failed.
     """
-    passed: list[str] = []
-    failed: dict[str, str] = {}
-
     with tempfile.TemporaryDirectory() as gc_roots:
         cmd = [
             *flake_program(cfg, "nix-eval-jobs"),
             "--flake",
             cfg.flake,
             "--select",
-            EVAL_SELECT,
+            select,
             "--force-recurse",
             "--workers",
             str(workers),
@@ -936,24 +883,36 @@ def eval_jobs(cfg: Config, workers: int, max_memory_size: int) -> CheckResult:
 
         with subprocess.Popen(cmd, stdout=subprocess.PIPE, text=True) as proc:
             assert proc.stdout is not None
+            yield from map(json.loads, proc.stdout)
 
-            for line in proc.stdout:
-                job = json.loads(line)
-                attr = job["attr"]
+    if proc.returncode:
+        raise CommandError(cmd, proc.returncode, "")
 
-                error = job.get("error")
-                print(
-                    colored(f"{'✘' if error else '✔'}  {attr}", 31 if error else 32),
-                    file=sys.stderr,
-                )
 
-                if error:
-                    failed[attr] = error
-                    print(error, file=sys.stderr)
-                else:
-                    passed.append(attr)
+def eval_jobs(cfg: Config, workers: int, max_memory_size: int) -> CheckResult:
+    """Evaluate `EVAL_SELECT` with nix-eval-jobs, reporting each failing attribute."""
+    passed: list[str] = []
+    failed: dict[str, str] = {}
+    exit_code = 0
 
-    ok = proc.returncode == 0 and not failed
+    try:
+        for job in nix_eval_jobs(cfg, EVAL_SELECT, workers, max_memory_size):
+            attr = job["attr"]
+            error = job.get("error")
+            print(
+                colored(f"{'✘' if error else '✔'}  {attr}", 31 if error else 32),
+                file=sys.stderr,
+            )
+
+            if error:
+                failed[attr] = error
+                print(error, file=sys.stderr)
+            else:
+                passed.append(attr)
+    except CommandError as error:
+        exit_code = error.exit_code
+
+    ok = exit_code == 0 and not failed
     lines = [
         f"## ✅ Drv Evals Passed ({len(passed)} successful)"
         if ok
@@ -961,9 +920,9 @@ def eval_jobs(cfg: Config, workers: int, max_memory_size: int) -> CheckResult:
         "",
     ]
 
-    if proc.returncode:
+    if exit_code:
         lines += [
-            f"nix-eval-jobs exited with code {proc.returncode}, see the job log.",
+            f"nix-eval-jobs exited with code {exit_code}, see the job log.",
             "",
         ]
 
@@ -1319,7 +1278,7 @@ def parser() -> argparse.ArgumentParser:
 
         return subcommands(subparser)
 
-    # nix-eval-jobs bounds, shared by `check build` and `check flake`
+    # nix-eval-jobs bounds, shared by `check build`, `check flake`, and `cache gc`
     eval_options = argparse.ArgumentParser(add_help=False)
     eval_options.add_argument(
         "--workers", type=int, default=EVAL_WORKERS, help="nix-eval-jobs workers."
@@ -1387,7 +1346,7 @@ def parser() -> argparse.ArgumentParser:
     command(check, check_flake, parents=[eval_options])
 
     cache = group("cache", "Maintain the binary cache.")
-    gc = command(cache, cache_gc, parents=[dry_run])
+    gc = command(cache, cache_gc, parents=[dry_run, eval_options])
     gc.add_argument(
         "--keep-days", type=int, default=30, help="Days to keep any upload."
     )

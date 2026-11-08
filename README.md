@@ -285,7 +285,7 @@ The service account token stays in `/etc/opnix-token`, readable by root only, si
 ### S3 Binary Cache
 
 `flakectl` is prepared to replace Cachix with an S3 bucket such as Cloudflare R2.
-With `--cache s3://...`, `check build` pushes every target and its build closure, and `cache gc` deletes everything not needed by the current targets of any system and older than 30 days.
+With `--cache s3://...`, `check build` pushes every target and its runtime closure like Cachix, and `cache gc` deletes everything not needed by the current targets of any system and older than 30 days.
 Switching requires the following steps:
 
 1. Create an R2 bucket, serve it publicly via a custom domain (e.g., `cache.mirkolenz.com`), and create an API token with write access.
