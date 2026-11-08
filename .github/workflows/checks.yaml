@@ -35,6 +35,7 @@ jobs:
           summarize: false
           extra-conf: |
             accept-flake-config = true
+            flake-registry =
             allow-import-from-derivation = false
             extra-substituters = https://mirkolenz.cachix.org https://install.determinate.systems
             extra-trusted-public-keys = mirkolenz.cachix.org-1:R0dgCJ93t33K/gncNbKgUdJzwgsYVXeExRsZNz5jpho=
@@ -88,6 +89,7 @@ jobs:
           # realizes its own dependencies one at a time
           extra-conf: |
             accept-flake-config = true
+            flake-registry =
             allow-import-from-derivation = false
             extra-substituters = https://mirkolenz.cachix.org https://install.determinate.systems
             extra-trusted-public-keys = mirkolenz.cachix.org-1:R0dgCJ93t33K/gncNbKgUdJzwgsYVXeExRsZNz5jpho=
