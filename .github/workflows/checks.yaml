@@ -99,6 +99,8 @@ jobs:
             log-lines = 200
             max-jobs = 1
             sandbox = ${{ matrix.sandbox }}
+            extra-experimental-features = configurable-impure-env
+            impure-env = NIX_GITHUB_PRIVATE_USERNAME=x-access-token NIX_GITHUB_PRIVATE_PASSWORD=${{ github.token }}
       # pushes the runtime closures of the built targets, leaving out build-only fetches
       - run: nix run . -- check build --max-memory-size 2048 --no-nom --max-jobs "$MAX_JOBS" --cachix-cache mirkolenz
         env:
