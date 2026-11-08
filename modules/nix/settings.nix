@@ -8,6 +8,7 @@ let
   unprivilegedSettings = {
     # https://nix.dev/manual/nix/latest/development/experimental-features
     experimental-features = [
+      "configurable-impure-env"
       "flakes"
       "nix-command"
       "pipe-operators"
