@@ -504,11 +504,11 @@ def passwd(cfg: Config, machine: str, user: str, root: Path) -> None:
 def access_tokens() -> Mapping[str, str]:
     """The credentials nix itself uses to fetch inputs, as `scope -> token`.
 
-    An exported GITHUB_TOKEN or GH_TOKEN wins outright, otherwise nix.conf
-    supplies its `access-tokens`, printed as space-separated `scope=token` pairs.
+    An exported GITHUB_TOKEN wins outright, otherwise nix.conf supplies its
+    `access-tokens`, printed as space-separated `scope=token` pairs.
     Cached because neither source can change within a run.
     """
-    if token := os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN"):
+    if token := os.environ.get("GITHUB_TOKEN"):
         return {GITHUB_HOST: token}
 
     try:
@@ -1053,14 +1053,17 @@ class UpdateScript:
     def run(self, token: str | None) -> subprocess.CompletedProcess[str]:
         """Run the updateScript, inheriting cwd (repo root) and PATH.
 
-        `token` reaches the script as GITHUB_TOKEN. Every other script runs
-        with GITHUB_TOKEN unset, so an exported one leaks no further than this."""
-        env = dict(os.environ)
+        `token` reaches the script as GITHUB_TOKEN. Every script runs without
+        the exported tokens, so they leak no further than this."""
+        # gh would prefer a stray GH_TOKEN over the narrower GITHUB_TOKEN
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if key not in {"GITHUB_TOKEN", "GH_TOKEN"}
+        }
 
         if token is not None:
             env["GITHUB_TOKEN"] = token
-        else:
-            env.pop("GITHUB_TOKEN", None)
 
         return subprocess.run(
             self.argv, env=env, capture_output=True, text=True, check=False

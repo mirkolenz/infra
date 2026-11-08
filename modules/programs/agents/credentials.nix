@@ -13,7 +13,7 @@
         ];
         # nix fetches in the client, which applies the `access-tokens` of `NIX_CONFIG`.
         environment.files = {
-          GH_TOKEN = opnix.secretPaths.agentsGithubToken;
+          GITHUB_TOKEN = opnix.secretPaths.agentsGithubToken;
           NIX_CONFIG = opnix.secretPaths.nixAccessTokens;
         };
       };

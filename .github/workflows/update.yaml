@@ -42,7 +42,7 @@ jobs:
             impure-env = NIX_GITHUB_PRIVATE_USERNAME=x-access-token NIX_GITHUB_PRIVATE_PASSWORD=${{ github.token }}
       - run: nix run . -- update all
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
           BUMP_MIN_AGE: 3
       - name: remove unstaged changes
         run: git restore .
@@ -60,5 +60,5 @@ jobs:
         run: gh pr merge --auto --rebase "$PR"
         if: steps.pr.outputs.pull-request-number != ''
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
           PR: ${{ steps.pr.outputs.pull-request-number }}

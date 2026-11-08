@@ -262,7 +262,7 @@ Use a single fine-grained token for public repositories or selected ones, with r
 - The field `nix-conf` holds the [access tokens](https://nix.dev/manual/nix/stable/command-ref/conf-file.html#conf-access-tokens) of nix, which avoid rate limits, as the line `access-tokens = github.com=github_pat_XXX`.
   It lands in `/var/lib/opnix/nix/secrets.conf` on NixOS and `/usr/local/var/opnix/nix/secrets.conf` on macOS, owned by root and readable by the admin group, since the nix client fetches flakes as your user.
   nix skips the include while the file is missing or unreadable, as within the agent sandbox, where nono injects its content as `NIX_CONFIG` instead.
-- The field `credential` holds the bare token, which nono injects into the sandboxed agents as `GH_TOKEN`.
+- The field `credential` holds the bare token, which nono injects into the sandboxed agents as `GITHUB_TOKEN`.
   It lands in `/var/lib/opnix/agents/github-token` on NixOS and `/usr/local/var/opnix/agents/github-token` on macOS, owned by your user with mode `0400`.
   `nono-launch` skips either file while it is missing or empty, so agents run without the tokens until the host is provisioned.
 
