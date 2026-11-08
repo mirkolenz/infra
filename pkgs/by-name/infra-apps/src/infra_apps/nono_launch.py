@@ -10,7 +10,7 @@ import os
 import signal
 import subprocess
 import tempfile
-from collections.abc import Iterable, Iterator, Sequence
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Self
@@ -33,6 +33,7 @@ class Config:
         sandbox_args: Arguments prepended to those of the harness.
         trailing_args: Arguments appended to those of the harness.
         add_dir_flag: Flag of the harness adding a workspace directory.
+        env_files: Variables set by nono to the content of an absolute file path.
         ancestor_rule: Seatbelt rule for the ancestors of every workspace directory,
             with `{}` for the JSON-encoded path, null outside of macOS.
         bwrap: Policy of the bubblewrap sandbox around nono, null outside of Linux.
@@ -46,6 +47,7 @@ class Config:
     sandbox_args: Sequence[str]
     trailing_args: Sequence[str]
     add_dir_flag: str | None
+    env_files: Mapping[str, str]
     ancestor_rule: str | None
     bwrap: Policy | None
 
@@ -95,6 +97,23 @@ def ancestors(dirs: Iterable[str]) -> list[str]:
             paths.update(str(parent) for parent in path.parents[:-1])
 
     return sorted(paths)
+
+
+def env_credentials(files: Mapping[str, str]) -> list[str]:
+    """The nono arguments setting each variable to its file, skipping missing or empty files.
+
+    nono aborts on those, such as a secret not rendered yet.
+
+    >>> env_credentials({"A": "/dev/null", "B": "/nonexistent"})
+    []
+    """
+    args: list[str] = []
+
+    for var, path in files.items():
+        if os.access(path, os.R_OK) and Path(path).stat().st_size > 0:
+            args += ["--env-credential-map", f"file://{path}", var]
+
+    return args
 
 
 def write_profile(extends: str, rule: str, path: Path, dirs: Iterable[str]) -> None:
@@ -179,6 +198,7 @@ def launch(config: Config, args: Sequence[str]) -> int:
                 "--allow-cwd",
                 "--allow-unix-socket-subtree-bind",
                 tmp,
+                *env_credentials(config.env_files),
                 "--",
                 config.wrapper,
                 *harness,

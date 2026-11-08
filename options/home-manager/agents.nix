@@ -95,6 +95,16 @@ in
           description = "Variables set for the agents and their subprocesses.";
         };
         unset = listOption types.str "Variables stripped from the agents and their subprocesses.";
+        files = mkOption {
+          type = types.attrsOf absolutePath;
+          default = { };
+          example.GH_TOKEN = "/var/lib/opnix/agents/github-token";
+          description = ''
+            Variables set to the content of a file, read by nono before the sandbox starts,
+            so the file may stay hidden from the agents. Skipped while the file is missing or empty.
+            Only nono applies them.
+          '';
+        };
       };
 
       # Matched as a prefix of a plain command line of the shell tool of an agent,

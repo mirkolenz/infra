@@ -264,7 +264,7 @@ Use a single fine-grained token for public repositories or selected ones, with r
   nix skips the include while the file is missing or unreadable, as within the agent sandbox, where nono injects its content as `NIX_CONFIG` instead.
 - The field `credential` holds the bare token, which nono injects into the sandboxed agents as `GH_TOKEN`.
   It lands in `/var/lib/opnix/agents/github-token` on NixOS and `/usr/local/var/opnix/agents/github-token` on macOS, owned by your user with mode `0400`.
-  nono aborts the launch of an agent while the file is missing, so provision it before the first start.
+  `nono-launch` skips either file while it is missing or empty, so agents run without the tokens until the host is provisioned.
 
 The agent sandbox denies the file of the nix access tokens, and the nix daemon trusts no user but root, so nobody can hand the daemon other settings.
 Standalone home-manager hosts get neither token, their admin has to add an include to `/etc/nix/nix.custom.conf`.

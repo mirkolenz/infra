@@ -170,6 +170,7 @@
             sandbox_args = harness.sandboxArgs;
             trailing_args = harness.trailingSandboxArgs;
             add_dir_flag = harness.addDirFlag;
+            env_files = sandbox.environment.files;
             # Lists the ancestors of the working directory and the added ones, see `seatbeltRules`.
             ancestor_rule = if isDarwin then listable "{}" else null;
           };
