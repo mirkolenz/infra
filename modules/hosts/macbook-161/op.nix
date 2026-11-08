@@ -3,26 +3,23 @@
 # never enter the nix store or the git repo.
 {
   configurations.nixos.macbook-161.module = {
-    services.onepassword-secrets = {
-      enable = true;
-      secrets = {
+    services.onepassword-secrets.secrets = {
 
-        resticWasabiRepository = {
-          reference = "op://NixOS/MacBook 161 Restic/repository";
-          services = [ "restic-backups-wasabi" ];
-        };
-
-        resticWasabiPassword = {
-          reference = "op://NixOS/MacBook 161 Restic/credential";
-          services = [ "restic-backups-wasabi" ];
-        };
-
-        resticWasabiEnv = {
-          reference = "op://NixOS/MacBook 161 Wasabi/env";
-          services = [ "restic-backups-wasabi" ];
-        };
-
+      resticWasabiRepository = {
+        reference = "op://NixOS/MacBook 161 Restic/repository";
+        services = [ "restic-backups-wasabi" ];
       };
+
+      resticWasabiPassword = {
+        reference = "op://NixOS/MacBook 161 Restic/credential";
+        services = [ "restic-backups-wasabi" ];
+      };
+
+      resticWasabiEnv = {
+        reference = "op://NixOS/MacBook 161 Wasabi/env";
+        services = [ "restic-backups-wasabi" ];
+      };
+
     };
   };
 }

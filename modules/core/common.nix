@@ -19,9 +19,10 @@ let
       };
     };
 
-  # The GitHub tokens of nix and the sandboxed agents, rendered from 1Password on the machines
-  # that enable opnix, outside of outputDir, which darwin keeps untraversable for the users.
+  # The GitHub tokens of nix and the sandboxed agents, rendered from 1Password
+  # outside of outputDir, which darwin keeps untraversable for the users.
   # nix fetches flakes in the client, so the admins read its access tokens.
+  # opnix renders nothing until `opnix token set` provisions the host.
   opnix =
     {
       config,
@@ -33,6 +34,7 @@ let
       dir = dirOf config.services.onepassword-secrets.outputDir;
     in
     {
+      services.onepassword-secrets.enable = lib.mkDefault true;
       services.onepassword-secrets.secrets = {
         nixAccessTokens = {
           reference = "op://NixOS/GitHub/nix-conf";

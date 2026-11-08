@@ -255,7 +255,7 @@ extra-trusted-public-keys = mirkolenz.cachix.org-1:R0dgCJ93t33K/gncNbKgUdJzwgsYV
 
 ### GitHub Tokens
 
-opnix renders two GitHub tokens from the item `GitHub` in the 1Password vault `NixOS` on the NixOS and macOS hosts that set `services.onepassword-secrets.enable`, other hosts get neither.
+opnix renders two GitHub tokens from the item `GitHub` in the 1Password vault `NixOS` on every NixOS and macOS host, once its service account token is provisioned.
 The token of the agents is only rendered on hosts whose user sets `programs.agents.enable`.
 Use a single fine-grained token for public repositories or selected ones, with read-only access to Contents, Metadata, Actions, Pull requests, Issues, and Commit statuses.
 
