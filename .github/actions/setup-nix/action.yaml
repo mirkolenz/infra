@@ -1,0 +1,27 @@
+name: setup-nix
+description: Install Determinate Nix with the shared CI settings
+inputs:
+  github-token:
+    description: Token that nix fetches private GitHub repositories with
+    default: ${{ github.token }}
+  extra-conf:
+    description: Settings appended to the shared ones
+    default: ""
+runs:
+  using: composite
+  steps:
+    # the global registry would resolve `nixpkgs` to FlakeHub instead of the locked input
+    - uses: determinatesystems/determinate-nix-action@v3
+      with:
+        summarize: false
+        extra-conf: |
+          accept-flake-config = true
+          flake-registry =
+          allow-import-from-derivation = false
+          extra-substituters = https://mirkolenz.cachix.org https://install.determinate.systems
+          extra-trusted-public-keys = mirkolenz.cachix.org-1:R0dgCJ93t33K/gncNbKgUdJzwgsYVXeExRsZNz5jpho=
+          eval-cores = 1
+          log-lines = 200
+          extra-experimental-features = configurable-impure-env
+          impure-env = NIX_GITHUB_PRIVATE_USERNAME=x-access-token NIX_GITHUB_PRIVATE_PASSWORD=${{ inputs.github-token }}
+          ${{ inputs.extra-conf }}

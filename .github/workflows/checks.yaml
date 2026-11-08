@@ -30,17 +30,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: determinatesystems/determinate-nix-action@v3
-        with:
-          summarize: false
-          extra-conf: |
-            accept-flake-config = true
-            flake-registry =
-            allow-import-from-derivation = false
-            extra-substituters = https://mirkolenz.cachix.org https://install.determinate.systems
-            extra-trusted-public-keys = mirkolenz.cachix.org-1:R0dgCJ93t33K/gncNbKgUdJzwgsYVXeExRsZNz5jpho=
-            eval-cores = 1
-            log-lines = 200
+      - uses: $/.github/actions/setup-nix
       - run: nix run . -- check flake --workers 2 --max-memory-size 6656
   check-build:
     name: check-build-${{ matrix.system }}
@@ -81,28 +71,18 @@ jobs:
           for path in /Applications/Xcode*.app /Library/Developer "$RUNNER_TOOL_CACHE"; do
             sudo rm -rf "$path"
           done
-      - uses: determinatesystems/determinate-nix-action@v3
+      - uses: $/.github/actions/setup-nix
         with:
-          summarize: false
           # the sandbox mode follows modules/nix/settings.nix
           # nix-fast-build does not pass `--max-jobs` on, so every build
           # realizes its own dependencies one at a time
           extra-conf: |
-            accept-flake-config = true
-            flake-registry =
-            allow-import-from-derivation = false
-            extra-substituters = https://mirkolenz.cachix.org https://install.determinate.systems
-            extra-trusted-public-keys = mirkolenz.cachix.org-1:R0dgCJ93t33K/gncNbKgUdJzwgsYVXeExRsZNz5jpho=
             build-dir = /nix/build
             cores = 0
-            eval-cores = 1
             fallback = true
             keep-going = true
-            log-lines = 200
             max-jobs = 1
             sandbox = ${{ matrix.sandbox }}
-            extra-experimental-features = configurable-impure-env
-            impure-env = NIX_GITHUB_PRIVATE_USERNAME=x-access-token NIX_GITHUB_PRIVATE_PASSWORD=${{ github.token }}
       # pushes the runtime closures of the built targets, leaving out build-only fetches
       - run: nix run . -- check build --max-memory-size 2048 --no-nom --max-jobs "$MAX_JOBS" --cachix-cache mirkolenz
         env:

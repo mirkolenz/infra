@@ -31,16 +31,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-      - uses: determinatesystems/determinate-nix-action@v3
-        with:
-          extra-conf: |
-            accept-flake-config = true
-            flake-registry =
-            allow-import-from-derivation = false
-            extra-substituters = https://mirkolenz.cachix.org https://install.determinate.systems
-            extra-trusted-public-keys = mirkolenz.cachix.org-1:R0dgCJ93t33K/gncNbKgUdJzwgsYVXeExRsZNz5jpho=
-            extra-experimental-features = configurable-impure-env
-            impure-env = NIX_GITHUB_PRIVATE_USERNAME=x-access-token NIX_GITHUB_PRIVATE_PASSWORD=${{ github.token }}
+      - uses: $/.github/actions/setup-nix
       - run: nix run . -- update all
         env:
           GITHUB_TOKEN: ${{ github.token }}
