@@ -965,26 +965,6 @@ def check_flake(cfg: Config, workers: int, max_memory_size: int) -> None:
         raise SystemExit(1)
 
 
-@functools.cache
-def names_github_token(script: Path) -> bool:
-    """Whether a file of the store path holding `script` names GITHUB_TOKEN.
-
-    A script outside the store is searched alone. Cached since the updaters of
-    many packages share one store path, such as nix-update.
-    """
-    script = script.resolve()
-    root = (
-        STORE_DIR / script.relative_to(STORE_DIR).parts[0]
-        if script.is_relative_to(STORE_DIR)
-        else script
-    )
-    files = root.rglob("*") if root.is_dir() else [root]
-
-    return any(
-        file.is_file() and b"GITHUB_TOKEN" in file.read_bytes() for file in files
-    )
-
-
 @dataclass(frozen=True, slots=True)
 class UpdateScript:
     """A package's resolved `passthru.updateScript` (see update_scripts.nix)."""
@@ -1024,37 +1004,23 @@ class UpdateScript:
         return str(target.relative_to(root)) if target.is_relative_to(root) else None
 
     @property
-    def github_scope(self) -> tuple[str, ...]:
-        """The `owner, repo` this package lives at, narrowing its access token.
+    def token(self) -> str | None:
+        """The narrowest token covering the repository this package lives at.
 
         `meta.homepage` is where a package records that; anything but a GitHub
-        repository yields an empty scope, which falls back to the host-wide
-        token."""
+        repository falls back to the host-wide token."""
         url = urllib.parse.urlparse(self.homepage or "")
+        scope = (
+            url.path.strip("/").split("/")[:2] if url.hostname == GITHUB_HOST else []
+        )
 
-        if url.hostname != GITHUB_HOST:
-            return ()
-
-        return tuple(url.path.strip("/").split("/")[:2])
-
-    def token(self) -> str | None:
-        """The narrowest token covering this package's own repository, if the
-        updater's store path names GITHUB_TOKEN, be it a script or the sources
-        of a tool such as nix-update.
-
-        Letting each updater declare the need keeps the credential away from
-        the ones that never call the GitHub API, without a flag that nixpkgs
-        would not recognize."""
-        if names_github_token(Path(self.command[0])):
-            return github_token(*self.github_scope)
-
-        return None
+        return github_token(*scope)
 
     def run(self, token: str | None) -> subprocess.CompletedProcess[str]:
         """Run the updateScript, inheriting cwd (repo root) and PATH.
 
-        `token` reaches the script as GITHUB_TOKEN. Every script runs without
-        the exported tokens, so they leak no further than this."""
+        `token` reaches the script as GITHUB_TOKEN, which nixpkgs updaters such
+        as nix-update read, in place of the exported tokens."""
         # gh would prefer a stray GH_TOKEN over the narrower GITHUB_TOKEN
         env = {
             key: value
@@ -1184,10 +1150,9 @@ def update_pkgs(cfg: Config, package: str | None, dry_run: bool) -> None:
         max_workers=min(len(scripts), cfg.max_workers)
     ) as pool:
         # Tokens resolve here rather than in `run` so the cached `access-tokens`
-        # lookup and store path scans happen once, on this thread, instead of
-        # racing across workers.
+        # lookup happens once, on this thread, instead of racing across workers.
         futures = {
-            pool.submit(script.run, script.token()): key
+            pool.submit(script.run, script.token): key
             for key, script in scripts.items()
         }
 
