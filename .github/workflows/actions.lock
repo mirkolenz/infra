@@ -5,7 +5,6 @@ version: 'v0.0.3'
 workflows:
     '.github/workflows/checks.yaml':
         - 'actions/checkout@v7'
-        - 'cachix/cachix-action@v17'
         - 'determinatesystems/determinate-nix-action@v3'
         - 'wimpysworld/nothing-but-nix@v10'
     '.github/workflows/update.yaml':
@@ -24,11 +23,6 @@ dependencies:
         commit: 'sha1-64ab729a6294000f5aa4a4bc0b73d1f32bc45510'
         owner_id: 44036562
         repo_id: 642580244
-    'cachix/cachix-action@v17':
-        ref: 'v17'
-        commit: 'sha1-38b082610b782e7e93e209c35fd730d399dee866'
-        owner_id: 36824654
-        repo_id: 211717886
     'determinatesystems/determinate-nix-action@v3':
         ref: 'v3'
         commit: 'sha1-92957199488000b908fdad19f63711000965d8f3'

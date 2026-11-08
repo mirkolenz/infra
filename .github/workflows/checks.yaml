@@ -99,17 +99,11 @@ jobs:
             log-lines = 200
             max-jobs = 1
             sandbox = ${{ matrix.sandbox }}
-      - uses: cachix/cachix-action@v17
-        with:
-          name: mirkolenz
-          authToken: ${{ secrets.CACHIX_TOKEN }}
-          skipAddingSubstituter: true
-          # build-only fetches, refetched on a cache miss: sources, archives, and dependencies (cargo, go, npm, pnpm, yarn).
-          # Debug outputs stay, since `--skip-cached` rebuilds a target missing any output.
-          pushFilter: '-(source|vendor|vendor-staging|go-modules|npm-deps|pnpm-deps|yarn-deps)$|\.(tar\..+|zip|zst)$'
-      - run: nix run . -- check build --max-memory-size 2048 --no-nom --max-jobs "$MAX_JOBS"
+      # pushes the runtime closures of the built targets, leaving out build-only fetches
+      - run: nix run . -- check build --max-memory-size 2048 --no-nom --max-jobs "$MAX_JOBS" --cachix-cache mirkolenz
         env:
           MAX_JOBS: ${{ matrix.max-jobs }}
+          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_TOKEN }}
   check-all:
     name: check-all
     needs:
