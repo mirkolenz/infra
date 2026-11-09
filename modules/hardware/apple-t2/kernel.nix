@@ -10,10 +10,11 @@
       # drift apart.
       boot.kernelPackages = drivers.linuxPackages;
 
-      # Upstream rebuilds the Broadcom drivers on every T2 Mac.
+      # Like upstream, on every T2 Mac, though only those with an Intel GPU load i915.
       boot.extraModulePackages = [
         drivers
         pkgs.kait2en.wireless
+        pkgs.kait2en.i915
       ];
 
       boot.initrd.kernelModules = drivers.earlyModules;
