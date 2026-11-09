@@ -20,7 +20,6 @@
           # the extractor library behind osv-scanner, exposed as its own scanner. syft and
           # cdxgen read more lockfiles, so this one earns its place on images and layers
           osv-scalibr
-          cyclonedx-cli
           sbomnix
           # querying, assembling and scoring a document
           sbom-utility

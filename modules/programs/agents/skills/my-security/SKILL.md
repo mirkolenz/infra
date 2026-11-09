@@ -44,10 +44,9 @@ sbomasm assemble -o product.cdx.json <bom> <bom>
 # sbomqs: score a document, exposing a bill too thin to scan against
 sbomqs compliance --bsi <bom>
 
-# sbom-utility, cyclonedx: validate a document, and diff two releases
+# sbom-utility: validate a document, and diff two releases
 sbom-utility validate -i <bom>
-cyclonedx validate --input-file <bom>
-cyclonedx diff <previous> <current>
+sbom-utility diff -i <previous> -r <current>
 
 # vulnxscan: grype, osv, and vulnix in one triaged csv
 vulnxscan --sbom <bom> --triage
