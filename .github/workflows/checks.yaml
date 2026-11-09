@@ -76,9 +76,10 @@ jobs:
           # the sandbox mode follows modules/nix/settings.nix
           # nix-fast-build does not pass `--max-jobs` on, so every build
           # realizes its own dependencies one at a time
+          # parallel heavy builds with all cores each exhaust the memory
           extra-conf: |
             build-dir = /nix/build
-            cores = 0
+            cores = 2
             fallback = true
             keep-going = true
             max-jobs = 1
