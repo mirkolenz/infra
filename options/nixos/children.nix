@@ -15,13 +15,19 @@ let
   '';
 
   # Without a terminal, the entries that need one would fail.
-  hiddenEntries = pkgs.runCommandLocal "hidden-entries" { } ''
+  hiddenEntries = pkgs.runCommandLocal "hidden-entries" { nativeBuildInputs = [ pkgs.crudini ]; } ''
     mkdir $out
     cd ${config.system.path}/share/applications
-    for entry in $(grep -l '^Terminal=true' *.desktop) ${
-      lib.concatMapStringsSep " " (id: "${id}.desktop") cfg.hidden
-    }; do
-      ln -s ${hidden} $out/$entry
+
+    for entry in *.desktop; do
+      # A missing key means false.
+      if [ "$(crudini --get "$entry" "Desktop Entry" Terminal 2>/dev/null)" = true ]; then
+        ln -s ${hidden} "$out/$entry"
+      fi
+    done
+
+    for entry in ${lib.escapeShellArgs (map (id: "${id}.desktop") cfg.hidden)}; do
+      ln -sf ${hidden} "$out/$entry"
     done
   '';
 in
