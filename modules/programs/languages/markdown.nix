@@ -9,14 +9,13 @@
             "*.md"
           ];
           editors.zed.names = [ "Markdown" ];
-          servers = [ "marksman" ];
+          servers = [ "markdown-oxide" ];
           formatter.tool = "oxfmt";
         };
 
-        lsp.servers.marksman = {
-          package = pkgs.marksman;
-          args = [ "server" ];
-          editors.zed.extension = "marksman";
+        lsp.servers.markdown-oxide = {
+          package = pkgs.markdown-oxide;
+          editors.zed.extension = "markdown-oxide";
         };
       };
     };
