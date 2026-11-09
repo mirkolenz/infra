@@ -22,7 +22,7 @@ jobs:
   flake:
     # 4 vCPU, 16 GB RAM
     runs-on: ubuntu-26.04
-    timeout-minutes: 30
+    timeout-minutes: 90
     permissions:
       contents: read
     steps:
