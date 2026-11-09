@@ -34,10 +34,9 @@ kait2en.mkPatchedDrivers {
   };
   inherit mergedSince;
 
-  # The patches touch nothing outside the AMD tree, but amdgpu includes a few
-  # DRM core headers through relative paths, so take the whole DRM subtree.
-  sources = [ "drivers/gpu/drm" ];
   drivers = [ driver ];
+  # amdgpu builds and includes the rest of the AMD tree through relative paths.
+  sources = [ "drivers/gpu/drm/amd" ];
 
   postPatch = ''
     grep -qxF ${lib.escapeShellArg modprobeConfig} $src/${installer} ||
@@ -48,11 +47,6 @@ kait2en.mkPatchedDrivers {
         grep -qF ${lib.escapeShellArg (cutoff version)} ||
         { echo "the merged amdgpu patches changed upstream, see .agents/skills/kait2en/SKILL.md" >&2; exit 1; }
     '') mergedSince}
-
-    # Resolved against the kernel tree in-tree, but against `M=` out of it.
-    substituteInPlace ${driver}/amdgpu_trace.h --replace-fail \
-      '#define TRACE_INCLUDE_PATH ../../drivers/gpu/drm/amd/amdgpu' \
-      '#define TRACE_INCLUDE_PATH .'
   '';
 
   passthru = { inherit modprobeConfig; };

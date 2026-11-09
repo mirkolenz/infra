@@ -13,7 +13,7 @@ kait2en.mkGtkApp {
     rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
     hash = "sha256-VD0zcVKvN6sH+f42jCZ/ASnEjaTQGLKEED9djGBCf4E=";
     root = "apps/t2-zone-power";
-    logos = true;
+    logos = [ "src/gui.rs" ];
   };
 
   cargoHash = "sha256-wznUu7QKYZsKl+CLMPvPfK6aOJs96a9Pqwi0SqxR34c=";

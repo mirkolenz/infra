@@ -37,12 +37,8 @@ kait2en.mkPatchedDrivers {
     paths = [ "scripts/fedora/install-wireless.sh" ];
   };
 
-  # brcmfmac includes the shared headers of its parent.
-  sources = [
-    brcm80211
-    bluetooth
-  ];
-  # The parent builds brcmutil along, which exports brcmfmac's debug helpers.
+  # The parent holds brcmfmac's shared headers and builds brcmutil along,
+  # which exports brcmfmac's debug helpers.
   drivers = [
     brcm80211
     bluetooth

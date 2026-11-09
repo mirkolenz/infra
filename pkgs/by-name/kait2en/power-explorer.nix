@@ -17,7 +17,7 @@ kait2en.mkGtkApp {
     rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
     hash = "sha256-IMG5D6elZFj0uYHjG+MhZ7OVqrbkjrBmBlS0DcKWxRI=";
     root = "apps/t2-power-explorer";
-    logos = true;
+    logos = [ "src/ui.rs" ];
   };
 
   cargoHash = "sha256-zrvhh/tp/tDp/Oerq5RzIZgRWY/9VOxJcJzCnAJ3T54=";

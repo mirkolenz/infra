@@ -21,10 +21,10 @@ lib.extendMkDerivation {
       src,
       # Patches upstream's installer skips from a kernel version on.
       mergedSince ? { },
-      # The subtrees of the kernel source the drivers need.
-      sources,
       # The Kbuild directories to build.
       drivers,
+      # Further parts of the kernel source the drivers include.
+      sources ? [ ],
       # Passed to Kbuild after the kernel's own.
       makeFlags ? [ ],
       postPatch ? "",
@@ -36,7 +36,7 @@ lib.extendMkDerivation {
       inherit (kait2en.modules.linuxPackages) kernelModuleMakeFlags;
       patches = "${src}/${src.root}";
       merged = lib.attrNames (lib.filterAttrs (_: lib.versionAtLeast kernel.version) mergedSince);
-      members = map (dir: "linux-${kernel.version}/${dir}") sources;
+      members = map (dir: "linux-${kernel.version}/${dir}") (drivers ++ sources);
       driverDirs = map (dir: "$PWD/${dir}") drivers;
     in
     {
@@ -45,6 +45,8 @@ lib.extendMkDerivation {
 
         tar -xf ${kernel.src} ${lib.escapeShellArgs members}
         cd linux-${kernel.version}
+        # Trace headers name their directory relative to this one of the kernel tree.
+        mkdir -p include/trace
 
         runHook postUnpack
       '';
@@ -55,12 +57,14 @@ lib.extendMkDerivation {
       # Like upstream, a patch already in the kernel is skipped. The forward check
       # comes first, since `--batch` flips a reverse run of an unapplied patch.
       postPatch = ''
+        declare -A merged=(${lib.concatMapStrings (name: "[${lib.escapeShellArg name}]=1 ") merged})
+
         while IFS= read -r entry || [ -n "$entry" ]; do
           case "$entry" in "" | "#"*) continue ;; esac
 
           file="${patches}/$entry"
 
-          if [[ " ${toString merged} " == *" $entry "* ]]; then
+          if [[ -v merged[$entry] ]]; then
             echo "$entry is merged in ${kernel.version}"
           elif patch -p1 --dry-run --batch --forward --fuzz=3 < "$file" > /dev/null; then
             patch -p1 --batch --forward --fuzz=3 --no-backup-if-mismatch < "$file"
@@ -79,6 +83,7 @@ lib.extendMkDerivation {
       buildPhase = ''
         runHook preBuild
 
+        appendToVar makeFlags "KCFLAGS=-I$PWD/include/trace"
         ${kait2en.kbuild "modules" driverDirs}
 
         runHook postBuild

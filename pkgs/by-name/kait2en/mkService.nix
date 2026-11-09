@@ -14,6 +14,7 @@ lib.extendMkDerivation {
     "integration"
     "bridge"
     "runtimeInputs"
+    "userUnits"
   ];
   extendDrvArgs =
     _finalAttrs:
@@ -27,6 +28,8 @@ lib.extendMkDerivation {
       bridge ? false,
       # The packages each program, relative to the output, finds on its PATH.
       runtimeInputs ? { },
+      # The units of `systemd` that belong to the graphical session.
+      userUnits ? [ ],
       nativeBuildInputs ? [ ],
       meta ? { },
       postInstall ? "",
@@ -46,21 +49,21 @@ lib.extendMkDerivation {
 
       postInstall =
         kait2en.installLicenses "kait2en-${component}"
-        # Units under `systemd` and D-Bus files under `dbus`, a unit tied to
-        # the graphical session being a user unit.
+        # Units under `systemd` and D-Bus files under `dbus`.
         + ''
           if [ -d $cargoRoot/systemd ]; then
-            for unit in $cargoRoot/systemd/*.service; do
-              kind=system
-              if grep -q graphical-session.target "$unit"; then
-                kind=user
-              fi
-
-              install -Dm444 -t $out/lib/systemd/$kind "$unit"
-              substituteInPlace "$out/lib/systemd/$kind/''${unit##*/}" \
-                --replace-fail /usr/local/ $out/
-            done
+            install -Dm444 -t $out/lib/systemd/system $cargoRoot/systemd/*.service
+            substituteInPlace $out/lib/systemd/system/*.service --replace-fail /usr/local/ $out/
           fi
+        ''
+        + lib.optionalString (userUnits != [ ]) ''
+          install -d $out/lib/systemd/user
+          ${lib.concatMapStrings (unit: ''
+            mv $out/lib/systemd/system/${unit} $out/lib/systemd/user/
+          '') userUnits}
+          rmdir --ignore-fail-on-non-empty $out/lib/systemd/system
+        ''
+        + ''
 
           if [ -d $cargoRoot/dbus ]; then
             install -Dm444 -t $out/share/dbus-1/system.d $cargoRoot/dbus/*.conf

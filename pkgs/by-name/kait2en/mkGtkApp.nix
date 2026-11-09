@@ -9,9 +9,10 @@
   gtk4,
   libadwaita,
 }:
-# The GTK apps under `apps`, which ship a desktop entry and an icon, and load
-# the KaiT2en wordmarks from where Fedora's installer puts them. A `build.rs`
-# compiles the icon into a resource bundle with glib and libxml2.
+# The GTK apps under `apps`, which ship a desktop entry and an icon.
+# Those fetched with `logos` load the KaiT2en wordmarks from where Fedora's
+# installer puts them, and a `build.rs` may compile the icon into a resource
+# bundle with glib and libxml2.
 lib.extendMkDerivation {
   constructDrv = kait2en.mkService;
   excludeDrvArgNames = [ "appId" ];
@@ -45,22 +46,28 @@ lib.extendMkDerivation {
       ++ buildInputs;
 
       # Some entries name the binary by its Fedora path, which is optional.
-      postPatch = ''
-        substituteInPlace $(grep -rl /usr/local/${assets}/ ${root}/src) \
-          --replace-fail /usr/local/${assets}/ $out/${assets}/
-        substituteInPlace ${root}/${appId}.desktop \
-          --replace-quiet /usr/local/bin/ ""
-      ''
-      + postPatch;
+      postPatch =
+        lib.optionalString (src.logos != [ ]) ''
+          substituteInPlace ${lib.concatMapStringsSep " " (file: "${root}/${file}") src.logos} \
+            --replace-fail /usr/local/${assets}/ $out/${assets}/
+        ''
+        + ''
+          substituteInPlace ${root}/${appId}.desktop \
+            --replace-quiet /usr/local/bin/ ""
+        ''
+        + postPatch;
 
-      postInstall = ''
-        install -Dm444 assets/kait2en-app-logo.png $out/${assets}/kait2en-wordmark.png
-        install -Dm444 assets/kait2en-app-logo-light.png $out/${assets}/kait2en-wordmark-light.png
-        install -Dm444 -t $out/share/applications ${root}/${appId}.desktop
-        install -Dm444 -t $out/share/icons/hicolor/scalable/apps \
-          ${root}/assets/icons/hicolor/scalable/apps/${appId}.svg
-      ''
-      + postInstall;
+      postInstall =
+        lib.optionalString (src.logos != [ ]) ''
+          install -Dm444 assets/kait2en-app-logo.png $out/${assets}/kait2en-wordmark.png
+          install -Dm444 assets/kait2en-app-logo-light.png $out/${assets}/kait2en-wordmark-light.png
+        ''
+        + ''
+          install -Dm444 -t $out/share/applications ${root}/${appId}.desktop
+          install -Dm444 -t $out/share/icons/hicolor/scalable/apps \
+            ${root}/assets/icons/hicolor/scalable/apps/${appId}.svg
+        ''
+        + postInstall;
 
       # The hook would also wrap helpers under `libexec`, which run no GTK.
       dontWrapGApps = true;

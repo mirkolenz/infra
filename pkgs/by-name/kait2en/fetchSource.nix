@@ -13,8 +13,8 @@
   # Further directories with a trailing slash, files without, and exclusions
   # with a leading `!`.
   paths ? [ ],
-  # The wordmarks the GTK apps show.
-  logos ? false,
+  # The files of `root` that load the wordmarks the GTK apps show.
+  logos ? [ ],
   # The protocol crate of the bridge link daemons.
   bridgexpc ? false,
 }:
@@ -26,7 +26,7 @@ fetchFromGitHub {
   owner = "kaiT2en";
   repo = "KaiT2en-Fedora";
   inherit rev hash;
-  passthru = { inherit root; };
+  passthru = { inherit root logos; };
   nonConeMode = true;
   sparseCheckout = map anchor (
     [
@@ -35,7 +35,7 @@ fetchFromGitHub {
       "LICENSES/"
     ]
     ++ lib.optional (root != null) "${root}/"
-    ++ lib.optionals logos [
+    ++ lib.optionals (logos != [ ]) [
       "assets/kait2en-app-logo.png"
       "assets/kait2en-app-logo-light.png"
     ]

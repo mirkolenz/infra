@@ -15,7 +15,7 @@ kait2en.mkGtkApp {
     rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
     hash = "sha256-hIP5yG7RATrwOHwZUnlFPK1gP3vFnQ+goxM9895OCaU=";
     root = "apps/t2-smc-control";
-    logos = true;
+    logos = [ "src/main.rs" ];
   };
 
   cargoHash = "sha256-eh1i9ud2m3FHog4+VRhWcL87z2QWVoWQZ829MKJSGVY=";

@@ -14,7 +14,7 @@ kait2en.mkGtkApp {
     hash = "sha256-ICfmiP2Bk4hNu4u/9E4i0JKDlZHSzlluxQhJRiASibQ=";
     root = "apps/t2-debug";
     bridgexpc = true;
-    logos = true;
+    logos = [ "src/bin/t2-debug.rs" ];
   };
 
   cargoHash = "sha256-6zciw4vmiI2APy2f4z1XmYlSpXU/F38CT/0H8h2UvSE=";
