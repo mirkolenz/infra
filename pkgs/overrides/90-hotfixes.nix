@@ -1,21 +1,38 @@
 final: prev:
+let
+  # nixpkgs#537108 makes the cargo setup hook force common `-sys` crates onto system libraries,
+  # which fails every package that does not provide them yet. Drop an entry once hydra builds it.
+  # https://github.com/NixOS/nixpkgs/pull/537108
+  withSystemLibs =
+    drv: libs:
+    drv.overrideAttrs (prevAttrs: {
+      nativeBuildInputs = prevAttrs.nativeBuildInputs or [ ] ++ [ final.pkg-config ];
+      buildInputs = prevAttrs.buildInputs or [ ] ++ libs;
+    });
+
+  magoWithZstd = withSystemLibs prev.mago [ final.zstd ];
+in
 {
   # mago links with an rpath into the rustlib of rustc, which pulls its gigabyte into every
   # closure with mago, such as those of the formatters. No upstream report yet.
-  # Patching the cached binary avoids compiling mago, which outlasts the CI timeouts.
   # `runCommand` over `runCommandLocal`, since substituting the result spares fetching rustc.
   mago =
-    final.runCommand prev.mago.name
+    final.runCommand magoWithZstd.name
       {
-        inherit (prev.mago) pname version meta;
+        inherit (magoWithZstd) pname version meta;
         nativeBuildInputs = [ final.removeReferencesTo ];
         disallowedReferences = [ final.rustc.unwrapped ];
       }
       ''
-        cp -R ${prev.mago} $out
+        cp -R ${magoWithZstd} $out
         chmod -R u+w $out
         remove-references-to -t ${final.rustc.unwrapped} $out/bin/mago
       '';
+
+  # https://github.com/NixOS/nixpkgs/pull/584921
+  zizmor = withSystemLibs prev.zizmor [ final.aws-lc ];
+
+  termscp = withSystemLibs prev.termscp [ final.aws-lc ];
 
   # nix-update 1.16.0 resolves a package's current ref as `rev or tag`. A src written with
   # nixpkgs' newer `fetchFromGitHub { tag = ...; }` expands that to `refs/tags/v1.2.3`, which

@@ -5,6 +5,9 @@
   fetchFromGitHub,
   nix-update-script,
   gitMinimal,
+  pkg-config,
+  oniguruma,
+  libgit2,
 }:
 mkHerdrPlugin (finalAttrs: {
   pname = "herdr-reviewr";
@@ -21,6 +24,11 @@ mkHerdrPlugin (finalAttrs: {
   binary = rustPlatform.buildRustPackage {
     inherit (finalAttrs) pname version src;
     cargoHash = "sha256-fZK1u6kEz7n2fxPeVE6oXpGuSHrM28LHfiB1I0M6Mx8=";
+    nativeBuildInputs = [ pkg-config ];
+    buildInputs = [
+      oniguruma
+      libgit2
+    ];
     # the integration tests run the plugin entry points against a git checkout
     cargoTestFlags = [ "--lib" ];
     nativeCheckInputs = [ gitMinimal ];
