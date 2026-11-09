@@ -12,7 +12,22 @@ let
 
   magoWithZstd = withSystemLibs prev.mago [ final.zstd ];
 in
-{
+prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
+  # https://github.com/NixOS/nixpkgs/pull/584921
+  zizmor = [ final.aws-lc ];
+
+  termscp = [ final.aws-lc ];
+  mqttui = [ final.aws-lc ];
+  codebook = [ final.aws-lc ];
+  kingfisher = [ final.aws-lc ];
+  tectonic-unwrapped = [ final.aws-lc ];
+  askalono = [ final.zstd ];
+  tabiew = [
+    final.zstd
+    final.sqlcipher
+  ];
+}
+// {
   # mago links with an rpath into the rustlib of rustc, which pulls its gigabyte into every
   # closure with mago, such as those of the formatters. No upstream report yet.
   # `runCommand` over `runCommandLocal`, since substituting the result spares fetching rustc.
@@ -28,11 +43,6 @@ in
         chmod -R u+w $out
         remove-references-to -t ${final.rustc.unwrapped} $out/bin/mago
       '';
-
-  # https://github.com/NixOS/nixpkgs/pull/584921
-  zizmor = withSystemLibs prev.zizmor [ final.aws-lc ];
-
-  termscp = withSystemLibs prev.termscp [ final.aws-lc ];
 
   # nix-update 1.16.0 resolves a package's current ref as `rev or tag`. A src written with
   # nixpkgs' newer `fetchFromGitHub { tag = ...; }` expands that to `refs/tags/v1.2.3`, which
