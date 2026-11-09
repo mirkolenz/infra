@@ -1,12 +1,11 @@
 {
   lib,
-  buildGo127Module,
+  buildGoModule,
   fetchFromGitHub,
   versionCheckHook,
   nix-update-script,
 }:
-# go.mod requires a newer toolchain than the nixpkgs default
-buildGo127Module (finalAttrs: {
+buildGoModule (finalAttrs: {
   pname = "sbomasm";
   version = "2.1.2";
 
