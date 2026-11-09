@@ -32,7 +32,6 @@
       }:
       lib.mkIf config.custom.features.graphical.enable {
         home.packages = with pkgs; [
-          anydesk
           obsidian
           zotero
           teams-for-linux
