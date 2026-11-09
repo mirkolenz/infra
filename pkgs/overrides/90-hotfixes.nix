@@ -3,11 +3,15 @@ let
   # nixpkgs#537108 makes the cargo setup hook force common `-sys` crates onto system libraries,
   # which fails every package that does not provide them yet. Drop an entry once hydra builds it.
   # https://github.com/NixOS/nixpkgs/pull/537108
+  # The CI runners build these instead of hydra, and a fat LTO link exhausts their memory.
   withSystemLibs =
     drv: libs:
     drv.overrideAttrs (prevAttrs: {
       nativeBuildInputs = prevAttrs.nativeBuildInputs or [ ] ++ [ final.pkg-config ];
       buildInputs = prevAttrs.buildInputs or [ ] ++ libs;
+      env = prevAttrs.env or { } // {
+        CARGO_PROFILE_RELEASE_LTO = "thin";
+      };
     });
 
   # pluggy 1.7 only accepts functions as hookspecs, so registering the class-based ones of
