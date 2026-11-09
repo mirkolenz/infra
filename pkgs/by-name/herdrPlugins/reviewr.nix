@@ -8,19 +8,19 @@
 }:
 mkHerdrPlugin (finalAttrs: {
   pname = "herdr-reviewr";
-  version = "0.52.0";
+  version = "0.52.1";
   pluginId = "persiyanov.reviewr";
 
   src = fetchFromGitHub {
     owner = "persiyanov";
     repo = "herdr-reviewr";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-wVpBhzVZOH9OKqs5581LnaF04F/ff0dXSrChHwvpyWc=";
+    hash = "sha256-i+JtSYpEfBO9QF+UM1+TQTUvmRMQyGf1J+EKdhw0gOo=";
   };
 
   binary = rustPlatform.buildRustPackage {
     inherit (finalAttrs) pname version src;
-    cargoHash = "sha256-piexaA8EOs9DaE3HGjkIMLm2Omans6c3mN8BYF8q6gg=";
+    cargoHash = "sha256-fZK1u6kEz7n2fxPeVE6oXpGuSHrM28LHfiB1I0M6Mx8=";
     # the integration tests run the plugin entry points against a git checkout
     cargoTestFlags = [ "--lib" ];
     nativeCheckInputs = [ gitMinimal ];
