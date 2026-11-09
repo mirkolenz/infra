@@ -57,15 +57,6 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      # the runner image enables 4 GB of swap only on a resource disk that these runners lack,
-      # so it goes on the root filesystem before nothing-but-nix claims the free space
-      - name: enable linux swap
-        if: runner.os == 'Linux'
-        run: |
-          sudo fallocate -l 4G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
       - name: reclaim linux disk space
         if: runner.os == 'Linux'
         uses: wimpysworld/nothing-but-nix@v12
