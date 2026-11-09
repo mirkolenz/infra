@@ -57,12 +57,18 @@ prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
         remove-references-to -t ${final.rustc.unwrapped} $out/bin/mago
       '';
 
-  # packages.Load in the annotation tests finds no packages under Go 1.27,
-  # these subtests only check that every struct implementing an interface is covered.
-  # No upstream report yet.
-  nilaway = prev.nilaway.overrideAttrs (prevAttrs: {
-    checkFlags = prevAttrs.checkFlags or [ ] ++ [ "-skip=/TestStructsChecked" ];
-  });
+  # nixpkgs pins nilaway from 2025-03, whose vendored golang.org/x/tools panics
+  # with `unexpected expr: *ast.KeyValueExpr` while building the SSA of Go 1.27 code on linux.
+  nilaway = prev.nilaway.overrideAttrs {
+    version = "0-unstable-2026-09-18";
+    src = final.fetchFromGitHub {
+      owner = "uber-go";
+      repo = "nilaway";
+      rev = "acb8859b9031bb9496be97e027df5573f9fb5340";
+      hash = "sha256-GvDZ5tlvOrTI93tYcIcLd45ZHdqwFopVtoBffD/kbuM=";
+    };
+    vendorHash = "sha256-qVmvDneq6V/q5UHZ/Cjjqd5/XPPNfvVGoxwg9nz4/Ds=";
+  };
 
   # nix-update 1.16.0 resolves a package's current ref as `rev or tag`. A src written with
   # nixpkgs' newer `fetchFromGitHub { tag = ...; }` expands that to `refs/tags/v1.2.3`, which
