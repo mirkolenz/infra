@@ -10,6 +10,19 @@ let
       buildInputs = prevAttrs.buildInputs or [ ] ++ libs;
     });
 
+  # pluggy 1.7 only accepts functions as hookspecs, so registering the class-based ones of
+  # plugincode and scancode fails. Both only load entry points through pluggy and never call a hook,
+  # so the registration becomes a no-op expression.
+  # https://github.com/aboutcode-org/plugincode/pull/15
+  dropHookspecs =
+    drv: files:
+    drv.overridePythonAttrs (prevAttrs: {
+      postPatch = (prevAttrs.postPatch or "") + ''
+        substituteInPlace ${prev.lib.escapeShellArgs files} \
+          --replace-fail 'self.manager.add_hookspecs(' '('
+      '';
+    });
+
   magoWithZstd = withSystemLibs prev.mago [ final.zstd ];
 in
 prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
@@ -100,6 +113,14 @@ prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
       {
         # semgrep imports `mcp.server.fastmcp`, which mcp 2 removed.
         semgrep = pyprev.semgrep.override { mcp = pyfinal.mcp_1; };
+
+        plugincode = dropHookspecs pyprev.plugincode [
+          "src/plugincode/__init__.py"
+          "src/plugincode/location_provider.py"
+        ];
+        scancode-toolkit = dropHookspecs pyprev.scancode-toolkit [
+          "src/licensedcode/additional_license_location_provider.py"
+        ];
       }
       // prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
         # Importing libvirt loads system frameworks down to Apple's LibreSSL, which aborts once the
