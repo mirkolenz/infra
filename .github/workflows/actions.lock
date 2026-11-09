@@ -6,7 +6,7 @@ workflows:
     '.github/workflows/checks.yaml':
         - 'actions/checkout@v7'
         - 'determinatesystems/determinate-nix-action@v3'
-        - 'wimpysworld/nothing-but-nix@v10'
+        - 'wimpysworld/nothing-but-nix@v11'
     '.github/workflows/update.yaml':
         - 'actions/checkout@v7'
         - 'actions/create-github-app-token@v3'
@@ -25,7 +25,7 @@ dependencies:
         repo_id: 642580244
     'determinatesystems/determinate-nix-action@v3':
         ref: 'v3'
-        commit: 'sha1-92957199488000b908fdad19f63711000965d8f3'
+        commit: 'sha1-16f94ba7aae399b9f9077c254b6719ec6de7e3e3'
         owner_id: 80991770
         repo_id: 983748827
         uses:
@@ -40,15 +40,15 @@ dependencies:
         commit: 'sha1-5f6978faf089d4d20b00c7766989d076bb2fc7f1'
         owner_id: 18365890
         repo_id: 197176365
-    'srz-zumix/post-run-action@v3':
-        ref: 'v3'
+    'srz-zumix/post-run-action@42756f7452b9439d0365b7e087b2c364f54209c6':
+        ref: 'v3.0.2'
         commit: 'sha1-42756f7452b9439d0365b7e087b2c364f54209c6'
         owner_id: 1439172
         repo_id: 757239631
-    'wimpysworld/nothing-but-nix@v10':
-        ref: 'v10'
-        commit: 'sha1-687c797a730352432950c707ab493fcc951818d7'
+    'wimpysworld/nothing-but-nix@v11':
+        ref: 'v11'
+        commit: 'sha1-59a79ef03bc486f0acca5480b7edf426ae7e7b0c'
         owner_id: 39407681
         repo_id: 982902962
         uses:
-            - 'srz-zumix/post-run-action@v3'
+            - 'srz-zumix/post-run-action@42756f7452b9439d0365b7e087b2c364f54209c6'
