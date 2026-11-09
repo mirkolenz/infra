@@ -2,7 +2,6 @@
   lib,
   stdenvNoCC,
   fetchurl,
-  patchelf-fixed,
   autoPatchelfHook,
   versionCheckHook,
   writableTmpDirAsHomeHook,
@@ -57,7 +56,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ]
   ++ lib.optionals isLinux [
     autoPatchelfHook
-    patchelf-fixed
   ];
 
   installPhase = ''
