@@ -44,22 +44,28 @@ jobs:
           # 4 vCPU, 16 GB RAM
           - system: aarch64-linux
             runner: ubuntu-26.04-arm
-            max-jobs: 4
             sandbox: true
           # 4 vCPU, 16 GB RAM
           - system: x86_64-linux
             runner: ubuntu-26.04
-            max-jobs: 4
             sandbox: true
           # 3 vCPU, 7 GB RAM
           - system: aarch64-darwin
             runner: macos-26
-            max-jobs: 3
             sandbox: relaxed
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      # the runner image enables 4 GB of swap only on a resource disk that these runners lack,
+      # so it goes on the root filesystem before nothing-but-nix claims the free space
+      - name: enable linux swap
+        if: runner.os == 'Linux'
+        run: |
+          sudo fallocate -l 4G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
       - name: reclaim linux disk space
         if: runner.os == 'Linux'
         uses: wimpysworld/nothing-but-nix@v12
@@ -83,9 +89,8 @@ jobs:
             max-jobs = 1
             sandbox = ${{ matrix.sandbox }}
       # pushes the runtime closures of the built targets, leaving out build-only fetches
-      - run: nix run . -- check build --max-memory-size 2048 --no-nom --max-jobs "$MAX_JOBS" --cachix-cache mirkolenz
+      - run: nix run . -- check build --max-memory-size 2048 --no-nom --max-jobs 2 --cachix-cache mirkolenz
         env:
-          MAX_JOBS: ${{ matrix.max-jobs }}
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_TOKEN }}
   all:
     needs:
