@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 permissions: {}
 cache-mode: none
-# The branch rule requires only the aggregate `check-all` job:
+# The branch rule requires only the aggregate `all` job:
 # https://github.com/mirkolenz/infra/settings/rules/3352950
 # `check flake` evaluates everything the build jobs leave out, the build jobs
 # evaluate and build the CI targets of their system. Together they cover what
@@ -19,8 +19,7 @@ cache-mode: none
 # `check flake` leaves about 3 GB of the runner to the system, two workers
 # keep more of nixpkgs cached than four. The build jobs evaluate in seconds.
 jobs:
-  check-flake:
-    name: check-flake
+  flake:
     # 4 vCPU, 16 GB RAM
     runs-on: ubuntu-26.04
     timeout-minutes: 30
@@ -32,8 +31,8 @@ jobs:
           persist-credentials: false
       - uses: $/.github/actions/setup-nix
       - run: nix run . -- check flake --workers 2 --max-memory-size 6656
-  check-build:
-    name: check-build-${{ matrix.system }}
+  build:
+    name: ${{ matrix.system }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 180
     permissions:
@@ -88,11 +87,10 @@ jobs:
         env:
           MAX_JOBS: ${{ matrix.max-jobs }}
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_TOKEN }}
-  check-all:
-    name: check-all
+  all:
     needs:
-      - check-flake
-      - check-build
+      - flake
+      - build
     runs-on: ubuntu-slim
     if: always()
     steps:
