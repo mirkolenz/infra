@@ -6,13 +6,12 @@
   lib,
   stdenv,
   kait2en,
-  linuxPackages_7_2,
+  linuxPackages_7_3,
 }:
 let
   # Re-exported through `passthru`, so the modules cannot be loaded into a
-  # kernel they were not built against. Pinned to the series of the Fedora
-  # release upstream targets, since its amdgpu patches are written against it.
-  inherit (linuxPackages_7_2) kernel kernelModuleMakeFlags;
+  # kernel they were not built against.
+  inherit (linuxPackages_7_3) kernel kernelModuleMakeFlags;
 
   # Staged into the `t2bce_stack` Kbuild unit, from `modules` and from AVE.
   bceMembers = [
@@ -215,7 +214,7 @@ stdenv.mkDerivation {
       replacedModules
       ;
     # The set itself, so the NixOS module does not instantiate a second one.
-    linuxPackages = linuxPackages_7_2;
+    linuxPackages = linuxPackages_7_3;
   };
 
   strictDeps = true;

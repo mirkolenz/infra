@@ -30,7 +30,7 @@ Upstream rejects issues and pull requests it believes an AI wrote, so never open
    Look for new native dependencies, Fedora paths such as `/usr` or `/etc` the `--replace-fail` patches must follow, new or renamed units, and new apps or scripts.
    Package a new app or record why not under "Deliberately not packaged" in the README.
    Extend a package's `paths` when it starts building from a file outside its `root`.
-   Move the `linuxPackages_<major>_<minor>` pin in `modules.nix` once upstream targets a new kernel series, as the `kernel_version_ge` cutoffs in `install-gpu-runtime-pm.sh` and the Fedora release under `auto-installer/targets` show.
+   Move the `linuxPackages_<major>_<minor>` pin in `modules.nix` once upstream targets a new kernel series, as the `kernel_version_ge` cutoffs in `install-gpu-runtime-pm.sh` and the Fedora release under `auto-installer/targets` show, or once nixpkgs drops the pinned series, then to the oldest one it still ships.
 
 2. Review what the [NixOS fork](https://github.com/LukeChannings/KaiT2en-NixOS) changed in its Nix layer since its reviewed revision, a second view on the same upstream.
 

@@ -66,5 +66,8 @@ kait2en.mkPatchedDrivers {
       gpl2Only
       gpl3Plus
     ];
+    # 0006 predates the second argument 7.3 gave `smu_set_ac_dc`.
+    # Drop once upstream rebases its series onto 7.3.
+    broken = lib.versionAtLeast kait2en.modules.kernel.version "7.3";
   };
 }
