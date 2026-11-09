@@ -44,6 +44,13 @@ prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
         remove-references-to -t ${final.rustc.unwrapped} $out/bin/mago
       '';
 
+  # packages.Load in the annotation tests finds no packages under Go 1.27,
+  # these subtests only check that every struct implementing an interface is covered.
+  # No upstream report yet.
+  nilaway = prev.nilaway.overrideAttrs (prevAttrs: {
+    checkFlags = prevAttrs.checkFlags or [ ] ++ [ "-skip=/TestStructsChecked" ];
+  });
+
   # nix-update 1.16.0 resolves a package's current ref as `rev or tag`. A src written with
   # nixpkgs' newer `fetchFromGitHub { tag = ...; }` expands that to `refs/tags/v1.2.3`, which
   # never equals the plain `v1.2.3` the version fetcher reports, so every run counts as a change
