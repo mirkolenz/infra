@@ -11,11 +11,11 @@
   udev,
 }:
 kait2en.mkService {
-  version = "0.1.12-unstable-2026-11-02";
+  version = "0.1.13-unstable-2026-11-08";
 
   src = kait2en.fetchSource {
-    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
-    hash = "sha256-L4mFqcnqCL/M6ivgVyOLdP4MjWtFlWeXOM85Ccsz06M=";
+    rev = "8de95468f08c6db37924bcb8f9adc12c769add71";
+    hash = "sha256-Yhs7waP7Nei8lJvYg9OF+C+w509xEb52v8sszAPAPZ8=";
     root = "t2-services/t2-touchid";
     bridgexpc = true;
   };

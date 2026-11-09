@@ -131,11 +131,11 @@ in
 stdenv.mkDerivation {
   pname = "kait2en-modules";
 
-  version = "0.1.13-unstable-2026-11-07";
+  version = "0.1.13-unstable-2026-11-08";
 
   src = kait2en.fetchSource {
-    rev = "76bfd1fe4f7c085d16b421a27f2161ca52b82568";
-    hash = "sha256-GwqTwf44udBYtXiHbIwgGdOKC/BkOLpwor6YaT2sndA=";
+    rev = "8de95468f08c6db37924bcb8f9adc12c769add71";
+    hash = "sha256-BmvpbA2RYRvk0m2xb4mxIiEnzdiysglSRe0c2OWJE/g=";
     paths =
       map (dir: "modules/${dir}/") (lib.remove "linux-apfs-rw" packages ++ bceMembers)
       ++ map (dir: "t2-services/t2-ave/kernel/${dir}/") aveMembers

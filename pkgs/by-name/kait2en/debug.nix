@@ -7,11 +7,11 @@
 }:
 kait2en.mkGtkApp {
   appId = "org.t2debug.gtk";
-  version = "0.1.12-unstable-2026-11-02";
+  version = "0.1.13-unstable-2026-11-08";
 
   src = kait2en.fetchSource {
-    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
-    hash = "sha256-ICfmiP2Bk4hNu4u/9E4i0JKDlZHSzlluxQhJRiASibQ=";
+    rev = "8de95468f08c6db37924bcb8f9adc12c769add71";
+    hash = "sha256-4L10cF2LpoPqtARh6VaA8XuNZ7ZXq1zW3rhHd8TnD/Q=";
     root = "apps/t2-debug";
     bridgexpc = true;
     logos = [ "src/bin/t2-debug.rs" ];

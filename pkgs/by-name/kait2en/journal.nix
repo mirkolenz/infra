@@ -6,11 +6,11 @@
   kait2en,
 }:
 kait2en.mkService {
-  version = "0.1.12-unstable-2026-11-02";
+  version = "0.1.13-unstable-2026-11-08";
 
   src = kait2en.fetchSource {
-    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
-    hash = "sha256-EJA9Bp21BXBwudjOD1aaCrb+90zMTvFu1raEdZWrNao=";
+    rev = "8de95468f08c6db37924bcb8f9adc12c769add71";
+    hash = "sha256-R4r2FUGZIqxQSCvcAKu94bFuyxmB2klwxTgq5X4Cd9c=";
     root = "t2-services/t2-journal";
     bridgexpc = true;
   };
