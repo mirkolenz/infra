@@ -33,9 +33,6 @@ let
       version = "0";
       src = "${inputs.vicinae-extensions}/extensions/${name}";
       npmFlags = [ "--legacy-peer-deps" ];
-      postPatch = ''
-        substituteInPlace tsconfig.json --replace "../../" "${inputs.vicinae-extensions}/"
-      '';
     };
 in
 # packages named like the input providing them
