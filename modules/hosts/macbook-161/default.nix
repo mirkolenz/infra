@@ -36,7 +36,7 @@ in
           touchbar.enable = true;
           kbd-backlight.enable = true;
           airshare.enable = true;
-          autobrightness.enable = true;
+          truetone.enable = true;
           ave.enable = true;
           zone-power.enable = true;
         };
