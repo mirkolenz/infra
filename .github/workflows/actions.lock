@@ -6,7 +6,7 @@ workflows:
     '.github/workflows/checks.yaml':
         - 'actions/checkout@v7'
         - 'determinatesystems/determinate-nix-action@v3'
-        - 'wimpysworld/nothing-but-nix@v11'
+        - 'wimpysworld/nothing-but-nix@v12'
     '.github/workflows/update.yaml':
         - 'actions/checkout@v7'
         - 'actions/create-github-app-token@v3'
@@ -45,9 +45,9 @@ dependencies:
         commit: 'sha1-42756f7452b9439d0365b7e087b2c364f54209c6'
         owner_id: 1439172
         repo_id: 757239631
-    'wimpysworld/nothing-but-nix@v11':
-        ref: 'v11'
-        commit: 'sha1-59a79ef03bc486f0acca5480b7edf426ae7e7b0c'
+    'wimpysworld/nothing-but-nix@v12':
+        ref: 'v12'
+        commit: 'sha1-b2574ec1cf1462bee0a34de0fb6ff11ad3c43cb2'
         owner_id: 39407681
         repo_id: 982902962
         uses:
