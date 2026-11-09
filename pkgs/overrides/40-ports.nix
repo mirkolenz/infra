@@ -63,6 +63,20 @@ final: prev:
             broken = false;
           };
         });
+
+        # The ported extractcode-libarchive below links the libarchive of nixpkgs, which is newer
+        # than the one the upstream plugin bundles. It skips the symbol table members of ar archives
+        # and sanitizes relative paths itself, which these tests expect the old way.
+        # todo: drop with the libarchive port once upstream bundles a current libarchive
+        extractcode = pyprev.extractcode.overridePythonAttrs (prevAttrs: {
+          disabledTests = (prevAttrs.disabledTests or [ ]) ++ [
+            "test_extract_ar_with_permissions"
+            "test_extract_ar_with_permissions_libarchive"
+            "test_extract_ar_with_relative_path_and_backslashes_in_names_libarch"
+            "test_extract_ar_with_relative_path_libarch"
+            "test_extract_directory_of_windows_ar_archives"
+          ];
+        });
       }
       # nixpkgs builds scancode's three native plugins from the linux variants of the
       # upstream sources, which makes every consumer of the toolkit linux-only. The macos
