@@ -95,9 +95,14 @@ in
     # Runs as root, since macOS reserves privileged ports on a specific address to it.
     # The admin API would let every local process reconfigure a root server,
     # and launchd restarts it on config changes anyway.
+    # Caddy rotates its own log, launchd only captures output before the logger starts.
     services.caddy.globalConfig = ''
       admin off
       log {
+        output file ${cfg.logDir}/caddy.log {
+          roll_size 10MiB
+          roll_keep 5
+        }
         ${cfg.logFormat}
       }
     '';
@@ -121,8 +126,8 @@ in
         RunAtLoad = true;
         ThrottleInterval = 10;
         WorkingDirectory = cfg.dataDir;
-        StandardOutPath = "${cfg.logDir}/caddy.log";
-        StandardErrorPath = "${cfg.logDir}/caddy.log";
+        StandardOutPath = "${cfg.logDir}/launchd.log";
+        StandardErrorPath = "${cfg.logDir}/launchd.log";
       };
     };
 
