@@ -34,22 +34,27 @@
         inherit (config.custom.features.graphical) displayServer;
       in
       lib.mkIf config.custom.features.graphical.enable {
-        home.packages = with pkgs; [
-          obsidian
-          zotero
-          teams-for-linux
-          stamp
-          todoist-electron
-          # papers ships with the GNOME core apps but not with Cosmic
-          papers
-          # page operations, which papers lacks
-          pdfarranger
-        ]
-        # clipboard access for terminal programs such as neovim and helix
-        ++ lib.optional (displayServer != null) {
-          wayland = wl-clipboard;
-          xserver = xclip;
-        }.${displayServer};
+        home.packages =
+          with pkgs;
+          [
+            obsidian
+            zotero
+            teams-for-linux
+            stamp
+            todoist-electron
+            # papers ships with the GNOME core apps but not with Cosmic
+            papers
+            # page operations, which papers lacks
+            pdfarranger
+          ]
+          # clipboard access for terminal programs such as neovim and helix
+          ++
+            lib.optional (displayServer != null)
+              {
+                wayland = wl-clipboard;
+                xserver = xclip;
+              }
+              .${displayServer};
         programs.libreoffice = {
           enable = true;
           package = pkgs.libreoffice-stable;
