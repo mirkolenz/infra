@@ -6,6 +6,7 @@
   options.custom.features = {
     unattended.enable = lib.mkEnableOption "unattended operation (always-on host: no sleep, auto-upgrade)";
     extras.enable = lib.mkEnableOption "extra packages beyond the base set";
+    lowMemory.enable = lib.mkEnableOption "skipping packages whose local builds exceed little memory";
     agents.enable = lib.mkOption {
       type = lib.types.bool;
       default = config.custom.features.extras.enable;

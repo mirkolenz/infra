@@ -1,6 +1,6 @@
 {
   flake.modules.generic.languages =
-    { pkgs, ... }:
+    { pkgs, config, ... }:
     {
       custom = {
         languages.php = {
@@ -10,7 +10,7 @@
             extensions = [ "php" ];
           };
           servers = [ "phpactor" ];
-          formatter.tool = "mago_format";
+          formatter.tool = if config.custom.features.lowMemory.enable then null else "mago_format";
         };
 
         lsp.servers.phpactor = {

@@ -41,9 +41,6 @@
           govulncheck
           cargo-audit
           # secrets, including the ones reachable only through git history
-          # validates a hit against the live service, so a dead string stops outranking a
-          # live credential
-          kingfisher
           gitleaks
           trufflehog
           # static analysis, bearer covering data flow and privacy
@@ -76,6 +73,9 @@
           cargo-about
           go-licenses
         ]
+        # validates a secret against the live service, so a dead string stops outranking a
+        # live credential
+        ++ lib.optionals (!config.custom.features.lowMemory.enable) [ kingfisher ]
         ++ lib.optionals config.custom.features.graphical.enable [
           # desktop uis for auditing scan results
           scanoss-cc
