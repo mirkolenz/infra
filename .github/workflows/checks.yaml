@@ -20,6 +20,7 @@ cache-mode: none
 # keep more of nixpkgs cached than four. The build jobs evaluate in seconds.
 jobs:
   flake:
+    name: flake
     # 4 vCPU, 16 GB RAM
     runs-on: ubuntu-26.04
     timeout-minutes: 90
@@ -84,6 +85,7 @@ jobs:
         env:
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_TOKEN }}
   all:
+    name: all
     needs:
       - flake
       - build

@@ -10,6 +10,7 @@ permissions: {}
 cache-mode: none
 jobs:
   update:
+    name: update
     runs-on: ubuntu-26.04
     permissions:
       contents: write # merges the update pull request once its checks pass
