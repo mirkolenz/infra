@@ -7,6 +7,7 @@
 let
   cfg = config.services.llama-cpp;
   inherit (lib) types;
+  user = "_llamacpp";
 in
 {
   options = {
@@ -17,7 +18,7 @@ in
 
       settings = lib.mkOption {
         type = types.submodule {
-          freeformType = types.attrs;
+          freeformType = types.attrsOf types.anything;
           options = {
             host = lib.mkOption {
               type = types.str;
@@ -34,6 +35,14 @@ in
               example = 1337;
               description = ''
                 Port on which the server should listen on.
+              '';
+            };
+
+            log-verbosity = lib.mkOption {
+              type = types.ints.between 0 5;
+              default = 2;
+              description = ''
+                Verbosity threshold of the log, 1 for errors, 2 for warnings, 3 for info.
               '';
             };
           };
@@ -122,8 +131,8 @@ in
         RunAtLoad = true;
         ExitTimeOut = 60;
         ThrottleInterval = 10;
-        UserName = "_llamacpp";
-        GroupName = "_llamacpp";
+        UserName = user;
+        GroupName = user;
         WorkingDirectory = cfg.home;
         StandardOutPath = cfg.log;
         StandardErrorPath = cfg.log;
@@ -131,16 +140,16 @@ in
     };
 
     users = {
-      users._llamacpp = {
-        uid = config.ids.uids._llamacpp;
-        gid = config.users.groups._llamacpp.gid;
+      users.${user} = {
+        uid = config.ids.uids.${user};
+        gid = config.users.groups.${user}.gid;
         shell = lib.mkDefault null;
         inherit (cfg) home;
         description = "LLaMA C++ service user";
         isHidden = true;
       };
-      groups._llamacpp = {
-        gid = config.ids.gids._llamacpp;
+      groups.${user} = {
+        gid = config.ids.gids.${user};
         description = "LLaMA C++ service group";
       };
     };
@@ -148,7 +157,7 @@ in
     system.activationScripts.preActivation.text = ''
       mkdir -p "${cfg.home}" "${cfg.cache}"
       touch "${cfg.log}"
-      chown ${toString config.users.users._llamacpp.uid}:${toString config.users.users._llamacpp.gid} "${cfg.home}" "${cfg.cache}" "${cfg.log}"
+      chown ${toString config.ids.uids.${user}}:${toString config.ids.gids.${user}} "${cfg.home}" "${cfg.cache}" "${cfg.log}"
     '';
   };
 }
