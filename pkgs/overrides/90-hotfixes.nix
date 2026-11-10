@@ -33,7 +33,6 @@ prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
   # https://github.com/NixOS/nixpkgs/pull/584921
   zizmor = [ final.aws-lc ];
 
-  termscp = [ final.aws-lc ];
   mqttui = [ final.aws-lc ];
   codebook = [ final.aws-lc ];
   kingfisher = [ final.aws-lc ];
@@ -60,6 +59,14 @@ prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
         chmod -R u+w $out
         remove-references-to -t ${final.rustc.unwrapped} $out/bin/mago
       '';
+
+  # `exec("")` spawns `Command::new("")`, which no longer fails on the linux builder,
+  # so the test expecting an error does. No upstream report yet.
+  termscp = (withSystemLibs prev.termscp [ final.aws-lc ]).overrideAttrs (prevAttrs: {
+    checkFlags = prevAttrs.checkFlags ++ [
+      "--skip=host::localhost::tests::test_host_exec_empty_command"
+    ];
+  });
 
   # nixpkgs pins nilaway from 2025-03, whose vendored golang.org/x/tools panics
   # with `unexpected expr: *ast.KeyValueExpr` while building the SSA of Go 1.27 code on linux.
