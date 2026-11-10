@@ -135,7 +135,7 @@ in
         uid = config.ids.uids._llamacpp;
         gid = config.users.groups._llamacpp.gid;
         shell = lib.mkDefault null;
-        home = cfg.home;
+        inherit (cfg) home;
         description = "LLaMA C++ service user";
         isHidden = true;
       };

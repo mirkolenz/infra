@@ -17,13 +17,13 @@ in
     enable = lib.mkEnableOption "the common /etc/containers configuration";
 
     containersConf.settings = lib.mkOption {
-      type = toml.type;
+      inherit (toml) type;
       default = { };
       description = "containers.conf configuration";
     };
 
     registries.settings = lib.mkOption {
-      type = toml.type;
+      inherit (toml) type;
       default = {
         registry = [
           { location = "docker.io"; }
@@ -37,7 +37,7 @@ in
     };
 
     policy = lib.mkOption {
-      type = json.type;
+      inherit (json) type;
       default = { };
       description = ''
         Signature verification policy file.
