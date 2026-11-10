@@ -76,7 +76,6 @@ jobs:
           extra-conf: |
             build-dir = /nix/build
             cores = 0
-            fallback = true
             keep-going = true
             max-jobs = 1
             sandbox = ${{ matrix.sandbox }}
