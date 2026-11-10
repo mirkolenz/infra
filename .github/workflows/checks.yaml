@@ -58,16 +58,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: reclaim linux disk space
-        if: runner.os == 'Linux'
+      - name: reclaim disk space
         uses: wimpysworld/nothing-but-nix@v12
-      - name: reclaim darwin disk space
-        if: runner.os == 'macOS'
-        background: true
-        run: |
-          for path in /Applications/Xcode*.app /Library/Developer "$RUNNER_TOOL_CACHE"; do
-            sudo rm -rf "$path"
-          done
       - uses: $/.github/actions/setup-nix
         with:
           # the sandbox mode follows modules/nix/settings.nix
