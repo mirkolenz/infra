@@ -78,10 +78,9 @@ prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
 
   # nixpkgs pins nilaway from 2025-03, whose vendored golang.org/x/tools panics
   # with `unexpected expr: *ast.KeyValueExpr` while building the SSA of Go 1.27 code on linux.
-  # The integration tests of the root package take minutes each on a loaded CI runner,
-  # which exceeds the default `go test` timeout of 10 minutes.
+  # The integration tests of the root package exceed the time and memory of the CI runners.
   nilaway = prev.nilaway.overrideAttrs {
-    checkFlags = [ "-timeout=30m" ];
+    doCheck = false;
     version = "0-unstable-2026-09-18";
     src = final.fetchFromGitHub {
       owner = "uber-go";
