@@ -157,7 +157,9 @@ in
     system.activationScripts.preActivation.text = ''
       mkdir -p "${cfg.home}" "${cfg.cache}"
       touch "${cfg.log}"
-      chown ${toString config.ids.uids.${user}}:${toString config.ids.gids.${user}} "${cfg.home}" "${cfg.cache}" "${cfg.log}"
+      chown ${toString config.ids.uids.${user}}:${
+        toString config.ids.gids.${user}
+      } "${cfg.home}" "${cfg.cache}" "${cfg.log}"
     '';
   };
 }
