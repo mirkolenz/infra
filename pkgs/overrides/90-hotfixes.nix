@@ -27,6 +27,10 @@ let
       '';
     });
 
+  # CI skips the overrides whose builds exceed the time or memory of its runners,
+  # so the hosts build them until they can go.
+  inherit (prev.lib) dontDistribute;
+
   magoWithZstd = withSystemLibs prev.mago [ final.zstd ];
 in
 prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
@@ -35,19 +39,22 @@ prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
 
   mqttui = [ final.aws-lc ];
   codebook = [ final.aws-lc ];
-  kingfisher = [ final.aws-lc ];
   tectonic-unwrapped = [ final.aws-lc ];
   askalono = [ final.zstd ];
-  tabiew = [
-    final.zstd
-    final.sqlcipher
-  ];
 }
 // {
+  kingfisher = dontDistribute (withSystemLibs prev.kingfisher [ final.aws-lc ]);
+  tabiew = dontDistribute (
+    withSystemLibs prev.tabiew [
+      final.zstd
+      final.sqlcipher
+    ]
+  );
+
   # mago links with an rpath into the rustlib of rustc, which pulls its gigabyte into every
   # closure with mago, such as those of the formatters. No upstream report yet.
   # `runCommand` over `runCommandLocal`, since substituting the result spares fetching rustc.
-  mago =
+  mago = dontDistribute (
     final.runCommand magoWithZstd.name
       {
         inherit (magoWithZstd) pname version meta;
@@ -58,7 +65,8 @@ prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
         cp -R ${magoWithZstd} $out
         chmod -R u+w $out
         remove-references-to -t ${final.rustc.unwrapped} $out/bin/mago
-      '';
+      ''
+  );
 
   # `exec("")` spawns `Command::new("")`, which no longer fails on the linux builder,
   # so the test expecting an error does. No upstream report yet.
