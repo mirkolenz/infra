@@ -14,6 +14,8 @@
         config.custom.features.graphical.enable && config.custom.features.graphical.desktopManager == "xfce"
       )
       {
+        custom.features.graphical.displayServer = "xserver";
+
         # LightDM is the only display manager here that still needs the X server.
         services.xserver = {
           enable = true;

@@ -13,6 +13,8 @@
         && config.custom.features.graphical.desktopManager == "cosmic"
       )
       {
+        custom.features.graphical.displayServer = "wayland";
+
         services = {
           desktopManager.cosmic.enable = true;
           displayManager.cosmic-greeter.enable = true;

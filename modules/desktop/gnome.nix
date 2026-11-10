@@ -14,6 +14,8 @@
         && config.custom.features.graphical.desktopManager == "gnome"
       )
       {
+        custom.features.graphical.displayServer = "wayland";
+
         services = {
           displayManager.gdm.enable = true;
           desktopManager.gnome.enable = true;

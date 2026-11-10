@@ -39,6 +39,16 @@
           but the session itself is left to the host.
         '';
       };
+      displayServer = lib.mkOption {
+        type = lib.types.nullOr (
+          lib.types.enum [
+            "wayland"
+            "xserver"
+          ]
+        );
+        default = null;
+        description = "Display server of the session, set by the module of each desktop manager.";
+      };
     };
   };
 }

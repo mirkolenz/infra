@@ -15,6 +15,8 @@
         && config.custom.features.graphical.desktopManager == "plasma"
       )
       {
+        custom.features.graphical.displayServer = "wayland";
+
         services = {
           desktopManager.plasma6.enable = true;
           displayManager.sddm = {
