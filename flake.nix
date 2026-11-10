@@ -167,7 +167,7 @@
       };
     };
     vicinae = {
-      url = "github:vicinaehq/vicinae/v0.29.2";
+      url = "github:vicinaehq/vicinae/v0.30.0";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         systems.follows = "systems";
