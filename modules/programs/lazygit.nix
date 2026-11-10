@@ -1,6 +1,11 @@
 {
   flake.modules.homeManager.default =
-    { lib, config, ... }:
+    {
+      lib,
+      config,
+      pkgs,
+      ...
+    }:
     {
       programs.lazygit = {
         enable = true;
@@ -52,7 +57,18 @@
               showGraph = "never";
             };
           };
-          os.editPreset = "zed";
+          os = {
+            editPreset = "zed";
+            # OSC 52 works locally and over SSH without xclip or wl-clipboard,
+            # lazygit shell-quotes {{text}} itself.
+            copyToClipboardCmd = lib.mkIf pkgs.stdenv.hostPlatform.isLinux ''
+              printf '\033]52;c;%s\a' "$(printf %s {{text}} | base64 -w 0)" > /dev/tty
+            '';
+            # Pasting needs a native tool, since terminals prompt for or ignore OSC 52 reads.
+            readFromClipboardCmd = lib.mkIf (
+              pkgs.stdenv.hostPlatform.isLinux && config.custom.features.graphical.enable
+            ) "${lib.getExe' pkgs.wl-clipboard "wl-paste"} --no-newline";
+          };
           update.method = "never";
           disableStartupPopups = true;
         };
