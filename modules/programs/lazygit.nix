@@ -6,6 +6,10 @@
       pkgs,
       ...
     }:
+    let
+      inherit (pkgs.stdenv.hostPlatform) isLinux;
+      inherit (config.custom.features.graphical) displayServer;
+    in
     {
       programs.lazygit = {
         enable = true;
@@ -59,15 +63,18 @@
           };
           os = {
             editPreset = "zed";
-            # OSC 52 works locally and over SSH without xclip or wl-clipboard,
-            # lazygit shell-quotes {{text}} itself.
-            copyToClipboardCmd = lib.mkIf pkgs.stdenv.hostPlatform.isLinux ''
+            # OSC 52 copies locally and over SSH, lazygit shell-quotes {{text}} itself.
+            copyToClipboardCmd = lib.mkIf isLinux ''
               printf '\033]52;c;%s\a' "$(printf %s {{text}} | base64 -w 0)" > /dev/tty
             '';
             # Pasting needs a native tool, since terminals prompt for or ignore OSC 52 reads.
-            readFromClipboardCmd = lib.mkIf (
-              pkgs.stdenv.hostPlatform.isLinux && config.custom.features.graphical.enable
-            ) "${lib.getExe' pkgs.wl-clipboard "wl-paste"} --no-newline";
+            readFromClipboardCmd =
+              lib.mkIf (displayServer != null)
+                {
+                  wayland = "${lib.getExe' pkgs.wl-clipboard "wl-paste"} --no-newline";
+                  xserver = "${lib.getExe pkgs.xclip} -selection clipboard -out";
+                }
+                .${displayServer};
           };
           update.method = "never";
           disableStartupPopups = true;
