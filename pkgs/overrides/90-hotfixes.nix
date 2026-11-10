@@ -109,13 +109,6 @@ prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
     '';
   });
 
-  # Release builds give redaction 250 ms, so a loaded builder records captured messages as
-  # "took too long to redact", and the ai-session e2e tests that read them back fail at random.
-  # nixpkgs#578792 skips them one by one, which keeps missing some, and the tests compile the
-  # workspace a second time. Drop once hydra builds atuin on every system again.
-  # https://hydra.nixos.org/build/351752391
-  atuin = prev.atuin.overrideAttrs { doCheck = false; };
-
   # direnv's buildPhase and installPhase never run their hooks, so the postInstall that drops
   # share/fish is skipped. The shipped vendor_conf.d/direnv.fish then hooks every fish,
   # including each `fish -c`, where home-manager only hooks interactive shells.
@@ -300,5 +293,16 @@ prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
       vendorHash = "sha256-0KKKZheDNRPLBWtwXgXXG+ixpESO+Gq1FsW83PldiVo=";
     }
   );
+
+})
+// (prev.lib.optionalAttrs (prev.stdenv.hostPlatform.system == "aarch64-linux") {
+
+  # Release builds give redaction 250 ms, so a loaded builder records captured messages as
+  # "took too long to redact", and the ai-session e2e tests that read them back fail at random.
+  # nixpkgs#578792 skips them one by one, which keeps missing some, and the tests compile the
+  # workspace a second time. Only hydra's aarch64-linux builds fail, the others are cached.
+  # Drop once hydra builds atuin there again.
+  # https://hydra.nixos.org/build/352349763
+  atuin = dontDistribute (prev.atuin.overrideAttrs { doCheck = false; });
 
 })
