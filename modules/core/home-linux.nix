@@ -41,6 +41,8 @@
           papers
           # page operations, which papers lacks
           pdfarranger
+          # clipboard access for terminal programs such as neovim and helix
+          wl-clipboard
         ];
         programs.libreoffice = {
           enable = true;
