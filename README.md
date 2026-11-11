@@ -113,15 +113,43 @@ To revert, disable Secure Boot in the firmware before switching back to systemd-
 ### Installation
 
 1. Install Apple Developer Tools: `xcode-select --install`
-2. [Install Homebrew](https://github.com/Homebrew/brew/releases/latest)
-3. [Install Nix](https://docs.determinate.systems)
-4. Sign into the App Store
-5. Enable Full Disk Access for terminal application
-6. Sign into 1Password and enable `Settings > Developer > Use the SSH agent`
+2. [Install Nix](https://docs.determinate.systems)
+3. Sign into the App Store
+4. Enable Full Disk Access for terminal application
+5. Sign into 1Password and enable `Settings > Developer > Use the SSH agent`
+6. Install Rosetta if a cask requires it: `softwareupdate --install-rosetta --agree-to-license`
 
 ```shell
 sudo nix run github:mirkolenz/infra -- rebuild
 sudo reboot
+```
+
+### Homebrew
+
+Homebrew itself and third-party taps are pinned as flake inputs, while the official formulae and casks come from Homebrew's API.
+An existing installation is a git checkout that has to be removed before the first activation, which keeps the installed packages.
+Its links to its shell completions and manual page dangle afterwards, since Nix provides them, and its `PATH` entry is redundant, since nix-darwin manages the `PATH`:
+
+```shell
+git -C /opt/homebrew rm -r --force --quiet .
+rm -rf /opt/homebrew/{.git,Library,completions,manpages}
+find -L /opt/homebrew/{etc,share} -type l -exec rm {} +
+sudo rm -f /etc/paths.d/homebrew
+```
+
+After disabling `homebrew.install.enable` or uninstalling nix-darwin, the pinned Homebrew breaks once its store paths are garbage collected.
+To keep the installed packages, remove it and [reinstall Homebrew](https://github.com/Homebrew/brew/releases/latest):
+
+```shell
+rm -f /opt/homebrew/{bin/brew,Library}
+```
+
+To remove everything, uninstall the casks while the pinned Homebrew still works:
+
+```shell
+brew uninstall --zap --cask $(brew list --cask)
+sudo rm -rf /opt/homebrew /etc/paths.d/homebrew
+rm -rf ~/Library/Caches/Homebrew ~/Library/Logs/Homebrew ~/.config/homebrew
 ```
 
 ### Sync Configs to a Mac without Nix

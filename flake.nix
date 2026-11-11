@@ -28,6 +28,10 @@
       url = "github:ast-grep/ast-grep-mcp";
       flake = false;
     };
+    brew = {
+      url = "github:homebrew/brew/7.0.12";
+      flake = false;
+    };
     cosmic-manager = {
       url = "github:heitoraugustoln/cosmic-manager";
       inputs = {

@@ -1,3 +1,4 @@
+{ inputs, ... }:
 {
   flake.modules.darwin.default =
     { config, lib, ... }:
@@ -132,17 +133,16 @@
     {
       homebrew = {
         enable = true;
-        global.autoUpdate = true;
-        onActivation = {
-          autoUpdate = false;
-          upgrade = false;
-          cleanup = "none";
-          extraEnv = {
-            HOMEBREW_NO_ENV_HINTS = "1";
-          };
+        install = {
+          enable = true;
+          src = inputs.brew;
+          env.HOMEBREW_NO_ENV_HINTS = "1";
         };
-        taps = [ ];
-        brews = [ ];
+        onActivation = {
+          autoUpdate = true;
+          upgrade = true;
+          cleanup = "uninstall";
+        };
         casks = caskApps ++ caskFonts;
       };
       # replaces the shell integrations, whose `brew shellenv` prepends homebrew to the nix profiles
