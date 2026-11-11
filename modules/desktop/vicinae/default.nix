@@ -89,7 +89,7 @@
             dark.name = "gruvbox-dark";
             light.name = "gruvbox-light";
           };
-          font.normal.family = "Inter";
+          font.normal.family = config.custom.font.ui.family;
         };
       };
     };

@@ -1,4 +1,4 @@
-# Primary monospace font, shared across all module systems
+# Primary monospace and interface fonts, shared across all module systems
 # (nixos/darwin/home/nixvim) so that the standalone nixvim build can read it.
 # The font itself is installed by modules/fonts and modules/environment/homebrew.nix.
 {
@@ -26,6 +26,20 @@
       readOnly = true;
       default = lib.replaceStrings [ " " ] [ "_" ] config.custom.font.family;
       description = "Family name with spaces replaced by underscores, as expected by the guifont option of Neovim.";
+    };
+
+    ui = {
+      family = lib.mkOption {
+        type = lib.types.str;
+        default = "Inter";
+        description = "Family name of the interface font used by the Linux desktops and launchers.";
+      };
+
+      size = lib.mkOption {
+        type = lib.types.ints.positive;
+        default = 11;
+        description = "Point size of the interface font.";
+      };
     };
   };
 }
