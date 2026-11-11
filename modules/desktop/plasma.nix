@@ -1,6 +1,5 @@
 # KDE Plasma 6 desktop environment: the NixOS session (SDDM on Wayland, Plasma 6,
-# KWallet) and the home-manager user configuration via plasma-manager (Breeze Dark
-# appearance, fonts, night light, and a bottom panel with pinned favorites).
+# KWallet) and the home-manager user configuration via plasma-manager.
 # https://github.com/nix-community/plasma-manager
 {
   flake.modules.nixos.base =
@@ -58,6 +57,48 @@
             command = "vicinae vicinae://toggle";
           };
 
+          # The macOS screenshot shortcuts next to the Spectacle defaults.
+          spectacle.shortcuts = {
+            captureEntireDesktop = [
+              "Shift+Print"
+              "Meta+Shift+3"
+            ];
+            captureRectangularRegion = [
+              "Meta+Shift+Print"
+              "Meta+Shift+4"
+            ];
+            launch = [
+              "Print"
+              "Meta+Shift+5"
+            ];
+          };
+
+          # Meta+Q closes the window as on macOS instead of switching activities.
+          shortcuts = {
+            kwin."Window Close" = [
+              "Alt+F4"
+              "Meta+Q"
+            ];
+            plasmashell."manage activities" = [ ];
+          };
+
+          kwin.titlebarButtons = {
+            left = [
+              "close"
+              "minimize"
+              "maximize"
+            ];
+            right = [ ];
+          };
+
+          configFile = {
+            # The slow-down factor of the macOS expose-animation-duration in
+            # modules/core/settings.nix, as on GNOME.
+            kdeglobals.KDE.AnimationDurationFactor = 0.2;
+            # 9 disables the overview of the top left hot corner.
+            kwinrc.Effect-overview.BorderActivate = 9;
+          };
+
           workspace = {
             clickItemTo = "select";
             lookAndFeel = "org.kde.breezedark.desktop";
@@ -75,13 +116,18 @@
           kscreenlocker.appearance.wallpaperPlainColor = "0,0,0";
 
           fonts = {
-            general = {
-              family = "Inter";
-              pointSize = 11;
+            general = with config.custom.font.ui; {
+              inherit family;
+              pointSize = size;
             };
             fixedWidth = {
               family = config.custom.font.family;
               pointSize = config.custom.font.size;
+            };
+            windowTitle = with config.custom.font.ui; {
+              inherit family;
+              pointSize = size;
+              weight = "bold";
             };
           };
 
@@ -91,18 +137,45 @@
             temperature.night = 3700;
           };
 
+          # A menu bar with the global menu, the tray and the clock on top, which
+          # also places the notifications at the top right, and a dock at the
+          # bottom that hides until the pointer reaches the edge, as on GNOME.
           panels = [
             {
-              location = "bottom";
-              floating = true;
+              location = "top";
+              height = 28;
               widgets = [
                 "org.kde.plasma.kickoff"
+                { appMenu = { }; }
+                { panelSpacer = { }; }
+                { systemTray.items.configs.battery.showPercentage = true; }
                 {
-                  iconTasks.launchers = map (name: "applications:${name}.desktop") favorites;
+                  digitalClock = {
+                    date = {
+                      format.custom = "ddd d MMM";
+                      position = "besideTime";
+                    };
+                    time = {
+                      format = "24h";
+                      showSeconds = "always";
+                    };
+                  };
                 }
-                "org.kde.plasma.marginsseparator"
-                "org.kde.plasma.systemtray"
-                "org.kde.plasma.digitalclock"
+              ];
+            }
+            {
+              location = "bottom";
+              height = 56;
+              lengthMode = "fit";
+              hiding = "autohide";
+              floating = true;
+              widgets = [
+                {
+                  iconTasks = {
+                    launchers = map (name: "applications:${name}.desktop") favorites;
+                    behavior.grouping.clickAction = "showPresentWindowsEffect";
+                  };
+                }
               ];
             }
           ];
