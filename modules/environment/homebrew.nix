@@ -36,6 +36,7 @@
         "rode-central"
         "scansnap-home"
         "signal"
+        "skim"
         "soundsource"
         "stats"
         "steermouse"
