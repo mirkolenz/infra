@@ -8,15 +8,15 @@
   networkmanager,
 }:
 kait2en.mkService {
-  version = "0.1.13-unstable-2026-11-04";
+  version = "0.1.13-unstable-2026-11-11";
 
   src = kait2en.fetchSource {
-    rev = "6488ad36b71b10d692305bb29c00e476c48d1cc8";
-    hash = "sha256-6jALNEnkJrg4XgoGC1slOqEGDmSoOQH0CiOnUXebXqo=";
+    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
+    hash = "sha256-VfBFtncUZrE5ctWs8cIBV4pueWrT7P8hLQTsq8GCxuI=";
     root = "apps/t2-drop";
   };
 
-  cargoHash = "sha256-zMTkBLXFiwo3L955nDF0F/Rx2YllhS09kVLWGNsIBHY=";
+  cargoHash = "sha256-lQeS2UkRIQj4c7yx9fApOc4GZfSi2c665hb4bywgMwo=";
 
   # It sets up the AWDL interface through both.
   runtimeInputs."bin/t2drop" = [

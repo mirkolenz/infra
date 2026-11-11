@@ -14,15 +14,15 @@
   wireplumber,
 }:
 kait2en.mkService {
-  version = "0.1.12-unstable-2026-11-02";
+  version = "0.1.13-unstable-2026-11-11";
 
   src = kait2en.fetchSource {
-    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
-    hash = "sha256-hNbNJLJVQU07RGR6sW4+vKWNsAuGqrhzBbkApHULLWQ=";
+    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
+    hash = "sha256-i1W3wvY7rvhMVOPz1IINpHgY6QtrVeQczib47YV5Z94=";
     root = "apps/t2-touchbar";
   };
 
-  cargoHash = "sha256-xy9RLyEAtiN8f9JkboVx1N7j1Q81XIJjCjsrXoMPvdo=";
+  cargoHash = "sha256-kAg9NTjw2RIV5lUPu43YyJ3bB8Rp+DNYCgOfUu9IH80=";
 
   nativeBuildInputs = [
     pkg-config

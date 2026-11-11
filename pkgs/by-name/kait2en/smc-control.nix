@@ -9,16 +9,16 @@
 }:
 kait2en.mkGtkApp {
   appId = "org.t2smccontrol.gtk";
-  version = "0.1.12-unstable-2026-11-02";
+  version = "0.1.13-unstable-2026-11-11";
 
   src = kait2en.fetchSource {
-    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
-    hash = "sha256-hIP5yG7RATrwOHwZUnlFPK1gP3vFnQ+goxM9895OCaU=";
+    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
+    hash = "sha256-vMmJatQy7/rAsMB4+V92q+kEn4SRMvFOO6VWbFRiIz4=";
     root = "apps/t2-smc-control";
     logos = [ "src/main.rs" ];
   };
 
-  cargoHash = "sha256-eh1i9ud2m3FHog4+VRhWcL87z2QWVoWQZ829MKJSGVY=";
+  cargoHash = "sha256-COrLe22eXodTxjUp0zj9dAY8kYHRtt3IY62MOQqhGhI=";
 
   # Run through pkexec, which does not search a PATH.
   postPatch = ''

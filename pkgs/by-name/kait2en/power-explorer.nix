@@ -11,16 +11,16 @@
 }:
 kait2en.mkGtkApp {
   appId = "org.t2powerexplorer.gtk";
-  version = "0.1.12-unstable-2026-11-02";
+  version = "0.1.13-unstable-2026-11-11";
 
   src = kait2en.fetchSource {
-    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
-    hash = "sha256-IMG5D6elZFj0uYHjG+MhZ7OVqrbkjrBmBlS0DcKWxRI=";
+    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
+    hash = "sha256-QXjazLYGP/FtxSoepG63zfizNXyYe5Y8Z0iQ3DWk14Y=";
     root = "apps/t2-power-explorer";
     logos = [ "src/ui.rs" ];
   };
 
-  cargoHash = "sha256-zrvhh/tp/tDp/Oerq5RzIZgRWY/9VOxJcJzCnAJ3T54=";
+  cargoHash = "sha256-cOvd2X9lUr0YKwRNzWnpECQ6iVRRvXmFML2aYeuM0go=";
 
   # The polkit action only covers the helper at the exact path pkexec runs.
   postPatch = ''

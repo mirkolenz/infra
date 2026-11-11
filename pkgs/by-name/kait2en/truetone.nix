@@ -6,15 +6,15 @@
   glib,
 }:
 kait2en.mkGtkApp {
-  version = "0.1.13-unstable-2026-11-08";
+  version = "0.1.13-unstable-2026-11-11";
 
   src = kait2en.fetchSource {
-    rev = "8de95468f08c6db37924bcb8f9adc12c769add71";
-    hash = "sha256-er7jysXbG277T3Z+F5aY4t9CWiGV5x+8IPx2e9HXaJA=";
+    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
+    hash = "sha256-XMQrCD6cae/2MwdqdLOrc/y1aZMSBHCa/apH3quf8u8=";
     root = "apps/t2-truetone";
   };
 
-  cargoHash = "sha256-BYnw9rwrSBXBo76b7GDTCadWTkc3g/0z4IPSPJvOk7k=";
+  cargoHash = "sha256-U5hRhVAy05GRiOQ7jzo+9q3islUwET5M3W2X4u/8UGE=";
 
   appId = "org.t2truetone.gtk";
   userUnits = [ "t2-truetone.service" ];

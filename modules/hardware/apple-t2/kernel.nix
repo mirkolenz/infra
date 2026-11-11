@@ -10,11 +10,13 @@
       # drift apart.
       boot.kernelPackages = drivers.linuxPackages;
 
-      # Like upstream, on every T2 Mac, though only those with an Intel GPU load i915.
+      # On every T2 Mac, though only those with an Intel GPU load i915, and the
+      # thunderbolt patches only act on Titan Ridge and Ice Lake controllers.
       boot.extraModulePackages = [
         drivers
         pkgs.kait2en.wireless
         pkgs.kait2en.i915
+        pkgs.kait2en.thunderbolt
       ];
 
       boot.initrd.kernelModules = drivers.earlyModules;

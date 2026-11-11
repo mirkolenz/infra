@@ -8,11 +8,11 @@
 kait2en.mkPatchedDrivers {
   pname = "kait2en-i915";
 
-  version = "0.1.13-unstable-2026-11-08";
+  version = "0.1.13-unstable-2026-11-11";
 
   src = kait2en.fetchSource {
-    rev = "8de95468f08c6db37924bcb8f9adc12c769add71";
-    hash = "sha256-WWaldPR7m0QXXU9xTEzMIz2i5eEM+5oFY0UhKBgYl5s=";
+    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
+    hash = "sha256-DoLfSlkvJ+5j62DQapoDxkL71WShgR5tmH+bntRlYb4=";
     root = "patches/runtime/i915";
     # Only tracked, so the check flags a change to what is built.
     paths = [ "scripts/fedora/install-i915.sh" ];

@@ -9,18 +9,18 @@
   kmod,
 }:
 kait2en.mkService {
-  version = "0.1.13-unstable-2026-11-08";
+  version = "0.1.13-unstable-2026-11-11";
 
   src = kait2en.fetchSource {
-    rev = "8de95468f08c6db37924bcb8f9adc12c769add71";
-    hash = "sha256-xQGk+1KuL9CZIfwojw/GtNth9w2LIiHSuKRGTi1VAHc=";
+    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
+    hash = "sha256-yqjXp4vHkklfXzlUkz8QT5gm/HYMD/R9N9oHk80p6bA=";
     root = "t2-services/t2-ave";
     bridgexpc = true;
     # The AVE driver, built by `kait2en.modules`.
     paths = [ "!t2-services/t2-ave/kernel/" ];
   };
 
-  cargoHash = "sha256-mQ7D13m0wGRb7uW6s/sE22AjIvsfIUK5HObUoz2ey1I=";
+  cargoHash = "sha256-A1Ych+V2fU99G9vRr2vNrmNmU9XTCIvYxLngxLiZYUo=";
 
   integration = true;
   bridge = true;

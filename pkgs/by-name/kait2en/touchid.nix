@@ -11,16 +11,16 @@
   udev,
 }:
 kait2en.mkService {
-  version = "0.1.13-unstable-2026-11-08";
+  version = "0.1.13-unstable-2026-11-11";
 
   src = kait2en.fetchSource {
-    rev = "8de95468f08c6db37924bcb8f9adc12c769add71";
-    hash = "sha256-Yhs7waP7Nei8lJvYg9OF+C+w509xEb52v8sszAPAPZ8=";
+    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
+    hash = "sha256-jkSqCKIfEDFGX8f17ZwIyHzS/nIgVwYfL0BZq/KFQJE=";
     root = "t2-services/t2-touchid";
     bridgexpc = true;
   };
 
-  cargoHash = "sha256-lU3F7BtkKm6SA3pFNEHC0SU/EvXvVCPvUuADMmBPHtw=";
+  cargoHash = "sha256-2pubP57S42DWKdgcNzYH7yT6I+9m/S+ozUjDUJBl/UI=";
 
   nativeBuildInputs = [ pkg-config ];
   buildInputs = [

@@ -31,6 +31,7 @@ Every package therefore installs upstream's license notices to `share/licenses/<
 - `t2-fan-control` and `t2-power-tune` change limits the firmware already manages.
 - `t2-kernel-builder` needs a patched Fedora kernel.
 - `kait2en-update` and the installer's `update-map` rerun upstream's installer from a git checkout.
+- The KaiT2en Plymouth theme only brands the boot splash of Plymouth's `two-step` plugin.
 - KaiT2en Vornehm restyles GNOME, Firefox and Ptyxis for the invoking user, and its wallpapers carry no redistribution license.
 - `kait2en-multicall` drives GRUB and upstream's installer, and its `boot-macos` is `systemctl reboot --boot-loader-entry=auto-osx` on systemd-boot.
 - `t2-sidecar` streams through a Sunshine fork with V4L2 encoding until [LizardByte/Sunshine#5717](https://github.com/LizardByte/Sunshine/pull/5717) lands, the `t2bce_sidecar` encoder it needs is built.

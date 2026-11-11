@@ -9,15 +9,15 @@
   udev,
 }:
 kait2en.mkService {
-  version = "0.1.12-unstable-2026-11-02";
+  version = "0.1.13-unstable-2026-11-11";
 
   src = kait2en.fetchSource {
-    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
-    hash = "sha256-Ggp0pPfmmwhXjzQDGivBupwffd45MwO/oilsHSXiUas=";
+    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
+    hash = "sha256-Zt/yg82TjNFhTzX4l7ehplkWOK4seZlYj/WXT4KOAHQ=";
     root = "apps/t2-kbd-backlight";
   };
 
-  cargoHash = "sha256-gBM8pN50szxul36GrGlKPtn0XqZ1ll/VsyTPS4+N0Kg=";
+  cargoHash = "sha256-yIKB/kJGIei08yHm3DroSYZ8+JIrz2lAlXNoprf3u7w=";
 
   nativeBuildInputs = [ pkg-config ];
   buildInputs = [

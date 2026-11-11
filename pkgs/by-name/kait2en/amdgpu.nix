@@ -24,11 +24,11 @@ in
 kait2en.mkPatchedDrivers {
   pname = "kait2en-amdgpu";
 
-  version = "0.1.12-unstable-2026-11-02";
+  version = "0.1.13-unstable-2026-11-11";
 
   src = kait2en.fetchSource {
-    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
-    hash = "sha256-CRO+wWzNMJU1Ol2dMQwKC27EajdI0msKJcGqUY0jSko=";
+    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
+    hash = "sha256-pBK+29S5VX71qiwujWUOvP7y7WzoIb/NCG/W3y2JlC4=";
     root = "patches/runtime/gpu-runtime-pm";
     paths = [ installer ];
   };
@@ -60,8 +60,5 @@ kait2en.mkPatchedDrivers {
       gpl2Only
       gpl3Plus
     ];
-    # 0006 predates the second argument 7.3 gave `smu_set_ac_dc`.
-    # Drop once upstream rebases its series onto 7.3.
-    broken = lib.versionAtLeast kait2en.modules.kernel.version "7.3";
   };
 }

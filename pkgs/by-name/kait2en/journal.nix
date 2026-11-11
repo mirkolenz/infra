@@ -6,16 +6,16 @@
   kait2en,
 }:
 kait2en.mkService {
-  version = "0.1.13-unstable-2026-11-08";
+  version = "0.1.13-unstable-2026-11-11";
 
   src = kait2en.fetchSource {
-    rev = "8de95468f08c6db37924bcb8f9adc12c769add71";
-    hash = "sha256-R4r2FUGZIqxQSCvcAKu94bFuyxmB2klwxTgq5X4Cd9c=";
+    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
+    hash = "sha256-ZDvSLKb3IAybDvCDPH/z4i2wFpLIq9UXScitXnY8Kbc=";
     root = "t2-services/t2-journal";
     bridgexpc = true;
   };
 
-  cargoHash = "sha256-ojuhTG4MIPtmk7RiwvzeVdHP+veS2ojz1Fslz2sPWtw=";
+  cargoHash = "sha256-xNXdWkmrG+63VWCLbWyE6T1p21nSiyPx7DDhsfQGF5I=";
 
   # The vendored log parser is the one part of the tree that is not GPL.
   postInstall = ''

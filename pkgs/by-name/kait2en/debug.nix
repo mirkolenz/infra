@@ -7,17 +7,17 @@
 }:
 kait2en.mkGtkApp {
   appId = "org.t2debug.gtk";
-  version = "0.1.13-unstable-2026-11-08";
+  version = "0.1.13-unstable-2026-11-11";
 
   src = kait2en.fetchSource {
-    rev = "8de95468f08c6db37924bcb8f9adc12c769add71";
-    hash = "sha256-4L10cF2LpoPqtARh6VaA8XuNZ7ZXq1zW3rhHd8TnD/Q=";
+    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
+    hash = "sha256-R5opQWHfUmjG/h4e5IIUJqOHTXKFafTcYFHmlpb2MDQ=";
     root = "apps/t2-debug";
     bridgexpc = true;
     logos = [ "src/bin/t2-debug.rs" ];
   };
 
-  cargoHash = "sha256-6zciw4vmiI2APy2f4z1XmYlSpXU/F38CT/0H8h2UvSE=";
+  cargoHash = "sha256-Ip6K5iMuXUSpa180UNdeYlAp96uY2MFzvbWpfAk/Vt4=";
 
   meta = {
     description = "Apple T2 bridgeOS process monitor and live log viewer";

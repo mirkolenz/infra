@@ -39,7 +39,6 @@ let
     "t2_trackpad_actuator"
     "t2mfi_fastcharge"
     "t2gmux"
-    "t2thunderbolt"
     "t2smp"
     "t2sbs"
     "linux-apfs-rw"
@@ -83,7 +82,6 @@ let
     "amdgpu.aspm=1"
     "pcie_aspm=force"
     "pcie_aspm.policy=powersave"
-    "pcie_ports=compat"
     # The firmware denies AER, which otherwise stalls resume for 20 seconds
     # before the EC interrupts come back.
     "pci=noaer"
@@ -131,11 +129,11 @@ in
 stdenv.mkDerivation {
   pname = "kait2en-modules";
 
-  version = "0.1.13-unstable-2026-11-08";
+  version = "0.1.13-unstable-2026-11-11";
 
   src = kait2en.fetchSource {
-    rev = "8de95468f08c6db37924bcb8f9adc12c769add71";
-    hash = "sha256-BmvpbA2RYRvk0m2xb4mxIiEnzdiysglSRe0c2OWJE/g=";
+    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
+    hash = "sha256-LrzOcu0fNwvpByNB00Jht1nTHjco29dHAFYZPRg5DAU=";
     paths =
       map (dir: "modules/${dir}/") (lib.remove "linux-apfs-rw" packages ++ bceMembers)
       ++ map (dir: "t2-services/t2-ave/kernel/${dir}/") aveMembers
