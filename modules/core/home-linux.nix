@@ -55,6 +55,8 @@
                 xserver = xclip;
               }
               .${displayServer};
+        # macOS caffeinate, keeping the system awake while the command typed after it runs
+        programs.fish.shellAbbrs.caffeinate = lib.mkDefault "systemd-inhibit --what=sleep";
         programs.libreoffice = {
           enable = true;
           package = pkgs.libreoffice-stable;

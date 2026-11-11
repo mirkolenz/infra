@@ -91,6 +91,9 @@
       {
         home.packages = extensions ++ [ pkgs.gnome-tweaks ];
 
+        # GNOME's own inhibitor, which `--inhibit idle` extends to the display.
+        programs.fish.shellAbbrs.caffeinate = "gnome-session-inhibit --inhibit suspend";
+
         gtk = {
           enable = true;
           cursorTheme.name = "Adwaita";
