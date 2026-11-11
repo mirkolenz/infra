@@ -1,4 +1,7 @@
 {
+  # nix-darwin only links them along with its own bash completion, which home-manager provides instead
+  flake.modules.darwin.default.environment.pathsToLink = [ "/share/bash-completion" ];
+
   flake.modules.homeManager.default =
     {
       pkgs,
