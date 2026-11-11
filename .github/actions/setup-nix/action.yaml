@@ -11,13 +11,11 @@ runs:
   using: composite
   steps:
     # the global registry would resolve `nixpkgs` to FlakeHub instead of the locked input
-    # cachix's CDN at times serves a narinfo as JSON, which nix skips only with `fallback`
     - uses: determinatesystems/determinate-nix-action@v3
       with:
         summarize: false
         extra-conf: |
           accept-flake-config = true
-          fallback = true
           flake-registry =
           allow-import-from-derivation = false
           extra-substituters = https://mirkolenz.cachix.org https://install.determinate.systems
