@@ -41,6 +41,10 @@ prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
   codebook = [ final.aws-lc ];
   tectonic-unwrapped = [ final.aws-lc ];
   askalono = [ final.zstd ];
+  tuicr = [
+    final.oniguruma
+    final.libgit2
+  ];
 }
 // {
   kingfisher = dontDistribute (withSystemLibs prev.kingfisher [ final.aws-lc ]);
