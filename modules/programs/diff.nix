@@ -52,7 +52,7 @@
       };
       # Both open in narrow terminals such as herdr on a phone, unlike lazygit.
       programs.diffnav = {
-        enable = true;
+        enable = lib.mkDefault extras;
         # https://github.com/dlvhdr/diffnav#configuration
         settings.ui = {
           fileTreeWidth = 24;
@@ -65,7 +65,7 @@
         };
       };
       programs.hunk = {
-        enable = true;
+        enable = lib.mkDefault extras;
         # https://hunk.dev/docs/reference/config/
         settings = {
           menu_bar = false;
@@ -76,8 +76,8 @@
         };
       };
       home.shellAliases = {
-        dn = "${lib.getExe config.programs.diffnav.package} --watch-cmd ${lib.escapeShellArg worktreeDiff}";
-        hk = "${lib.getExe config.programs.hunk.package} diff";
+        dn = lib.mkIf config.programs.diffnav.enable "${lib.getExe config.programs.diffnav.package} --watch-cmd ${lib.escapeShellArg worktreeDiff}";
+        hk = lib.mkIf config.programs.hunk.enable "${lib.getExe config.programs.hunk.package} diff";
       };
     };
 }
