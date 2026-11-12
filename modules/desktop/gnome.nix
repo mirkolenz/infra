@@ -193,6 +193,10 @@
             enable-raise-tile-group = false;
           };
 
+          # The tray item of the launcher itself, shown through appindicator, already
+          # covers this indicator, whose menu only opens the extension settings.
+          "org/gnome/shell/extensions/vicinae".show-status-indicator = false;
+
           # TODO: uncomment once nixpkgs ships blur-my-shell v77, which adds the
           # built-in Liquid Glass pipeline. The blur has to be dynamic, since a
           # static one only blurs the solid black wallpaper.
