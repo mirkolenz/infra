@@ -34,17 +34,8 @@ let
   magoWithZstd = withSystemLibs prev.mago [ final.zstd ];
 in
 prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
-  # https://github.com/NixOS/nixpkgs/pull/584921
-  zizmor = [ final.aws-lc ];
-
   mqttui = [ final.aws-lc ];
   codebook = [ final.aws-lc ];
-  tectonic-unwrapped = [ final.aws-lc ];
-  askalono = [ final.zstd ];
-  tuicr = [
-    final.oniguruma
-    final.libgit2
-  ];
 }
 // {
   kingfisher = dontDistribute (withSystemLibs prev.kingfisher [ final.aws-lc ]);
@@ -112,32 +103,10 @@ prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
     '';
   });
 
-  # direnv's buildPhase and installPhase never run their hooks, so the postInstall that drops
-  # share/fish is skipped. The shipped vendor_conf.d/direnv.fish then hooks every fish,
-  # including each `fish -c`, where home-manager only hooks interactive shells.
-  # https://github.com/NixOS/nixpkgs/pull/564930
-  direnv = prev.direnv.overrideAttrs {
-    buildPhase = ''
-      runHook preBuild
-      make BASH_PATH=$BASH_PATH
-      runHook postBuild
-    '';
-    installPhase = ''
-      runHook preInstall
-      make install PREFIX=$out
-      rm -rf "$out/share/fish"
-      runHook postInstall
-    '';
-    postInstall = "";
-  };
-
   pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
     (
-      pyfinal: pyprev:
+      _: pyprev:
       {
-        # semgrep imports `mcp.server.fastmcp`, which mcp 2 removed.
-        semgrep = pyprev.semgrep.override { mcp = pyfinal.mcp_1; };
-
         plugincode = dropHookspecs pyprev.plugincode [
           "src/plugincode/__init__.py"
           "src/plugincode/location_provider.py"
