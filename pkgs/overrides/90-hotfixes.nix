@@ -1,19 +1,5 @@
 final: prev:
 let
-  # nixpkgs#537108 makes the cargo setup hook force common `-sys` crates onto system libraries,
-  # which fails every package that does not provide them yet. Drop an entry once hydra builds it.
-  # https://github.com/NixOS/nixpkgs/pull/537108
-  # The CI runners build these instead of hydra, and a fat LTO link exhausts their memory.
-  withSystemLibs =
-    drv: libs:
-    drv.overrideAttrs (prevAttrs: {
-      nativeBuildInputs = prevAttrs.nativeBuildInputs or [ ] ++ [ final.pkg-config ];
-      buildInputs = prevAttrs.buildInputs or [ ] ++ libs;
-      env = prevAttrs.env or { } // {
-        CARGO_PROFILE_RELEASE_LTO = "thin";
-      };
-    });
-
   # pluggy 1.7 only accepts functions as hookspecs, so registering the class-based ones of
   # plugincode and scancode fails. Both only load entry points through pluggy and never call a hook,
   # so the registration becomes a no-op expression.
@@ -30,46 +16,23 @@ let
   # CI skips the overrides whose builds exceed the time or memory of its runners,
   # so the hosts build them until they can go.
   inherit (prev.lib) dontDistribute;
-
-  magoWithZstd = withSystemLibs prev.mago [ final.zstd ];
 in
-prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
-  mqttui = [ final.aws-lc ];
-  codebook = [ final.aws-lc ];
-}
-// {
-  kingfisher = dontDistribute (withSystemLibs prev.kingfisher [ final.aws-lc ]);
-  tabiew = dontDistribute (
-    withSystemLibs prev.tabiew [
-      final.zstd
-      final.sqlcipher
-    ]
-  );
-
+{
   # mago links with an rpath into the rustlib of rustc, which pulls its gigabyte into every
   # closure with mago, such as those of the formatters. No upstream report yet.
   # `runCommand` over `runCommandLocal`, since substituting the result spares fetching rustc.
-  mago = dontDistribute (
-    final.runCommand magoWithZstd.name
+  mago =
+    final.runCommand prev.mago.name
       {
-        inherit (magoWithZstd) pname version meta;
+        inherit (prev.mago) pname version meta;
         nativeBuildInputs = [ final.removeReferencesTo ];
         disallowedReferences = [ final.rustc.unwrapped ];
       }
       ''
-        cp -R ${magoWithZstd} $out
+        cp -R ${prev.mago} $out
         chmod -R u+w $out
         remove-references-to -t ${final.rustc.unwrapped} $out/bin/mago
-      ''
-  );
-
-  # `exec("")` spawns `Command::new("")`, which no longer fails on the linux builder,
-  # so the test expecting an error does. No upstream report yet.
-  termscp = (withSystemLibs prev.termscp [ final.aws-lc ]).overrideAttrs (prevAttrs: {
-    checkFlags = prevAttrs.checkFlags ++ [
-      "--skip=host::localhost::tests::test_host_exec_empty_command"
-    ];
-  });
+      '';
 
   # nixpkgs pins nilaway from 2025-03, whose vendored golang.org/x/tools panics
   # with `unexpected expr: *ast.KeyValueExpr` while building the SSA of Go 1.27 code on linux.
@@ -226,7 +189,7 @@ prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
 
   # The window of tuxpaint identifies itself as TuxPaint.TuxPaint, which its desktop entry does
   # not declare, so GNOME shows the running app apart from its launcher. No upstream report yet.
-  tuxpaint = prev.lib.dontDistribute (
+  tuxpaint = dontDistribute (
     prev.tuxpaint.overrideAttrs (prevAttrs: {
       nativeBuildInputs = (prevAttrs.nativeBuildInputs or [ ]) ++ [ final.desktop-file-utils ];
       postInstall = (prevAttrs.postInstall or "") + ''
@@ -279,16 +242,5 @@ prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
       vendorHash = "sha256-0KKKZheDNRPLBWtwXgXXG+ixpESO+Gq1FsW83PldiVo=";
     }
   );
-
-})
-// (prev.lib.optionalAttrs (prev.stdenv.hostPlatform.system == "aarch64-linux") {
-
-  # Release builds give redaction 250 ms, so a loaded builder records captured messages as
-  # "took too long to redact", and the ai-session e2e tests that read them back fail at random.
-  # nixpkgs#578792 skips them one by one, which keeps missing some, and the tests compile the
-  # workspace a second time. Only hydra's aarch64-linux builds fail, the others are cached.
-  # Drop once hydra builds atuin there again.
-  # https://hydra.nixos.org/build/352349763
-  atuin = dontDistribute (prev.atuin.overrideAttrs { doCheck = false; });
 
 })
