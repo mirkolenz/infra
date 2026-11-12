@@ -3,8 +3,11 @@
 # Under deep only the lid wakes the machine, which the EC treats as a level:
 # a suspend entered with the lid open wakes again at once.
 # So the mode is picked per suspend, deep with the lid shut and s2idle with it open.
-# Shutting the lid during s2idle wakes the machine, and logind suspends it again into deep.
+# Shutting the lid during s2idle wakes the machine, and logind suspends it again.
 # https://github.com/federal1970/macbookpro13-1-fedora#sleep-and-hibernation
+# With a device in a USB-C port, the firmware's S3 resume script disables the
+# Thunderbolt root port (1c.4) until a cold boot, so those suspends use s2idle too.
+# https://github.com/omacom/omarchy/issues/10593
 {
   configurations.nixos.macbook-131.module =
     { pkgs, ... }:
@@ -52,6 +55,11 @@
           echo deep > /sys/power/mem_sleep
         else
           wakeup SPIT enabled
+          echo s2idle > /sys/power/mem_sleep
+        fi
+
+        # Root hubs (Linux Foundation, 1d6b) aside, every USB device sits on a USB-C port.
+        if grep -qvx 1d6b /sys/bus/usb/devices/*/idVendor; then
           echo s2idle > /sys/power/mem_sleep
         fi
       '';
