@@ -149,18 +149,26 @@
             "<Super>q"
           ];
 
-          # The macOS menu bar has the clock at the far right and no Activities
-          # button, and its notifications appear at the top right.
+          # The macOS menu bar has the clock at the far right, and its notifications
+          # and volume/brightness HUD appear at the top right. The Activities button
+          # stays as the workspace indicator, as on Ubuntu.
           # Animation 3 is the slow-down factor of 0.2, matching the macOS
           # expose-animation-duration in modules/core/settings.nix.
+          # Like the Spaces bar of Mission Control, the overview always shows larger
+          # workspace thumbnails (default 5%) to drop windows on, clicking one
+          # leaves the overview, and switching spaces shows no popup.
           "org/gnome/shell/extensions/just-perfection" = {
-            activities-button = false;
             clock-menu-position = 1;
             clock-menu-position-offset = 20;
             notification-banner-position = 2;
+            osd-position = 3;
             window-demands-attention-focus = true;
             animation = 3;
             support-notifier-type = 0;
+            workspace-switcher-should-show = true;
+            workspace-switcher-size = 10;
+            workspace-thumbnail-to-main-view = true;
+            workspace-popup = false;
           };
 
           # GNOME ignores the system layout
