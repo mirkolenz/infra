@@ -1,11 +1,6 @@
 {
   flake.modules.homeManager.default =
-    {
-      pkgs,
-      lib,
-      config,
-      ...
-    }:
+    { pkgs, lib, ... }:
     let
       gpg = lib.getExe pkgs.gnupg;
       tar = lib.getExe pkgs.gnutar;
@@ -41,6 +36,7 @@
           yq
           dasel
           # tabular data viewers
+          tabiew
           csvlens
           # http clients and servers
           xh
@@ -101,10 +97,6 @@
         ++ lib.optionals stdenv.hostPlatform.isDarwin [
           getent
           inetutils
-        ]
-        # tabular data viewer, whose local build exceeds little memory
-        ++ lib.optionals (!config.custom.features.lowMemory.enable) [
-          tabiew
         ];
       custom.commands = {
         gpgfile.text = /* bash */ ''

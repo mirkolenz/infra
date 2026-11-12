@@ -1,15 +1,9 @@
 # Formats the files the coding agents edit with `agent-format`, see pkgs/by-name/agent-format.
 # Only harnesses with native support are wired up: Claude Code and Codex through their
 # hooks, opencode through its formatters.
-{
-  lib,
-  pkgs,
-  config,
-  ...
-}:
+{ lib, pkgs, ... }:
 let
-  agent-format = pkgs.agent-format.override { treefmt-nix = config.custom.treefmt; };
-  command = lib.getExe agent-format;
+  command = lib.getExe pkgs.agent-format;
 
   # Codex edits through patches, which `Edit` and `Write` alias.
   hooks.PostToolUse = [
@@ -38,7 +32,7 @@ in
         "files"
         "$FILE"
       ];
-      inherit (agent-format) extensions;
+      inherit (pkgs.agent-format) extensions;
     };
   };
 }

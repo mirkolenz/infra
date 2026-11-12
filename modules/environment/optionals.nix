@@ -50,7 +50,7 @@
         cc2538-bsl
         comrak
         mdbook
-        config.custom.treefmt
+        treefmt-nix
         llm
         # janice
         touying

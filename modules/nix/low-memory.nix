@@ -1,11 +1,9 @@
-# Nix settings and package selection on hosts with little memory,
-# where unbounded builds and evaluations drove the system into systemd-oomd kills.
+# Nix on hosts with little memory, where unbounded builds and evaluations
+# drove the system into systemd-oomd kills.
 {
   flake.modules.nixos.low-memory =
     { lib, ... }:
     {
-      custom.features.lowMemory.enable = true;
-
       nix.settings = {
         max-jobs = 1;
         # Each evaluator thread keeps its own heap, the client in the terminal included.

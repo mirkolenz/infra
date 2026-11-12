@@ -1,10 +1,9 @@
 {
   flake.modules.homeManager.default =
-    { pkgs, config, ... }:
+    { ... }:
     {
       programs.atuin = {
-        # Hydra does not build it for aarch64-linux, see the hotfix in pkgs/overrides.
-        enable = !(config.custom.features.lowMemory.enable && pkgs.stdenv.hostPlatform.isAarch64);
+        enable = true;
         daemon.enable = true;
         flags = [
           "--disable-up-arrow"

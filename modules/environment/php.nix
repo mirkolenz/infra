@@ -7,7 +7,7 @@
       ...
     }:
     lib.mkIf config.custom.features.extras.enable {
-      programs.mago.enable = !config.custom.features.lowMemory.enable;
+      programs.mago.enable = true;
 
       home.packages = with pkgs; [
         php
