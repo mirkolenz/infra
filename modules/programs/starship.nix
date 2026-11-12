@@ -26,6 +26,8 @@
             pure_msg = "nix-shell";
             unknown_msg = "nix-shell";
           };
+          # ghostty widens the icon into the following space, so add a second one
+          time.format = "[[   $time ](fg:color_fg0 bg:color_bg1)]($style)";
         };
       };
       # https://starship.rs/advanced-config/#transientprompt-and-transientrightprompt-in-fish
