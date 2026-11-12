@@ -17,6 +17,7 @@
           "${config.home.homeDirectory}/Library/Application Support"
         else
           config.xdg.dataHome;
+      link = "${dataDir}/typst/packages/${packageDir}";
     in
     lib.mkIf config.custom.features.extras.enable {
       home.packages = with pkgs; [
@@ -58,8 +59,10 @@
       '';
       home.activation.linkTypstLibrary = lib'.mkCheckoutLink {
         inherit config checkout;
-        target = "${dataDir}/typst/packages/${packageDir}";
+        target = link;
       };
+      # nono grants the target of the link as well
+      programs.agents.sandbox.paths.read = [ link ];
       # No `--open`: typst spawns the viewer detached, which a terminal UI cannot take over.
       # Preview with `tdf out.pdf` in a second pane, it reloads whenever the PDF changes.
       home.shellAliases = {
