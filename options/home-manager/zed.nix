@@ -117,7 +117,7 @@ in
         files =
           lib.mapAttrsToList
             (name: value: {
-              source = pkgs.writeText "zed-${name}.json" (builtins.toJSON value);
+              source = jsonFormat.generate "zed-${name}.json" value;
               target = "${config.xdg.configHome}/zed/${name}.json";
             })
             {

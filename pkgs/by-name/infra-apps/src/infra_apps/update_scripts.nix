@@ -43,7 +43,7 @@ in
   # Built (not evaluated): the commands ride along as Nix string context (via
   # `toString`), so building realizes every updateScript before it runs;
   # flakectl reads the metadata back from this JSON.
-  manifest = pkgs.writeText "flakectl-update-scripts.json" (lib.toJSON updateScripts);
+  manifest = (pkgs.formats.json { }).generate "flakectl-update-scripts.json" updateScripts;
   # Evaluated (not built) for the post-update commit summary: forces only each
   # package's version and changelog, so it realizes nothing.
   metadata = packageMeta;

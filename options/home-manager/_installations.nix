@@ -37,14 +37,6 @@ let
     else
       "${config.home.homeDirectory}/${settingsDir}";
 
-  # yj names formats by their initial
-  flag =
-    {
-      json = "j";
-      toml = "t";
-    }
-    .${format};
-
   # merged recursively, replacing lists like `lib.recursiveUpdate`
   mergeSettings =
     name: overrides:
@@ -53,17 +45,12 @@ let
     else
       pkgs.runCommandLocal "${exe}-${name}.${format}"
         {
-          nativeBuildInputs = with pkgs; [
-            jq
-            yj
-          ];
+          nativeBuildInputs = [ pkgs.yq-go ];
           overrides = lib.toJSON overrides;
           passAsFile = [ "overrides" ];
         }
         ''
-          yj -${flag}j < ${settings} \
-            | jq --slurp '.[0] * .[1]' - "$overridesPath" \
-            | yj -j${flag} > "$out"
+          yq -p ${format} -o ${format} '. * load(env(overridesPath))' ${settings} > "$out"
         '';
 
   named = lib.mapAttrs (name: overrides: {
