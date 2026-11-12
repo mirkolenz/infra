@@ -19,14 +19,12 @@ final: prev:
 
   # nixpkgs marked termscp linux-only in NixOS/nixpkgs#565247 without a stated reason.
   # The app builds and runs fine, only these tests fail in the darwin sandbox:
-  # the watchers cannot watch /tmp or /home and the ssh host import finds no bookmark.
+  # the watchers cannot watch /tmp and the ssh host import finds no bookmark.
   # todo: send upstream, then drop this once nixpkgs builds it on darwin again
   termscp = prev.termscp.overrideAttrs (prevAttrs: {
     checkFlags = prevAttrs.checkFlags ++ [
       "--skip=support::import_ssh_hosts::tests::test_should_import_ssh_hosts"
-      "--skip=system::watcher::test::should_poll_file_removed"
-      "--skip=system::watcher::test::should_poll_file_update"
-      "--skip=system::watcher::test::should_get_watched_paths"
+      "--skip=system::watcher::test::"
     ];
 
     meta = prevAttrs.meta // {
