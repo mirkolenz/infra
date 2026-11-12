@@ -100,6 +100,12 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    # The link of TEXMFHOME, whose target nono grants as well,
+    # and the bibliography the commands below read.
+    programs.agents.sandbox.paths.read = [
+      "${config.home.homeDirectory}/texmf"
+      cfg.bibliographyPath
+    ];
     custom.vendor.texmf = {
       source = cfg.texmfPath;
       target = "vendor/texmf";
