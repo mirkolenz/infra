@@ -210,6 +210,20 @@ prev.lib.mapAttrs (name: withSystemLibs prev.${name}) {
   # https://github.com/vicinaehq/vicinae/blob/main/nix/vicinae.nix
   vicinae = prev.vicinae.override { gcc15Stdenv = final.stdenv; };
 
+  # Sushi overlays every preview with the revealer of its toolbar, which fills the preview
+  # when the renderer has no toolbar, such as text, and swallows its scroll and pointer events.
+  # The window also grows to at most half of the screen height, now 85% like Quick Look.
+  # No upstream report yet.
+  sushi = prev.sushi.overrideAttrs (prevAttrs: {
+    postPatch = (prevAttrs.postPatch or "") + ''
+      substituteInPlace src/widgets/rendererWrapper.js \
+        --replace-fail 'hoverManager.setRevealer(null);' \
+          'this._revealer.visible = false; hoverManager.setRevealer(null);'
+      substituteInPlace src/core/mainWindow.js \
+        --replace-fail 'WINDOW_MAX_PERCENT_H = 0.5' 'WINDOW_MAX_PERCENT_H = 0.85'
+    '';
+  });
+
   # The window of tuxpaint identifies itself as TuxPaint.TuxPaint, which its desktop entry does
   # not declare, so GNOME shows the running app apart from its launcher. No upstream report yet.
   tuxpaint = prev.lib.dontDistribute (
