@@ -30,8 +30,7 @@ in
           model = "MacBookPro16,1";
           user = config.custom.user.login;
           firmware.enable = true;
-          # todo: back to hybrid once `kait2en.amdgpu` builds against the pinned kernel
-          graphics.mode = "integrated";
+          graphics.mode = "hybrid";
           touchid.enable = true;
           touchbar.enable = true;
           kbd-backlight.enable = true;
