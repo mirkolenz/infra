@@ -6,12 +6,12 @@
 }:
 vimUtils.buildVimPlugin rec {
   pname = "copilot.lua";
-  version = "3.2.3";
+  version = "3.2.4";
   src = fetchFromGitHub {
     owner = "zbirenbaum";
     repo = "copilot.lua";
     tag = "v${version}";
-    hash = "sha256-mbI0DKcmw1QAPwVoYQwyZY3/lPsGnW+xkxK7Rg2+kJw=";
+    hash = "sha256-GIX1mOzsGWsSWLoUBFsTcaQv3zEM1BRhEfBYFq9YsoE=";
   };
   meta = {
     homepage = "https://github.com/zbirenbaum/copilot.lua";

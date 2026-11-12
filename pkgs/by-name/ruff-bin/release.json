@@ -1,17 +1,17 @@
 {
-  "tag_name": "0.17.4",
+  "tag_name": "0.17.5",
   "assets": {
     "ruff-aarch64-apple-darwin.tar.gz": {
-      "id": 714447192,
-      "digest": "sha256:6ef8b3a7fd5294f5e8384ceb29784a6f5657da0853824312b1d2cef53aef17af"
+      "id": 740496814,
+      "digest": "sha256:4ffadabec5c5fee1ddb2eecac0787ffe6fa18c665b73da9258b84211f40c5829"
     },
     "ruff-aarch64-unknown-linux-musl.tar.gz": {
-      "id": 714447230,
-      "digest": "sha256:71491cf93242d1bde15dcc628fd105f27c54738bef6b94050b9363ba6795f97e"
+      "id": 740496855,
+      "digest": "sha256:98f5ee4cf0cd2ad122ef61bbcce236782e5ac3cd00122dcf458ce19488863428"
     },
     "ruff-x86_64-unknown-linux-musl.tar.gz": {
-      "id": 714447495,
-      "digest": "sha256:d1d6ec9ce1ce0c01e23532a157a677077ba1f82f7cd2cde6f0bd75e65f85df93"
+      "id": 740497223,
+      "digest": "sha256:dc94b7e225b8910fb6f55298ada32d00e356dbd195a5ffb647847f388cb54f84"
     }
   }
 }
