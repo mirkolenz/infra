@@ -175,7 +175,7 @@ in
 
   # Sushi overlays every preview with the revealer of its toolbar, which fills the preview
   # when the renderer has no toolbar, such as text, and swallows its scroll and pointer events.
-  # The window also grows to at most half of the screen height, now 85% like Quick Look.
+  # The window also grows to at most half of the screen size, now 75%.
   # No upstream report yet.
   sushi = prev.sushi.overrideAttrs (prevAttrs: {
     postPatch = (prevAttrs.postPatch or "") + ''
@@ -183,7 +183,8 @@ in
         --replace-fail 'hoverManager.setRevealer(null);' \
           'this._revealer.visible = false; hoverManager.setRevealer(null);'
       substituteInPlace src/core/mainWindow.js \
-        --replace-fail 'WINDOW_MAX_PERCENT_H = 0.5' 'WINDOW_MAX_PERCENT_H = 0.85'
+        --replace-fail 'WINDOW_MAX_PERCENT_W = 0.5' 'WINDOW_MAX_PERCENT_W = 0.75' \
+        --replace-fail 'WINDOW_MAX_PERCENT_H = 0.5' 'WINDOW_MAX_PERCENT_H = 0.75'
     '';
   });
 
