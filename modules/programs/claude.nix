@@ -128,6 +128,8 @@ in
             CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = true;
             CLAUDE_CODE_SUBAGENT_MODEL = "opus";
             CLAUDE_CODE_SUBAGENT_EFFORT = "medium";
+            # https://code.claude.com/docs/en/code-mode
+            CLAUDE_CODE_EXPERIMENTAL_CODE_MODE = "1";
             # node ships undici as the global `fetch`, which ignores http_proxy and
             # https_proxy unless this is set. The sandbox routes every connection
             # through such a proxy, so without it any node client that uses `fetch`,
