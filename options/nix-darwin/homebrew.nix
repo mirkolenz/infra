@@ -86,6 +86,10 @@ in
             --replace-fail '"''${HOMEBREW_REPOSITORY}/.git/' '"''${HOMEBREW_CACHE}/'
           substituteInPlace $out/Library/Homebrew/cmd/update-report.rb \
             --replace-fail "  donation_message" ""
+          # `brew bundle` holds back the output of its installs and upgrades until they fail,
+          # unless verbose, which also reports every package that is up to date.
+          substituteInPlace $out/Library/Homebrew/bundle.rb \
+            --replace-fail "*args if verbose" "*args"
 
           # copies, since brew only loads packages whose real path is inside its taps directory
           ${lib.concatMapAttrsStringSep "\n" (name: src: ''

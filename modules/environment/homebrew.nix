@@ -145,6 +145,8 @@
           autoUpdate = true;
           upgrade = true;
           cleanup = "uninstall";
+          # only reports the packages it installs, upgrades or removes
+          extraFlags = [ "--quiet" ];
         };
         casks = caskApps ++ caskFonts;
       };
