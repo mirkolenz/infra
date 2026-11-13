@@ -27,7 +27,7 @@
               content = {
                 type = "btrfs";
                 extraArgs = [ "-f" ];
-                # zstd:1 instead of the default level 3 spares the Pi's CPU on writes.
+                # zstd:1 instead of the default level 3 spares the weak CPU on writes.
                 subvolumes = {
                   "/root" = {
                     mountpoint = "/";

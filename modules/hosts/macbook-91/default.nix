@@ -13,6 +13,7 @@ in
     module = {
       imports = [
         nixos.children
+        nixos.low-end
         "${inputs.nixos-hardware}/common/cpu/intel/cpu-only.nix"
         "${inputs.nixos-hardware}/common/pc/laptop"
       ];

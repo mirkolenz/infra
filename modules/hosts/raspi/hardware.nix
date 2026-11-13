@@ -15,9 +15,6 @@
         "console=tty1"
       ];
 
-      # Cheaper on the Pi's CPU than zstd.
-      boot.zswap.compressor = "lz4";
-
       # Rewrites boot code, U-Boot and config.txt on every switch.
       hardware.raspberry-pi.firmware = {
         enable = true;

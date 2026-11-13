@@ -14,7 +14,7 @@ in
       {
         imports = [
           nixos.default
-          nixos.low-memory
+          nixos.low-end
           "${inputs.nixos-hardware}/common/cpu/intel"
           "${inputs.nixos-hardware}/common/pc/laptop"
         ];

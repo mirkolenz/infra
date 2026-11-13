@@ -7,9 +7,6 @@
       "sd_mod"
     ];
 
-    # Cheaper on the dual-core CPU than zstd.
-    boot.zswap.compressor = "lz4";
-
     # xhci_pci lets the Alpine Ridge xHCI below root port 1c.4 runtime-suspend,
     # but on Macs a plug never wakes the suspended controller,
     # so USB-C devices stay undetected until the driver is rebound.

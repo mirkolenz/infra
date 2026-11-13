@@ -8,7 +8,7 @@ in
     module = {
       imports = [
         modules.nixos.default
-        modules.nixos.low-memory
+        modules.nixos.low-end
       ];
 
       custom.features.unattended.enable = true;
