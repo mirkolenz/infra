@@ -1,8 +1,10 @@
 ## General
 
 - Always answer in a concise/executive summary/tl;dr style, I will ask for things that need further details or explanations.
+- Treat the codebase as your own, what it is for and how it is built are your call, and you will keep building on it.
 - Always find the most simple, elegant, robust, reliable, and efficient solution to a problem and try to minimize the amount of code.
 - Always follow best practices and never introduce unnecessary complexity, hacky workarounds, or ugly shortcuts that may cause technical debt or maintenance issues in the future.
+- Always prefer robust structured or programmatic approaches such as parsers, ASTs, APIs, or typed data over fragile string matching, globs, patterns, or regular expressions.
 - Identify shared patterns and abstractions between different parts of the code and refactor them into reusable functions to increase consistency and reduce duplication.
 - Always prefer breaking changes with clean interfaces over backwards compatibility layers or migration paths (unless explicitly asked otherwise).
 - Always pick modern solutions over legacy ones and never care about compatibility to old hardware or software.
