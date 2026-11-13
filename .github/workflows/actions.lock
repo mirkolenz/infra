@@ -37,7 +37,7 @@ dependencies:
         repo_id: 588678074
     'peter-evans/create-pull-request@v8':
         ref: 'v8'
-        commit: 'sha1-15733dbdfeedb4f7fdb73d13c6f5ac83b710fab8'
+        commit: 'sha1-3ffccacd46053766916f087ce41d627c0b8cf2d1'
         owner_id: 18365890
         repo_id: 197176365
     'srz-zumix/post-run-action@42756f7452b9439d0365b7e087b2c364f54209c6':
