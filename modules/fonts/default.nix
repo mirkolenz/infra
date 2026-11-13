@@ -22,6 +22,7 @@ let
           fira-code
           fira-mono
           fira-sans
+          # TODO: geist serif needs geist-font >= 1.9.0, nixpkgs ships 1.7.0
           geist-font
           ia-writer-duospace
           ia-writer-mono
@@ -37,6 +38,7 @@ let
           monaspace
           nerd-fonts.blex-mono
           nerd-fonts.fira-code
+          nerd-fonts.geist-mono
           nerd-fonts.intone-mono
           nerd-fonts.iosevka-term
           nerd-fonts.jetbrains-mono
