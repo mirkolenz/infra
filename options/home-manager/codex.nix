@@ -52,10 +52,10 @@ in
       dir:
       lib.nameValuePair "${dir}/packages/app-server-daemon/current" {
         source = cfg.package.appServerDaemon;
-        # A running daemon keeps its old binary until restarted.
+        # A running daemon keeps its old binary until restarted, which reports its state as JSON.
         onChange = /* bash */ ''
           if [[ -e "${dir}/app-server-daemon/daemon.pid" ]]; then
-            CODEX_HOME=${dir} run ${lib.getExe cfg.package} app-server daemon restart \
+            CODEX_HOME=${dir} run --quiet ${lib.getExe cfg.package} app-server daemon restart \
               || warnEcho "Failed to restart the codex app-server daemon in ${dir}"
           fi
         '';
