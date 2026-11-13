@@ -30,7 +30,11 @@ in
           type = "luks";
           name = "cryptroot";
           # settings.keyFile = "/tmp/secret.key";
-          settings.allowDiscards = true;
+          # dm-crypt's workqueues only add latency on SSDs.
+          settings = {
+            allowDiscards = true;
+            bypassWorkqueues = true;
+          };
           content = {
             type = "btrfs";
             extraArgs = [ "-f" ];
