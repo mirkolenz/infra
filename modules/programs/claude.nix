@@ -123,6 +123,7 @@ in
             "codex@openai-codex" = true;
           };
           env = sandbox.environment.set // {
+            CLAUDE_CODE_DISABLE_AGENT_PROGRESS_SUMMARIES = true;
             # suppresses the in-session rating/feedback survey popup
             CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = true;
             CLAUDE_CODE_SUBAGENT_MODEL = "opus";
