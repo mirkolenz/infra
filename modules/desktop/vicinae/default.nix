@@ -31,15 +31,19 @@
       mkId = prefix: name: "${prefix}-${lib.replaceStrings [ " " ] [ "-" ] name}";
 
       # `app` names the program that opens the link, "default" being the system
-      # default opener for its scheme.
-      mkShortcut =
-        name: shortcut:
-        {
-          inherit name;
-          id = mkId "sct" name;
-          app = "default";
-        }
-        // shortcut;
+      # default opener for its scheme. Builtin icons ship as brand-colored or white SVGs,
+      # so the monochrome fallback needs `fill=primary-text` to follow the active theme.
+      mkShortcut = name: shortcut: {
+        inherit name;
+        id = mkId "sct" name;
+        app = "default";
+        url = lib.defaultTo shortcut.url shortcut.query;
+        icon =
+          if shortcut.favicon != null then
+            "icon://favicon/${shortcut.favicon}"
+          else
+            "icon://builtin/link?fill=primary-text";
+      };
 
       # `data` is a union discriminated by its key, `{ file = ...; }` being the
       # other variant.
@@ -56,9 +60,7 @@
     in
     lib.mkIf config.custom.features.graphical.enable {
       xdg.dataFile = {
-        "vicinae/shortcuts/shortcuts.json".source = dataFile "shortcuts" mkShortcut (
-          import ./_shortcuts.nix
-        );
+        "vicinae/shortcuts/shortcuts.json".source = dataFile "shortcuts" mkShortcut config.custom.shortcuts;
         "vicinae/snippets/snippets.json".source = dataFile "snippets" mkSnippet (import ./_snippets.nix);
       };
 
