@@ -70,8 +70,8 @@ in
           enableAllProjectMcpServers = true;
           disableClaudeAiConnectors = true;
           editorMode = "vim";
-          # OSC 9, which `iterm2` names after the terminal that introduced it
-          preferredNotifChannel = "iterm2";
+          # OSC 777, titled "Claude Code", which leaves the OSC 9 progress herdr reads untouched
+          preferredNotifChannel = "ghostty";
           idleCompaction = false;
           includeGitInstructions = true;
           outputStyle = "Concise";

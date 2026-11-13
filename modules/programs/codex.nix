@@ -88,7 +88,8 @@
           };
           tui = {
             vim_mode_default = true;
-            notification_method = "osc9";
+            # titled "Codex", which leaves the OSC 9 progress herdr reads untouched
+            notification_method = "osc777";
             # scrolling within codex deadlocks its pty with nono
             alternate_screen = "never";
             copy_on_select = "always";
