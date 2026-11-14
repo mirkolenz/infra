@@ -158,6 +158,10 @@
       url = "github:mirkolenz/quadlet-nix/v1";
       inputs.flake-parts.follows = "flake-parts";
     };
+    rex = {
+      url = "https://pkgs.superlogical.com/rex/nix/preview.tar.gz";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     systems.url = "github:nix-systems/default";
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
