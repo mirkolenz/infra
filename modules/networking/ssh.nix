@@ -82,12 +82,14 @@ in
       ...
     }:
     let
-      # forwarded agent of the newest ssh login, stable across reconnects
+      # a live forwarded agent of an ssh login, stable across reconnects
       agentLink = "${config.home.homeDirectory}/.ssh/ssh_auth_sock";
     in
     {
+      # Only a dead link is replaced, so the short commands that rex and herdr run over ssh
+      # cannot take it from a live login and leave it dangling once they finish.
       home.file.".ssh/rc".text = ''
-        if [ -S "$SSH_AUTH_SOCK" ]; then
+        if [ -S "$SSH_AUTH_SOCK" ] && ! ${lib.getExe config.custom.commands.ssh-agent-alive}; then
           ln -sf "$SSH_AUTH_SOCK" ${agentLink}
         fi
       '';
@@ -109,7 +111,7 @@ in
               pkgs.openssh
             ];
             text = /* bash */ ''
-              # @describe Check whether the forwarded agent of the newest ssh login is reachable
+              # @describe Check whether the forwarded agent behind the stable link is reachable
 
               SSH_AUTH_SOCK=${agentLink} timeout 3 ssh-add -l >/dev/null 2>&1 || [[ $? -le 1 ]]
             '';
