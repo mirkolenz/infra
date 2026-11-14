@@ -11,13 +11,13 @@
 }:
 stdenv.mkDerivation (finalAttrs: {
   pname = "snd-hda-macbookpro";
-  version = "0-unstable-2026-09-06";
+  version = "0-unstable-2026-11-14";
 
   src = fetchFromGitHub {
     owner = "davidjo";
     repo = "snd_hda_macbookpro";
-    rev = "89b22ff90b86468b186706861dd18663562defa7";
-    hash = "sha256-5iDybAlRG5HldUA24L9+rSlgEiUPZg50K8IYC+Lie4U=";
+    rev = "1931615d723899f64b352e9e7ed2368c21c49728";
+    hash = "sha256-lpzhaw57AyWO/Kcwc7lhI7ZbW4l6WFYG0saWOjcRmPk=";
   };
 
   postUnpack = ''
