@@ -30,7 +30,8 @@
 
 - Exec `xh` for ad-hoc HTTP requests, not `curl` or `wget`.
 - Exec `gh` to interact with GitHub, not a built-in web fetch tool.
-- When `xh` gets HTTP errors from a server, retry with a browser `User-Agent` and `Accept` header before reporting the resource as unavailable.
+- Exec `webget <url> [curl args]` to read web pages, not a built-in web fetch tool. It impersonates a browser and converts HTML to Markdown.
+- When `xh` gets HTTP errors from a server, retry with `webget` before reporting the resource as unavailable.
 
 ## Browser
 
