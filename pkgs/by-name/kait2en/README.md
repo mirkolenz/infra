@@ -8,6 +8,11 @@ Every package pins its own sparse checkout of upstream with only the files it bu
 Each takes upstream's latest release tag as its version, through `nix-update --version=branch`, since every crate stays at 0.1.0.
 `modules.nix` pins a kernel series rather than `linuxPackages_latest`, since upstream's amdgpu patches break on newer kernels, so moving to the next series stays a deliberate step.
 It follows the series of the Fedora release upstream targets, or the oldest one nixpkgs still ships once that one reached its end of life.
+The bridge, USB host controller, audio, AVE and Sidecar drivers share one `apple-t2-bridge` Kbuild unit and symbol namespace.
+Its early modules and the ALSA UCM and DSP packages follow upstream's renamed drivers.
+The iMac Pro gets `pcie_ports=compat` for S3 resume, and all iMacs omit forced ASPM.
+The amdgpu series includes upstream's 5K iMac Pro panel fixes, while its temporary GFX6-8 modifier workaround is skipped with Mesa 26.3 or newer, as upstream requests.
+The module selects patched amdgpu for hybrid MacBook Pros and for the 5K panels of iMac20,1, iMac20,2 and iMacPro1,1 without selecting a boot GPU on the iMacs.
 The packages install upstream's systemd units, patched with `--replace-fail`, and the modules load them through `systemd.packages` and set `wantedBy`, since NixOS ignores `[Install]`.
 Upstream relies on Fedora's firewalld zones, which allow any high port and open `nm-shared` to the hotspot, so `kait2en.airshare` listens for Quick Share on the fixed port 8771 instead of a random one, and its module opens that port and AirDrop's on `awdl0`.
 It trusts the one-off hotspot interface `t2qs0` as a whole, which needs DHCP, DNS and another random port, and which only the phone handed its random WPA key over Bluetooth can join.
@@ -34,6 +39,6 @@ Every package therefore installs upstream's license notices to `share/licenses/<
 - The KaiT2en Plymouth theme only brands the boot splash of Plymouth's `two-step` plugin.
 - KaiT2en Vornehm restyles GNOME, Firefox and Ptyxis for the invoking user, and its wallpapers carry no redistribution license.
 - `kait2en-multicall` drives GRUB and upstream's installer, and its `boot-macos` is `systemctl reboot --boot-loader-entry=auto-osx` on systemd-boot.
-- `t2-sidecar` streams through a Sunshine fork with V4L2 encoding until [LizardByte/Sunshine#5717](https://github.com/LizardByte/Sunshine/pull/5717) lands, the `t2bce_sidecar` encoder it needs is built.
+- `t2-sidecar` streams through a Sunshine fork with V4L2 encoding until [LizardByte/Sunshine#5717](https://github.com/LizardByte/Sunshine/pull/5717) lands, the `t2-sidecar` encoder it needs is built.
 - `install-macos-mount.sh` probes every APFS volume at boot, the `apfs` driver is built, so `mount -t apfs -o ro,vol=<n>` or a `fileSystems` entry mounts one.
 - `install-acpi-fixes.sh` needs the machine's own patched AML, check `journalctl -kb | grep -E 'AE_AML_BUFFER_LIMIT|Marking method.*_PDC'` first.

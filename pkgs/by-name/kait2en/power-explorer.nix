@@ -11,11 +11,11 @@
 }:
 kait2en.mkGtkApp {
   appId = "org.t2powerexplorer.gtk";
-  version = "0.1.13-unstable-2026-11-11";
+  version = "0.1.14-unstable-2026-11-15";
 
   src = kait2en.fetchSource {
-    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
-    hash = "sha256-QXjazLYGP/FtxSoepG63zfizNXyYe5Y8Z0iQ3DWk14Y=";
+    rev = "260a559597a7bd3b168a9a251a2248d97aadd957";
+    hash = "sha256-23Nk8LnrMrVID4BiY7Qe7W4uRKRCQXpqrAwG8NvdoNw=";
     root = "apps/t2-power-explorer";
     logos = [ "src/ui.rs" ];
   };

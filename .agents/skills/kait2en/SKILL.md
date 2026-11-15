@@ -64,7 +64,8 @@ Upstream rejects issues and pull requests it believes an AI wrote, so never open
    nix build .#packages.x86_64-linux.kait2en-<name>...
    ```
 
-   `<ARRAY> in <file> changed upstream` means a list in `modules.nix` must follow upstream, `the amdgpu softdep changed upstream` means `modprobeConfig` in `amdgpu.nix` must, and `the merged amdgpu patches changed upstream` means `mergedSince` must.
+   `<ARRAY> in <file> changed upstream` means a list in `modules.nix` must follow upstream, and `the amdgpu softdep changed upstream` means `modprobeConfig` in `amdgpu.nix` must.
+   Keep `skippedPatches` in `amdgpu.nix` aligned with upstream's version requirements for temporary workarounds.
 
 6. Build the host, which also catches module options that moved.
 

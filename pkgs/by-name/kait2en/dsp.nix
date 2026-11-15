@@ -16,11 +16,11 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "kait2en-dsp";
-  version = "0.1.13-unstable-2026-11-08";
+  version = "0.1.14-unstable-2026-11-15";
 
   src = kait2en.fetchSource {
-    rev = "8de95468f08c6db37924bcb8f9adc12c769add71";
-    hash = "sha256-DRZyDAa3WLQqOw8ZDFgCMF3Nksevp7qPM3jaXYxWWIY=";
+    rev = "260a559597a7bd3b168a9a251a2248d97aadd957";
+    hash = "sha256-QrSalP5ZOfHtyV/JAYmZeXsGqH+t+eVVkp1jON62GkE=";
     root = "dsp";
     # Installed by the Makefile and removed again below.
     paths = [ "packaging/lifecycle/kait2en-lifecycle.py" ];

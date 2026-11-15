@@ -13,16 +13,10 @@ let
   # kernel they were not built against.
   inherit (linuxPackages_7_3) kernel kernelModuleMakeFlags;
 
-  # Staged into the `t2bce_stack` Kbuild unit, from `modules` and from AVE.
-  bceMembers = [
-    "t2bce_dma"
-    "t2bce_core"
-    "t2bce_vhci"
-    "t2bce_audio"
-  ];
+  # Staged into the bridge Kbuild unit from AVE.
   aveMembers = [
-    "t2bce_ave"
-    "t2bce_sidecar"
+    "t2-ave"
+    "t2-sidecar"
   ];
 
   # The Kbuild directories of `packages`.
@@ -30,7 +24,7 @@ let
 
   # One directory per DKMS package.
   packages = [
-    "t2bce_stack"
+    "apple-t2-bridge"
     "t2smc"
     "t2bdrm"
     "t2touchbar"
@@ -49,9 +43,8 @@ let
   # follows it so the battery already has its charge limit when UPower first
   # probes it.
   earlyModules = [
-    "t2bce_dma"
-    "t2bce_core"
-    "t2bce_vhci"
+    "apple-t2-bridge"
+    "apple-t2-vhci-hcd"
     "t2hid"
     "t2smc"
     "t2sbs"
@@ -75,7 +68,7 @@ let
   ];
 
   kernelParams = [
-    # The t2bce stack needs the IOMMU, audio and suspend need it passed through.
+    # The T2 bridge needs the IOMMU, audio and suspend need it passed through.
     "intel_iommu=on"
     "iommu=pt"
     # Apple leaves ASPM disabled in firmware, the AMD dGPU included.
@@ -105,7 +98,9 @@ let
     # The Ethernet controllers of the iMacs do not survive forced ASPM.
     lib.subtractLists (lib.optional (
       model != null && lib.hasPrefix "iMac" model
-    ) "pcie_aspm=force") kernelParams;
+    ) "pcie_aspm=force") kernelParams
+    # The iMac Pro hangs during SMP resume without compatibility mode.
+    ++ lib.optional (model == "iMacPro1,1") "pcie_ports=compat";
 
   # Each list above mirrors an array of an upstream installer script.
   mirrored = [
@@ -129,13 +124,13 @@ in
 stdenv.mkDerivation {
   pname = "kait2en-modules";
 
-  version = "0.1.13-unstable-2026-11-11";
+  version = "0.1.14-unstable-2026-11-15";
 
   src = kait2en.fetchSource {
-    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
-    hash = "sha256-LrzOcu0fNwvpByNB00Jht1nTHjco29dHAFYZPRg5DAU=";
+    rev = "260a559597a7bd3b168a9a251a2248d97aadd957";
+    hash = "sha256-VggZV4p9ubdJIiwbw8WfLdszv/eSamOtlmgf9Xu6/XY=";
     paths =
-      map (dir: "modules/${dir}/") (lib.remove "linux-apfs-rw" packages ++ bceMembers)
+      map (dir: "modules/${dir}/") (lib.remove "linux-apfs-rw" packages)
       ++ map (dir: "t2-services/t2-ave/kernel/${dir}/") aveMembers
       ++ [ "third-party/linux-apfs-rw/" ]
       ++ lib.catAttrs "file" mirrored;
@@ -151,10 +146,9 @@ stdenv.mkDerivation {
 
     # One Kbuild unit, so its members have to be staged into it. Built
     # separately they would each get their own symbol versions.
-    cp -r ${lib.concatMapStringsSep " " (dir: "modules/${dir}") bceMembers} modules/t2bce_stack/
     cp -r ${
       lib.concatMapStringsSep " " (dir: "t2-services/t2-ave/kernel/${dir}") aveMembers
-    } modules/t2bce_stack/
+    } modules/apple-t2-bridge/
 
     # Vendored outside `modules`, and its DKMS `PRE_BUILD` writes the header
     # with the version it reports.
@@ -174,8 +168,8 @@ stdenv.mkDerivation {
 
       # `--occurrence=1` stops at the match instead of scanning the whole tree.
       tar -xOf ${kernel.src} --occurrence=1 "linux-${kernel.version}/$source" \
-        > "modules/t2bce_stack/$module"
-      printf 'obj-m += %s\n' "''${module%.c}.o" >> modules/t2bce_stack/Makefile
+        > "modules/apple-t2-bridge/$module"
+      printf 'obj-m += %s\n' "''${module%.c}.o" >> modules/apple-t2-bridge/Kbuild
     }
 
     stageKernelModule V4L2_MEM2MEM_DEV drivers/media/v4l2-core/v4l2-mem2mem.c
@@ -221,8 +215,7 @@ stdenv.mkDerivation {
   meta = kait2en.commonMeta // {
     description = "Out-of-tree kernel drivers for Macs with an Apple T2 security chip";
     # The drivers keep the SPDX header of the kernel file they forked, which is
-    # GPL-2.0-only for some and GPL-2.0-or-later for others. The t2bce stack has
-    # no header and declares `MODULE_LICENSE("GPL")`, meaning or-later.
+    # GPL-2.0-only for some and GPL-2.0-or-later for others.
     # The vendored APFS driver is GPL-2.0-only with BSD-3-Clause decompressors.
     license = with lib.licenses; [
       gpl2Only

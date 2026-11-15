@@ -12,11 +12,11 @@
 kait2en.mkGtkApp (finalAttrs: {
   appId = "org.t2airshare.gtk";
   userUnits = [ "t2-airshare.service" ];
-  version = "0.1.13-unstable-2026-11-11";
+  version = "0.1.14-unstable-2026-11-15";
 
   src = kait2en.fetchSource {
-    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
-    hash = "sha256-hIpSQDiYYBfmw8jayvVdlVwcSLducnjtjNM7sWB1Oas=";
+    rev = "260a559597a7bd3b168a9a251a2248d97aadd957";
+    hash = "sha256-nFxPPxqK9A5wQAq1vfhatK8j38Hb8TVJHV6NG1IcKgI=";
     root = "apps/t2-airshare";
     logos = [ "src/bin/t2-airshare/main.rs" ];
   };

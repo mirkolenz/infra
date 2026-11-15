@@ -10,7 +10,7 @@
 lib.extendMkDerivation {
   constructDrv = stdenv.mkDerivation;
   excludeDrvArgNames = [
-    "mergedSince"
+    "skippedPatches"
     "sources"
     "drivers"
   ];
@@ -19,8 +19,8 @@ lib.extendMkDerivation {
     {
       # Its `root` is the patch series.
       src,
-      # Patches upstream's installer skips from a kernel version on.
-      mergedSince ? { },
+      # Patches unnecessary with the pinned kernel or userspace.
+      skippedPatches ? [ ],
       # The Kbuild directories to build.
       drivers,
       # Further parts of the kernel source the drivers include.
@@ -35,7 +35,6 @@ lib.extendMkDerivation {
       inherit (kait2en.modules) kernel;
       inherit (kait2en.modules.linuxPackages) kernelModuleMakeFlags;
       patches = "${src}/${src.root}";
-      merged = lib.attrNames (lib.filterAttrs (_: lib.versionAtLeast kernel.version) mergedSince);
       members = map (dir: "linux-${kernel.version}/${dir}") (drivers ++ sources);
       driverDirs = map (dir: "$PWD/${dir}") drivers;
     in
@@ -57,15 +56,17 @@ lib.extendMkDerivation {
       # Like upstream, a patch already in the kernel is skipped. The forward check
       # comes first, since `--batch` flips a reverse run of an unapplied patch.
       postPatch = ''
-        declare -A merged=(${lib.concatMapStrings (name: "[${lib.escapeShellArg name}]=1 ") merged})
+        declare -A skipped=(${
+          lib.concatMapStrings (name: "[${lib.escapeShellArg name}]=1 ") skippedPatches
+        })
 
         while IFS= read -r entry || [ -n "$entry" ]; do
           case "$entry" in "" | "#"*) continue ;; esac
 
           file="${patches}/$entry"
 
-          if [[ -v merged[$entry] ]]; then
-            echo "$entry is merged in ${kernel.version}"
+          if [[ -v skipped[$entry] ]]; then
+            echo "skipping $entry"
           elif patch -p1 --dry-run --batch --forward --fuzz=3 < "$file" > /dev/null; then
             patch -p1 --batch --forward --fuzz=3 --no-backup-if-mismatch < "$file"
           elif patch -p1 --dry-run --batch --reverse --fuzz=3 < "$file" > /dev/null; then

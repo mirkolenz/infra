@@ -1,4 +1,4 @@
-# Speaker and microphone support for the t2bce audio driver: KaiT2en supplies
+# Speaker and microphone support for snd-apple-t2: KaiT2en supplies
 # both the use case profiles and the DSP graphs the internal speakers need.
 {
   flake.modules.nixos.apple-t2 =

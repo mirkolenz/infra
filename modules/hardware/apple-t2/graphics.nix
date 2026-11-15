@@ -15,6 +15,15 @@
     let
       inherit (config.custom.apple-t2.graphics) mode;
 
+      # The 5K iMac panels need the display patches without hybrid graphics.
+      needsPatchedAmdgpu =
+        mode == "hybrid"
+        || lib.elem config.custom.apple-t2.model [
+          "iMac20,1"
+          "iMac20,2"
+          "iMacPro1,1"
+        ];
+
       # Apple's own GUID. The first four bytes are the EFI attributes, the
       # fifth selects the GPU, 1 being the integrated one.
       prefs = "/sys/firmware/efi/efivars/gpu-power-prefs-fa4ce28d-b62f-4c99-9cc3-6815686e30f9";
@@ -102,10 +111,13 @@
           };
         })
 
-        # A runtime-suspended dGPU stays off across S3 here, so no sleep hooks.
-        (lib.mkIf (mode == "hybrid") {
+        (lib.mkIf needsPatchedAmdgpu {
           boot.extraModulePackages = [ pkgs.kait2en.amdgpu ];
           boot.extraModprobeConfig = pkgs.kait2en.amdgpu.modprobeConfig;
+        })
+
+        # A runtime-suspended dGPU stays off across S3 here, so no sleep hooks.
+        (lib.mkIf (mode == "hybrid") {
           # GTK's Vulkan renderer opens the dGPU even on the iGPU's display.
           environment.sessionVariables.GSK_RENDERER = "ngl";
           # Lets the desktop launch an app on the dGPU through PRIME.

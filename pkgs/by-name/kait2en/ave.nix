@@ -9,11 +9,11 @@
   kmod,
 }:
 kait2en.mkService {
-  version = "0.1.13-unstable-2026-11-11";
+  version = "0.1.14-unstable-2026-11-15";
 
   src = kait2en.fetchSource {
-    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
-    hash = "sha256-yqjXp4vHkklfXzlUkz8QT5gm/HYMD/R9N9oHk80p6bA=";
+    rev = "260a559597a7bd3b168a9a251a2248d97aadd957";
+    hash = "sha256-XO8KCwx1BWnFsMBZJ2Xba+2nm1iS8UWRbINxERQ1gYI=";
     root = "t2-services/t2-ave";
     bridgexpc = true;
     # The AVE driver, built by `kait2en.modules`.

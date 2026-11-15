@@ -5,6 +5,7 @@
 {
   lib,
   kait2en,
+  mesa,
 }:
 let
   installer = "scripts/fedora/install-gpu-runtime-pm.sh";
@@ -12,27 +13,20 @@ let
 
   # Upstream writes it from a heredoc in its installer, checked in `postPatch`.
   modprobeConfig = "softdep amdgpu pre: t2gmux";
-
-  # Backported in a form the reverse dry run misses, checked in `postPatch`.
-  mergedSince = {
-    "0001-drm-amdgpu-reset-VI-ASIC-on-MacBookPro15-1.patch" = "7.2.10";
-  };
-
-  # How the installer guards a merged patch.
-  cutoff = version: ''kernel_version_ge "$kver" ${lib.replaceStrings [ "." ] [ " " ] version}'';
 in
 kait2en.mkPatchedDrivers {
   pname = "kait2en-amdgpu";
 
-  version = "0.1.13-unstable-2026-11-11";
+  version = "0.1.14-unstable-2026-11-15";
 
   src = kait2en.fetchSource {
-    rev = "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa";
-    hash = "sha256-pBK+29S5VX71qiwujWUOvP7y7WzoIb/NCG/W3y2JlC4=";
+    rev = "260a559597a7bd3b168a9a251a2248d97aadd957";
+    hash = "sha256-XhwG191Cz+M3AgCpKIvuDJOcHUU4lJIPxgKet9nHvDI=";
     root = "patches/runtime/gpu-runtime-pm";
     paths = [ installer ];
   };
-  inherit mergedSince;
+  # Upstream asks to drop this workaround once Mesa supports GFX6-8 modifiers.
+  skippedPatches = lib.optional (lib.versionAtLeast mesa.version "26.3") "0015-TEMPORARY-drm-amd-display-hide-GFX6-8-modifiers-until-Mesa-26.3.patch";
 
   drivers = [ driver ];
   # amdgpu builds and includes the rest of the AMD tree through relative paths.
@@ -41,12 +35,6 @@ kait2en.mkPatchedDrivers {
   postPatch = ''
     grep -qxF ${lib.escapeShellArg modprobeConfig} $src/${installer} ||
       { echo "the amdgpu softdep changed upstream, see .agents/skills/kait2en/SKILL.md" >&2; exit 1; }
-
-    ${lib.concatMapAttrsStringSep "\n" (name: version: ''
-      grep -A3 -F ${lib.escapeShellArg "${name})"} $src/${installer} |
-        grep -qF ${lib.escapeShellArg (cutoff version)} ||
-        { echo "the merged amdgpu patches changed upstream, see .agents/skills/kait2en/SKILL.md" >&2; exit 1; }
-    '') mergedSince}
   '';
 
   passthru = { inherit modprobeConfig; };

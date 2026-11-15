@@ -1,7 +1,7 @@
 {
   "upstream": {
-    "rev": "9c6e22d0d5ece62351ccef78fe4bb710ab2dabaa",
-    "hash": "sha256-oEvIdEwyQd01UBfuj8aiBpWkg1TP3W+sBrA06Ah+BjM="
+    "rev": "260a559597a7bd3b168a9a251a2248d97aadd957",
+    "hash": "sha256-jBXvM9LrwD5gJ8xs69yyyvWcxG+eA7QJ4WhW7kM8Kao="
   },
   "fork": {
     "rev": "967bfb0f30cf12f199313e5e3a3227324625ecf3"

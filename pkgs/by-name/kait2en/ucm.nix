@@ -1,19 +1,19 @@
-# The use case profiles of the t2bce driver, which exposes a plain ALSA device.
+# The use case profiles of snd-apple-t2, which exposes a plain ALSA device.
 # `apple-t2/audio.nix` merges them into the stock UCM tree, like
 # `alsa-ucm-conf-asahi`.
-# https://github.com/kaiT2en/KaiT2en-Fedora/tree/main/modules/t2bce_audio-alsa-ucm-conf
+# https://github.com/kaiT2en/KaiT2en-Fedora/tree/main/modules/apple-t2-alsa-ucm-conf
 {
   stdenvNoCC,
   kait2en,
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "kait2en-ucm";
-  version = "0.1.12-unstable-2026-11-02";
+  version = "0.1.14-unstable-2026-11-15";
 
   src = kait2en.fetchSource {
-    rev = "3206d9e4ea6cb49caba20f374954220555577fcc";
-    hash = "sha256-wk+mDWY96GBZMiP0QUDS5xNx5366GQ/2CfcBF49hngY=";
-    root = "modules/t2bce_audio-alsa-ucm-conf";
+    rev = "260a559597a7bd3b168a9a251a2248d97aadd957";
+    hash = "sha256-FVPEre2WC1gL2BUE9ew/pFMHIJdn+go2vM85/oe3Knc=";
+    root = "modules/apple-t2-alsa-ucm-conf";
   };
 
   dontConfigure = true;
