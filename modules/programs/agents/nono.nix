@@ -97,7 +97,7 @@
           lib.unique (lib.concatMap ancestors (readPaths ++ writePaths))
         )
         ++ map (workspaceRule "file-write*") workspace.read
-        ++ map (workspaceRule "file-read-data file-write*") workspace.deny
+        ++ map (workspaceRule "file-read-data file-write* process-exec* file-map-executable") workspace.deny
         ++ map (
           path: deny "file-write*" (subpath path) (map subpath (within [ path ] writePaths))
         ) readOnlyPaths

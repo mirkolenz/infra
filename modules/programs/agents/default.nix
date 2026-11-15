@@ -308,6 +308,7 @@
             "SSH_AUTH_SOCK"
           ];
           commands.deny = [
+            "git push"
             # would print the keychain, the gh token of the host among it
             "security"
             # keep the injected tokens out of the transcripts, their read-only scope is the boundary
