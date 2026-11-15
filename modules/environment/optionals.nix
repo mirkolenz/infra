@@ -84,7 +84,7 @@
         glow
         # pdf
         # tdf # used via alias
-        # fancy-cat # currently broken
+        # fancy-cat # fails to build on Darwin
         pdf-cli
         # office
         officecli-bin

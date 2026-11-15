@@ -1,18 +1,5 @@
 final: prev:
 let
-  # pluggy 1.7 only accepts functions as hookspecs, so registering the class-based ones of
-  # plugincode and scancode fails. Both only load entry points through pluggy and never call a hook,
-  # so the registration becomes a no-op expression.
-  # https://github.com/aboutcode-org/plugincode/pull/15
-  dropHookspecs =
-    drv: files:
-    drv.overridePythonAttrs (prevAttrs: {
-      postPatch = (prevAttrs.postPatch or "") + ''
-        substituteInPlace ${prev.lib.escapeShellArgs files} \
-          --replace-fail 'self.manager.add_hookspecs(' '('
-      '';
-    });
-
   # CI skips the overrides whose builds exceed the time or memory of its runners,
   # so the hosts build them until they can go.
   inherit (prev.lib) dontDistribute;
@@ -65,37 +52,6 @@ in
                        'old_rev_tag is not None and package.new_version.rev is not None and package.new_version.rev != old_rev_tag'
     '';
   });
-
-  pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
-    (
-      _: pyprev:
-      {
-        plugincode = dropHookspecs pyprev.plugincode [
-          "src/plugincode/__init__.py"
-          "src/plugincode/location_provider.py"
-        ];
-        scancode-toolkit = dropHookspecs pyprev.scancode-toolkit [
-          "src/licensedcode/additional_license_location_provider.py"
-        ];
-
-        # libarchive 3.8 extracts ar members under other names than the fixtures expect,
-        # and no longer rejects members with relative paths. No upstream report yet.
-        extractcode = pyprev.extractcode.overridePythonAttrs (prevAttrs: {
-          disabledTests = prevAttrs.disabledTests ++ [
-            "test_extract_ar_with_permissions"
-            "test_extract_ar_with_relative_path"
-            "test_extract_directory_of_windows_ar_archives"
-          ];
-        });
-      }
-      // prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
-        # Importing libvirt loads system frameworks down to Apple's LibreSSL, which aborts once the
-        # darwin sandbox denies it /private/etc/ssl/openssl.cnf, a path it hardcodes, so it builds
-        # outside the sandbox. No upstream report yet.
-        libvirt-python = pyprev.libvirt-python.overridePythonAttrs { __noChroot = true; };
-      }
-    )
-  ];
 }
 // (prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
 
@@ -213,15 +169,6 @@ in
       substituteInPlace meson.build --replace-fail "'-Wl,-flat_namespace'" "[]"
     '';
     doCheck = false;
-  });
-
-  # Replace the SVG driver's Windows-only header with POSIX headers, as Homebrew does.
-  # https://github.com/Homebrew/homebrew-core/pull/261141
-  pstoedit = prev.pstoedit.overrideAttrs (prevAttrs: {
-    postPatch = (prevAttrs.postPatch or "") + ''
-      substituteInPlace src/drvsvg.cpp \
-        --replace-fail '#include <io.h>' $'#include <unistd.h>\n#include <fcntl.h>'
-    '';
   });
 
   # nixpkgs carries a separate vendorHash per platform for scorecard, and the darwin one went
