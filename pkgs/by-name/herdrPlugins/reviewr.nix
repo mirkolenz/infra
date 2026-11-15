@@ -11,19 +11,19 @@
 }:
 mkHerdrPlugin (finalAttrs: {
   pname = "herdr-reviewr";
-  version = "0.52.1";
+  version = "0.52.2";
   pluginId = "persiyanov.reviewr";
 
   src = fetchFromGitHub {
     owner = "persiyanov";
     repo = "herdr-reviewr";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-i+JtSYpEfBO9QF+UM1+TQTUvmRMQyGf1J+EKdhw0gOo=";
+    hash = "sha256-DcNNuP529AhERUhnM0qHNYZuqlCghmc+psiKrX4l+gw=";
   };
 
   binary = rustPlatform.buildRustPackage {
     inherit (finalAttrs) pname version src;
-    cargoHash = "sha256-fZK1u6kEz7n2fxPeVE6oXpGuSHrM28LHfiB1I0M6Mx8=";
+    cargoHash = "sha256-lPIvi3ImQ606lADDF0CPpjVGs8uU2neL/C4usUG2QW8=";
     nativeBuildInputs = [ pkg-config ];
     buildInputs = [
       oniguruma
