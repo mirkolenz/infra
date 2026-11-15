@@ -52,6 +52,11 @@
         primary-color = "#000000";
       };
 
+      liquidGlass = {
+        blur = true;
+        pipeline = "pipeline_liquid_glass";
+      };
+
       # GNOME stores command shortcuts at indexed custom-keybinding subpaths that
       # must also be listed in `custom-keybindings`; this maps a friendlier attrset
       # of shortcuts (keyed by a slug) onto both the list and the per-shortcut keys.
@@ -90,9 +95,7 @@
               dash-to-dock
               desktop-icons-ng-ding
               just-perfection
-              # TODO: uncomment once nixpkgs ships a release supporting GNOME 51,
-              # which rounds the windows of apps that do not round their own corners.
-              # rounded-window-corners-reborn
+              rounded-window-corners-reborn
               tiling-assistant
               vicinae
             ]
@@ -205,18 +208,22 @@
           # covers this indicator, whose menu only opens the extension settings.
           "org/gnome/shell/extensions/vicinae".show-status-indicator = false;
 
-          # TODO: uncomment once nixpkgs ships blur-my-shell v77, which adds the
-          # built-in Liquid Glass pipeline. The blur has to be dynamic, since a
-          # static one only blurs the solid black wallpaper.
-          # "org/gnome/shell/extensions/blur-my-shell/panel" = {
-          #   pipeline = "pipeline_liquid_glass";
-          #   static-blur = false;
-          # };
-          # "org/gnome/shell/extensions/blur-my-shell/dash-to-dock" = {
-          #   pipeline = "pipeline_liquid_glass";
-          #   static-blur = false;
-          # };
-          # "org/gnome/shell/extensions/blur-my-shell/popup".pipeline = "pipeline_liquid_glass";
+          "org/gnome/shell/extensions/blur-my-shell/overview" = liquidGlass;
+          "org/gnome/shell/extensions/blur-my-shell/appfolder" = liquidGlass;
+          # Dynamic blur includes windows instead of only the solid black wallpaper.
+          "org/gnome/shell/extensions/blur-my-shell/panel" = liquidGlass // {
+            static-blur = false;
+            unblur-in-overview = false;
+          };
+          "org/gnome/shell/extensions/blur-my-shell/dash-to-dock" = liquidGlass // {
+            static-blur = false;
+          };
+          "org/gnome/shell/extensions/blur-my-shell/applications".blur = false;
+          "org/gnome/shell/extensions/blur-my-shell/screenshot" = liquidGlass;
+          "org/gnome/shell/extensions/blur-my-shell/lockscreen" = liquidGlass;
+          "org/gnome/shell/extensions/blur-my-shell/window-list" = liquidGlass;
+          "org/gnome/shell/extensions/blur-my-shell/coverflow-alt-tab" = liquidGlass;
+          "org/gnome/shell/extensions/blur-my-shell/popup" = liquidGlass;
 
           # Only the files in ~/Desktop as with the macOS CreateDesktop, without the
           # home folder and trash that macOS never shows there, and without drives
