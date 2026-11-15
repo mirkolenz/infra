@@ -33,7 +33,7 @@ class Config:
         sandbox_args: Arguments prepended to those of the harness.
         trailing_args: Arguments appended to those of the harness.
         add_dir_flag: Flag of the harness adding a workspace directory.
-        env_files: Variables set by nono to the content of an absolute file path.
+        env_files: Variables set by nono from readable, non-empty source files.
         ancestor_rule: Seatbelt rule for the ancestors of every workspace directory,
             with `{}` for the JSON-encoded path, null outside of macOS.
         bwrap: Policy of the bubblewrap sandbox around nono, null outside of Linux.
@@ -100,9 +100,7 @@ def ancestors(dirs: Iterable[str]) -> list[str]:
 
 
 def env_credentials(files: Mapping[str, str]) -> list[str]:
-    """The nono arguments setting each variable to its file, skipping missing or empty files.
-
-    nono aborts on those, such as a secret not rendered yet.
+    """Map readable, non-empty regular files to environment variables through nono.
 
     >>> env_credentials({"A": "/dev/null", "B": "/nonexistent"})
     []
@@ -110,8 +108,19 @@ def env_credentials(files: Mapping[str, str]) -> list[str]:
     args: list[str] = []
 
     for var, path in files.items():
-        if os.access(path, os.R_OK) and Path(path).stat().st_size > 0:
-            args += ["--env-credential-map", f"file://{path}", var]
+        file = Path(path)
+
+        if not file.is_file():
+            continue
+
+        try:
+            with file.open("rb") as source:
+                if not source.read(1):
+                    continue
+        except OSError:
+            continue
+
+        args += ["--env-credential-map", f"file://{file}", var]
 
     return args
 

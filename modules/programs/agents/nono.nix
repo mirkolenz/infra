@@ -146,8 +146,14 @@
       # The profile cannot add it, nono sets the variables after `environment.set_vars`
       # and refuses `network.no_proxy` with the network namespace on Linux.
       # TODO: drop once nono exempts `::1` itself
-      noProxy = pkgs.writeShellScript "nono-no-proxy" ''
+      sandboxEnv = pkgs.writeShellScript "agents-environment" ''
         export NO_PROXY="$NO_PROXY,::1,[::1]" no_proxy="$no_proxy,::1,[::1]"
+
+        # Nix fetches GitHub inputs in the client, using the same agent token as gh.
+        if [[ -n ''${GITHUB_TOKEN:-} ]]; then
+          export NIX_CONFIG="access-tokens = github.com=$GITHUB_TOKEN"
+        fi
+
         exec "$@"
       '';
 
@@ -163,7 +169,7 @@
           launchConfig = {
             harness = lib.getExe package;
             nono = lib.getExe nono;
-            wrapper = noProxy;
+            wrapper = sandboxEnv;
             bwrap = if isLinux then bwrap else null;
             inherit profile;
             herdr_agent = harness.herdrAgent;
@@ -226,7 +232,16 @@
             allow_localhost = isDarwin && sandbox.localhost;
           };
           environment = {
-            deny_vars = sandbox.environment.unset;
+            # A missing source file must never expose the inherited host token.
+            deny_vars = lib.unique (
+              sandbox.environment.unset
+              ++ lib.attrNames sandbox.environment.files
+              ++ [
+                "GH_TOKEN"
+                "GITHUB_TOKEN"
+                "NIX_CONFIG"
+              ]
+            );
             set_vars = sandbox.environment.set;
           };
           unsafe_macos_seatbelt_rules = lib.mkIf isDarwin seatbeltRules;

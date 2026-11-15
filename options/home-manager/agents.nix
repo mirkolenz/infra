@@ -100,9 +100,9 @@ in
           default = { };
           example.GITHUB_TOKEN = "/var/lib/opnix/agents/github-token";
           description = ''
-            Variables set to the content of a file, read by nono before the sandbox starts,
-            so the file may stay hidden from the agents. Skipped while the file is missing or empty.
-            Only nono applies them.
+            Variables loaded from files by nono before the sandbox starts.
+            Missing, empty, unreadable, and non-regular files are skipped.
+            The files may remain hidden from the agents.
           '';
         };
       };
