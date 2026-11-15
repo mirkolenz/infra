@@ -9,6 +9,7 @@ import json
 import os
 import signal
 import subprocess
+import sys
 import tempfile
 from collections.abc import Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
@@ -34,8 +35,6 @@ class Config:
         trailing_args: Arguments appended to those of the harness.
         add_dir_flag: Flag of the harness adding a workspace directory.
         env_files: Variables set by nono from readable, non-empty source files.
-        ancestor_rule: Seatbelt rule for the ancestors of every workspace directory,
-            with `{}` for the JSON-encoded path, null outside of macOS.
         bwrap: Policy of the bubblewrap sandbox around nono, null outside of Linux.
     """
 
@@ -48,7 +47,6 @@ class Config:
     trailing_args: Sequence[str]
     add_dir_flag: str | None
     env_files: Mapping[str, str]
-    ancestor_rule: str | None
     bwrap: Policy | None
 
     @classmethod
@@ -76,22 +74,23 @@ def flag_values(flag: str, args: Iterable[str]) -> Iterator[str]:
     ['a', 'b']
     """
     prev = None
+    prefix = f"{flag}="
 
     for arg in args:
         if prev == flag:
             yield arg
-        elif arg.startswith(f"{flag}="):
-            yield arg.removeprefix(f"{flag}=")
+        elif arg.startswith(prefix):
+            yield arg.removeprefix(prefix)
 
         prev = arg
 
 
-def ancestors(dirs: Iterable[str]) -> list[str]:
+def ancestors(dirs: Iterable[Path]) -> list[str]:
     """The sorted ancestors of the existing directories, except for `/`."""
     paths: set[str] = set()
 
     for entry in dirs:
-        path = Path(entry).resolve()
+        path = entry.resolve()
 
         if path.is_dir():
             paths.update(str(parent) for parent in path.parents[:-1])
@@ -125,15 +124,13 @@ def env_credentials(files: Mapping[str, str]) -> list[str]:
     return args
 
 
-def write_profile(extends: str, rule: str, path: Path, dirs: Iterable[str]) -> None:
+def write_profile(extends: str, path: Path, dirs: Iterable[Path]) -> None:
     """Write a session profile extending another, granting to list the ancestors of `dirs`."""
     profile = {
         "meta": {"name": "agents-session"},
         "extends": extends,
-        "unsafe_macos_seatbelt_rules": [
-            rule.format(json.dumps(ancestor, ensure_ascii=False))
-            for ancestor in ancestors(dirs)
-        ],
+        "allow_parent_of_protected": True,
+        "filesystem": {"read_file": ancestors(dirs)},
     }
     path.write_text(json.dumps(profile, ensure_ascii=False, indent=2))
 
@@ -178,6 +175,7 @@ def launch(config: Config, args: Sequence[str]) -> int:
     if flag:
         allowed += flag_values(flag, args)
 
+    roots = [Path.cwd(), *map(Path, allowed)]
     env = dict(os.environ)
 
     if allowed:
@@ -187,15 +185,14 @@ def launch(config: Config, args: Sequence[str]) -> int:
     # such as the forkserver of Python's multiprocessing. Those of /tmp and the host stay out of reach.
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
         # Without `O_PATH`, Nix and Bun open every ancestor of a path they resolve.
-        if config.ancestor_rule is not None:
+        if sys.platform == "darwin":
             profile = Path(tmp, "profile.json")
             extends = os.environ.get("NONO_PROFILE") or config.profile
-            write_profile(extends, config.ancestor_rule, profile, [".", *allowed])
+            write_profile(extends, profile, roots)
             env["NONO_PROFILE"] = str(profile)
 
         # The agent runs on a pty of nono, so herdr identifies it by this hint on nono.
         env |= {"TMPDIR": tmp, "HERDR_AGENT": config.herdr_agent}
-        roots = [Path.cwd(), *map(Path, allowed)]
         sandbox = [] if config.bwrap is None else bwrap_command(config.bwrap, roots)
         status = run(
             [

@@ -36,13 +36,6 @@
       subpath = path: "(subpath ${lib.toJSON path})";
       regex = pattern: ''(regex #"${pattern}")'';
 
-      # Lists the directory at the JSON-encoded path itself, not the content of what it holds.
-      # TODO: the list-only grant of nono once it has one, https://github.com/nolabs-ai/nono/issues/457
-      listable = encoded: "(allow file-read-data (literal ${encoded}))";
-
-      # The ancestors of an absolute path, except for `/`, which nono grants in full.
-      ancestors = path: lib.optionals (dirOf path != "/") (ancestors (dirOf path) ++ [ (dirOf path) ]);
-
       # Denies `operations` on the paths matching `filter`, except for those matching any of `exceptions`.
       deny =
         operations: filter: exceptions:
@@ -90,13 +83,8 @@
 
       # Platform rules come last in the nono policy, so these denies win over its grants.
       # Metadata stays readable, so listing a directory or `git status` keeps working.
-      # Without `O_PATH`, Nix and Bun open every ancestor of a path they resolve,
-      # `nono-launch` adds those of the working directory and the added ones.
       seatbeltRules =
-        map (path: listable (lib.toJSON path)) (
-          lib.unique (lib.concatMap ancestors (readPaths ++ writePaths))
-        )
-        ++ map (workspaceRule "file-write*") workspace.read
+        map (workspaceRule "file-write*") workspace.read
         ++ map (workspaceRule "file-read-data file-write* process-exec* file-map-executable") workspace.deny
         ++ map (
           path: deny "file-write*" (subpath path) (map subpath (within [ path ] writePaths))
@@ -177,8 +165,6 @@
             trailing_args = harness.trailingSandboxArgs;
             add_dir_flag = harness.addDirFlag;
             env_files = sandbox.environment.files;
-            # Lists the ancestors of the working directory and the added ones, see `seatbeltRules`.
-            ancestor_rule = if isDarwin then listable "{}" else null;
           };
         in
         # named after the harness, so the OS and herdr show its name for the process
