@@ -12,6 +12,7 @@
           # Kills before the kernel OOM killer would, which only acts after the system froze.
           systemd.oomd = {
             enableRootSlice = true;
+            enableSystemSlice = true;
             enableUserSlices = true;
           };
 
