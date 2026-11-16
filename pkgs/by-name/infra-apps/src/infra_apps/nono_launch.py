@@ -12,8 +12,10 @@ import subprocess
 import sys
 import tempfile
 from collections.abc import Iterable, Iterator, Mapping, Sequence
+from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
+from string import Template
 from typing import Self
 
 from infra_apps.apptools import HelpFormatter, entrypoint
@@ -28,26 +30,27 @@ class Config:
     Attributes:
         harness: Absolute path of the harness executable.
         nono: Absolute path of nono, since `PATH` reaches the harness, as for every executable.
-        wrapper: Absolute path of the command that runs the harness within nono.
         profile: nono profile the session extends unless `NONO_PROFILE` is set.
         herdr_agent: Label by which herdr identifies the harness on nono.
         sandbox_args: Arguments prepended to those of the harness.
         trailing_args: Arguments appended to those of the harness.
         add_dir_flag: Flag of the harness adding a workspace directory.
         env_files: Variables set by nono from readable, non-empty source files.
+        env_templates: Variables set within nono from templates over the environment nono gives,
+            skipped while one they reference is unset.
         granted: Absolute paths the profile grants, whose ancestors the session lists on macOS.
         bwrap: Policy of the bubblewrap sandbox around nono, null outside of Linux.
     """
 
     harness: str
     nono: str
-    wrapper: str
     profile: str
     herdr_agent: str
     sandbox_args: Sequence[str]
     trailing_args: Sequence[str]
     add_dir_flag: str | None
     env_files: Mapping[str, str]
+    env_templates: Mapping[str, str]
     granted: Sequence[str]
     bwrap: Policy | None
 
@@ -123,6 +126,33 @@ def env_credentials(files: Mapping[str, str]) -> list[str]:
     return args
 
 
+def sandbox_env(env: Mapping[str, str], templates: Mapping[str, str]) -> dict[str, str]:
+    """The environment of the harness within nono, derived from that nono gives it.
+
+    nono exempts only `localhost` and `127.0.0.1` from its proxy, which drops requests to `::1`.
+    The profile cannot add it, nono sets the variables after `environment.set_vars`
+    and refuses `network.no_proxy` with the network namespace on Linux.
+    TODO: drop once nono exempts `::1` itself
+
+    >>> env = sandbox_env({"NO_PROXY": "localhost,::1", "A": "a"}, {"B": "b=$A", "C": "$D"})
+    >>> env["NO_PROXY"], env["no_proxy"], env["B"], "C" in env
+    ('localhost,::1,[::1]', '::1,[::1]', 'b=a', False)
+    """
+    result = dict(env)
+
+    for var in ("NO_PROXY", "no_proxy"):
+        hosts = split(env.get(var, ""))
+        result[var] = ",".join(
+            [*hosts, *(host for host in ("::1", "[::1]") if host not in hosts)]
+        )
+
+    for var, template in templates.items():
+        with suppress(KeyError):
+            result[var] = Template(template).substitute(env)
+
+    return result
+
+
 def write_profile(extends: str, path: Path, paths: Iterable[Path]) -> None:
     """Write a session profile extending another, granting to list the ancestors of `paths`.
 
@@ -162,22 +192,27 @@ def launch(config: Config, args: Sequence[str]) -> int:
         os.execv(config.harness, [config.harness, *args])
 
     allowed = split(os.environ.get("NONO_ALLOW", ""))
-    flag = config.add_dir_flag
-    added = [arg for path in allowed for arg in (flag, path)] if flag else []
-    harness = [
-        config.harness,
-        *config.sandbox_args,
-        *added,
-        *args,
-        *config.trailing_args,
-    ]
+    given: list[str] = []
+    added: list[str] = []
 
-    # nono sets NONO_CAP_FILE in every sandbox it starts.
+    if flag := config.add_dir_flag:
+        given = list(flag_values(flag, args))
+        added = [arg for path in allowed if path not in given for arg in (flag, path)]
+
+    # nono sets NONO_CAP_FILE in every sandbox it starts, such as the one this launcher runs itself in.
     if Path(os.environ.get("NONO_CAP_FILE", "")).is_file():
-        os.execv(config.harness, harness)
+        harness = [
+            config.harness,
+            *config.sandbox_args,
+            *added,
+            *args,
+            *config.trailing_args,
+        ]
+        os.execve(
+            config.harness, harness, sandbox_env(os.environ, config.env_templates)
+        )
 
-    if flag:
-        allowed += flag_values(flag, args)
+    allowed += given
 
     roots = [Path.cwd(), *map(Path, allowed)]
     env = dict(os.environ)
@@ -210,8 +245,9 @@ def launch(config: Config, args: Sequence[str]) -> int:
                 tmp,
                 *env_credentials(config.env_files),
                 "--",
-                config.wrapper,
-                *harness,
+                # this launcher again, which runs the harness within the sandbox
+                sys.executable,
+                *sys.orig_argv[1:],
             ],
             env,
         )

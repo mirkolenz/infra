@@ -130,21 +130,6 @@
         git = lib.getExe pkgs.gitMinimal;
       };
 
-      # nono exempts only `localhost` and `127.0.0.1` from its proxy, which drops requests to `::1`.
-      # The profile cannot add it, nono sets the variables after `environment.set_vars`
-      # and refuses `network.no_proxy` with the network namespace on Linux.
-      # TODO: drop once nono exempts `::1` itself
-      sandboxEnv = pkgs.writeShellScript "agents-environment" ''
-        export NO_PROXY="$NO_PROXY,::1,[::1]" no_proxy="$no_proxy,::1,[::1]"
-
-        # Nix fetches GitHub inputs in the client, using the same agent token as gh.
-        if [[ -n ''${GITHUB_TOKEN:-} ]]; then
-          export NIX_CONFIG="access-tokens = github.com=$GITHUB_TOKEN"
-        fi
-
-        exec "$@"
-      '';
-
       # the nono profile of the agents, extended by the session profile of the launcher
       profile = "agents";
 
@@ -157,7 +142,6 @@
           launchConfig = {
             harness = lib.getExe package;
             nono = lib.getExe nono;
-            wrapper = sandboxEnv;
             bwrap = if isLinux then bwrap else null;
             inherit profile;
             herdr_agent = harness.herdrAgent;
@@ -165,6 +149,7 @@
             trailing_args = harness.trailingSandboxArgs;
             add_dir_flag = harness.addDirFlag;
             env_files = sandbox.environment.files;
+            env_templates = sandbox.environment.templates;
             granted = readPaths ++ writePaths;
           };
         in
@@ -219,15 +204,11 @@
             allow_localhost = isDarwin && sandbox.localhost;
           };
           environment = {
-            # A missing source file must never expose the inherited host token.
+            # A missing source must never expose the inherited value.
             deny_vars = lib.unique (
               sandbox.environment.unset
               ++ lib.attrNames sandbox.environment.files
-              ++ [
-                "GH_TOKEN"
-                "GITHUB_TOKEN"
-                "NIX_CONFIG"
-              ]
+              ++ lib.attrNames sandbox.environment.templates
             );
             set_vars = sandbox.environment.set;
           };

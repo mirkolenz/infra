@@ -15,6 +15,15 @@
           ++ lib.attrValues opnix.secretPaths
         );
         environment.files.GITHUB_TOKEN = opnix.secretPaths.agentsGithubToken;
+        # Nix fetches GitHub inputs in the client, using the same agent token as gh.
+        environment.templates.NIX_CONFIG = "access-tokens = github.com=$GITHUB_TOKEN";
       };
+      # The tokens of the host, also without injected ones.
+      # Only nono strips them, the native sandboxes of the harnesses would drop the injected ones.
+      programs.nono.profiles.agents.environment.deny_vars = [
+        "GH_TOKEN"
+        "GITHUB_TOKEN"
+        "NIX_CONFIG"
+      ];
     };
 }

@@ -105,6 +105,15 @@ in
             The files may remain hidden from the agents.
           '';
         };
+        templates = mkOption {
+          type = with types; attrsOf str;
+          default = { };
+          example.NIX_CONFIG = "access-tokens = github.com=$GITHUB_TOKEN";
+          description = ''
+            Variables set within nono from `$`-templates over the variables it gives the agents,
+            such as those of `files`. Skipped while a referenced variable is unset.
+          '';
+        };
       };
 
       # Matched as a prefix of a plain command line of the shell tool of an agent,
