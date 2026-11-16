@@ -5,7 +5,9 @@
   lib,
   fetchFromGitHub,
   git,
+  jq,
   runCommand,
+  shfmt,
   kait2en,
 }:
 let
@@ -38,9 +40,28 @@ let
       diff -rq --no-dereference --exclude=.git . ${package.src} > /dev/null || echo ${name} >> $out
     '') packages}
   '';
+
+  # The patches the packages skip, see `mkPatchedDrivers`.
+  skipped = lib.concatMap (package: lib.attrNames (package.skippedPatches or { })) (
+    lib.attrValues packages
+  );
+
+  # The patches upstream's installers skip from a kernel version on, missing in `skipped`,
+  # since the reverse dry run of `mkPatchedDrivers` misses one backported in another form.
+  # These are the patterns of every `case` branch calling `kernel_version_ge`.
+  unskipped = ''
+    .. | objects | select(.Type? == "CaseClause") | .Items[]
+    | select(any(.. | objects | select(.Type? == "CallExpr"); .Args[0].Parts[0].Value? == "kernel_version_ge"))
+    | .Patterns[] | [.Parts[].Value] | join("")
+    | select(IN($skipped[]) | not)
+  '';
 in
 runCommand "kait2en-upstream-check"
   {
+    nativeBuildInputs = [
+      jq
+      shfmt
+    ];
     passthru = { inherit reviewedSrc outdated; };
     meta = {
       description = "Check that every KaiT2en package builds from the reviewed upstream revision";
@@ -53,6 +74,17 @@ runCommand "kait2en-upstream-check"
     if [ -s ${outdated} ]; then
       echo "Not built from the reviewed revision, see .agents/skills/kait2en/SKILL.md:" >&2
       cat ${outdated} >&2
+      exit 1
+    fi
+
+    missing=$(
+      find ${reviewedSrc} -name '*.sh' -exec sh -c 'shfmt --to-json < "$1"' shfmt {} \; |
+        jq -r --argjson skipped ${lib.escapeShellArg (lib.toJSON skipped)} ${lib.escapeShellArg unskipped}
+    )
+
+    if [ -n "$missing" ]; then
+      echo "Skipped upstream from a kernel version on, missing in skippedPatches, see .agents/skills/kait2en/SKILL.md:" >&2
+      echo "$missing" >&2
       exit 1
     fi
 

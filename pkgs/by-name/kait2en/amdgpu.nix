@@ -26,7 +26,8 @@ kait2en.mkPatchedDrivers {
     paths = [ installer ];
   };
   # Upstream asks to drop this workaround once Mesa supports GFX6-8 modifiers.
-  skippedPatches = lib.optional (lib.versionAtLeast mesa.version "26.3") "0015-TEMPORARY-drm-amd-display-hide-GFX6-8-modifiers-until-Mesa-26.3.patch";
+  skippedPatches."0015-TEMPORARY-drm-amd-display-hide-GFX6-8-modifiers-until-Mesa-26.3.patch" =
+    lib.versionAtLeast mesa.version "26.3";
 
   drivers = [ driver ];
   # amdgpu builds and includes the rest of the AMD tree through relative paths.

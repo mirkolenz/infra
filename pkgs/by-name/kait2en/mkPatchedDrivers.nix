@@ -19,8 +19,9 @@ lib.extendMkDerivation {
     {
       # Its `root` is the patch series.
       src,
-      # Patches unnecessary with the pinned kernel or userspace.
-      skippedPatches ? [ ],
+      # Patches of the series mapped to whether to skip them, such as those the
+      # pinned kernel or userspace makes unnecessary. Each must stay in the series.
+      skippedPatches ? { },
       # The Kbuild directories to build.
       drivers,
       # Further parts of the kernel source the drivers include.
@@ -28,6 +29,7 @@ lib.extendMkDerivation {
       # Passed to Kbuild after the kernel's own.
       makeFlags ? [ ],
       postPatch ? "",
+      passthru ? { },
       meta ? { },
       ...
     }:
@@ -57,7 +59,9 @@ lib.extendMkDerivation {
       # comes first, since `--batch` flips a reverse run of an unapplied patch.
       postPatch = ''
         declare -A skipped=(${
-          lib.concatMapStrings (name: "[${lib.escapeShellArg name}]=1 ") skippedPatches
+          lib.concatMapAttrsStringSep " " (
+            name: skip: "[${lib.escapeShellArg name}]=${lib.boolToString skip}"
+          ) skippedPatches
         })
 
         while IFS= read -r entry || [ -n "$entry" ]; do
@@ -65,7 +69,7 @@ lib.extendMkDerivation {
 
           file="${patches}/$entry"
 
-          if [[ -v skipped[$entry] ]]; then
+          if [[ ''${skipped[$entry]:-} == true ]]; then
             echo "skipping $entry"
           elif patch -p1 --dry-run --batch --forward --fuzz=3 < "$file" > /dev/null; then
             patch -p1 --batch --forward --fuzz=3 --no-backup-if-mismatch < "$file"
@@ -75,11 +79,23 @@ lib.extendMkDerivation {
             echo "$entry does not apply to ${kernel.version}" >&2
             exit 1
           fi
+
+          unset "skipped[$entry]"
         done < "${patches}/series"
+
+        if (( ''${#skipped[@]} )); then
+          echo "''${!skipped[*]} left the upstream series, see .agents/skills/kait2en/SKILL.md" >&2
+          exit 1
+        fi
       ''
       + postPatch;
 
       makeFlags = kernelModuleMakeFlags ++ makeFlags;
+
+      # Read by `kait2en.upstream-check`.
+      passthru = passthru // {
+        inherit skippedPatches;
+      };
 
       buildPhase = ''
         runHook preBuild

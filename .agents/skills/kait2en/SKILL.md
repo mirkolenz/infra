@@ -30,7 +30,7 @@ Upstream rejects issues and pull requests it believes an AI wrote, so never open
    Look for new native dependencies, Fedora paths such as `/usr` or `/etc` the `--replace-fail` patches must follow, new or renamed units, and new apps or scripts.
    Package a new app or record why not under "Deliberately not packaged" in the README.
    Extend a package's `paths` when it starts building from a file outside its `root`.
-   Move the `linuxPackages_<major>_<minor>` pin in `modules.nix` once upstream targets a new kernel series, as the `kernel_version_ge` cutoffs in `install-gpu-runtime-pm.sh` and the Fedora release under `auto-installer/targets` show, or once nixpkgs drops the pinned series, then to the oldest one it still ships.
+   Move the `linuxPackages_<major>_<minor>` pin in `modules.nix` once upstream targets a new kernel series, as the Fedora release under `auto-installer/targets` shows, or once nixpkgs drops the pinned series, then to the oldest one it still ships.
 
 2. Review what the [NixOS fork](https://github.com/LukeChannings/KaiT2en-NixOS) changed in its Nix layer since its reviewed revision, a second view on the same upstream.
 
@@ -65,7 +65,8 @@ Upstream rejects issues and pull requests it believes an AI wrote, so never open
    ```
 
    `<ARRAY> in <file> changed upstream` means a list in `modules.nix` must follow upstream, and `the amdgpu softdep changed upstream` means `modprobeConfig` in `amdgpu.nix` must.
-   Keep `skippedPatches` in `amdgpu.nix` aligned with upstream's version requirements for temporary workarounds.
+   `<patch> left the upstream series` means its `skippedPatches` entry must go, and a patch the check lists as skipped upstream from a kernel version on needs one, conditioned on the version the installer names.
+   Keep the conditions of `skippedPatches` aligned with the versions upstream names for its temporary workarounds.
 
 6. Build the host, which also catches module options that moved.
 
