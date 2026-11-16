@@ -165,6 +165,7 @@
             trailing_args = harness.trailingSandboxArgs;
             add_dir_flag = harness.addDirFlag;
             env_files = sandbox.environment.files;
+            granted = readPaths ++ writePaths;
           };
         in
         # named after the harness, so the OS and herdr show its name for the process

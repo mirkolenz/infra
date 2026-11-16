@@ -35,6 +35,7 @@ class Config:
         trailing_args: Arguments appended to those of the harness.
         add_dir_flag: Flag of the harness adding a workspace directory.
         env_files: Variables set by nono from readable, non-empty source files.
+        granted: Absolute paths the profile grants, whose ancestors the session lists on macOS.
         bwrap: Policy of the bubblewrap sandbox around nono, null outside of Linux.
     """
 
@@ -47,6 +48,7 @@ class Config:
     trailing_args: Sequence[str]
     add_dir_flag: str | None
     env_files: Mapping[str, str]
+    granted: Sequence[str]
     bwrap: Policy | None
 
     @classmethod
@@ -85,17 +87,14 @@ def flag_values(flag: str, args: Iterable[str]) -> Iterator[str]:
         prev = arg
 
 
-def ancestors(dirs: Iterable[Path]) -> list[str]:
-    """The sorted ancestors of the existing directories, except for `/`."""
-    paths: set[str] = set()
+def ancestors(paths: Iterable[Path]) -> list[str]:
+    """The sorted ancestors of `paths` that are existing directories, except for `/`.
 
-    for entry in dirs:
-        path = entry.resolve()
+    nono resolves their symlinks itself, so the paths stay as given.
+    """
+    parents = {parent for path in paths for parent in path.absolute().parents[:-1]}
 
-        if path.is_dir():
-            paths.update(str(parent) for parent in path.parents[:-1])
-
-    return sorted(paths)
+    return sorted(str(parent) for parent in parents if parent.is_dir())
 
 
 def env_credentials(files: Mapping[str, str]) -> list[str]:
@@ -124,13 +123,18 @@ def env_credentials(files: Mapping[str, str]) -> list[str]:
     return args
 
 
-def write_profile(extends: str, path: Path, dirs: Iterable[Path]) -> None:
-    """Write a session profile extending another, granting to list the ancestors of `dirs`."""
+def write_profile(extends: str, path: Path, paths: Iterable[Path]) -> None:
+    """Write a session profile extending another, granting to list the ancestors of `paths`.
+
+    On macOS, nono grants a directory in `read_file` as its exact path, which lists its entries only.
+    Its ancestors include those of nono's state, which Seatbelt still denies.
+    TODO: the list-only grant of nono once it has one, https://github.com/nolabs-ai/nono/issues/457
+    """
     profile = {
         "meta": {"name": "agents-session"},
         "extends": extends,
         "allow_parent_of_protected": True,
-        "filesystem": {"read_file": ancestors(dirs)},
+        "filesystem": {"read_file": ancestors(paths)},
     }
     path.write_text(json.dumps(profile, ensure_ascii=False, indent=2))
 
@@ -188,7 +192,7 @@ def launch(config: Config, args: Sequence[str]) -> int:
         if sys.platform == "darwin":
             profile = Path(tmp, "profile.json")
             extends = os.environ.get("NONO_PROFILE") or config.profile
-            write_profile(extends, profile, roots)
+            write_profile(extends, profile, [*roots, *map(Path, config.granted)])
             env["NONO_PROFILE"] = str(profile)
 
         # The agent runs on a pty of nono, so herdr identifies it by this hint on nono.
