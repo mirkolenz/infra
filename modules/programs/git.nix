@@ -4,6 +4,7 @@
     {
       home.packages = with pkgs; [
         gibo
+        git-absorb
         git-filter-repo
       ];
       programs.git = {
@@ -131,6 +132,12 @@
             algorithm = "histogram";
             colorMoved = "default";
             tool = "nvimdiff";
+          };
+          # https://github.com/tummychow/git-absorb#configuration
+          absorb = {
+            maxStack = 50;
+            oneFixupPerCommit = true;
+            autoStageIfNothingStaged = true;
           };
           mergetool.prompt = false;
           merge = {
