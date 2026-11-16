@@ -35,7 +35,7 @@ jobs:
       - run: nix run . -- update all
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          BUMP_MIN_AGE: 3
+          BUMP_MIN_AGE: 1
       - name: remove unstaged changes
         run: git restore .
       - name: build pr body

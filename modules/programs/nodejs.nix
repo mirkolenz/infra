@@ -10,7 +10,7 @@
       programs.bun = {
         enable = true;
         # https://bun.com/docs/runtime/bunfig
-        settings.install.minimumReleaseAge = config.custom.minReleaseAge * 24 * 60 * 60; # seconds
+        settings.install.minimumReleaseAge = config.custom.minReleaseAge.npm * 24 * 60 * 60; # seconds
       };
       programs.npm = {
         enable = true;
@@ -19,7 +19,7 @@
         settings = {
           prefix = "\${HOME}/.npm";
           ignore-scripts = true;
-          min-release-age = config.custom.minReleaseAge; # days
+          min-release-age = config.custom.minReleaseAge.npm; # days
           allow-directory = "root";
           allow-file = "root";
           allow-git = "root";

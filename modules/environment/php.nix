@@ -14,6 +14,9 @@
         phpPackages.composer
         frankenphp
       ];
+      # https://blog.packagist.com/composer-2-11-release/
+      home.sessionVariables.COMPOSER_POLICY_COOLDOWN_PERIOD =
+        config.custom.minReleaseAge.packagist * 24 * 60 * 60; # seconds
       custom.bump.composer = {
         lockfile = "composer.lock";
         ranges = "php";
