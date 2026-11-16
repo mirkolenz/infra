@@ -114,6 +114,28 @@ LOCK_FLAGS = ("--no-interactive", "--no-narrow", "--no-migrate-local-actions")
 NULL_COMMIT = "0" * 40
 # the time periods of the activity log by their days
 PERIODS = {"day": 1, "week": 7, "month": 30, "quarter": 90, "year": 365}
+# the commit of a ref of a repository with how the head of its default branch compares to it
+COMMIT_QUERY = """
+query($owner: String!, $name: String!, $ref: String!, $commit: String!) {
+  repository(owner: $owner, name: $name) {
+    object(expression: $commit) { ... on Commit { oid committedDate } }
+    defaultBranchRef { name compare(headRef: $ref) { status } }
+  }
+}
+"""
+# the branches of a repository with how their heads compare to a ref, a hundred per page
+BRANCHES_QUERY = """
+query($owner: String!, $name: String!, $ref: String!, $endCursor: String) {
+  repository(owner: $owner, name: $name) {
+    refs(refPrefix: "refs/heads/", first: 100, after: $endCursor) {
+      nodes { name compare(headRef: $ref) { status } }
+      pageInfo { hasNextPage endCursor }
+    }
+  }
+}
+"""
+# the statuses of a comparison whose base has the commit of its head
+CONTAINED = {"BEHIND", "IDENTICAL"}
 # the classes of the prompt and their styles
 STYLE = [
     ("separator", "fg:ansiblue bold"),
@@ -822,7 +844,7 @@ def shorten(ref: str, precision: Precision) -> str:
 
 def latest_release(repo: str, min_age: int) -> str | None:
     """The tag of the newest stable release of a GitHub repository that is at least `min_age` days old."""
-    cutoff = datetime.now(UTC) - timedelta(days=min_age)
+    cutoff = since(min_age)
 
     try:
         releases = run_json(
@@ -867,16 +889,41 @@ def has_ref(repo: str, name: str) -> bool:
 
 @cache
 def head(repo: str, ref: str) -> str:
-    """The commit a ref of a GitHub repository points to, `HEAD` for its default branch."""
+    """The commit a ref of a GitHub repository points to."""
     return run(
         "gh", "api", f"repos/{repo}/commits/{ref}", "--jq=.sha", capture=True
     ).strip()
 
 
+def since(days: int) -> datetime:
+    """The time the given number of days ago."""
+    return datetime.now(UTC) - timedelta(days=days)
+
+
+def graphql(query: str, repo: str, paginate: bool = False, **variables: str) -> Any:
+    """The response of a GraphQL query about a GitHub repository, a list of its pages if paginated."""
+    owner, name = repo.split("/")
+    fields = {"query": query, "owner": owner, "name": name} | variables
+
+    return run_json(
+        "gh",
+        "api",
+        "graphql",
+        *(("--paginate", "--slurp") if paginate else ()),
+        *(f"--raw-field={key}={value}" for key, value in fields.items()),
+        capture=True,
+    )
+
+
 @cache
-def branch_spans(repo: str, min_age: int) -> list[tuple[str, str]]:
-    """The commits of the branches of a GitHub repository before and after their pushes and merges within the last `min_age` days."""
-    cutoff = datetime.now(UTC) - timedelta(days=min_age)
+def moved_heads(repo: str, min_age: int) -> dict[str, str]:
+    """The heads of the branches of a GitHub repository that moved within the last `min_age` days as of then, by their names.
+
+    Unlike the dates of commits and tags, which their authors choose, the activity log
+    records with the time of the server when a push or merge moved a branch,
+    so a branch had the head before its oldest move since then, and `NULL_COMMIT` if it was created since then.
+    """
+    cutoff = since(min_age)
     period = next((name for name, days in PERIODS.items() if days >= min_age), None)
     query = "per_page=100" + (f"&time_period={period}" if period else "")
     pages = run_json(
@@ -888,20 +935,13 @@ def branch_spans(repo: str, min_age: int) -> list[tuple[str, str]]:
         capture=True,
     )
 
-    spans: dict[str, tuple[str, str]] = {}
-
-    # newest first, so a branch keeps its first `after` and its last `before`
-    for activity in (activity for page in pages for activity in page):
-        if (
-            activity["after"] == NULL_COMMIT
-            or datetime.fromisoformat(activity["timestamp"]) <= cutoff
-        ):
-            continue
-
-        _, after = spans.get(activity["ref"], ("", activity["after"]))
-        spans[activity["ref"]] = (activity["before"], after)
-
-    return list(spans.values())
+    # newest first, so a branch keeps the head before its oldest move
+    return {
+        activity["ref"].removeprefix("refs/heads/"): activity["before"]
+        for page in pages
+        for activity in page
+        if datetime.fromisoformat(activity["timestamp"]) > cutoff
+    }
 
 
 @cache
@@ -926,23 +966,46 @@ def contains(repo: str, tip: str, commit: str) -> bool:
 def settled(repo: str, ref: str, min_age: int) -> bool:
     """Whether the commit of a ref of a GitHub repository reached a branch at least `min_age` days ago.
 
-    Unlike the dates of commits and tags, which their authors choose, the activity log
-    records with the time of the server when a push or merge moved a branch.
-    A branch brought the commit if its newest head of that time has it but its oldest one lacks it,
-    so a commit without a recent activity counts as settled,
-    and a new branch only brings the commits missing from the default branch.
+    A commit on no branch never settles, such as one that a hijacked tag points to.
+    Its date proves no age, since its author chooses it, but a later one rules it out.
+    The branches that did not move since then still have their heads of that time.
+    The default branch has most settled commits, so the others come last,
+    which take a query per hundred of them.
     """
     if min_age <= 0:
         return True
 
-    commit = head(repo, ref)
+    data = graphql(COMMIT_QUERY, repo, ref=ref, commit=f"{ref}^{{commit}}")
+    commit = data["data"]["repository"]["object"]
 
-    return not any(
-        contains(repo, after, commit)
-        and not contains(
-            repo, head(repo, "HEAD") if before == NULL_COMMIT else before, commit
+    if not commit or datetime.fromisoformat(commit["committedDate"]) > since(min_age):
+        return False
+
+    moved = moved_heads(repo, min_age)
+
+    def contained(branch: Mapping[str, Any]) -> bool:
+        """Whether a branch that did not move since then has the commit."""
+        return (
+            branch["name"] not in moved
+            and (branch["compare"] or {}).get("status") in CONTAINED
         )
-        for before, after in branch_spans(repo, min_age)
+
+    if contained(data["data"]["repository"]["defaultBranchRef"]):
+        return True
+
+    if any(
+        contains(repo, sha, commit["oid"])
+        for sha in set(moved.values())
+        if sha != NULL_COMMIT
+    ):
+        return True
+
+    pages = graphql(BRANCHES_QUERY, repo, paginate=True, ref=commit["oid"])
+
+    return any(
+        contained(branch)
+        for page in pages
+        for branch in page["data"]["repository"]["refs"]["nodes"]
     )
 
 
