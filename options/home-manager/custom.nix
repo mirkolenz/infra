@@ -7,6 +7,7 @@ let
     pypi = "uv";
     npm = "npm and bun";
     packagist = "Composer";
+    crates = "cargo";
     github = "`bumpctl`, before it offers a release as the new tag of a GitHub Action or flake input";
   };
 in

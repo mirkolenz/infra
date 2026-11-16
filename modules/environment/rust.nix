@@ -7,16 +7,24 @@
       ...
     }:
     lib.mkIf config.custom.features.extras.enable {
+      programs.cargo = {
+        enable = true;
+        # https://doc.rust-lang.org/cargo/reference/config.html
+        settings = {
+          registry.global-min-publish-age = "${toString config.custom.minReleaseAge.crates} days";
+          # prefers the dependency versions supporting the rust-version of a package, the default of edition 2024
+          resolver.incompatible-rust-versions = "fallback";
+        };
+      };
       home.packages = with pkgs; [
         rustc
-        cargo
         clippy
       ];
       custom.bump.cargo = {
         lockfile = "Cargo.lock";
         commands = [
           [
-            (lib.getExe pkgs.cargo)
+            (lib.getExe config.programs.cargo.package)
             "update"
           ]
         ];
