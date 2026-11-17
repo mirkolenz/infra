@@ -24,7 +24,7 @@ in
       effort = "high";
       enable_thinking = true;
       provider = "zed.dev";
-      model = "gpt-6.1-sol";
+      model = "gpt-6.2-sol";
       speed = "standard";
     };
     sandbox_permissions.allow_unsandboxed = false;

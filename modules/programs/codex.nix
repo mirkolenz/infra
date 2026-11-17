@@ -33,11 +33,11 @@
         # https://developers.openai.com/codex/config-reference
         # https://developers.openai.com/codex/config-schema.json
         settings = {
-          model = "gpt-6.1-sol";
+          model = "gpt-6.2-sol";
           model_reasoning_effort = "high";
           model_verbosity = "low";
           agents = {
-            default_subagent_model = "gpt-6.1-sol";
+            default_subagent_model = "gpt-6.2-sol";
             default_subagent_reasoning_effort = "medium";
           };
           # counterpart to Claude's `allowUnsandboxedCommands = false`
