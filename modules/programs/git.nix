@@ -7,6 +7,39 @@
         git-absorb
         git-filter-repo
       ];
+      custom.commands.git-redate = {
+        runtimeInputs = [
+          config.programs.git.package
+          pkgs.coreutils
+        ];
+        text = /* bash */ ''
+          # @describe Rewrite the author and committer dates of a commit and all commits after it
+          #
+          # HEAD gets the date, each earlier commit is one step older.
+          # Example: git redate --commit c6922849 --date 2026-11-17T20:00+01:00
+          # @option -c --commit    First commit to rewrite, defaulting to the first unpushed one
+          # @option -d --date=now  Date of HEAD in any format of GNU date
+          # @option -s --step=1    Seconds between consecutive commits
+
+          if [ -z "$argc_commit" ]; then
+            base="$(git merge-base '@{u}' HEAD)"
+          elif ! base="$(git rev-parse --verify --quiet "$argc_commit^")"; then
+            # Either a root commit or no commit at all.
+            git rev-parse --verify "$argc_commit^{commit}" >/dev/null
+          fi
+
+          # Without a base, the range starts at the root commit.
+          range="''${base:+$base..}HEAD"
+
+          # The rebase drops merges, and each commit derives its date from its position in the range.
+          count="$(git rev-list --count --no-merges "$range")"
+          end="$(date --date="$argc_date" +%s)"
+          export REDATE_RANGE="$range" REDATE_STEP="$argc_step"
+          export REDATE_START=$((end - (count - 1) * argc_step))
+
+          git rebase "''${base:---root}" --exec 'date="@$((REDATE_START + ($(git rev-list --count "$REDATE_RANGE") - 1) * REDATE_STEP))" && GIT_COMMITTER_DATE="$date" git commit --amend --no-edit --allow-empty --date="$date"'
+        '';
+      };
       programs.git = {
         enable = true;
         lfs.enable = true;
