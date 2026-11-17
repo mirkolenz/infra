@@ -872,11 +872,11 @@
     "vicinae-extensions": {
       "flake": false,
       "locked": {
-        "lastModified": 1794894809,
-        "narHash": "sha256-OyV4OU4tZ+igY05TnjL6hzZ7RZwhtvXqJpXk1Rwvyn0=",
+        "lastModified": 1794927628,
+        "narHash": "sha256-JPXVn5d45Vmog/QElkKrGnNiCfavLY63x+rac8FWc+I=",
         "owner": "vicinaehq",
         "repo": "extensions",
-        "rev": "f54444d5b6a665befc7b666e68f8f2bbafd1cb9f",
+        "rev": "7f5e77930ba3a5c35bc2f21d41e539a430429de6",
         "type": "github"
       },
       "original": {
