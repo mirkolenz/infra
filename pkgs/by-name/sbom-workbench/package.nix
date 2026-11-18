@@ -9,7 +9,6 @@
   makeDesktopItem,
   makeBinaryWrapper,
   nodejs,
-  python3,
   removeReferencesTo,
   nix-update-script,
 }:
@@ -56,7 +55,6 @@ buildNpmPackage (finalAttrs: {
   nativeBuildInputs = [
     copyDesktopItems
     makeBinaryWrapper
-    python3
     removeReferencesTo
   ];
 
@@ -140,7 +138,7 @@ buildNpmPackage (finalAttrs: {
 
   disallowedReferences = [
     nodejs
-    python3
+    nodejs.python
   ];
 
   passthru.updateScript = nix-update-script { };

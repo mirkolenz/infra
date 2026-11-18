@@ -2,7 +2,6 @@
   lib,
   buildNpmPackage,
   fetchFromGitHub,
-  python3,
   nix-update-script,
 }:
 # the cli half of legalviz.eu, which is the only command line client for EUR-Lex that
@@ -26,9 +25,6 @@ buildNpmPackage (finalAttrs: {
   # the package is the api server as well as the cli, so it pulls a browser driver in
   # that neither half needs at install time
   env.PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
-
-  # better-sqlite3 is the only native dependency and builds from source here
-  nativeBuildInputs = [ python3 ];
 
   # `CACHE_DIR` and `FMX_DIR` already override the Formex cache, but their fallback is a
   # directory next to the module, which here is the read-only store path. Only that
