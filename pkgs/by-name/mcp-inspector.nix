@@ -1,10 +1,9 @@
 {
   lib,
-  stdenv,
+  buildNpmPackage,
   fetchFromGitHub,
   fetchNpmDeps,
   nodejs,
-  npmHooks,
   makeBinaryWrapper,
   versionCheckHook,
   nix-update-script,
@@ -23,7 +22,7 @@ let
   # flat passthru names, which `nix-update --custom-dep` can address
   depsAttr = client: "${client}NpmDeps";
 in
-stdenv.mkDerivation (finalAttrs: {
+buildNpmPackage (finalAttrs: {
   pname = "mcp-inspector";
   version = "2.16.0";
 
@@ -34,26 +33,17 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-FpTzpN9/B4V4ko4SCTByBJHM+XHFM7ZzseDzyc773R4=";
   };
 
+  # the root lockfile holds the runtime dependencies of every client
+  npmDepsHash = "sha256-fC0/13fgpHDlZxZ+FaY0+4VOQfxCFAtLNvJOnErM+lo=";
+
   npmDepsHashes = {
-    root = "sha256-fC0/13fgpHDlZxZ+FaY0+4VOQfxCFAtLNvJOnErM+lo=";
     web = "sha256-k8uI5cSuhEKAMFl+UMPElvu9RB9zbapwp+yd/4PJX7A=";
     cli = "sha256-Fbi/6HLq4Q6sSgUeySa66LDHepcA5GdvsR9RIMHOubE=";
     mcpdo = "sha256-ikB1o5YxQ8qO3VTtY3F8cNY9Sycx09L0vttetA2QEkw=";
     tui = "sha256-b7/he7GMzgFsFQ6v2KWIv0CTTyNEy13Rr5Ye6hTE9TI=";
   };
 
-  # the root lockfile holds the runtime dependencies of every client
-  npmDeps = fetchNpmDeps {
-    name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
-    inherit (finalAttrs) src;
-    hash = finalAttrs.npmDepsHashes.root;
-  };
-
-  nativeBuildInputs = [
-    nodejs
-    npmHooks.npmConfigHook
-    makeBinaryWrapper
-  ];
+  nativeBuildInputs = [ makeBinaryWrapper ];
 
   # the root postinstall would install the clients online, postConfigure does it offline
   env.INSPECTOR_SKIP_CLIENT_INSTALL = "1";
