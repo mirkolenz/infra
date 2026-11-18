@@ -15,13 +15,13 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "knip";
-  version = "6.45.1";
+  version = "6.46.1";
 
   src = fetchFromGitHub {
     owner = "webpro-nl";
     repo = "knip";
     tag = "knip@${finalAttrs.version}";
-    hash = "sha256-5mA6Y6D73EUF9Yao9FlUFXH8iAQmbaS9kZQw+MoRAxM=";
+    hash = "sha256-AyLDgua7m+lESMAOGLtKUb7OAxpTrT9+kYb3WsUm81c=";
   };
 
   pnpmWorkspaces = [ "knip" ];
