@@ -36,11 +36,6 @@ in
     vendorHash = "sha256-qVmvDneq6V/q5UHZ/Cjjqd5/XPPNfvVGoxwg9nz4/Ds=";
   };
 
-  # semgrep requires mcp 1, but nixpkgs moved mcp to 2 and marks semgrep broken,
-  # since its python package may not depend on the versioned mcp_1 attribute.
-  # https://github.com/NixOS/nixpkgs/commit/1cf7969471
-  semgrep = with final.python3Packages; toPythonApplication (semgrep.override { mcp = mcp_1; });
-
   # nix-update 1.16.0 resolves a package's current ref as `rev or tag`. A src written with
   # nixpkgs' newer `fetchFromGitHub { tag = ...; }` expands that to `refs/tags/v1.2.3`, which
   # never equals the plain `v1.2.3` the version fetcher reports, so every run counts as a change
