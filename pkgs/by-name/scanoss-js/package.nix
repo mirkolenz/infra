@@ -27,6 +27,8 @@ buildNpmPackage (finalAttrs: {
   nativeInstallCheckInputs = [ versionCheckHook ];
   doInstallCheck = true;
 
+  __structuredAttrs = true;
+
   meta = {
     description = "JavaScript library and CLI to leverage the SCANOSS APIs";
     homepage = "https://github.com/scanoss/scanoss.js";

@@ -143,6 +143,8 @@ buildNpmPackage (finalAttrs: {
 
   passthru.updateScript = nix-update-script { };
 
+  __structuredAttrs = true;
+
   meta = {
     description = "Free of charge, secure and anonymous open source auditing on the desktop";
     homepage = "https://github.com/scanoss/sbom-workbench";

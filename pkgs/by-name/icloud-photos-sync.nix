@@ -41,6 +41,8 @@ buildNpmPackage (finalAttrs: {
   nativeInstallCheckInputs = [ versionCheckHook ];
   doInstallCheck = true;
 
+  __structuredAttrs = true;
+
   meta = {
     description = "One-way sync engine for the iCloud Photos Library into the native file system";
     homepage = "https://icps.steiler.dev";

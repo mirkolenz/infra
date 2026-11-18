@@ -41,6 +41,8 @@ lib.extendMkDerivation {
         runHook postInstall
       '';
 
+      __structuredAttrs = true;
+
       passthru = {
         # updateScript = nix-update-script {
         #   extraArgs = [ "--version=branch" ];

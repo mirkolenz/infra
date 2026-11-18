@@ -123,6 +123,8 @@ buildGoModule (finalAttrs: {
 
         runHook postInstall
       '';
+
+      __structuredAttrs = true;
     };
 
     # exposed where nix-update looks for it, so the hash is only refreshed alongside a version bump
