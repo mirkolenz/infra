@@ -43,8 +43,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       prePnpmInstall
       ;
     pnpm = pnpm_10;
-    fetcherVersion = 4;
-    hash = "sha256-f/bAiR/Utw9GaqQoNIOeyvuS66LV9iHLjFG38JCluzg=";
+    fetcherVersion = 5;
+    hash = "sha256-QgRrPMag6vzxur0onU6qjtJUOkxFu6QJZIlJ6w3viSw=";
   };
 
   nativeBuildInputs = [
