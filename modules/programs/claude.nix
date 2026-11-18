@@ -64,6 +64,7 @@ in
           awaySummaryEnabled = false;
           cleanupPeriodDays = 30;
           model = "opus";
+          advisorModel = "opus";
           modelSettings = lib.genAttrs (lib.attrValues agents.harnesses.claude-code.models) (_model: {
             effortLevel = "high";
           });
