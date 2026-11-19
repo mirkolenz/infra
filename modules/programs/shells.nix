@@ -26,7 +26,7 @@
       # Regenerates the man page completions in the background whenever the user or system packages change.
       # A login shell is needed, as `man --path` derives the man pages from PATH.
       # The paths only serve as a change marker, so their context is discarded
-      # to keep their closures out of the darwin sandbox profile.
+      # to keep their closures out of the derivation inputs.
       xdg.dataFile."fish/home-manager/packages" = {
         text = builtins.unsafeDiscardStringContext ''
           ${config.home.path}
