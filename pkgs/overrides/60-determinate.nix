@@ -27,8 +27,9 @@ in
   "nurl"
 ] (name: prev.${name}.override { nix = final.determinate-nix; })
 // {
-  # nix-eval-jobs stays on upstream Nix, since Determinate's fork hangs on fetches,
-  # so its warnings are filtered instead. nix-fast-build runs `nix-eval-jobs.nix`.
+  # nix-eval-jobs stays on upstream Nix with its warnings filtered.
+  # Determinate's fork is not cached and warns as well, about the settings only its CLI knows.
+  # nix-fast-build runs `nix-eval-jobs.nix`.
   nix-eval-jobs = final.writeShellApplication {
     name = "nix-eval-jobs";
     runtimeInputs = [
