@@ -27,11 +27,11 @@ in
 kait2en.mkPatchedDrivers {
   pname = "kait2en-wireless";
 
-  version = "0.1.14-unstable-2026-11-15";
+  version = "0.1.15-unstable-2026-11-19";
 
   src = kait2en.fetchSource {
-    rev = "260a559597a7bd3b168a9a251a2248d97aadd957";
-    hash = "sha256-4bcX1h3pJ+S5KKHYY0otL3J6Pb8RTN0FVrIGqKnnPOw=";
+    rev = "f457579e15bb028ad2eec8c6ca0f853118986ecf";
+    hash = "sha256-yCPgMCcflvpVHhM++FWdNkwCMyw3AbpT0WAj6T4XIbo=";
     root = "patches/runtime/wireless";
     # Only tracked, so the check flags a change to what `makeFlags` mirrors.
     paths = [ "scripts/fedora/install-wireless.sh" ];

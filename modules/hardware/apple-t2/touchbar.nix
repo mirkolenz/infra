@@ -1,6 +1,7 @@
 # The Touch Bar, drawn by upstream's daemon instead of tiny-dfr. See
-# `pkgs/by-name/kait2en/touchbar.nix`. The package's udev rules start the
-# attach unit at boot and after resume.
+# `pkgs/by-name/kait2en/touchbar.nix`. The user service switches the panel to
+# the display through a root unit its polkit rule allows, so the console and
+# GDM keep Apple's firmware row, and the udev rules switch it again on resume.
 {
   flake.modules.nixos.apple-t2 =
     {
@@ -32,12 +33,14 @@
       };
 
       config = lib.mkIf cfg.enable {
-        # The CLI inspects and resets the learned timeouts.
+        # The CLI inspects and resets the learned timeouts, and polkit reads
+        # the rule from the system profile.
         environment.systemPackages = [ package ];
         environment.etc."kait2en/touchbar.toml" = lib.mkIf (cfg.settings != { }) {
           source = settingsFormat.generate "touchbar.toml" cfg.settings;
         };
 
+        security.polkit.enable = true;
         services.udev.packages = [ package ];
         services.upower.enable = true;
         systemd.packages = [ package ];
