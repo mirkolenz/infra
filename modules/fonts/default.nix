@@ -22,7 +22,6 @@ let
           fira-code
           fira-mono
           fira-sans
-          # TODO: geist serif needs geist-font >= 1.9.0, nixpkgs ships 1.7.0
           geist-font
           ia-writer-duospace
           ia-writer-mono
