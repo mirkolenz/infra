@@ -30,7 +30,7 @@ Upstream rejects issues and pull requests it believes an AI wrote, so never open
    Look for new native dependencies, Fedora paths such as `/usr` or `/etc` the `--replace-fail` patches must follow, new or renamed units, and new apps or scripts.
    Package a new app or record why not under "Deliberately not packaged" in the README.
    Extend a package's `paths` when it starts building from a file outside its `root`.
-   Move the `linuxPackages_<major>_<minor>` pin in `modules.nix` once upstream targets a new kernel series, as the Fedora release under `auto-installer/targets` shows, or once nixpkgs drops the pinned series, then to the oldest one it still ships.
+   Move the `linuxPackages_<major>_<minor>` pin in `mkKbuild.nix` once upstream targets a new kernel series, as the Fedora release under `auto-installer/targets` shows, or once nixpkgs drops the pinned series, then to the oldest one it still ships.
 
 2. Review what the [NixOS fork](https://github.com/LukeChannings/KaiT2en-NixOS) changed in its Nix layer since its reviewed revision, a second view on the same upstream.
 
@@ -78,7 +78,7 @@ After moving the kernel pin, or a nixpkgs bump within its series, steps 5 and 6 
 
 ## Conventions
 
-- New packages fetch their source with `fetchSource`, reuse `mkService`, `mkScript`, or `mkGtkApp`, take `commonMeta`, and install the notices with `installLicenses`.
+- New packages fetch their source with `fetchSource`, reuse `mkService`, `mkScript`, `mkGtkApp`, or for drivers `mkKbuild` and `mkPatchedDrivers`, take `commonMeta`, and install the notices with `installLicenses`.
 - A source keeps its old store path when only its `root` or `paths` change, so refresh its hash with `nix-update kait2en.<name> --system x86_64-linux --version=skip`.
 - A program calling other tools gets them through the `runtimeInputs` wrapper of `mkService`, not the `path` of its NixOS unit.
 - The builds cannot catch a Fedora path left unpatched in a runtime script, so grep the installed output for `/usr` and `/etc`.

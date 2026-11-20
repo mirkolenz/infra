@@ -4,23 +4,14 @@
 # https://github.com/kaiT2en/KaiT2en-Fedora/tree/main/modules
 {
   lib,
-  stdenv,
   kait2en,
-  linuxPackages_7_3,
 }:
 let
-  # Re-exported through `passthru`, so the modules cannot be loaded into a
-  # kernel they were not built against.
-  inherit (linuxPackages_7_3) kernel kernelModuleMakeFlags;
-
   # Staged into the bridge Kbuild unit from AVE.
   aveMembers = [
     "t2-ave"
     "t2-sidecar"
   ];
-
-  # The Kbuild directories of `packages`.
-  packageDirs = map (package: "$PWD/modules/${package}") packages;
 
   # One directory per DKMS package.
   packages = [
@@ -121,7 +112,7 @@ let
     }
   ];
 in
-stdenv.mkDerivation {
+kait2en.mkKbuild (finalAttrs: {
   pname = "kait2en-modules";
 
   version = "0.1.14-unstable-2026-11-15";
@@ -135,9 +126,6 @@ stdenv.mkDerivation {
       ++ [ "third-party/linux-apfs-rw/" ]
       ++ lib.catAttrs "file" mirrored;
   };
-
-  nativeBuildInputs = kernel.moduleBuildDependencies;
-  hardeningDisable = [ "pic" ];
 
   # The drift check runs here rather than in a `checkPhase`, so a moved list
   # fails in a second instead of after every module has compiled.
@@ -162,13 +150,13 @@ stdenv.mkDerivation {
       local config=$1 source=$2 module
       module="''${source##*/}"
 
-      if grep -q "^CONFIG_$config=[ym]$" ${kernel.configfile}; then
+      if grep -q "^CONFIG_$config=[ym]$" ${finalAttrs.passthru.kernel.configfile}; then
         return
       fi
 
       # `--occurrence=1` stops at the match instead of scanning the whole tree.
-      tar -xOf ${kernel.src} --occurrence=1 "linux-${kernel.version}/$source" \
-        > "modules/apple-t2-bridge/$module"
+      tar -xOf ${finalAttrs.passthru.kernel.src} --occurrence=1 \
+        "linux-${finalAttrs.passthru.kernel.version}/$source" > "modules/apple-t2-bridge/$module"
       printf 'obj-m += %s\n' "''${module%.c}.o" >> modules/apple-t2-bridge/Kbuild
     }
 
@@ -176,43 +164,19 @@ stdenv.mkDerivation {
     stageKernelModule VIDEOBUF2_VMALLOC drivers/media/common/videobuf2/videobuf2-vmalloc.c
   '';
 
-  makeFlags = kernelModuleMakeFlags;
-
   # Kbuild directly, which is all the `all` targets of upstream's Makefiles do.
-  buildPhase = ''
-    runHook preBuild
-
-    ${kait2en.kbuild "modules" packageDirs}
-
-    runHook postBuild
-  '';
-
-  installPhase = ''
-    runHook preInstall
-
-    ${kait2en.kbuild "modules_install" packageDirs}
-
-    ${kait2en.installLicenses "kait2en-modules"}
-
-    runHook postInstall
-  '';
+  drivers = map (package: "modules/${package}") packages;
 
   # What the NixOS module needs, declared next to the upstream references.
   passthru = {
     inherit
       earlyModules
-      kernel
       kernelParamsFor
       replacedModules
       ;
-    # The set itself, so the NixOS module does not instantiate a second one.
-    linuxPackages = linuxPackages_7_3;
   };
 
-  strictDeps = true;
-  __structuredAttrs = true;
-
-  meta = kait2en.commonMeta // {
+  meta = {
     description = "Out-of-tree kernel drivers for Macs with an Apple T2 security chip";
     # The drivers keep the SPDX header of the kernel file they forked, which is
     # GPL-2.0-only for some and GPL-2.0-or-later for others.
@@ -223,4 +187,4 @@ stdenv.mkDerivation {
       bsd3
     ];
   };
-}
+})

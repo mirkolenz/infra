@@ -1,18 +1,16 @@
-{
-  lib,
-  stdenv,
-  kait2en,
-}:
 # In-tree drivers upstream rebuilds with one of its patch series under
 # `patches/runtime`. Only these are rebuilt, the kernel stays the cached one,
 # and `updates` shadows the in-tree ones. The drivers come out of the kernel's
 # own source.
+{
+  lib,
+  kait2en,
+}:
 lib.extendMkDerivation {
-  constructDrv = stdenv.mkDerivation;
+  constructDrv = kait2en.mkKbuild;
   excludeDrvArgNames = [
     "skippedPatches"
     "sources"
-    "drivers"
   ];
   extendDrvArgs =
     finalAttrs:
@@ -26,19 +24,14 @@ lib.extendMkDerivation {
       drivers,
       # Further parts of the kernel source the drivers include.
       sources ? [ ],
-      # Passed to Kbuild after the kernel's own.
-      makeFlags ? [ ],
       postPatch ? "",
       passthru ? { },
-      meta ? { },
       ...
     }:
     let
-      inherit (kait2en.modules) kernel;
-      inherit (kait2en.modules.linuxPackages) kernelModuleMakeFlags;
+      inherit (finalAttrs.passthru) kernel;
       patches = "${src}/${src.root}";
       members = map (dir: "linux-${kernel.version}/${dir}") (drivers ++ sources);
-      driverDirs = map (dir: "$PWD/${dir}") drivers;
     in
     {
       unpackPhase = ''
@@ -48,12 +41,10 @@ lib.extendMkDerivation {
         cd linux-${kernel.version}
         # Trace headers name their directory relative to this one of the kernel tree.
         mkdir -p include/trace
+        appendToVar makeFlags "KCFLAGS=-I$PWD/include/trace"
 
         runHook postUnpack
       '';
-
-      nativeBuildInputs = kernel.moduleBuildDependencies;
-      hardeningDisable = [ "pic" ];
 
       # Like upstream, a patch already in the kernel is skipped. The forward check
       # comes first, since `--batch` flips a reverse run of an unapplied patch.
@@ -90,35 +81,9 @@ lib.extendMkDerivation {
       ''
       + postPatch;
 
-      makeFlags = kernelModuleMakeFlags ++ makeFlags;
-
       # Read by `kait2en.upstream-check`.
       passthru = passthru // {
         inherit skippedPatches;
       };
-
-      buildPhase = ''
-        runHook preBuild
-
-        appendToVar makeFlags "KCFLAGS=-I$PWD/include/trace"
-        ${kait2en.kbuild "modules" driverDirs}
-
-        runHook postBuild
-      '';
-
-      installPhase = ''
-        runHook preInstall
-
-        ${kait2en.kbuild "modules_install" driverDirs}
-
-        (cd $src && ${kait2en.installLicenses finalAttrs.pname})
-
-        runHook postInstall
-      '';
-
-      strictDeps = true;
-      __structuredAttrs = true;
-
-      meta = kait2en.commonMeta // meta;
     };
 }

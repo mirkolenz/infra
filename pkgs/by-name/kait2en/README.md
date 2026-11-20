@@ -6,7 +6,8 @@ This file records the packaging decisions, updating is covered by the `kait2en` 
 
 Every package pins its own sparse checkout of upstream with only the files it builds from, so an upstream commit rebuilds only what it touched.
 Each takes upstream's latest release tag as its version, through `nix-update --version=branch`, since every crate stays at 0.1.0.
-`modules.nix` pins a kernel series rather than `linuxPackages_latest`, since upstream's amdgpu patches break on newer kernels, so moving to the next series stays a deliberate step.
+`mkKbuild.nix` pins a kernel series rather than `linuxPackages_latest`, since upstream's amdgpu patches break on newer kernels, so moving to the next series stays a deliberate step.
+Every driver builds with the compiler of that series.
 It follows the series of the Fedora release upstream targets, or the oldest one nixpkgs still ships once that one reached its end of life.
 The bridge, USB host controller, audio, AVE and Sidecar drivers share one `apple-t2-bridge` Kbuild unit and symbol namespace.
 Its early modules and the ALSA UCM and DSP packages follow upstream's renamed drivers.
