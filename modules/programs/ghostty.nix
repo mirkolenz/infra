@@ -1,4 +1,17 @@
 {
+  flake.modules.nixos.base =
+    { pkgs, ... }:
+    {
+      environment.systemPackages = [ pkgs.ghostty.terminfo ];
+    };
+
+  # ghostty itself only builds on linux, darwin gets the terminfo of the prebuilt app
+  flake.modules.darwin.base =
+    { pkgs, ... }:
+    {
+      environment.systemPackages = [ pkgs.ghostty-bin.terminfo ];
+    };
+
   flake.modules.homeManager.default =
     {
       pkgs,
@@ -6,8 +19,11 @@
       config,
       ...
     }:
-    lib.mkIf config.custom.features.graphical.enable {
-      programs.ghostty = {
+    {
+      home.packages = [
+        (if pkgs.stdenv.hostPlatform.isDarwin then pkgs.ghostty-bin else pkgs.ghostty).terminfo
+      ];
+      programs.ghostty = lib.mkIf config.custom.features.graphical.enable {
         enable = true;
         package = if pkgs.stdenv.hostPlatform.isDarwin then null else pkgs.ghostty;
         # https://ghostty.org/docs/config/reference
@@ -28,7 +44,7 @@
           quick-terminal-position = "center";
           quick-terminal-size = "1000px,600px";
           shell-integration = "none";
-          shell-integration-features = "no-cursor,sudo,title,ssh-env";
+          shell-integration-features = "no-cursor";
           split-inherit-working-directory = true;
           tab-inherit-working-directory = true;
           theme = "light:Gruvbox Light Hard,dark:Gruvbox Dark Hard";
