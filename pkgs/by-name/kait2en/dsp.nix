@@ -9,6 +9,7 @@
   runCommandLocal,
   jq,
   kait2en,
+  udevCheckHook,
   python3,
   coreutils,
   bankstown-lv2,
@@ -62,6 +63,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
         install -Dm444 ${finalAttrs.finalPackage}/share/t2-dsp/pipewire/$profile.conf \
           $out/share/pipewire/pipewire.conf.d/51-t2-dsp.conf
       '';
+
+  nativeInstallCheckInputs = [ udevCheckHook ];
+  doInstallCheck = true;
 
   strictDeps = true;
   __structuredAttrs = true;

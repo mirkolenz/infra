@@ -5,6 +5,7 @@
   lib,
   stdenvNoCC,
   kait2en,
+  udevCheckHook,
   coreutils,
   iproute2,
 }:
@@ -46,6 +47,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       --replace-fail /usr/sbin/ip ${lib.getExe' iproute2 "ip"}
     ${kait2en.installLicenses finalAttrs.pname}
   '';
+
+  nativeInstallCheckInputs = [ udevCheckHook ];
+  doInstallCheck = true;
 
   strictDeps = true;
   __structuredAttrs = true;

@@ -16,9 +16,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     root = "modules/apple-t2-alsa-ucm-conf";
   };
 
-  dontConfigure = true;
-  dontBuild = true;
-
   installPhase = ''
     runHook preInstall
 

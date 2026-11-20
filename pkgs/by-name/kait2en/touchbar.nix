@@ -11,7 +11,6 @@
   pkg-config,
   systemd,
   udev,
-  udevCheckHook,
   wireplumber,
 }:
 kait2en.mkService {
@@ -25,10 +24,7 @@ kait2en.mkService {
 
   cargoHash = "sha256-kAg9NTjw2RIV5lUPu43YyJ3bB8Rp+DNYCgOfUu9IH80=";
 
-  nativeBuildInputs = [
-    pkg-config
-    udevCheckHook
-  ];
+  nativeBuildInputs = [ pkg-config ];
   buildInputs = [
     libinput
     udev
@@ -68,8 +64,6 @@ kait2en.mkService {
 
   # It reads the volume levels through `wpctl`.
   runtimeInputs."bin/kait2en-touchbar" = [ wireplumber ];
-
-  doInstallCheck = true;
 
   meta = {
     description = "Touch Bar daemon for Macs with an Apple T2 security chip";

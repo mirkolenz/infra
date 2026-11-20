@@ -22,9 +22,6 @@ lib.extendMkDerivation {
       program = "$out/bin/${finalAttrs.meta.mainProgram}";
     in
     {
-      dontConfigure = true;
-      dontBuild = true;
-
       installPhase = ''
         runHook preInstall
 

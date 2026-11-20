@@ -3,6 +3,7 @@
   rustPlatform,
   kait2en,
   makeBinaryWrapper,
+  udevCheckHook,
 }:
 # The Rust daemons under `t2-services` and `apps`. Each crate sits in a
 # subdirectory of its sparse checkout, which keeps upstream's layout for path
@@ -49,7 +50,6 @@ lib.extendMkDerivation {
 
       postInstall =
         kait2en.installLicenses "kait2en-${component}"
-        # Units under `systemd` and D-Bus files under `dbus`.
         + ''
           if [ -d $cargoRoot/systemd ]; then
             install -Dm444 -t $out/lib/systemd/system $cargoRoot/systemd/*.service
@@ -81,6 +81,9 @@ lib.extendMkDerivation {
         + lib.concatMapAttrsStringSep "\n" (program: packages: ''
           wrapProgram $out/${program} --prefix PATH : ${lib.makeBinPath packages}
         '') runtimeInputs;
+
+      nativeInstallCheckInputs = [ udevCheckHook ];
+      doInstallCheck = true;
 
       __structuredAttrs = true;
 

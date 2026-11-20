@@ -27,10 +27,6 @@ lib.extendMkDerivation {
       postInstall ? "",
       ...
     }:
-    let
-      inherit (src) root;
-      assets = "share/kait2en";
-    in
     {
       nativeBuildInputs = [
         glib
@@ -48,24 +44,24 @@ lib.extendMkDerivation {
       # Some entries name the binary by its Fedora path, which is optional.
       postPatch =
         lib.optionalString (src.logos != [ ]) ''
-          substituteInPlace ${lib.concatMapStringsSep " " (file: "${root}/${file}") src.logos} \
-            --replace-fail /usr/local/${assets}/ $out/${assets}/
+          substituteInPlace ${lib.concatMapStringsSep " " (file: "$cargoRoot/${file}") src.logos} \
+            --replace-fail /usr/local/share/kait2en/ $out/share/kait2en/
         ''
         + ''
-          substituteInPlace ${root}/${appId}.desktop \
+          substituteInPlace $cargoRoot/${appId}.desktop \
             --replace-quiet /usr/local/bin/ ""
         ''
         + postPatch;
 
       postInstall =
         lib.optionalString (src.logos != [ ]) ''
-          install -Dm444 assets/kait2en-app-logo.png $out/${assets}/kait2en-wordmark.png
-          install -Dm444 assets/kait2en-app-logo-light.png $out/${assets}/kait2en-wordmark-light.png
+          install -Dm444 assets/kait2en-app-logo.png $out/share/kait2en/kait2en-wordmark.png
+          install -Dm444 assets/kait2en-app-logo-light.png $out/share/kait2en/kait2en-wordmark-light.png
         ''
         + ''
-          install -Dm444 -t $out/share/applications ${root}/${appId}.desktop
+          install -Dm444 -t $out/share/applications $cargoRoot/${appId}.desktop
           install -Dm444 -t $out/share/icons/hicolor/scalable/apps \
-            ${root}/assets/icons/hicolor/scalable/apps/${appId}.svg
+            $cargoRoot/assets/icons/hicolor/scalable/apps/${appId}.svg
         ''
         + postInstall;
 
