@@ -10,7 +10,7 @@
         ausweisapp = 948660805;
         base = 6744867438;
         bitwarden = 1352778147;
-        dropover = 1355679052;
+        daisydisk = 411643860;
         gapplin = 768053424;
         home-assistant = 1099568401;
         keka = 470158793;

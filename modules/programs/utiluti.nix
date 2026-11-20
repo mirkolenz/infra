@@ -104,7 +104,6 @@
         })
         (forApp "com.mitchellh.ghostty" { types = [ "public.unix-executable" ]; })
         (forApp "org.mozilla.firefox" { schemes = [ "http" ]; })
-        (forApp "ch.sudo.cyberduck" { schemes = [ "sftp" ]; })
         (forApp "com.apple.mail" { schemes = [ "mailto" ]; })
         (forApp "com.apple.FaceTime" { schemes = [ "tel" ]; })
         (forApp "com.apple.iCal" { schemes = [ "webcal" ]; })
