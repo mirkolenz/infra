@@ -162,6 +162,11 @@ in
             ForwardAgent = true;
             User = "mlenz";
           };
+          "pythia" = {
+            HostName = "136.199.45.191";
+            ForwardAgent = true;
+            User = "mlenz";
+          };
           "raspi" = {
             HostName = "raspi.taildc4a8b.ts.net";
             ForwardAgent = true;
