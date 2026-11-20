@@ -1,17 +1,17 @@
 {
-  "tag_name": "v0.5.0",
+  "tag_name": "v0.5.1",
   "assets": {
     "darwin-arm64": {
-      "id": 766273336,
-      "digest": "sha256:a2a279a842a1e7c21e0dee7fea505bd335476cfaf3f207ea3c349248e989aaf8"
+      "id": 769471972,
+      "digest": "sha256:223fa3e843a560a23964a5d0e037f500ad42b4e0c57b995f1ec99766355ae11e"
     },
     "linux-arm64": {
-      "id": 766273409,
-      "digest": "sha256:cbaeea04893c623c2af4c452fd50bcf5aafecd275a2919d3f2024b874816bf05"
+      "id": 769472040,
+      "digest": "sha256:b51f0ba96784950bf945272c7e0d3f9fb4c53d378b37070f8eb6cdbe71b190a8"
     },
     "linux-amd64": {
-      "id": 766273388,
-      "digest": "sha256:be89392e3c4065a106f2d3f7926eaaee58fd82d4b6aaf6ba1ec3642a3ef7fbab"
+      "id": 769472046,
+      "digest": "sha256:94009f287cfcc046ff371824824c203a8a44c981ca2dac344052744897c29c3a"
     }
   }
 }

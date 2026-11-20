@@ -1,17 +1,17 @@
 {
-  "version": "2.1.328",
+  "version": "2.1.329",
   "platforms": {
     "darwin-arm64": {
       "binary": "claude.zst",
-      "checksum": "5c1e357bada5a66373e0705cb0e1213d3e49d086de0dcc11892e3063bc9da5dc"
+      "checksum": "702e5ce4475e0446e7a7a1eef148f251f5e5e47b0902b6ae2e7b00f3d426f2a2"
     },
     "linux-arm64": {
       "binary": "claude.zst",
-      "checksum": "c92f528d76713f97e5c7f443fc2459670a833182cb4314575ec939dadb4c77b5"
+      "checksum": "d5ffa30ef2d305feb76882125a7d2ed4524baf08843ebd21f4bff0409b2c62e9"
     },
     "linux-x64": {
       "binary": "claude.zst",
-      "checksum": "10f24c9cfcbf3c586e6d281815dce9b561eb8acc6b8c0f26b8f0af5e56fa7605"
+      "checksum": "e5e52a50cfab8a3573a4896846f499488d822b34e89a4994d8bc990aaf2846c4"
     }
   }
 }
