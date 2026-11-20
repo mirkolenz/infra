@@ -29,7 +29,7 @@
       flake = false;
     };
     brew = {
-      url = "github:homebrew/brew/7.0.14";
+      url = "github:homebrew/brew/7.0.15";
       flake = false;
     };
     cosmic-manager = {
