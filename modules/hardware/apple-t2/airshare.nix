@@ -9,7 +9,6 @@
       ...
     }:
     let
-      cfg = config.custom.apple-t2.airshare;
       inherit (pkgs.kait2en) airshare drop;
       packages = [
         airshare
@@ -17,18 +16,10 @@
       ];
     in
     {
-      options.custom.apple-t2.airshare = {
-        enable = lib.mkEnableOption "Quick Share and AirDrop through T2 AirShare";
+      options.custom.apple-t2.airshare.enable =
+        lib.mkEnableOption "Quick Share and AirDrop through T2 AirShare";
 
-        # Like `programs.localsend`, whose purpose is reaching other devices.
-        openFirewall = lib.mkOption {
-          type = lib.types.bool;
-          default = true;
-          description = "Whether to open the ports Quick Share and AirDrop receive on.";
-        };
-      };
-
-      config = lib.mkIf cfg.enable {
+      config = lib.mkIf config.custom.apple-t2.airshare.enable {
         # Nautilus loads the context menu through nautilus-python.
         environment.systemPackages = [
           airshare
@@ -42,7 +33,7 @@
         # `t2-drop` owns the AWDL interface.
         networking.networkmanager.unmanaged = [ "interface-name:awdl*" ];
 
-        networking.firewall = lib.mkIf cfg.openFirewall {
+        networking.firewall = {
           # Quick Share in a shared network and its own mDNS responder.
           allowedTCPPorts = [ airshare.port ];
           allowedUDPPorts = [ 5353 ];

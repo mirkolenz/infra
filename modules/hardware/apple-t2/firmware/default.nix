@@ -5,21 +5,19 @@
   flake.modules.nixos.apple-t2 =
     { lib, ... }:
     {
-      options.custom.apple-t2.firmware = {
-        enable = lib.mkEnableOption "the Broadcom Wi-Fi and Bluetooth firmware";
-
-        source = lib.mkOption {
-          type = lib.types.enum [
+      options.custom.apple-t2.firmware = lib.mkOption {
+        type = lib.types.nullOr (
+          lib.types.enum [
             "macos"
             "recovery"
-          ];
-          default = "macos";
-          description = ''
-            Where to take the firmware from. `macos` reads the install sharing
-            the disk at runtime, `recovery` downloads an image from Apple at
-            build time.
-          '';
-        };
+          ]
+        );
+        default = null;
+        description = ''
+          Where to take the firmware from. `macos` reads the install sharing
+          the disk at runtime, `recovery` downloads an image from Apple at
+          build time.
+        '';
       };
     };
 }

@@ -1,5 +1,6 @@
 # The internal CDC-NCM link Touch ID, the journal and AVE reach the T2 over,
-# and the sleep unit running their hooks. See `pkgs/by-name/kait2en/ncm.nix`.
+# and the sleep unit running their hooks. See `pkgs/by-name/kait2en/ncm.nix`
+# and `ave.nix`. Without a daemon the link stays down.
 {
   flake.modules.nixos.apple-t2 =
     {
@@ -9,8 +10,15 @@
       ...
     }:
     let
-      cfg = config.custom.apple-t2.bridge;
+      cfg = config.custom.apple-t2;
       inherit (pkgs.kait2en) ncm;
+
+      # The daemons that reach the T2 over the link, by unit. Their packages
+      # install the units, and the executables under `libexec/t2-services/sleep.d`
+      # that run with `pre` before sleep and `post` after resume.
+      daemons =
+        lib.optionalAttrs cfg.ave.enable { kait2en-t2-remote = pkgs.kait2en.ave; }
+        // lib.optionalAttrs cfg.touchid.enable { kait2en-t2-touchid = pkgs.kait2en.touchid; };
 
       # The address of the T2's bridge interface, the same on every T2 Mac.
       mac = "ac:de:48:00:11:22";
@@ -23,40 +31,14 @@
       # The shared helper runs every executable in one directory.
       hooks = pkgs.symlinkJoin {
         name = "apple-t2-sleep-hooks";
-        paths = cfg.packages;
+        paths = lib.attrValues daemons;
       };
 
       # The net device tagged below by its USB IDs.
       bridgeDevice = "dev-t2bridge.device";
     in
     {
-      options.custom.apple-t2.bridge = {
-        enable = lib.mkEnableOption ''
-          the T2 bridge link. Without it the interface stays down, since
-          nothing else has a use for it
-        '';
-
-        packages = lib.mkOption {
-          type = lib.types.listOf lib.types.package;
-          default = [ ];
-          internal = true;
-          description = ''
-            Packages of the daemons on the link, whose units get installed, and
-            whose executables under `libexec/t2-services/sleep.d` run with `pre`
-            before sleep and `post` after resume.
-          '';
-        };
-
-        services = lib.mkOption {
-          type = lib.types.listOf lib.types.str;
-          default = [ ];
-          internal = true;
-          description = ''
-            Units of daemons that reach the T2 over the link, which all start
-            after its device and NetworkManager and retry until it is addressed.
-          '';
-        };
-      };
+      options.custom.apple-t2.ave.enable = lib.mkEnableOption "the Apple T2 audio and video engine";
 
       config = lib.mkMerge [
         {
@@ -69,7 +51,7 @@
           boot.initrd.systemd.network.networks."10-t2-ethernet" = network;
         }
 
-        (lib.mkIf cfg.enable {
+        (lib.mkIf (daemons != { }) {
           environment.systemPackages = [ pkgs.kait2en.journal ];
 
           # Upstream's rule brings the link up with a kernel link-local address.
@@ -78,10 +60,10 @@
             SUBSYSTEM=="net", SUBSYSTEMS=="usb", ATTRS{idVendor}=="05ac", ATTRS{idProduct}=="8233", TAG+="systemd", ENV{SYSTEMD_ALIAS}="/dev/t2bridge"
           '';
 
-          systemd.packages = [ ncm ] ++ cfg.packages;
+          systemd.packages = [ ncm ] ++ lib.attrValues daemons;
 
           systemd.services =
-            lib.genAttrs cfg.services (_: {
+            lib.mapAttrs (_: _: {
               # Started by the link rather than `network-online.target`, which
               # would hold every boot behind `NetworkManager-wait-online` for up
               # to 60s, waiting on every other profile too. The AVE sleep hook
@@ -102,7 +84,7 @@
                 RestartSteps = 5;
                 RestartMaxDelaySec = 30;
               };
-            })
+            }) daemons
             // {
               t2-services-suspend = {
                 wantedBy = [ "sleep.target" ];

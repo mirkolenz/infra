@@ -14,8 +14,6 @@
       ...
     }:
     let
-      cfg = config.custom.apple-t2.firmware;
-
       # https://github.com/kholia/OSX-KVM/blob/4c378a4b5e0b219783683012bec680325eb40719/fetch-macOS-v2.py#L547
       fetchmacos =
         pkgs.callPackage "${inputs.nixos-hardware}/apple/t2/pkgs/brcm-firmware/fetchmacos.nix"
@@ -42,6 +40,6 @@
       });
     in
     {
-      hardware.firmware = lib.mkIf (cfg.enable && cfg.source == "recovery") [ patchedFirmware ];
+      hardware.firmware = lib.mkIf (config.custom.apple-t2.firmware == "recovery") [ patchedFirmware ];
     };
 }

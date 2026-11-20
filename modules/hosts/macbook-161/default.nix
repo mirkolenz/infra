@@ -29,7 +29,7 @@ in
         custom.apple-t2 = {
           model = "MacBookPro16,1";
           user = config.custom.user.login;
-          firmware.enable = true;
+          firmware = "macos";
           graphics.mode = "hybrid";
           touchid.enable = true;
           touchbar.enable = true;

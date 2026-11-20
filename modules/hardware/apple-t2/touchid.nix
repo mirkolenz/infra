@@ -1,5 +1,6 @@
 # Touch ID through a stock fingerprint stack, nothing patched. See
-# `pkgs/by-name/kait2en/touchid.nix`.
+# `pkgs/by-name/kait2en/touchid.nix`. `bridge.nix` installs its units, which
+# include the drop-in tying fprintd to the bridge.
 # `security.pam.services.*.fprintAuth` follows `services.fprintd.enable`, so
 # login and sudo pick it up on their own.
 {
@@ -17,13 +18,6 @@
       options.custom.apple-t2.touchid.enable = lib.mkEnableOption "the Apple T2 Touch ID sensor";
 
       config = lib.mkIf config.custom.apple-t2.touchid.enable {
-        # Its units include the drop-in tying fprintd to the bridge.
-        custom.apple-t2.bridge = {
-          enable = true;
-          packages = [ package ];
-          services = [ "kait2en-t2-touchid" ];
-        };
-
         services.fprintd.enable = true;
         services.dbus.packages = [ package ];
 

@@ -10,8 +10,6 @@
       ...
     }:
     let
-      cfg = config.custom.apple-t2.firmware;
-
       # The kernel searches this unconditionally, while `hardware.firmware` can
       # only ever point into the store.
       firmwareRoot = "/lib/firmware";
@@ -73,7 +71,7 @@
     # The extraction mounts the macOS volume with the `apfs` driver from
     # `kait2en.modules`. To pick up a macOS upgrade:
     #   rm -rf ${firmwareRoot}/brcm && systemctl start apple-t2-firmware
-    lib.mkIf (cfg.enable && cfg.source == "macos") {
+    lib.mkIf (config.custom.apple-t2.firmware == "macos") {
       systemd.services.apple-t2-firmware = {
         description = "Extract Broadcom firmware from the macOS install";
         wantedBy = [ "multi-user.target" ];
