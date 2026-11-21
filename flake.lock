@@ -609,16 +609,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1787059804,
-        "narHash": "sha256-Tz5sPFmT3KGCU7qPpJw0AWHydbxizztvJv3Wdwwl9aI=",
+        "lastModified": 1795279275,
+        "narHash": "sha256-Mple3GOJKmxb1UbxmIp1kDYFeLGBoIO1ijhm/ovhh2k=",
         "owner": "brizzbuzz",
         "repo": "opnix",
-        "rev": "0ea3a9e6a94fdd0c444aa7729b98e568a0588222",
+        "rev": "fd281a0731ff1bc97a1e6b3abf381509c9b2a4f0",
         "type": "github"
       },
       "original": {
         "owner": "brizzbuzz",
-        "ref": "v0.11.0",
+        "ref": "v0.12.0",
         "repo": "opnix",
         "type": "github"
       }

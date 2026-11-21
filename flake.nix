@@ -129,7 +129,7 @@
       };
     };
     opnix = {
-      url = "github:brizzbuzz/opnix/v0.11.0";
+      url = "github:brizzbuzz/opnix/v0.12.0";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-utils.inputs.systems.follows = "systems";
