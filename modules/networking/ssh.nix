@@ -17,6 +17,8 @@ let
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP5n2KpAU3E8iHy56vNURjh7E3l0EjkZ6BX450Z44hiH";
     "raspi.taildc4a8b.ts.net".publicKey =
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPdw8DbaVVr/Hu/bs0auABdStw9QaLpysIlbNNLXX9MV";
+    "pythia.dfki.uni-trier.de".publicKey =
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJcTa4RyGRqs6BpVzkY0goeUIMUA3dVMHZAnrKvb78uL";
     "raise.dfki.de".publicKey =
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM1nnFyFYCUDMUQzia4jzpaFcSURq4Dn7Tkr4QUBd1ti";
   };
@@ -163,13 +165,13 @@ in
             User = "mlenz";
           };
           "pythia" = {
-            HostName = "136.199.45.191";
+            HostName = "pythia.dfki.uni-trier.de";
             ForwardAgent = true;
             User = "mlenz";
           };
           # A tunnel only, without a shell, which fails if the port is taken.
           "pythia-llm" = {
-            HostName = "136.199.45.191";
+            HostName = "pythia.dfki.uni-trier.de";
             User = "mlenz";
             LocalForward = [
               {
