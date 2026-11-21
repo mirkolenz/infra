@@ -1,4 +1,16 @@
+let
+  # nono reads the token as the user before starting the sandbox.
+  tokenOwner =
+    { config, lib, ... }:
+    {
+      services.onepassword-secrets.secrets.githubToken.owner =
+        lib.mkIf config.custom.features.agents.enable config.custom.user.login;
+    };
+in
 {
+  flake.modules.darwin.base = tokenOwner;
+  flake.modules.nixos.base = tokenOwner;
+
   flake.modules.homeManager.default =
     { config, lib, ... }@args:
     let
@@ -13,8 +25,9 @@
             opnix.outputDir
           ]
           ++ lib.attrValues opnix.secretPaths
+          ++ lib.attrValues opnix.templatePaths
         );
-        environment.files.GITHUB_TOKEN = opnix.secretPaths.agentsGithubToken;
+        environment.files.GITHUB_TOKEN = opnix.secretPaths.githubToken;
         # Nix fetches GitHub inputs in the client, using the same agent token as gh.
         environment.templates.NIX_CONFIG = "access-tokens = github.com=$GITHUB_TOKEN";
       };

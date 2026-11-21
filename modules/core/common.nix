@@ -31,22 +31,26 @@ let
       ...
     }:
     let
-      dir = dirOf config.services.onepassword-secrets.outputDir;
+      cfg = config.services.onepassword-secrets;
+      dir = dirOf cfg.outputDir;
+      token = cfg.placeholder.githubToken;
     in
     {
-      services.onepassword-secrets.enable = lib.mkDefault true;
-      services.onepassword-secrets.secrets = {
-        nixAccessTokens = {
-          reference = "op://NixOS/GitHub/nix-conf";
+      services.onepassword-secrets = {
+        enable = lib.mkDefault true;
+        secrets.githubToken = {
+          reference = "op://NixOS/GitHub/credential";
+          path = "${dir}/github-token";
+          mode = "0400";
+        };
+        templates.nixSecrets = {
           path = "${dir}/nix/secrets.conf";
           group = if pkgs.stdenv.hostPlatform.isDarwin then "admin" else "wheel";
           mode = "0640";
-        };
-        agentsGithubToken = lib.mkIf config.custom.features.agents.enable {
-          reference = "op://NixOS/GitHub/credential";
-          path = "${dir}/agents/github-token";
-          owner = config.custom.user.login;
-          mode = "0400";
+          content = ''
+            access-tokens = github.com=${token}
+            impure-env = NIX_GITHUB_PRIVATE_USERNAME=x-access-token NIX_GITHUB_PRIVATE_PASSWORD=${token}
+          '';
         };
       };
     };

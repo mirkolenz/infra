@@ -98,7 +98,7 @@ in
         files = mkOption {
           type = types.attrsOf absolutePath;
           default = { };
-          example.GITHUB_TOKEN = "/var/lib/opnix/agents/github-token";
+          example.GITHUB_TOKEN = "/var/lib/opnix/github-token";
           description = ''
             Variables loaded from files by nono before the sandbox starts.
             Missing, empty, unreadable, and non-regular files are skipped.

@@ -7,7 +7,7 @@ let
   gcAge = "7d";
 
   # The access tokens of nix on the machines that enable opnix, a missing file is skipped.
-  secretsInclude = opnix: lib.mkIf opnix.enable "!include ${opnix.secretPaths.nixAccessTokens}\n";
+  secretsInclude = opnix: lib.mkIf opnix.enable "!include ${opnix.templatePaths.nixSecrets}\n";
 in
 {
   flake.modules.nixos.base =
