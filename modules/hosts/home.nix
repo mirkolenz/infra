@@ -78,7 +78,6 @@ in
         "mlenz@pythia" = {
           system = "x86_64-linux";
           uid = 1000;
-          genericLinux = true;
           unattended = true;
         };
       };
