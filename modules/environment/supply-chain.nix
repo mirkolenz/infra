@@ -60,8 +60,8 @@
 
           # declared licenses and copyright headers
           reuse
-          # todo: restore once codeberg is reachable again, hydra never caches it (unfree licomp-gnuguide)
-          # sbom-compliance-tool
+          # hydra never caches it, its licomp-gnuguide is unfree
+          sbom-compliance-tool
           # detection from file contents
           scancode-toolkit
           askalono
