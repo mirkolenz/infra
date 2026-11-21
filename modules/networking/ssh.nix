@@ -167,6 +167,19 @@ in
             ForwardAgent = true;
             User = "mlenz";
           };
+          # A tunnel only, without a shell, which fails if the port is taken.
+          "pythia-llm" = {
+            HostName = "136.199.45.191";
+            User = "mlenz";
+            LocalForward = [
+              {
+                bind.port = 18080;
+                host.address = "/run/llmhop/wheel.sock";
+              }
+            ];
+            SessionType = "none";
+            ExitOnForwardFailure = true;
+          };
           "raspi" = {
             HostName = "raspi.taildc4a8b.ts.net";
             ForwardAgent = true;
