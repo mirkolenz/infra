@@ -49,9 +49,16 @@ in
   ];
 
   flake.modules.nixos.user =
-    { config, ... }:
+    { config, utils, ... }:
+    let
+      inherit (config.custom.user) login;
+    in
     {
-      home-manager.users.${config.custom.user.login} = modules.homeManager.linux;
+      home-manager.users.${login} = modules.homeManager.linux;
+      # Upstream only orders after the socket, so a switch that restarts both
+      # lets the activation hit the daemon while it is going down.
+      # https://github.com/nix-community/home-manager/issues/4014
+      systemd.services."home-manager-${utils.escapeSystemdPath login}".after = [ "nix-daemon.service" ];
     };
 
   flake.modules.nixos.default.imports = [
