@@ -59,9 +59,11 @@ let
   ];
 
   kernelParams = [
-    # The T2 bridge needs the IOMMU, audio and suspend need it passed through.
+    # The T2 bridge needs the IOMMU, audio and suspend need it passed through,
+    # and `pm_async=off` serialises the resume ordering the T2 depends on.
     "intel_iommu=on"
     "iommu=pt"
+    "pm_async=off"
     # Apple leaves ASPM disabled in firmware, the AMD dGPU included.
     "amdgpu.aspm=1"
     "pcie_aspm=force"
@@ -115,11 +117,11 @@ in
 kait2en.mkKbuild (finalAttrs: {
   pname = "kait2en-modules";
 
-  version = "0.1.14-unstable-2026-11-15";
+  version = "0.1.16-unstable-2026-11-21";
 
   src = kait2en.fetchSource {
-    rev = "260a559597a7bd3b168a9a251a2248d97aadd957";
-    hash = "sha256-VggZV4p9ubdJIiwbw8WfLdszv/eSamOtlmgf9Xu6/XY=";
+    rev = "fd46d003c2599fb28bbde6a90f99816d73b04e61";
+    hash = "sha256-t0Tue8WLcHMc5OwEiquJcLDYdqB9vfcoPTvMQLpkFnw=";
     paths =
       map (dir: "modules/${dir}/") (lib.remove "linux-apfs-rw" packages)
       ++ map (dir: "t2-services/t2-ave/kernel/${dir}/") aveMembers

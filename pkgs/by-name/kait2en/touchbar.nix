@@ -14,10 +14,10 @@
   wireplumber,
 }:
 kait2en.mkService {
-  version = "0.1.15-unstable-2026-11-19";
+  version = "0.1.16-unstable-2026-11-21";
 
   src = kait2en.fetchSource {
-    rev = "f457579e15bb028ad2eec8c6ca0f853118986ecf";
+    rev = "fd46d003c2599fb28bbde6a90f99816d73b04e61";
     hash = "sha256-PRswwT1WhYFXpZAkzPTvg5ZB5IlB4AAZx/6wXX9UV2A=";
     root = "apps/t2-touchbar";
   };

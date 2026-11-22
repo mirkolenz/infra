@@ -27,10 +27,10 @@ in
 kait2en.mkPatchedDrivers {
   pname = "kait2en-wireless";
 
-  version = "0.1.15-unstable-2026-11-19";
+  version = "0.1.16-unstable-2026-11-21";
 
   src = kait2en.fetchSource {
-    rev = "f457579e15bb028ad2eec8c6ca0f853118986ecf";
+    rev = "fd46d003c2599fb28bbde6a90f99816d73b04e61";
     hash = "sha256-yCPgMCcflvpVHhM++FWdNkwCMyw3AbpT0WAj6T4XIbo=";
     root = "patches/runtime/wireless";
     # Only tracked, so the check flags a change to what `makeFlags` mirrors.
