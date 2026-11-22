@@ -25,14 +25,14 @@ dependencies:
         repo_id: 642580244
     'determinatesystems/determinate-nix-action@v3':
         ref: 'v3'
-        commit: 'sha1-16f94ba7aae399b9f9077c254b6719ec6de7e3e3'
+        commit: 'sha1-4b040423529d49b1a19ba918742e0aa9aa95031a'
         owner_id: 80991770
         repo_id: 983748827
         uses:
-            - 'determinatesystems/nix-installer-action@9383ce2bf08796b65508822f5982f49151badc4e'
-    'determinatesystems/nix-installer-action@9383ce2bf08796b65508822f5982f49151badc4e':
+            - 'determinatesystems/nix-installer-action@2559b44fed7d4fc978e8dd0e379661afb8b73590'
+    'determinatesystems/nix-installer-action@2559b44fed7d4fc978e8dd0e379661afb8b73590':
         ref: 'main'
-        commit: 'sha1-9383ce2bf08796b65508822f5982f49151badc4e'
+        commit: 'sha1-2559b44fed7d4fc978e8dd0e379661afb8b73590'
         owner_id: 80991770
         repo_id: 588678074
     'peter-evans/create-pull-request@v8':
