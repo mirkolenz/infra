@@ -38,7 +38,7 @@
           model_verbosity = "low";
           agents = {
             default_subagent_model = "gpt-6.1-terra";
-            default_subagent_reasoning_effort = "medium";
+            default_subagent_reasoning_effort = "high";
           };
           # counterpart to Claude's `allowUnsandboxedCommands = false`
           approval_policy.granular = {

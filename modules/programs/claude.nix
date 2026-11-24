@@ -128,7 +128,7 @@ in
             # suppresses the in-session rating/feedback survey popup
             CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = true;
             CLAUDE_CODE_SUBAGENT_MODEL = "sonnet";
-            CLAUDE_CODE_SUBAGENT_EFFORT = "medium";
+            CLAUDE_CODE_SUBAGENT_EFFORT = "high";
             # node ships undici as the global `fetch`, which ignores http_proxy and
             # https_proxy unless this is set. The sandbox routes every connection
             # through such a proxy, so without it any node client that uses `fetch`,
