@@ -9,11 +9,11 @@
 kait2en.mkPatchedDrivers {
   pname = "kait2en-thunderbolt";
 
-  version = "0.1.16-unstable-2026-11-21";
+  version = "0.1.16-unstable-2026-11-23";
 
   src = kait2en.fetchSource {
-    rev = "fd46d003c2599fb28bbde6a90f99816d73b04e61";
-    hash = "sha256-GaVB1Id4bVaDsVjbyMvTWGiQdQH3C9LbK3jPI6UbtWI=";
+    rev = "6915384500c59c7ac4842977a40b4269f122bdbc";
+    hash = "sha256-jwYzNtyP03nXKEr+fVeAL9ZmOyoYVie2x+kmHGybxLw=";
     root = "patches/runtime/thunderbolt";
     # Only tracked, so the check flags a change to what is built.
     paths = [ "scripts/fedora/install-thunderbolt.sh" ];

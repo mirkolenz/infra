@@ -11,11 +11,11 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "kait2en-ncm";
-  version = "0.1.16-unstable-2026-11-21";
+  version = "0.1.16-unstable-2026-11-23";
 
   src = kait2en.fetchSource {
-    rev = "fd46d003c2599fb28bbde6a90f99816d73b04e61";
-    hash = "sha256-O8JvtYIQNk1n0Bxkt2McZxd2fqekRGiCquzkkuKQdL4=";
+    rev = "6915384500c59c7ac4842977a40b4269f122bdbc";
+    hash = "sha256-gmwzXjcXkqXeaCyxq7wmlyFKO03VMWm+e1mr7AUkUhk=";
     root = "t2-services/shared";
     paths = [
       "!t2-services/shared/protocols/"
@@ -45,7 +45,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     }}
     substituteInPlace $out/lib/udev/rules.d/90-t2-services-ncm.rules \
       --replace-fail /usr/sbin/ip ${lib.getExe' iproute2 "ip"}
-    ${kait2en.installLicenses finalAttrs.pname}
+    ${kait2en.installLicenses finalAttrs}
   '';
 
   nativeInstallCheckInputs = [ udevCheckHook ];

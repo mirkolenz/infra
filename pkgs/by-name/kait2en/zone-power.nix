@@ -7,11 +7,11 @@
 }:
 kait2en.mkGtkApp {
   appId = "org.t2zonepower.gtk";
-  version = "0.1.16-unstable-2026-11-21";
+  version = "0.1.16-unstable-2026-11-23";
 
   src = kait2en.fetchSource {
-    rev = "fd46d003c2599fb28bbde6a90f99816d73b04e61";
-    hash = "sha256-pmkSZyIvPVTYfxh6SARDXgLy0FEp/ZFFhByolRXpV8g=";
+    rev = "6915384500c59c7ac4842977a40b4269f122bdbc";
+    hash = "sha256-SfEkwwU5Fb/cndOLZl1fi2tFD4aLcBU/D1c4jkG0ZvE=";
     root = "apps/t2-zone-power";
     logos = [ "src/gui.rs" ];
   };

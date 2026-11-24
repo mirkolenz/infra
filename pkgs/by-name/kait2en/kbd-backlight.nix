@@ -9,11 +9,11 @@
   udev,
 }:
 kait2en.mkService {
-  version = "0.1.16-unstable-2026-11-21";
+  version = "0.1.16-unstable-2026-11-23";
 
   src = kait2en.fetchSource {
-    rev = "fd46d003c2599fb28bbde6a90f99816d73b04e61";
-    hash = "sha256-0Yei/pMaVlVJvfDyCJE1VMzKk+rtzLIGe4EgmuIKQTc=";
+    rev = "6915384500c59c7ac4842977a40b4269f122bdbc";
+    hash = "sha256-z6XhRWzuim6j8pxj86ZFQuMP3mRxB4MpBp7VjPyjwUg=";
     root = "apps/t2-kbd-backlight";
   };
 

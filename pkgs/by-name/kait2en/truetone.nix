@@ -6,11 +6,11 @@
   glib,
 }:
 kait2en.mkGtkApp {
-  version = "0.1.16-unstable-2026-11-21";
+  version = "0.1.16-unstable-2026-11-23";
 
   src = kait2en.fetchSource {
-    rev = "fd46d003c2599fb28bbde6a90f99816d73b04e61";
-    hash = "sha256-5KiioU9dpYlYbmbL44WWpDaKIH/GOgsKOh0xu/q1zQU=";
+    rev = "6915384500c59c7ac4842977a40b4269f122bdbc";
+    hash = "sha256-xhJ5s+CBPr2jlctPsWvwKwvKEyeRJ5vtaW/i0TVQ0Dg=";
     root = "apps/t2-truetone";
   };
 

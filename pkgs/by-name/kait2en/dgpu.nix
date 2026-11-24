@@ -15,11 +15,11 @@ in
 kait2en.mkScript {
   pname = "kait2en-dgpu";
 
-  version = "0.1.16-unstable-2026-11-21";
+  version = "0.1.16-unstable-2026-11-23";
 
   src = kait2en.fetchSource {
-    rev = "fd46d003c2599fb28bbde6a90f99816d73b04e61";
-    hash = "sha256-e/5Ni3XI3AZhQmr/myyyqJLpZH9uLXdvNdb9e7jmaxI=";
+    rev = "6915384500c59c7ac4842977a40b4269f122bdbc";
+    hash = "sha256-/U6837GgRrsvBQV3R7B6QN4VCep4eiWTrgWcdfkR4bA=";
     paths = [
       script
       "apps/t2-dgpu-control/systemd/"

@@ -13,7 +13,7 @@
   # Further directories with a trailing slash, files without, and exclusions
   # with a leading `!`.
   paths ? [ ],
-  # The files of `root` that load the wordmarks the GTK apps show.
+  # The files of `root` that load the KAIT2EN wordmark, see `mkGtkApp`.
   logos ? [ ],
   # The protocol crate of the bridge link daemons.
   bridgexpc ? false,
@@ -35,10 +35,6 @@ fetchFromGitHub {
       "LICENSES/"
     ]
     ++ lib.optional (root != null) "${root}/"
-    ++ lib.optionals (logos != [ ]) [
-      "assets/kait2en-app-logo.png"
-      "assets/kait2en-app-logo-light.png"
-    ]
     ++ lib.optional bridgexpc "t2-services/shared/protocols/t2-bridgexpc/"
     ++ paths
   );

@@ -57,7 +57,7 @@ lib.extendMkDerivation {
 
         ${kbuild "modules_install"}
 
-        (cd "$src" && ${kait2en.installLicenses finalAttrs.pname})
+        ${kait2en.installLicenses finalAttrs}
 
         runHook postInstall
       '';

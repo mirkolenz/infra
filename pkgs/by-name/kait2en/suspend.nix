@@ -13,11 +13,11 @@ in
 kait2en.mkScript {
   pname = "kait2en-suspend";
 
-  version = "0.1.16-unstable-2026-11-21";
+  version = "0.1.16-unstable-2026-11-23";
 
   src = kait2en.fetchSource {
-    rev = "fd46d003c2599fb28bbde6a90f99816d73b04e61";
-    hash = "sha256-LBeDDnLSUztXTKzoyi3skdAaKZ+Lyu3PxUQAuBgZSyI=";
+    rev = "6915384500c59c7ac4842977a40b4269f122bdbc";
+    hash = "sha256-rscExhVrj/Hve3QXrSyW18g7xQalfG8i9BsRPqQ0UM8=";
     # The installer is only tracked, so the check flags a change to the unit
     # `apple-t2/suspend.nix` mirrors.
     paths = [

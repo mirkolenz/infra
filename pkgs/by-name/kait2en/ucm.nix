@@ -8,11 +8,11 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "kait2en-ucm";
-  version = "0.1.16-unstable-2026-11-21";
+  version = "0.1.16-unstable-2026-11-23";
 
   src = kait2en.fetchSource {
-    rev = "fd46d003c2599fb28bbde6a90f99816d73b04e61";
-    hash = "sha256-FVPEre2WC1gL2BUE9ew/pFMHIJdn+go2vM85/oe3Knc=";
+    rev = "6915384500c59c7ac4842977a40b4269f122bdbc";
+    hash = "sha256-Dcxy+WPt4ZKg73YvSIC7n678ejrSuNce7FumdHjuZM0=";
     root = "modules/apple-t2-alsa-ucm-conf";
   };
 
@@ -22,7 +22,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     mkdir -p $out/share/alsa
     cp -r ${finalAttrs.src.root}/ucm2 $out/share/alsa/
 
-    ${kait2en.installLicenses finalAttrs.pname}
+    ${kait2en.installLicenses finalAttrs}
 
     runHook postInstall
   '';

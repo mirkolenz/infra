@@ -9,11 +9,11 @@
 }:
 kait2en.mkGtkApp {
   appId = "org.t2smccontrol.gtk";
-  version = "0.1.16-unstable-2026-11-21";
+  version = "0.1.16-unstable-2026-11-23";
 
   src = kait2en.fetchSource {
-    rev = "fd46d003c2599fb28bbde6a90f99816d73b04e61";
-    hash = "sha256-V6iO8wZnJtNpZLuhG7I7gnGOsg2PULKcZgmufnYIjgI=";
+    rev = "6915384500c59c7ac4842977a40b4269f122bdbc";
+    hash = "sha256-uYxIHeJJCgzKNLBIVdm0yP1RW0Pwm6SH6adRqWZOxSU=";
     root = "apps/t2-smc-control";
     logos = [ "src/main.rs" ];
   };

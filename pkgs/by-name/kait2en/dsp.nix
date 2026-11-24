@@ -17,11 +17,11 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "kait2en-dsp";
-  version = "0.1.16-unstable-2026-11-21";
+  version = "0.1.16-unstable-2026-11-23";
 
   src = kait2en.fetchSource {
-    rev = "fd46d003c2599fb28bbde6a90f99816d73b04e61";
-    hash = "sha256-QrSalP5ZOfHtyV/JAYmZeXsGqH+t+eVVkp1jON62GkE=";
+    rev = "6915384500c59c7ac4842977a40b4269f122bdbc";
+    hash = "sha256-zMYjusfZg3x9ovhCZsHAjcSwWjEoQO210jBbx+eqNoE=";
     root = "dsp";
     # Installed by the Makefile and removed again below.
     paths = [ "packaging/lifecycle/kait2en-lifecycle.py" ];
@@ -40,10 +40,10 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   # `PREFIX` also ends up inside the graphs, which use absolute paths.
   makeFlags = [ "PREFIX=${placeholder "out"}" ];
 
-  # An RPM and Debian migration helper with nothing to convert here. The license
-  # notices come out of the upstream Makefile instead of `installLicenses`.
+  # An RPM and Debian migration helper with nothing to convert here.
   postInstall = ''
-    rm -r $out/libexec
+    rm -r $out/libexec $out/share/licenses/t2-dsp
+    ${kait2en.installLicenses finalAttrs}
   '';
 
   # A PipeWire config package loading the graphs of one DMI product name.

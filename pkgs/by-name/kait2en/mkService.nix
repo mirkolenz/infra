@@ -18,7 +18,7 @@ lib.extendMkDerivation {
     "userUnits"
   ];
   extendDrvArgs =
-    _finalAttrs:
+    finalAttrs:
     {
       # Its `root` is the crate, named `t2-<component>` upstream.
       src,
@@ -49,7 +49,7 @@ lib.extendMkDerivation {
       nativeBuildInputs = nativeBuildInputs ++ lib.optional (runtimeInputs != { }) makeBinaryWrapper;
 
       postInstall =
-        kait2en.installLicenses "kait2en-${component}"
+        kait2en.installLicenses finalAttrs
         + ''
           if [ -d $cargoRoot/systemd ]; then
             install -Dm444 -t $out/lib/systemd/system $cargoRoot/systemd/*.service

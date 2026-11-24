@@ -1,6 +1,6 @@
 # KaiT2en
 
-Support for Macs with an Apple T2 security chip, taken from [KaiT2en](https://github.com/kaiT2en/KaiT2en-Fedora).
+Support for Macs with an Apple T2 security chip, a modified version based on [KAIT2EN](https://github.com/kaiT2en/KaiT2en-Fedora).
 Each package explains itself in its header, the NixOS module lives in `modules/hardware/apple-t2`.
 This file records the packaging decisions, updating is covered by the `kait2en` skill in `.agents/skills/kait2en`.
 
@@ -25,8 +25,10 @@ Its workarounds without an upstream counterpart are not carried over, such as th
 
 ## Licensing
 
-Upstream's drivers are GPL-2.0, everything else is GPL-3.0-or-later with an attribution term under section 7(b).
-Every package therefore installs upstream's license notices to `share/licenses/<pname>`.
+Upstream's drivers are GPL-2.0, everything else is GPL-3.0-or-later with additional terms under section 7.
+Its 7(b) keeps the author attribution, and its 7(c) asks modified versions to state that they are based on KAIT2EN.
+Every package therefore installs upstream's notices to `share/licenses/<pname>`, with the component's own `LICENSE` where it has one, and a README stating that it is a modified version based on KAIT2EN.
+The KAIT2EN logos and brand artwork are all rights reserved and derived works must remove them, so the GTK apps show their own icon in place of the wordmark.
 `kait2en.journal` also vendors Apache-2.0 code, `kait2en.airshare` Apache-2.0 and BSD-style protobuf definitions, and `kait2en.touchbar` derives from the MIT-licensed tiny-dfr.
 
 ## Deliberately not packaged

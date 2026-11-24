@@ -30,7 +30,7 @@ lib.extendMkDerivation {
           path = program;
           inherit runtimeInputs;
         }}
-        ${kait2en.installLicenses finalAttrs.pname}
+        ${kait2en.installLicenses finalAttrs}
 
         runHook postInstall
       '';
