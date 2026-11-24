@@ -15,6 +15,9 @@ mkGitHubBinary {
 
   sourceRoot = ".";
 
+  # Stripping the static musl binary of 1.5.0 makes it segfault.
+  dontStrip = true;
+
   nativeInstallCheckInputs = [ versionCheckHook ];
   doInstallCheck = true;
 
