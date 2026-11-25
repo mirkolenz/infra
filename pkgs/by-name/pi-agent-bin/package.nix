@@ -7,8 +7,8 @@
   libxcb,
 }:
 mkGitHubBinary {
-  owner = "badlogic";
-  repo = "pi-mono";
+  owner = "earendil-works";
+  repo = "pi";
   pname = "pi";
   file = ./release.json;
   assets = {
