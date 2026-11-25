@@ -58,8 +58,7 @@ in
 
       localhost = lib.mkEnableOption ''
         connecting to and listening on localhost, for local models and dev servers.
-        nono on Linux gives the agents a loopback of their own instead, unreachable from the host
-        and without access to its services
+        Otherwise nono on Linux gives the agents a network namespace that only leaves through its proxy
       '';
 
       # Absolute paths, covering everything below.

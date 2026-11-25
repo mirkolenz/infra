@@ -193,15 +193,22 @@
           network = {
             allow_domain = lib.unique (sandbox.domains.allow ++ harnessDomains);
             deny_domain = sandbox.domains.deny;
-          }
-          # Port 0 connects to every localhost port on macOS, where binding is unfiltered anyway.
-          // lib.optionalAttrs (isDarwin && sandbox.localhost) { open_port = [ 0 ]; };
+            # Every localhost port of the host, such as the ssh tunnels to remote models.
+            # Port 0 is the wildcard on macOS, where binding is unfiltered anyway.
+            open_port = lib.mkIf (isDarwin && sandbox.localhost) [ 0 ];
+            # seccomp keeps the range on loopback, but binding to port 0 stays denied
+            open_port_range = lib.mkIf (isLinux && sandbox.localhost) [
+              [
+                1
+                65535
+              ]
+            ];
+          };
           # Opened in the browser of the host by nono after checking the origin, for logins and dev servers.
           # Unlike `allow_launch_services`, this cannot open files or apps.
           open_urls = {
             allow_origins = map (domain: "https://${domain}") harnessDomains;
-            # the host cannot reach the loopback of the network namespace on Linux
-            allow_localhost = isDarwin && sandbox.localhost;
+            allow_localhost = sandbox.localhost;
           };
           environment = {
             # A missing source must never expose the inherited value.
@@ -216,12 +223,10 @@
           linux = {
             # makes `unix_socket` an allowlist on Linux as well, refusing every abstract socket
             af_unix_mediation = "pathname";
-            # Namespaces apart from the host, the network one only leaving through the proxy,
-            # with a loopback of its own on every port.
-            # The host cannot reach its listeners, so logins with a loopback callback need `NO_NONO=1`.
+            # Namespaces apart from the host. A network one would only leave through the proxy,
+            # with a loopback of its own that cannot reach the host, so it is left out for localhost.
             isolate = {
-              network = true;
-              loopback = sandbox.localhost;
+              network = !sandbox.localhost;
               ipc = true;
               uts = true;
             };
