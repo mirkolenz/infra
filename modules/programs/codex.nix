@@ -11,11 +11,19 @@
       inherit (agents) sandbox;
       cfg = config.programs.codex;
 
+      # the models of the ChatGPT plans
+      aliases = {
+        sol = "gpt-6.2-sol";
+        astra = "gpt-6.2-astra";
+        terra = "gpt-6.1-terra";
+        luna = "gpt-6-luna";
+      };
+
       prefixRule = decision: cmd: ''
         prefix_rule(pattern = ${lib.toJSON (lib.splitString " " cmd)}, decision = "${decision}")
       '';
     in
-    lib.mkIf config.programs.agents.enable {
+    lib.mkIf agents.enable {
       programs.codex = {
         enable = true;
         package = pkgs.codex-bin;
@@ -128,6 +136,7 @@
       programs.agents = {
         # the login is kept in `auth.json`
         harnesses.codex = {
+          inherit aliases;
           inherit (cfg) launchers;
           addDirFlag = "--add-dir";
           # nono takes over, and a running daemon would serve the session outside of it.
