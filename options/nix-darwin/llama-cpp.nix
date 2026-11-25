@@ -7,6 +7,7 @@
 let
   cfg = config.services.llama-cpp;
   inherit (lib) types;
+  iniFormat = pkgs.formats.ini { };
   user = "_llamacpp";
 in
 {
@@ -15,6 +16,16 @@ in
       enable = lib.mkEnableOption "llama.cpp HTTP server";
 
       package = lib.mkPackageOption pkgs "llama-cpp" { };
+
+      presets = lib.mkOption {
+        inherit (iniFormat) type;
+        default = { };
+        example."qwen3.6-35b-a3b".hf-repo = "unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_XL";
+        description = ''
+          Model presets of the router mode, written to {option}`settings.models-preset`.
+          The section `*` applies to every model.
+        '';
+      };
 
       settings = lib.mkOption {
         type = types.submodule {
@@ -108,6 +119,10 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    services.llama-cpp.settings.models-preset = lib.mkIf (cfg.presets != { }) (
+      iniFormat.generate "llama-models.ini" cfg.presets
+    );
+
     environment.systemPackages = [ cfg.package ];
 
     launchd.daemons.llama-cpp = {

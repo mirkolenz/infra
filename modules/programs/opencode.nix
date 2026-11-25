@@ -5,11 +5,15 @@
       config,
       pkgs,
       ...
-    }@args:
+    }:
     let
-      llamaCpp = args.osConfig.services.llama-cpp or { enable = false; };
+      # the request body for a level of reasoning effort of a chat template
+      reasoning = effort: { chat_template_kwargs.reasoning_effort = effort; };
+
       agents = config.programs.agents;
       inherit (agents) sandbox;
+      inherit (agents.providers) pythia;
+      pythiaQwen = "${pythia.name}/${pythia.models."qwen3.8-27b".name}";
 
       # Each of `paths` followed by its content, since resources match the whole path.
       # `*` also matches `/`.
@@ -30,7 +34,7 @@
       # resources are `<action>:<value>`
       denyRules = action: map (resource: "${action}:${resource}");
     in
-    lib.mkIf config.programs.agents.enable {
+    lib.mkIf agents.enable {
       programs.opencode = {
         enable = true;
         package = pkgs.opencode-bin;
@@ -39,14 +43,38 @@
         settings = {
           share = "disabled";
           update = "disable";
-          model = lib.mkIf llamaCpp.enable "llama-cpp/qwen3.8-27b";
-          providers.llama-cpp = lib.mkIf llamaCpp.enable {
-            name = "llama.cpp";
-            package = "@opencode/ai/providers/openai-compatible";
-            settings.baseURL = "http://127.0.0.1:${toString llamaCpp.settings.port}/v1";
-            models."qwen3.6-35b-a3b".name = "Qwen 3.6 MoE";
-            models."qwen3.8-27b".name = "Qwen 3.8";
+          # `provider/model#variant`, the ChatGPT login comes from `/connect`
+          model = "openai/gpt-6.2-sol#high";
+          # https://opencode.ai/v2/docs/agents#built-ins
+          # There is no global subagent model, every other agent inherits the model of its session.
+          # `compaction` stays with the session, since its context may exceed the one of the subagents.
+          agents = lib.optionalAttrs (agents.providers ? pythia) {
+            explore.model = pythiaQwen;
+            general.model = pythiaQwen;
+            summary.model = "${pythiaQwen}#low";
+            title.model = "${pythiaQwen}#low";
           };
+          providers = lib.mapAttrs' (
+            _: provider:
+            lib.nameValuePair provider.name {
+              name = provider.label;
+              package = "@opencode/ai/providers/openai-compatible";
+              settings.baseURL = "${provider.url}/v1";
+              models = lib.mapAttrs' (
+                _: model:
+                lib.nameValuePair model.name {
+                  name = model.label;
+                  # Without limits, opencode assumes 200K and 32K for models outside the catalog.
+                  limit = { inherit (model) context output; };
+                  body = lib.optionalAttrs (model.effort != null) (reasoning model.effort);
+                  variants = map (id: {
+                    inherit id;
+                    body = reasoning id;
+                  }) model.efforts;
+                }
+              ) provider.models;
+            }
+          ) agents.providers;
           # home-manager's `enableMcpIntegration` still renders the V1 shape
           mcp.servers = lib.mapAttrs (_: server: {
             type = "local";
@@ -59,11 +87,9 @@
           # hard denies that neither an "Allow always" approval nor a project config lifts
           experimental.policies =
             mkRules "deny" "provider.use" [ "*" ]
-            # the openai credential comes from `/connect`
-            ++ mkRules "allow" "provider.use" [
-              "llama-cpp"
-              "openai"
-            ]
+            ++ mkRules "allow" "provider.use" (
+              [ "openai" ] ++ lib.catAttrs "name" (lib.attrValues agents.providers)
+            )
             ++ mkRules "deny" "tool.use" (
               # `*:` covers every path-based action
               denyRules "*" (withContent sandbox.paths.deny)

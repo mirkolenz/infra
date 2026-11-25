@@ -4,11 +4,10 @@
 {
   config,
   lib,
-  llamaCpp,
 }:
 let
   bin = name: "${config.home.profileDirectory}/bin/${name}";
-  llamaCppUrl = "http://${llamaCpp.settings.host}:${toString llamaCpp.settings.port}";
+  inherit (config.programs.agents) providers;
 in
 {
   # keep-sorted start block=yes
@@ -71,12 +70,12 @@ in
       allow_data_collection = "no";
       copilot.enable_next_edit_suggestions = false;
     }
-    (lib.optionalAttrs llamaCpp.enable {
+    (lib.optionalAttrs (providers ? llama-cpp) {
       # `model` must name one of the llama.cpp presets.
       open_ai_compatible_api = {
-        api_url = "${llamaCppUrl}/v1";
+        api_url = "${providers.llama-cpp.url}/v1";
         max_output_tokens = 16;
-        model = "qwen3.8-27b";
+        model = "qwen3.6-35b-a3b";
       };
     })
   ];
@@ -111,8 +110,8 @@ in
     show_background = true;
     edit_debounce_ms = 300;
   };
-  language_models = lib.optionalAttrs llamaCpp.enable {
-    "llama.cpp".api_url = llamaCppUrl;
+  language_models = lib.optionalAttrs (providers ? llama-cpp) {
+    "llama.cpp".api_url = providers.llama-cpp.url;
   };
   # The language servers and formatters come from options/home-manager.
   languages = {

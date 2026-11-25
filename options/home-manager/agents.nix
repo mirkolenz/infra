@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  lib',
+  ...
+}:
 let
   inherit (lib) mkOption types;
 
@@ -15,6 +20,26 @@ let
       type = types.listOf elemType;
       default = [ ];
       inherit description;
+    };
+
+  effort = types.enum lib'.reasoningEfforts;
+
+  nameOption =
+    name:
+    mkOption {
+      type = types.str;
+      default = name;
+      defaultText = lib.literalMD "the attribute name";
+      description = "Id by which the harnesses refer to it.";
+    };
+
+  labelOption =
+    name:
+    mkOption {
+      type = types.str;
+      default = name;
+      defaultText = lib.literalExpression "name";
+      description = "Name shown by the harnesses.";
     };
 in
 {
@@ -42,6 +67,62 @@ in
         either a directory holding one directory per skill or an attribute set keyed by
         skill name. An attribute is a directory of its own, a single `SKILL.md`, or that
         file's content inline.
+      '';
+    };
+
+    providers = mkOption {
+      type = types.attrsOf (
+        types.submodule (
+          { name, config, ... }:
+          {
+            options = {
+              name = nameOption name;
+              label = labelOption config.name;
+              url = mkOption {
+                type = types.str;
+                example = "http://127.0.0.1:8080";
+                description = "Root URL of the server, which serves an OpenAI-compatible API below `/v1` without an API key.";
+              };
+              models = mkOption {
+                type = types.attrsOf (
+                  types.submodule (
+                    { name, config, ... }:
+                    {
+                      options = {
+                        name = nameOption name;
+                        label = labelOption config.name;
+                        context = mkOption {
+                          type = types.ints.positive;
+                          description = "Context window in tokens.";
+                        };
+                        output = mkOption {
+                          type = types.ints.positive;
+                          description = "Maximum output tokens.";
+                        };
+                        efforts = listOption effort ''
+                          Levels of reasoning effort that the chat template takes as `reasoning_effort`,
+                          empty for a model that only switches thinking on or off.
+                        '';
+                        effort = mkOption {
+                          type = types.nullOr effort;
+                          default = null;
+                          description = "Reasoning effort sent by default, the one of the server when null.";
+                        };
+                      };
+                    }
+                  )
+                );
+                default = { };
+                description = "Models by id.";
+              };
+            };
+          }
+        )
+      );
+      default = { };
+      description = ''
+        Self-hosted servers outside the catalogs of the harnesses, the facts about them that every harness shares.
+        Which model a harness uses for what stays with the harness.
       '';
     };
 

@@ -13,6 +13,17 @@
   _module.args.lib' = config.flake.lib;
 
   flake.lib = inputs.flocken.lib // {
+    # The levels of reasoning effort that `programs.agents` knows, from none to the most.
+    reasoningEfforts = [
+      "none"
+      "minimal"
+      "low"
+      "medium"
+      "high"
+      "xhigh"
+      "max"
+    ];
+
     # A value home-manager links rather than writes.
     inherit (inputs.home-manager.lib.hm.strings) isPathLike;
 
