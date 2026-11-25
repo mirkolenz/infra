@@ -65,7 +65,7 @@ in
           cleanupPeriodDays = 30;
           model = "opus";
           # advisorModel = "opus";
-          modelSettings = lib.genAttrs (lib.attrValues agents.harnesses.claude-code.models) (_model: {
+          modelSettings = lib.genAttrs (lib.attrValues agents.harnesses.claude-code.aliases) (_model: {
             effortLevel = "high";
           });
           enableAllProjectMcpServers = true;
@@ -174,7 +174,7 @@ in
         harnesses.claude-code = {
           inherit (cfg) launchers;
           # https://code.claude.com/docs/en/model-config
-          models = {
+          aliases = {
             fable = "claude-fable-5-2";
             opus = "claude-opus-5-5";
             sonnet = "claude-sonnet-5-5";

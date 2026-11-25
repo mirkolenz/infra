@@ -141,7 +141,7 @@ in
                 description = "Executables of the harness by name, each shadowed by a wrapper.";
               };
 
-              models = mkOption {
+              aliases = mkOption {
                 type = with types; attrsOf str;
                 default = { };
                 example.opus = "claude-opus-5-5";
@@ -214,7 +214,7 @@ in
         lib.mapAttrs' (
           alias: model:
           lib.nameValuePair "${alias}${lib.optionalString (package ? installation) "-${package.installation}"}" "${launcher} --model ${model}"
-        ) harness.models
+        ) harness.aliases
       ) harness.launchers
     ) cfg.harnesses;
   };

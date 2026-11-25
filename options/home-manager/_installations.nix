@@ -85,7 +85,7 @@ let
           _normal
         '')
       ];
-      # names the shell aliases of `programs.agents.harnesses.*.models`
+      # names the shell aliases of `programs.agents.harnesses.*.aliases`
       passthru.installation = name;
       meta.mainProgram = cmd;
     };
