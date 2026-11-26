@@ -4,10 +4,6 @@ let
       source = "github";
       repo = "anthropics/claude-plugins-official";
     };
-    openai-codex = {
-      source = "github";
-      repo = "openai/codex-plugin-cc";
-    };
   };
 
   # Policies that only managed settings enforce, for the CLI and the desktop app alike.
@@ -72,8 +68,8 @@ in
           # OSC 777, titled "Claude Code", which leaves the OSC 9 progress herdr reads untouched
           preferredNotifChannel = "ghostty";
           idleCompaction = false;
-          includeGitInstructions = true;
-          outputStyle = "Concise";
+          includeGitInstructions = false;
+          enableArtifact = false;
           # still read, suppresses the one-time auto mode entry warning
           skipAutoPermissionPrompt = true;
           spinnerTipsEnabled = false;
@@ -82,6 +78,17 @@ in
           attribution = false;
           feedbackDrafts = "off";
           syncClaudeAiPlugins = false;
+          syncClaudeAiSkills = false;
+          # bundled skills that never apply here. `ship` and `steward` push, which agents must never do
+          skillOverrides = lib.genAttrs [
+            "claude-api"
+            "claude-approvals"
+            "fewer-permission-prompts"
+            "run"
+            "schedule"
+            "ship"
+            "steward"
+          ] (_name: "off");
           sandbox = {
             enabled = true;
             # Closes the unsandboxed retry escape hatch. Without this a blocked
@@ -116,10 +123,9 @@ in
           };
           extraKnownMarketplaces = lib.mapAttrs (_name: source: { inherit source; }) knownMarketplaces;
           enabledPlugins = {
-            "code-simplifier@claude-plugins-official" = true;
-            "feature-dev@claude-plugins-official" = true;
-            "frontend-design@claude-plugins-official" = true;
-            "codex@openai-codex" = true;
+            # a chart tool and a skill for building mods, both offered in every session
+            "cc-plugin-easel@builtin" = false;
+            "cc-plugin-plugin-authoring@builtin" = false;
           };
           env = sandbox.environment.set // {
             CLAUDE_CODE_DISABLE_AGENT_PROGRESS_SUMMARIES = true;
@@ -159,7 +165,14 @@ in
                 "Edit"
               ]
               # matched on the command line
-              ++ bashRules sandbox.commands.deny;
+              ++ bashRules sandbox.commands.deny
+              # a bare tool name removes the tool from the context entirely
+              ++ [
+                "DesignSync"
+                "PublishPlugin"
+                "RemoteTrigger"
+                "ShareOnboardingGuide"
+              ];
             ask = [ ];
           };
           statusLine = {
@@ -191,10 +204,7 @@ in
             # Claude in Chrome, whose extension meets the session on this relay
             "bridge.claudeusercontent.com"
           ];
-          paths.write = cfg.configDirs ++ [
-            # the skills claude syncs from claude.ai within the managed ones, shared by every installation
-            "${config.home.homeDirectory}/.claude/skills/synced"
-          ];
+          paths.write = cfg.configDirs;
           # the managed config of every installation, which claude would otherwise run outside of nono later
           paths.read = cfg.protectedPaths;
         };
