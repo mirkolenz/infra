@@ -1,24 +1,22 @@
 {
   lib,
-  buildGo126Module,
+  buildGoModule,
   fetchFromGitHub,
   versionCheckHook,
   nix-update-script,
 }:
-# grpc 1.81 references `http2.TrailerPrefix`, which x/net 0.54 drops under Go 1.27.
-# Drop the pin once a release past 0.5.3 bumps grpc, as its main branch did.
-buildGo126Module (finalAttrs: {
+buildGoModule (finalAttrs: {
   pname = "osv-scalibr";
-  version = "0.5.3";
+  version = "0.5.4";
 
   src = fetchFromGitHub {
     owner = "google";
     repo = "osv-scalibr";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-r4nLxxwQqIy+CA8tQXxetKO8Ckqz5JVPtQyysYcVMR0=";
+    hash = "sha256-sTTR9l+cG5Q+8MM2MLvxMPneewKwTSxzsfQeZD6+44c=";
   };
 
-  vendorHash = "sha256-ZxVnh509Oy3buK49Juvmu2+LjYiW8G/UhXYVJ2rh5Jo=";
+  vendorHash = "sha256-db0sZiQQtHm1AT0cLIjcepv+mlNWT8mFafplIszoJcQ=";
 
   subPackages = [ "binary/scalibr" ];
 
