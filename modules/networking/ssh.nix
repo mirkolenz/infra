@@ -169,7 +169,7 @@ in
             ForwardAgent = true;
             User = "mlenz";
           };
-          # A tunnel only, without a shell, which fails if the port is taken.
+          # The tunnel, which fails if the port is taken, lives as long as the llmhop monitor.
           "pythia-llm" = {
             HostName = "pythia.dfki.uni-trier.de";
             User = "mlenz";
@@ -179,7 +179,8 @@ in
                 host.address = "/run/llmhop/wheel.sock";
               }
             ];
-            SessionType = "none";
+            RemoteCommand = "llmhop top";
+            RequestTTY = true;
             ExitOnForwardFailure = true;
           };
           "raspi" = {
