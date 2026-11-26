@@ -30,7 +30,7 @@ class Config:
     Attributes:
         harness: Absolute path of the harness executable.
         nono: Absolute path of nono, since `PATH` reaches the harness, as for every executable.
-        profile: nono profile the session extends unless `NONO_PROFILE` is set.
+        profile: nono profile of the installation, which the session extends below the draft `NONO_PROFILE` names.
         herdr_agent: Label by which herdr identifies the harness on nono.
         sandbox_args: Arguments prepended to those of the harness.
         trailing_args: Arguments appended to those of the harness.
@@ -152,8 +152,8 @@ def sandbox_env(env: Mapping[str, str], templates: Mapping[str, str]) -> dict[st
     return result
 
 
-def write_profile(extends: str, path: Path, paths: Iterable[Path]) -> None:
-    """Write a session profile extending another, granting to list the ancestors of `paths`.
+def write_profile(extends: Sequence[str], path: Path, paths: Iterable[Path]) -> None:
+    """Write a session profile extending `extends` from left to right, granting to list the ancestors of `paths`.
 
     On macOS, nono grants a directory in `read_file` as its exact path, which lists its entries only.
     Its ancestors include those of nono's state, which Seatbelt still denies.
@@ -161,7 +161,7 @@ def write_profile(extends: str, path: Path, paths: Iterable[Path]) -> None:
     """
     profile = {
         "meta": {"name": "agents-session"},
-        "extends": extends,
+        "extends": list(extends),
         "allow_parent_of_protected": True,
         "filesystem": {"read_file": ancestors(paths)},
     }
@@ -219,15 +219,24 @@ def launch(config: Config, args: Sequence[str]) -> int:
     if allowed:
         env["NONO_ALLOW"] = ",".join(allowed)
 
+    # The profile of the installation, below a draft that `NONO_PROFILE` names,
+    # so a draft never reaches the paths of another installation.
+    extends = [config.profile]
+
+    if draft := os.environ.get("NONO_PROFILE"):
+        extends.append(draft)
+
     # A private temporary directory, the only place the session may bind and connect sockets,
     # such as the forkserver of Python's multiprocessing. Those of /tmp and the host stay out of reach.
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
         # Without `O_PATH`, Nix and Bun open every ancestor of a path they resolve.
         if sys.platform == "darwin":
             profile = Path(tmp, "profile.json")
-            extends = os.environ.get("NONO_PROFILE") or config.profile
             write_profile(extends, profile, [*roots, *map(Path, config.granted)])
             env["NONO_PROFILE"] = str(profile)
+            bases = []
+        else:
+            *bases, env["NONO_PROFILE"] = extends
 
         # The agent runs on a pty of nono, so herdr identifies it by this hint on nono.
         env |= {"TMPDIR": tmp, "HERDR_AGENT": config.herdr_agent}
@@ -242,6 +251,7 @@ def launch(config: Config, args: Sequence[str]) -> int:
                 "--allow-cwd",
                 "--allow-unix-socket-subtree-bind",
                 tmp,
+                *(arg for base in bases for arg in ("--extends", base)),
                 *env_credentials(config.env_files),
                 "--",
                 # this launcher again, which runs the harness within the sandbox

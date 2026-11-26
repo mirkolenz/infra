@@ -60,9 +60,9 @@
           launchers.vibe = cfg.package;
           addDirFlag = "--add-dir";
           # the API key is kept in `.env`
-          paths.write = [ "${config.home.homeDirectory}/.vibe" ];
+          paths.default.write = [ "${config.home.homeDirectory}/.vibe" ];
           # the hooks run outside of nono
-          paths.read = [
+          paths.default.read = [
             "${config.home.homeDirectory}/.vibe/AGENTS.md"
             "${config.home.homeDirectory}/.vibe/config.toml"
             "${config.home.homeDirectory}/.vibe/hooks.toml"

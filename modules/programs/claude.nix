@@ -204,9 +204,20 @@ in
             # Claude in Chrome, whose extension meets the session on this relay
             "bridge.claudeusercontent.com"
           ];
-          paths.write = cfg.configDirs;
           # the managed config of every installation, which claude would otherwise run outside of nono later
-          paths.read = cfg.protectedPaths;
+          paths = lib.mkMerge [
+            cfg.sandboxPaths
+            {
+              # `.claude.json` stays writable, since claude rewrites it all the time, so an agent
+              # could still add an MCP server there that runs without nono later.
+              # The other installations keep it in their config directory.
+              default.files = [
+                "${config.home.homeDirectory}/.claude.json"
+                "${config.home.homeDirectory}/.claude.json.lock"
+                "${config.home.homeDirectory}/.claude.lock"
+              ];
+            }
+          ];
         };
         # The project config, which claude would otherwise run outside of nono later,
         # except for the prompts, the subagent memory and the worktrees claude creates.
@@ -222,19 +233,11 @@ in
           ".claude/worktrees"
         ];
       };
-      programs.nono.profiles.agents = {
-        # `.claude.json` stays writable, since claude rewrites it all the time, so an agent
-        # could still add an MCP server there that runs without nono later.
-        filesystem = {
-          allow = [ keychain ];
-          # the login of claude, as in the upstream pack, which exposes every item `security` may read
-          bypass_protection = [ keychain ];
-          allow_file = [
-            "${config.home.homeDirectory}/.claude.json"
-            "${config.home.homeDirectory}/.claude.json.lock"
-            "${config.home.homeDirectory}/.claude.lock"
-          ];
-        };
+      # The login of claude, as in the upstream pack, which exposes every item `security` may read,
+      # the logins of the other installations among them.
+      programs.nono.profiles.agents.filesystem = {
+        allow = [ keychain ];
+        bypass_protection = [ keychain ];
       };
     };
 }

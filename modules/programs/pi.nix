@@ -135,8 +135,8 @@
         harnesses.pi = {
           launchers.pi = cfg.package;
           # the sessions and the provider logins
-          paths.write = [ cfg.configDir ];
-          paths.read = [
+          paths.default.write = [ cfg.configDir ];
+          paths.default.read = [
             "${cfg.configDir}/AGENTS.md"
             "${cfg.configDir}/agents"
             "${cfg.configDir}/models.json"

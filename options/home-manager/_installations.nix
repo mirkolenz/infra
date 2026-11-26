@@ -61,6 +61,8 @@ let
     default = { inherit dir settings; };
   };
 
+  entriesOf = root: map (entry: "${root}/${entry}");
+
   # completions delegate to those of the regular executable
   mkLauncher =
     name: installation:
@@ -147,17 +149,21 @@ in
       description = "Config directories of every installation and the regular one they are based on.";
     };
 
-    protectedPaths = lib.mkOption {
-      type = with lib.types; listOf str;
-      default = lib.concatMap (
-        dir:
-        map (entry: "${dir}/${entry}") ([ (baseNameOf settingsFile) ] ++ sharedEntries ++ protectedEntries)
-      ) cfg.configDirs;
+    sandboxPaths = lib.mkOption {
+      type = with lib.types; attrsOf (attrsOf (listOf str));
+      default = lib.mapAttrs (name: installation: {
+        write = [ installation.dir ];
+        read =
+          entriesOf installation.dir ([ (baseNameOf settingsFile) ] ++ sharedEntries ++ protectedEntries)
+          # the targets of the shared entries
+          ++ lib.optionals (name != "default") (entriesOf dir sharedEntries);
+      }) all;
       readOnly = true;
       internal = true;
       description = ''
-        The settings file, the shared entries and `protectedEntries` within the config directory
-        of every installation, which agents may only read.
+        Paths of every installation by name, `default` for the regular one. Agents may write its
+        config directory, but only read the settings file, the shared entries and `protectedEntries`
+        within it, as well as the shared entries of the regular directory they link to.
       '';
     };
 

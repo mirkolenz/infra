@@ -99,7 +99,7 @@
           # A private server runs inside nono, the background service would not.
           # Subcommands take the flag only after their name, `mcp`, `serve` and `service` not at all.
           trailingSandboxArgs = [ "--standalone" ];
-          paths.write = [
+          paths.default.write = [
             "${config.xdg.configHome}/opencode"
             # the `/connect` logins are kept in the database here
             "${config.xdg.dataHome}/opencode"
@@ -109,7 +109,7 @@
           ];
           # Every plugin runs outside of nono as well, and the background service gets the `env` of `service.json`.
           # The config search outside of nono reaches the home directory too.
-          paths.read = [
+          paths.default.read = [
             "${config.xdg.configHome}/opencode/AGENTS.md"
             "${config.xdg.configHome}/opencode/opencode.json"
             "${config.xdg.configHome}/opencode/plugins"

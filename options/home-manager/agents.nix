@@ -253,13 +253,30 @@ in
                 description = "Flag of the harness that adds a workspace directory, passed for every `NONO_ALLOW` entry, and whose own directories nono grants as well.";
               };
 
-              # Granted like `programs.agents.sandbox.paths`, but within nono alone.
-              paths = {
-                read = listOption absolutePath ''
-                  Paths of the harness that it only reads within nono, such as the managed config
-                  within its state directories, which it would run outside of nono later.
+              # Granted like `programs.agents.sandbox.paths`, but within nono alone,
+              # and only to the launchers of the installation they belong to.
+              paths = mkOption {
+                type = types.attrsOf (
+                  types.submodule {
+                    options = {
+                      read = listOption absolutePath ''
+                        Paths of the harness that it only reads within nono, such as the managed config
+                        within its state directories, which it would run outside of nono later.
+                      '';
+                      write = listOption absolutePath "Paths of the harness that it writes, such as its state and login.";
+                      files = listOption absolutePath "Files of the harness that it writes, outside of a directory it may write.";
+                    };
+                  }
+                );
+                default = { };
+                example.default.write = [ "/home/user/.pi/agent" ];
+                description = ''
+                  Paths of the harness by installation, `default` for the regular one. Every launcher
+                  of an installation gets the paths of that installation in all harnesses, so its agents
+                  can run each other, but never those of another installation. The files home-manager
+                  manages there stay readable to all of them, and so does the keychain on macOS,
+                  which holds the login of every Claude installation.
                 '';
-                write = listOption absolutePath "Paths of the harness that it writes, such as its state and login.";
               };
 
               domains = listOption types.str "Hosts the harness itself talks to, reachable within nono.";
@@ -280,7 +297,8 @@ in
       default = { };
       description = ''
         Agent harnesses, whose launchers are shadowed by commands running them inside `nono run`
-        with the profile of `NONO_PROFILE`, or directly inside nono.
+        with the profile of their installation, or the one `NONO_PROFILE` names,
+        or directly inside nono.
         The directories of the comma-separated `NONO_ALLOW` are granted by nono and passed
         to the harness through its `addDirFlag`.
       '';

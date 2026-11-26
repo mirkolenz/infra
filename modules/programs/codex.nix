@@ -162,9 +162,8 @@
             "auth.openai.com"
             "chatgpt.com"
           ];
-          paths.write = cfg.configDirs;
           # the managed config, the hooks and the app-server daemon of every installation
-          paths.read = cfg.protectedPaths;
+          paths = cfg.sandboxPaths;
         };
         # The project config, except for the skills.
         # Codex protects `.agents` natively, except for the skills of every agent there.
