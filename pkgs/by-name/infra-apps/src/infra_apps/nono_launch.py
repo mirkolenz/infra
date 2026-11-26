@@ -155,6 +155,8 @@ def sandbox_env(env: Mapping[str, str], templates: Mapping[str, str]) -> dict[st
 def write_profile(extends: Sequence[str], path: Path, paths: Iterable[Path]) -> None:
     """Write a session profile extending `extends` from left to right, granting to list the ancestors of `paths`.
 
+    The profiles are merged in the order given, so a later one takes precedence.
+
     On macOS, nono grants a directory in `read_file` as its exact path, which lists its entries only.
     Its ancestors include those of nono's state, which Seatbelt still denies.
     TODO: the list-only grant of nono once it has one, https://github.com/nolabs-ai/nono/issues/457
@@ -229,17 +231,17 @@ def launch(config: Config, args: Sequence[str]) -> int:
     # A private temporary directory, the only place the session may bind and connect sockets,
     # such as the forkserver of Python's multiprocessing. Those of /tmp and the host stay out of reach.
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
-        # Without `O_PATH`, Nix and Bun open every ancestor of a path they resolve.
-        if sys.platform == "darwin":
-            profile = Path(tmp, "profile.json")
-            write_profile(extends, profile, [*roots, *map(Path, config.granted)])
-            env["NONO_PROFILE"] = str(profile)
-            bases = []
-        else:
-            *bases, env["NONO_PROFILE"] = extends
+        profile = Path(tmp, "profile.json")
+        # On macOS, without `O_PATH`, Nix and Bun open every ancestor of a path they resolve.
+        listed = [*roots, *map(Path, config.granted)] if sys.platform == "darwin" else []
+        write_profile(extends, profile, listed)
 
         # The agent runs on a pty of nono, so herdr identifies it by this hint on nono.
-        env |= {"TMPDIR": tmp, "HERDR_AGENT": config.herdr_agent}
+        env |= {
+            "NONO_PROFILE": str(profile),
+            "TMPDIR": tmp,
+            "HERDR_AGENT": config.herdr_agent,
+        }
         sandbox = [] if config.bwrap is None else bwrap_command(config.bwrap, roots)
         status = run(
             [
@@ -251,7 +253,6 @@ def launch(config: Config, args: Sequence[str]) -> int:
                 "--allow-cwd",
                 "--allow-unix-socket-subtree-bind",
                 tmp,
-                *(arg for base in bases for arg in ("--extends", base)),
                 *env_credentials(config.env_files),
                 "--",
                 # this launcher again, which runs the harness within the sandbox
