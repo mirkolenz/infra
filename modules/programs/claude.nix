@@ -15,8 +15,7 @@ let
     { config, lib, ... }:
     {
       programs.claude-code.managedSettings = lib.mkIf config.custom.features.agents.enable {
-        # the plugin of home-manager lives in `~/.claude/skills`, which any allowlist excludes otherwise
-        strictKnownMarketplaces = lib.attrValues knownMarketplaces ++ [ { source = "skills-dir"; } ];
+        strictKnownMarketplaces = lib.attrValues knownMarketplaces;
       };
     };
 in
@@ -53,7 +52,6 @@ in
       programs.claude-code = {
         enable = true;
         package = pkgs.claude-code-bin;
-        enableMcpIntegration = true;
         inherit (agents) context skills;
         installations = {
           personal = { };

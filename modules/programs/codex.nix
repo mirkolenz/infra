@@ -27,7 +27,6 @@
       programs.codex = {
         enable = true;
         package = pkgs.codex-bin;
-        enableMcpIntegration = true;
         inherit (agents) context skills;
         installations = {
           personal = { };

@@ -75,11 +75,6 @@
               ) provider.models;
             }
           ) agents.providers;
-          # home-manager's `enableMcpIntegration` still renders the V1 shape
-          mcp.servers = lib.mapAttrs (_: server: {
-            type = "local";
-            command = [ server.command ] ++ server.args or [ ];
-          }) config.programs.mcp.servers;
           # https://opencode.ai/v2/docs/permissions
           # upstream allows `external_directory`, so paths outside the workspace need no rule
           permissions = mkRules "allow" "shell" (commandPatterns sandbox.commands.allow);
