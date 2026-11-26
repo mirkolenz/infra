@@ -78,8 +78,10 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   versionCheckKeepEnvironment = [ "HOME" ];
   doInstallCheck = true;
 
-  # bun reads the ICU data of macOS, which the build sandbox hides
-  __noChroot = stdenvNoCC.hostPlatform.isDarwin;
+  # bun reads the system icu data for Intl.Segmenter during the completion and version checks
+  sandboxProfile = ''
+    (allow file-read* (subpath "/usr/share/icu"))
+  '';
 
   strictDeps = true;
   __structuredAttrs = true;
