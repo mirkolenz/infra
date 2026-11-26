@@ -51,6 +51,10 @@
           ".envrc"
           "result"
           "result-*"
+          # dependencies and caches of the toolchains, which also keeps the repository walk of the agents fast
+          "node_modules/"
+          ".venv/"
+          "__pycache__/"
           # editors
           ".idea/*"
           ".vscode/*"
