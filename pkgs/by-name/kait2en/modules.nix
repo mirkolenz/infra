@@ -117,11 +117,11 @@ in
 kait2en.mkKbuild (finalAttrs: {
   pname = "kait2en-modules";
 
-  version = "0.1.16-unstable-2026-11-23";
+  version = "0.1.16-unstable-2026-11-25";
 
   src = kait2en.fetchSource {
-    rev = "6915384500c59c7ac4842977a40b4269f122bdbc";
-    hash = "sha256-+b8hLIqknP9QwCmkqFeZO/sL0ZLJKeoZJ8JklEL0dsU=";
+    rev = "ba0f3f6ebd510f742f6165b13d2fce13ddda6977";
+    hash = "sha256-ZEZbsgZpT1r5KUTSStaPgKeMp6QzPHPFNlSqxGECZqA=";
     paths =
       map (dir: "modules/${dir}/") (lib.remove "linux-apfs-rw" packages)
       ++ map (dir: "t2-services/t2-ave/kernel/${dir}/") aveMembers
