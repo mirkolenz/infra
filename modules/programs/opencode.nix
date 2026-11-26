@@ -127,6 +127,8 @@
             "models.opencode.ai"
           ];
         };
+        # The shell daemon defaults to `/tmp/opencode-pty-<uid>`, whose sockets nono refuses to connect to.
+        sandbox.environment.templates.OPENCODE_PTY_SOCKET_DIR = "$TMPDIR";
         # The project config, every plugin there runs outside of nono as well, except for the prompts.
         sandbox.workspace.read = [
           ".opencode"
