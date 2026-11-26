@@ -10,6 +10,10 @@
 let
   cfg = config.xdg;
 
+  # Checked out repositories, grouped by owner, in the Developer directory on darwin
+  # and in XDG_PROJECTS_DIR, added in xdg-user-dirs 0.20, everywhere else.
+  projects = if pkgs.stdenv.hostPlatform.isDarwin then "Developer" else "Projects";
+
   fileType =
     (import "${modulesPath}/lib/file-type.nix" {
       inherit (config.home) homeDirectory;
@@ -29,7 +33,7 @@ in
 
   config = lib.mkMerge [
     {
-      xdg.userDirs.projects = lib.mkDefault "${config.home.homeDirectory}/${config.custom.projectsDir}";
+      xdg.userDirs.projects = lib.mkDefault "${config.home.homeDirectory}/${projects}";
       home.sessionVariables.XDG_PROJECTS_DIR = cfg.userDirs.projects;
     }
 
