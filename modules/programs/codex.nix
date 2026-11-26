@@ -88,10 +88,17 @@
               unix_sockets = lib.genAttrs sandbox.unixSockets (_: "allow");
             };
           };
+          # the system skills codex ships, such as imagegen and skill-installer
+          skills.bundled.enabled = false;
+          # every installed plugin, such as sites, pages, or the office documents, since each adds its skills to every session
+          plugins._default.enabled = false;
           features = {
             # the domain rules above need it to apply
             network_proxy = true;
             memories = false;
+            # the ChatGPT connectors, as `disableClaudeAiConnectors` does for claude
+            apps = false;
+            browser_use = false;
           };
           tui = {
             vim_mode_default = true;
@@ -147,13 +154,14 @@
             "nono"
             "-c"
             ''default_permissions=":danger-full-access"''
+            # describes the sandbox of codex, which nono replaces
+            "-c"
+            "include_permissions_instructions=false"
           ];
           domains = [
             "auth.openai.com"
             "chatgpt.com"
           ];
-          # the browser use of the ChatGPT app, whose in-app browser serves it here
-          unixSocketDirs = [ "/tmp/codex-browser-use" ];
           paths.write = cfg.configDirs;
           # the managed config, the hooks and the app-server daemon of every installation
           paths.read = cfg.protectedPaths;
