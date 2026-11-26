@@ -21,6 +21,17 @@ let
     }).fileType;
 in
 {
+  options.custom.privateProjects = lib.mkOption {
+    type = lib.types.str;
+    default = "${config.home.homeDirectory}/Private";
+    defaultText = lib.literalExpression ''"''${config.home.homeDirectory}/Private"'';
+    description = ''
+      Confidential checked out repositories, grouped by owner like those of `xdg.userDirs.projects`,
+      which agents reach only when started in one or granted it explicitly.
+      Named after the private visibility of GitHub and GitLab.
+    '';
+  };
+
   options.xdg = {
     binFile = lib.mkOption {
       type = fileType "xdg.binFile" "{var}`xdg.binHome`" cfg.binHome;
@@ -35,6 +46,10 @@ in
     {
       xdg.userDirs.projects = lib.mkDefault "${config.home.homeDirectory}/${projects}";
       home.sessionVariables.XDG_PROJECTS_DIR = cfg.userDirs.projects;
+      # mode 700, so other users cannot read the confidential projects
+      home.activation.private-projects = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        run install -d -m 700 $VERBOSE_ARG ${lib.escapeShellArg config.custom.privateProjects}
+      '';
     }
 
     (lib.mkIf cfg.enable {

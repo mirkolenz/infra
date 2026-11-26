@@ -63,7 +63,7 @@
             }
             {
               key = "<leader>fp";
-              action = ''picker.projects({ dev = { vim.env.XDG_PROJECTS_DIR }, patterns = { ".git", "flake.nix" } })'';
+              action = ''picker.projects({ dev = { vim.env.XDG_PROJECTS_DIR, vim.env.PRIV }, patterns = { ".git", "flake.nix" } })'';
               options.desc = "Projects";
             }
             {

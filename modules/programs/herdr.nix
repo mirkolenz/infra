@@ -9,6 +9,10 @@
     let
       inherit (config.programs.herdr) plugins;
       inherit (config.xdg.userDirs) projects;
+      private = config.custom.privateProjects;
+      # Repositories are checked out as <owner>/<repo>, putting `.git` three levels below each root.
+      # The picker shows that many levels of each path, so private ones stand out.
+      depth = toString 3;
 
       popup = {
         type = "popup";
@@ -16,7 +20,6 @@
         height = "70%";
       };
 
-      # Repositories are checked out as <owner>/<repo>, putting `.git` three levels below the root.
       # `worktree open` focuses the repository's workspace when one exists and otherwise creates a
       # worktree-backed one, which is what the `open_worktree` binding operates on.
       projectPicker = pkgs.writeShellApplication {
@@ -28,12 +31,12 @@
         ];
         text = ''
           repo=$(
-            fd --hidden --no-ignore --type d --max-depth 3 --glob .git \
-              --base-directory "${projects}" --format '{//}' \
-              | fzf --prompt 'project> '
+            fd --hidden --no-ignore --type d --max-depth ${depth} --glob .git --format '{//}' \
+              "${projects}" "${private}" \
+              | fzf --prompt 'project> ' --delimiter / --with-nth -${depth}..
           ) || exit 0
 
-          herdr worktree open --cwd "${projects}/$repo" --path "${projects}/$repo" --focus
+          herdr worktree open --cwd "$repo" --path "$repo" --focus
         '';
       };
 
