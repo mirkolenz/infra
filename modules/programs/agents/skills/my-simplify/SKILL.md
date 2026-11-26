@@ -13,6 +13,8 @@ Leave correctness to the `my-review` skill.
 ## Scope
 
 A commit, range, branch, or pull request is diff mode, and a path or the whole tree is file mode.
+Without an argument, take `git diff HEAD`.
+If it is empty, take `git diff @{upstream}...HEAD`, then the diff against the default branch, then `git diff HEAD~1`.
 Over a whole tree, target accumulated cruft and rank by duplication and complexity.
 Then split along the repository's own units such as a module, package, or crate.
 A unit is the smallest scope a helper is shared within, so splitting finer hides duplication.
@@ -74,6 +76,7 @@ lychee .
 ## Angles
 
 Cover every angle below, grouping angles that read the same material into one agent.
+Start all agents in one message, so that they run in parallel.
 Skip an angle whose subject the target does not contain, and say so.
 
 - Reuse: code that re-implements an existing helper, naming the helper.
@@ -87,6 +90,7 @@ Skip an angle whose subject the target does not contain, and say so.
 ## Output
 
 Each finding names the file and line, states what is duplicated, wasted, or hard to maintain, and gives the better form.
+Before you apply a fix, merge the findings that point at the same line or the same mechanism.
 Apply each fix directly.
 Skip a fix that would change intended behavior, reach well outside the scope, or that you judge a false positive, and say so.
 Close with what was fixed, what was skipped, and which angles did not run and why, so repeated runs stay comparable.

@@ -12,8 +12,24 @@ CRA and NIS2 paperwork belongs to `my-legal`, and license obligations to `my-lic
 ## Scope
 
 A commit, range, branch, or pull request is diff mode, and a path or the whole tree is file mode.
+Without an argument, take `git diff HEAD`.
+If it is empty, take `git diff @{upstream}...HEAD`, then the diff against the default branch, then `git diff HEAD~1`.
 The layer `repo` is the first-party sources, `deps` is everything the product ships, and `full` is both.
 Whenever `deps` is in scope, start from the bill of materials, since an unlisted component is an unscanned one.
+
+## Context
+
+Before you scan, read how the repository sanitizes input, escapes output, and enforces authorization.
+Flag code that departs from these patterns, since a departure is more likely a defect than a pattern used everywhere.
+Apply these precedents unless the code proves otherwise:
+
+- Environment variables and command-line flags are trusted input.
+- A UUID is unguessable.
+- React escapes output, except through `dangerouslySetInnerHTML`.
+- Authorization in client code is not a boundary, so its absence there is not a finding.
+- A memory-safe language has no memory-safety defects outside its unsafe blocks.
+- Code that only tests or documentation run is out of scope, but a secret in it is still a finding.
+- Log spoofing, and a server-side request where the attacker controls only the path, are not findings.
 
 ## Tools
 
@@ -105,6 +121,7 @@ gh api repos/<owner>/<repo>/dependabot/alerts
 
 Cover every angle whose layer is in scope, the first four under `repo` and the last two under `deps`.
 Group angles that read the same material into one agent, and tell each agent which output it gets and which tools it runs.
+Start all agents in one message, so that they run in parallel.
 Skip an angle whose subject the target does not contain, and say so.
 
 - First-party code: each tool hit confirmed in context, then injection, deserialization, path traversal, broken authorization, unsafe memory or concurrency, and misused cryptography.
@@ -124,4 +141,6 @@ Skip an angle whose subject the target does not contain, and say so.
 
 Each finding names the file and line, states the defect in one sentence, and gives the exploit scenario and the fix.
 Rank by exploitability, and merge findings of the same defect at the same place.
+Then give each finding to a separate agent that tries to disprove it, and that scores its confidence from 1 to 10.
+Drop the findings below 8, and list them as dropped.
 Close with every command and angle that did not run and why.

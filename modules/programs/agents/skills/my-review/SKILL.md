@@ -12,6 +12,8 @@ Review for recall, since a missed bug ships and an uncertain finding costs less 
 ## Scope
 
 A commit, range, branch, or pull request is diff mode, and a path or the whole tree is file mode.
+Without an argument, take `git diff HEAD`.
+If it is empty, take `git diff @{upstream}...HEAD`, then the diff against the default branch, then `git diff HEAD~1`.
 In diff mode a touched function is in scope whole, since the bug may sit in an untouched line.
 Over a whole tree, rank by complexity and churn, then split along the repository's own units such as a module, package, or crate.
 Give each unit to exactly one agent, and say which parts nobody reached.
@@ -78,6 +80,7 @@ keep-sorted --mode lint <files>
 ## Angles
 
 Cover every angle below, grouping angles that read the same material into one agent.
+Start all agents in one message, so that they run in parallel.
 Skip an angle whose subject the target does not contain, and say so.
 The same line may be flagged twice for different reasons.
 
@@ -96,7 +99,10 @@ The same line may be flagged twice for different reasons.
 ## Output
 
 Each finding names the file and line, states the defect in one sentence, and gives the input and state that make it fail.
+Label a finding `important` when the change adds or worsens it, `pre_existing` when it was there before, and `nit` when it is minor.
 Rank by severity with correctness above cleanup, and merge only findings of the same defect at the same place.
+Then give each finding to a separate agent that tries to disprove it.
+Label a finding that survives `CONFIRMED` and one that the agent cannot settle `PLAUSIBLE`, and drop only the disproved ones.
 Report the strongest findings rather than a fixed number.
 Close with the angles and parts skipped and why, so repeated runs stay comparable.
 If a findings-reporting tool is available, call it once instead of printing them.
