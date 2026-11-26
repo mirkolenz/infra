@@ -132,19 +132,18 @@ def sandbox_env(env: Mapping[str, str], templates: Mapping[str, str]) -> dict[st
     nono exempts only `localhost` and `127.0.0.1` from its proxy, which drops requests to `::1`.
     The profile cannot add it, nono sets the variables after `environment.set_vars`
     and refuses `network.no_proxy` with the network namespace on Linux.
+    Node's fetch before v26 (undici 8.10) also needs `[::1]`, but httpx crashes on it.
     TODO: drop once nono exempts `::1` itself
 
     >>> env = sandbox_env({"NO_PROXY": "localhost,::1", "A": "a"}, {"B": "b=$A", "C": "$D"})
     >>> env["NO_PROXY"], env["no_proxy"], env["B"], "C" in env
-    ('localhost,::1,[::1]', '::1,[::1]', 'b=a', False)
+    ('localhost,::1', '::1', 'b=a', False)
     """
     result = dict(env)
 
     for var in ("NO_PROXY", "no_proxy"):
         hosts = split(env.get(var, ""))
-        result[var] = ",".join(
-            [*hosts, *(host for host in ("::1", "[::1]") if host not in hosts)]
-        )
+        result[var] = ",".join(hosts if "::1" in hosts else [*hosts, "::1"])
 
     for var, template in templates.items():
         with suppress(KeyError):
