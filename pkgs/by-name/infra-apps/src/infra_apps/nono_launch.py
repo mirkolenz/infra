@@ -230,7 +230,8 @@ def launch(config: Config, args: Sequence[str]) -> int:
 
     # A private temporary directory, the only place the session may bind and connect sockets,
     # such as the forkserver of Python's multiprocessing. Those of /tmp and the host stay out of reach.
-    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
+    # Below /tmp, since socket paths within the long temporary directory of macOS exceed `SUN_LEN`.
+    with tempfile.TemporaryDirectory(dir="/tmp", ignore_cleanup_errors=True) as tmp:
         profile = Path(tmp, "profile.json")
         # On macOS, without `O_PATH`, Nix and Bun open every ancestor of a path they resolve.
         listed = (
