@@ -23,9 +23,6 @@ Run a tool once and share its output when several angles read it, otherwise let 
 Run what the languages present call for, and record what was skipped.
 
 ```sh
-# ripwire: orientation in an unknown repository
-ripwire .
-
 # git: recent intent
 git log --oneline -20
 

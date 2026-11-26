@@ -62,7 +62,6 @@
         mailpit
         zapp
         todoist-cli
-        ripwire
         harlequin
         usql
         flow-control

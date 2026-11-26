@@ -52,7 +52,6 @@
 - Keep blocks such as if/while/for/try/match/return separated by blank lines from the surrounding code to improve readability.
 - When writing plain text, use one newline to separate sentences and two newlines to separate paragraphs: txt, md, tex, typ, rst, ...
 - Never run formatters or auto-fixing linters automatically, only when explicitly needed.
-- Exec `ripwire .` to orient yourself in a repository.
 
 ## Dependencies
 

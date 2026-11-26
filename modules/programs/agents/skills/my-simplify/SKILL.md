@@ -26,9 +26,6 @@ Run a tool once and share its output when several angles read it, otherwise let 
 Run what the languages present call for, and record what was skipped.
 
 ```sh
-# ripwire: the layout, so an agent knows where shared helpers live
-ripwire .
-
 # jscpd: duplication across 220 languages, but not nix, so judge nix by reading
 jscpd --min-tokens 50 <scope>
 
