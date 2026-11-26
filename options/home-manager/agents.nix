@@ -153,9 +153,24 @@ in
         '';
       };
 
+      projects = {
+        enable = lib.mkEnableOption ''
+          read and write access to the projects of `dirs` from every session, with the workspace paths
+          of every repository within enforced, on Linux down to four levels.
+          Projects elsewhere, such as confidential ones, stay out of reach unless an agent starts in them
+          or is granted them explicitly
+        '';
+        dirs = mkOption {
+          type = types.listOf absolutePath;
+          default = [ config.xdg.userDirs.projects ];
+          defaultText = lib.literalExpression "[ config.xdg.userDirs.projects ]";
+          description = "Directories of public or non-critical projects.";
+        };
+      };
+
       # Paths relative to the workspaces, where `*` matches within a path segment and `**/` any directories.
-      # Only nono enforces them, on macOS at any depth outside of temporary and writable absolute paths,
-      # on Linux at the workspace roots and their git directories.
+      # Only nono enforces them, on macOS at any depth outside of temporary directories and caches,
+      # on Linux at the workspace roots, the repositories within `projects.dirs`, and their git directories.
       workspace = {
         read = listOption types.str "Workspace paths agents may only read.";
         write = listOption types.str "Workspace paths exempt from a broader `read` or `deny` one.";
@@ -306,6 +321,8 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    programs.agents.sandbox.paths.write = lib.mkIf cfg.sandbox.projects.enable cfg.sandbox.projects.dirs;
+
     home.shellAliases = lib.concatMapAttrs (
       _name: harness:
       lib.concatMapAttrs (

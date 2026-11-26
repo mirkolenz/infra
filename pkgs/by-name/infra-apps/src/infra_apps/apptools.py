@@ -92,9 +92,13 @@ def run_json(
         raise Error(f"`{command}` printed no JSON: {error}") from error
 
 
-def run_nul(*args: str | Path) -> list[str]:
+def run_nul(
+    *args: str | Path, codes: Container[int] = (0,), capture: bool = False
+) -> list[str]:
     """Run a command printing null-separated entries, such as `git ls-files -z`, and return them."""
-    return [entry for entry in run(*args).split("\0") if entry]
+    return [
+        entry for entry in run(*args, codes=codes, capture=capture).split("\0") if entry
+    ]
 
 
 class HelpFormatter(RawDescriptionHelpFormatter, ArgumentDefaultsHelpFormatter):

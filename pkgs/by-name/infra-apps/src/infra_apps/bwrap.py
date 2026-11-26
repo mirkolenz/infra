@@ -3,7 +3,8 @@
 On Linux, nono grants but does not restrict within granted directories, so bubblewrap mounts
 over the `read` paths within writable ones, the `write` paths within those,
 and the workspace keys of every workspace root and its git directories.
-The workspace roots are the working directory and the granted directories.
+The workspace roots are the working directory, the granted directories, and the repositories
+within the project directories down to `DEPTH` levels.
 The mounts cover paths that exist at launch.
 """
 
@@ -14,9 +15,15 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any, Self
 
+from infra_apps.apptools import run_nul
+
 __all__ = ["Policy", "command"]
 
 GIT_DIR_PREFIX = ".git/"
+
+# The levels below a project directory down to which the working trees of repositories count,
+# those checked out as <owner>/<repo> and two more for those nested within.
+DEPTH = 4
 
 
 class Access(StrEnum):
@@ -29,7 +36,7 @@ class Access(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class Policy:
-    """The workspace keys by access, the absolute sandbox paths, and the executables.
+    """The workspace keys by access, the absolute sandbox paths, the project directories, and the executables.
 
     The executables are absolute paths, since `PATH` reaches the sandboxed command.
     """
@@ -37,8 +44,11 @@ class Policy:
     workspace: Mapping[Access, tuple[str, ...]]
     read: tuple[Path, ...]
     write: tuple[Path, ...]
+    projects: tuple[Path, ...]
     bwrap: str
     git: str
+    fd: str
+    ignore: str
 
     @classmethod
     def parse(cls, data: Mapping[str, Any]) -> Self:
@@ -50,8 +60,11 @@ class Policy:
             },
             read=tuple(map(Path, data["read"])),
             write=tuple(map(Path, data["write"])),
+            projects=tuple(map(Path, data["projects"])),
             bwrap=data["bwrap"],
             git=data["git"],
+            fd=data["fd"],
+            ignore=data["ignore"],
         )
 
     def keys(self, access: Access, *, git: bool) -> list[str]:
@@ -97,6 +110,9 @@ class Workspace:
     def discover(cls, roots: Iterable[Path], git: str) -> Self:
         """The workspace of the existing directories among `roots`, found with `git`."""
         dirs = {path for root in roots if (path := root.resolve()).is_dir()}
+        # A `.git` directory is its own git and common directory, so only a working tree
+        # below its top level or with a `.git` file, as linked worktrees and submodules have, needs git.
+        plain = {path for path in dirs if (path / ".git").is_dir()}
         processes = [
             subprocess.Popen(
                 [
@@ -113,10 +129,10 @@ class Workspace:
                 stderr=subprocess.DEVNULL,
                 text=True,
             )
-            for path in dirs
+            for path in dirs - plain
         ]
         trees = set(dirs)
-        gitdirs: set[Path] = set()
+        gitdirs = {path / ".git" for path in plain}
 
         for process in processes:
             stdout, _ = process.communicate()
@@ -168,9 +184,43 @@ def canonical(mounts: Iterable[Mount]) -> list[Mount]:
     ]
 
 
+def repositories(policy: Policy) -> list[Path]:
+    """The working trees of the repositories within the project directories, down to `DEPTH` levels.
+
+    An agent may write to them from any session, so each one is a workspace root as well.
+    fd stops at every `.git` and skips the directories of the global gitignore, far faster than
+    walking them. It disregards every ignore file within the directories, which agents may write
+    to hide a repository from the walk, as well as the global ignore file of the user.
+    """
+    dirs = [path for path in policy.projects if path.is_dir()]
+
+    if not dirs:
+        return []
+
+    # an unreadable directory makes fd fail, but not lose the others
+    found = run_nul(
+        policy.fd,
+        "--hidden",
+        "--no-ignore",
+        "--ignore-file",
+        policy.ignore,
+        "--prune",
+        "--glob",
+        "--print0",
+        "--max-depth",
+        str(DEPTH + 1),
+        ".git",
+        *dirs,
+        codes=range(256),
+        capture=True,
+    )
+
+    return [Path(path).parent for path in found]
+
+
 def command(policy: Policy, roots: Iterable[Path]) -> list[str]:
     """The bubblewrap command enforcing `policy` for the workspace roots, up to the `--` before the command it runs."""
-    workspace = Workspace.discover(roots, policy.git)
+    workspace = Workspace.discover([*roots, *repositories(policy)], policy.git)
     args = [
         arg for mount in canonical(requested(policy, workspace)) for arg in mount.args
     ]

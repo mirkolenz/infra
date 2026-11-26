@@ -131,7 +131,11 @@
         read = paths.readOnly;
         write = within paths.readOnly paths.write;
         bwrap = lib.getExe pkgs.bubblewrap;
+        projects = lib.optionals sandbox.projects.enable sandbox.projects.dirs;
         git = lib.getExe pkgs.gitMinimal;
+        fd = lib.getExe pkgs.fd;
+        # the global gitignore, out of reach of the agents unlike the ignore files of the projects
+        ignore = pkgs.writeText "agents-ignore" (lib.concatLines config.programs.git.ignores);
       };
 
       # The nono profile of the agents, extended by one per installation, which the session profile
