@@ -233,7 +233,9 @@ def launch(config: Config, args: Sequence[str]) -> int:
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
         profile = Path(tmp, "profile.json")
         # On macOS, without `O_PATH`, Nix and Bun open every ancestor of a path they resolve.
-        listed = [*roots, *map(Path, config.granted)] if sys.platform == "darwin" else []
+        listed = (
+            [*roots, *map(Path, config.granted)] if sys.platform == "darwin" else []
+        )
         write_profile(extends, profile, listed)
 
         # The agent runs on a pty of nono, so herdr identifies it by this hint on nono.

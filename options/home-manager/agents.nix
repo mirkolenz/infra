@@ -321,7 +321,8 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    programs.agents.sandbox.paths.write = lib.mkIf cfg.sandbox.projects.enable cfg.sandbox.projects.dirs;
+    programs.agents.sandbox.paths.write =
+      lib.mkIf cfg.sandbox.projects.enable cfg.sandbox.projects.dirs;
 
     home.shellAliases = lib.concatMapAttrs (
       _name: harness:
