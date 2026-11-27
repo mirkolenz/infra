@@ -71,6 +71,9 @@ in
             --retry 8 --retry-all-errors \
             --json @- ${lib.escapeShellArg cfg.server}
       '';
+      # A failed instance would keep the failed unit loaded through `OnFailure=`,
+      # which blocks a transient unit of the same name, such as of nixos-rebuild.
+      unitConfig.CollectMode = "inactive-or-failed";
       serviceConfig = {
         Type = "oneshot";
         DynamicUser = true;
