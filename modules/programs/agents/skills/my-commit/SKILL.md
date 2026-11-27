@@ -8,7 +8,7 @@ description: |
 
 Turn the working tree into a short sequence of commits where each one is a meaningful change that can be reverted alone.
 Semantic release derives the changelog and the next version from these commits, so the sequence must read as a sensible release note.
-Invoking this skill is the permission to commit, but never push, and never change the working tree.
+Invoking this skill is the permission to commit, but never push, and never change the working tree beyond running the formatter.
 Only amend when the user asks, and only commits that are not on any remote.
 
 ## Scope
@@ -44,16 +44,17 @@ Never touch context lines.
 
 ## Steps
 
-1. Group the hunks, and the lines inside a hunk, into commits.
+1. If the repository has a `flake.nix`, run `nix fmt` with the paths from the argument, if any, before reading the change.
+2. Group the hunks, and the lines inside a hunk, into commits.
    - One purpose per commit, such as a feature, a fix, or a refactor, together with the edits that support it.
    - Prefer fewer, larger commits. Split only where the parts make sense on their own, never into one-line commits for their own sake.
    - Keep sizable refactors and formatting apart from behavior changes.
    - Keep generated files and lockfiles with the change that produced them.
    - Order commits so that each one only depends on earlier ones.
    - Leave debug output and scratch files uncommitted.
-2. For each commit, stage whole files with `git add` and partial files through a patch.
-3. Check `git diff --cached` holds exactly that commit.
-4. Commit with `git commit -m "<type>(<scope>): <title>"`, a conventional message with a concise title and an empty body.
+3. For each commit, stage whole files with `git add` and partial files through a patch.
+4. Check `git diff --cached` holds exactly that commit.
+5. Commit with `git commit -m "<type>(<scope>): <title>"`, a conventional message with a concise title and an empty body.
    Leave out articles such as `the`, `a`, and `an` in the title.
    When the user asked to amend and the change belongs to an unpushed commit, amend that commit instead.
    Never use `--no-verify`, and when a hook fails, fix the issue and commit again.
