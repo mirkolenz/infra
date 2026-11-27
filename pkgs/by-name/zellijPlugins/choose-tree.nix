@@ -6,16 +6,16 @@
 }:
 mkZellijPlugin (finalAttrs: {
   pname = "zellij-choose-tree";
-  version = "0.4.2";
+  version = "0.5.0";
 
   src = fetchFromGitHub {
     owner = "laperlej";
     repo = "zellij-choose-tree";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-g6R+LfSN7IgRPWr7sf3mLIn6c2xP/oaFO/MsxX7oB0s=";
+    hash = "sha256-NEhE+h5RXZd/KtIMv6K+QfKNXhRx47Oe1Ld44XeA5dU=";
   };
 
-  cargoHash = "sha256-CPw+9dnlJi/5CFZNlYu3DTHvku5p8dAYh48awQ20ncs=";
+  cargoHash = "sha256-BNFm72A5PLzY6AxXsTjNiVGkKAIL40g1nZ0DJ9GkWDo=";
 
   passthru.updateScript = nix-update-script { };
 
