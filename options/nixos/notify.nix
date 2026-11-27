@@ -51,7 +51,8 @@ in
       ];
       scriptArgs = "%i";
       # jq truncates by code points, ntfy turns messages above 4K into attachments.
-      # The retries back off exponentially for about 4 minutes.
+      # The retries back off exponentially for about 4 minutes,
+      # and each attempt times out, so a blackholed tailnet address while away cannot stall them.
       script = ''
         unit=$1
         result=$(systemctl show --property=Result --value "$unit")
@@ -68,7 +69,7 @@ in
               tags: [if $result == "success" then "white_check_mark" else "rotating_light" end]
             }' |
           curl --fail-with-body --silent --show-error \
-            --retry 8 --retry-all-errors \
+            --max-time 10 --retry 8 --retry-all-errors \
             --json @- ${lib.escapeShellArg cfg.server}
       '';
       # A failed instance would keep the failed unit loaded through `OnFailure=`,
@@ -76,6 +77,14 @@ in
       unitConfig.CollectMode = "inactive-or-failed";
       serviceConfig = {
         Type = "oneshot";
+        # An unreachable server, such as outside of the LAN and the tailnet, only skips the notification.
+        # These are the curl exit codes for unresolved hosts, refused connections, and timeouts,
+        # while server errors such as a rejected topic still fail.
+        SuccessExitStatus = [
+          6
+          7
+          28
+        ];
         DynamicUser = true;
         SupplementaryGroups = [ "systemd-journal" ];
       };
