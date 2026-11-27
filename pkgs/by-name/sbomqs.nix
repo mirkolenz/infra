@@ -7,16 +7,16 @@
 }:
 buildGoModule (finalAttrs: {
   pname = "sbomqs";
-  version = "2.1.3";
+  version = "2.1.4";
 
   src = fetchFromGitHub {
     owner = "interlynk-io";
     repo = "sbomqs";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-KlN0e6+rXtjRC/w7Or0TAaYh55h40eee8yXh7hL19v8=";
+    hash = "sha256-w/4sGCPc9ItM+swvSOsqCQR75M4q9E7P57fj+NmMSvE=";
   };
 
-  vendorHash = "sha256-bToPMTlsolTDqCsNf6+jXXiesxgIY+Tfb2bgmMYNyjU=";
+  vendorHash = "sha256-3i7A5YJmTpHV4dpb66dZKoVTwmudBpmEc7wq60d34z0=";
 
   ldflags = [
     "-s"
