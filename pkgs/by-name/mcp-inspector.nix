@@ -24,23 +24,23 @@ let
 in
 buildNpmPackage (finalAttrs: {
   pname = "mcp-inspector";
-  version = "2.16.0";
+  version = "2.17.0";
 
   src = fetchFromGitHub {
     owner = "modelcontextprotocol";
     repo = "inspector";
     tag = finalAttrs.version;
-    hash = "sha256-FpTzpN9/B4V4ko4SCTByBJHM+XHFM7ZzseDzyc773R4=";
+    hash = "sha256-XRcz1Z7Aj92Q3lWel9mm/1GnZ6ywxL/WH5/hRR7un5I=";
   };
 
   # the root lockfile holds the runtime dependencies of every client
-  npmDepsHash = "sha256-fC0/13fgpHDlZxZ+FaY0+4VOQfxCFAtLNvJOnErM+lo=";
+  npmDepsHash = "sha256-WeaWA/85uIIPgzK7keT46TIwPVXitPtUHE5huxDWHVQ=";
 
   npmDepsHashes = {
     web = "sha256-k8uI5cSuhEKAMFl+UMPElvu9RB9zbapwp+yd/4PJX7A=";
     cli = "sha256-Fbi/6HLq4Q6sSgUeySa66LDHepcA5GdvsR9RIMHOubE=";
     mcpdo = "sha256-ikB1o5YxQ8qO3VTtY3F8cNY9Sycx09L0vttetA2QEkw=";
-    tui = "sha256-b7/he7GMzgFsFQ6v2KWIv0CTTyNEy13Rr5Ye6hTE9TI=";
+    tui = "sha256-q5MDOAxiESmoH3Z91uzFi9FlwTOR9a9mo6Qtx1oi9Tg=";
   };
 
   nativeBuildInputs = [ makeBinaryWrapper ];
