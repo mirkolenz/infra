@@ -85,6 +85,17 @@ in
     doCheck = false;
   });
 
+  # Some pixels of the scaled stdlib sprites are off by one on darwin,
+  # failing the byte-exact SVG comparison of the vega tests.
+  # Fixed in nixpkgs by 21c7ec7985, which has not reached nixos-unstable yet.
+  # https://github.com/plantuml/plantuml/issues/3045
+  plantuml = prev.plantuml.overrideAttrs (prevAttrs: {
+    postPatch = prevAttrs.postPatch + ''
+      rm src/test/resources/vega/{stdlib,stdlib2}/azure/{azure_iot,azure_simple}.puml \
+        src/test/resources/vega/{stdlib,stdlib2}/osa2/example.puml
+    '';
+  });
+
   # nixpkgs carries a separate vendorHash per platform for scorecard, and the darwin one went
   # stale: the go module proxy no longer reproduces it, so the fixed-output go-modules derivation
   # fails before the build starts. The linux hash still matches, which is why hydra only reports
